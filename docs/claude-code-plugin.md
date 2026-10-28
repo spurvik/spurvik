@@ -1,8 +1,8 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Pre-release (0.1.0).** Describes `plugins/spurvik` (`0.1.0`, MIT) on `aegis-ai` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
+> **Pre-release (0.1.0).** Describes `plugins/spurvik` (`0.1.0`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 The Spurvik plugin in `plugins/spurvik` gives Claude Code three slash commands, one skill (`eu-ai-act-guardrails`), and a bundled local stdio MCP server (`bin/spurvik-mcp.mjs`). They help you find model calls in your code that are not wrapped yet, add `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, or `withSpurvikLangGraph`, and write a short engineering summary.
 
@@ -13,15 +13,15 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- `@spurvik/sdk`, `@spurvik/react` and `@spurvik/core` are private (`0.1.0`) and not on npm. Code that the commands add only runs once you have built and installed the SDK from the repository (see [5-minute quickstart](5-minute-quickstart.md)).
-- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` `0.1.0`, private and not published). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
+- Public MIT packages are live on npm as `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (inside the monorepo, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/core` use workspace version `0.1.0`; see [5-minute quickstart](5-minute-quickstart.md)).
+- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` `0.1.0` and published on npm as `spurvik-mcp-server@1.0.2` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
 
 ## Install
 
 Clone the public repository, then load or install `plugins/spurvik` from your local checkout:
 
 ```bash
-git clone https://github.com/spurvik/spurvik.git aegis-ai
+git clone https://github.com/spurvik/spurvik.git spurvik
 ```
 
 ### Option 1 — Install via the repository's local marketplace manifest (`.claude-plugin/marketplace.json`)
@@ -29,14 +29,14 @@ git clone https://github.com/spurvik/spurvik.git aegis-ai
 Inside Claude Code, add your local repository checkout as a marketplace catalog and install `spurvik@spurvik-marketplace`:
 
 ```text
-/plugin marketplace add /path/to/aegis-ai
+/plugin marketplace add /path/to/spurvik
 /plugin install spurvik@spurvik-marketplace
 ```
 
 ### Option 2 — Load directly for a single session (`--plugin-dir`)
 
 ```bash
-claude --plugin-dir /path/to/aegis-ai/plugins/spurvik
+claude --plugin-dir /path/to/spurvik/plugins/spurvik
 ```
 
 ### Website marketplace catalog (`docs/distribution/spurvik-com-marketplace.json`)

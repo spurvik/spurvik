@@ -1,6 +1,6 @@
 # Sub-processors
 
-Draft for Nathaniel's approval. Not a signed DPA. Generated from `apps/web/src/server/subprocessors.ts`. Source read on 2026-10-17.
+Draft for EyeTea Solutions ApS approval. Not a signed DPA. Generated from `apps/web/src/server/subprocessors.ts`. Source read on 2026-10-17.
 
 EyeTea Solutions ApS does not claim that customer data stays in the EU. No production host is configured in this repository.
 

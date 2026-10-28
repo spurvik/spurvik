@@ -5,8 +5,8 @@
 Each item must be done before any submission is opened:
 
 1. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The server stays local stdio only, private 0.1.0, with no hosted endpoint. No package is published. Other items below are still open before any directory submission.
-2. Nathaniel has approved publishing the npm packages himself. The packages are `@spurvik/sdk` and, if used, `@spurvik/mcp`. Both are private at 0.1.0 today.
-3. Nathaniel has approved making the repo reachable to installers himself, through a public repo or a public mirror. The public repository is https://github.com/spurvik/spurvik. The plugin tree is https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
+2. The owner has approved publishing the npm packages. The packages are `@spurvik/sdk` and, if used, `@spurvik/mcp`. Both are private at 0.1.0 today.
+3. The owner has approved making the repo reachable to installers, through a public repo or a public mirror. The public repository is https://github.com/spurvik/spurvik. The plugin tree is https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
 4. The site manifest is served and resolves.
 5. QA has passed the plugin.
 
@@ -176,16 +176,16 @@ Two transports exist in the product plan. Only the first is live today, and it i
 
 Smithery and Glama drafts should name the same HTTP URL and, after `@spurvik/mcp` is published, the local stdio package. Until then, write "private 0.1.0, not published" and do not submit either listing. The scan tool reports unwrapped LangGraph `StateGraph` and `interrupt()` calls.
 
-## 7. Nathaniel's Release-Day Submission Runbook
+## 7. EyeTea Solutions ApS Release-Day Submission Runbook
 
-Do this in order, and only when Nathaniel decides to publish `0.1.0` and open the directory submissions. The public repository is https://github.com/spurvik/spurvik.
+Do this in order, and only when the owner decides to publish `0.1.0` and open the directory submissions. The public repository is https://github.com/spurvik/spurvik.
 
-1. Keep every workspace package at `"version": "0.1.0"` until the publish commit. Leave `"private": true` until that commit removes it for the packages Nathaniel chooses to publish.
+1. Keep every workspace package at `"version": "0.1.0"` until the publish commit. Leave `"private": true` until that commit removes it for the packages the owner chooses to publish.
 2. Run `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm turbo test --force`.
 3. Run `node scripts/ci/no-default-keys.mjs`, `bash scripts/ci/no-default-keys.sh`, and `node --test scripts/ci/plugin-manifest.test.mjs`.
 4. Run `node packages/mcp/scripts/bundle-plugin.mjs --check` and `npm pack --dry-run` in `packages/core`, `packages/sdk`, `packages/react`, `packages/mcp`, and `packages/c2pa`.
 5. Confirm https://github.com/spurvik/spurvik/tree/main/plugins/spurvik shows `plugins/spurvik/LICENSE`.
-6. Publish the packages Nathaniel approves with `npm publish` from each package directory. Do not publish from a one-shot installer command.
+6. Publish the packages the owner approves with `npm publish` from each package directory. Do not publish from a one-shot installer command.
 7. Serve `https://spurvik.com/.claude-plugin/marketplace.json` from `docs/distribution/spurvik-com-marketplace.json`, and `https://spurvik.com/.well-known/mcp.json` for the console route.
 8. Submit, in this order: the Claude Code plugin directory web form, the Cursor directory, `hesreallyhim/awesome-claude-code` through its web form, `punkpeye/awesome-mcp-servers`, then the MCP Registry, Smithery, and Glama drafts in section 6.
 9. Stop if any precondition in the list at the top of this file is still open. **Draft, do not submit** until then.

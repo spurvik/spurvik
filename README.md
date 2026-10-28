@@ -14,7 +14,7 @@ Milestones 1–4, scoped to the EU market.
 | `packages/sdk` | `withSpurvik()` wrapper for OpenAI, Anthropic, and Gemini-shaped clients, `spurvikMiddleware()` for the Vercel AI SDK, plus Mastra, OpenAI Agents, and LangGraph adapters. |
 | `packages/react` | Always-visible Article 50 labels, in all 24 official EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
-| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Private. Not published. |
+| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `@spurvik/mcp` (`0.1.0`). |
 
 Features designed to support Article 12(3) logging for remote biometric identification systems (Annex III point 1(a); high-risk requirements apply from 2 December 2027) are in the control plane. Two-person confirmation is a product setting. It checks that two different member accounts confirmed the decision. Image marking support (`@spurvik/c2pa`) is a separate package under the MIT License. It stays private in this repository.
 
@@ -26,9 +26,22 @@ The full walkthrough, with expected output for every step, is in [`docs/quicksta
 
 Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.md`](docs/5-minute-quickstart.md), [`docs/sandbox-first-5-minutes.md`](docs/sandbox-first-5-minutes.md), [`docs/langgraph-quickstart.md`](docs/langgraph-quickstart.md), [`docs/hitl-approval-mapping.md`](docs/hitl-approval-mapping.md), [`docs/console-onboarding.md`](docs/console-onboarding.md), [`docs/adapters-quick-cards.md`](docs/adapters-quick-cards.md), [`docs/claude-code-plugin.md`](docs/claude-code-plugin.md), [`docs/faq-additions.md`](docs/faq-additions.md), [`docs/faq-sandbox-2x2.md`](docs/faq-sandbox-2x2.md), [`docs/faq-console-and-quickstart.md`](docs/faq-console-and-quickstart.md), [`docs/faq-hitl-and-plugin.md`](docs/faq-hitl-and-plugin.md), and [`docs/faq-art50-marking-and-pl-locale.md`](docs/faq-art50-marking-and-pl-locale.md).
 
-**Get the package.** `@spurvik/sdk` is not on npm, so `npm install @spurvik/sdk` returns 404. We will announce it here if and when it is published to npm. Use only the 0.1.0 packages you build from this repository. Do not install `@spurvik/sdk` from npm or from any URL, including `spurvik.com/sdk/latest.tgz`. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records. Build and pack the two packages (Node.js 22 or later, as in `engines`):
+**Get the package.** Install the live MIT packages from npm, or build the `0.1.0` workspace packages from a clone of https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+
+(a) npm:
 
 ```bash
+npm install spurvik@1.0.1 spurvik-sdk@1.0.1
+npm install spurvik-mcp-server@1.0.2
+```
+
+`spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Import those packages as `spurvik` or `spurvik-sdk`. The example below uses the workspace name `@spurvik/sdk`.
+
+(b) Workspace `0.1.0` from https://github.com/spurvik/spurvik (Node.js 22 or later, as in `engines`):
+
+```bash
+git clone https://github.com/spurvik/spurvik.git spurvik
+cd spurvik
 pnpm install
 pnpm --filter "@spurvik/sdk..." build
 mkdir -p ../spurvik-packs
@@ -297,20 +310,20 @@ The Annex IV file is a draft assembled from project fields and ledger counts. Se
 
 Spurvik helps a team implement technical measures that map to parts of Articles 12, 14, and 50 and to the Annex III / Article 50 product taxonomy. Using it does not make a system conformant. It does not perform a conformity assessment, issue an EU declaration of conformity, apply CE marking, run a quality management system, or register a system in the EU database. The Annex IV download is a draft. The risk wizard records your answers. It labels Article 5 practices Prohibited. It does not decide that a use is high-risk under Article 6.
 
-Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does not claim that data stays in the EU. Security headers, rate limits, and secret handling are in `THREAT_MODEL.md` and `SECURITY.md`. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Packages stay private until the trademark is filed; see `LICENSE` and `SPLIT.md`.
+Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does not claim that data stays in the EU. Security headers, rate limits, and secret handling are in `THREAT_MODEL.md` and `SECURITY.md`. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE` and `SPLIT.md`.
 
 ## Starters
 
-`templates/` and `integrations/` are 0.x starters. `@spurvik/sdk` is 0.1.0, private, and not on npm. The starters depend on it with `workspace:*`. Build them with `pnpm templates:build`.
+`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `0.1.0`; the public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
 
 `@spurvik/sdk/ai` exports `spurvikMiddleware` for the Vercel AI SDK (`ai` 7). Pass it to `wrapLanguageModel`. It logs the call and attaches an HMAC provenance receipt. It does not mark content. A marking hook is the caller's.
 
 | Piece | MCP setup |
 | --- | --- |
-| `packages/mcp` | `@spurvik/mcp` 0.1.0, `"private": true`, not published. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
+| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `0.1.0` in this monorepo. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
 | `plugins/spurvik` | Claude Code plugin. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
 
-`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Version 0.1.0. `"private": true`. Not published. It is a pre-release, and there is nothing to install from npm. Build it with `pnpm install` and then `pnpm --filter "@spurvik/mcp..." build`, and start `node packages/mcp/dist/index.js --root .`. Cursor and VS Code read `.cursor/mcp.json` and `.vscode/mcp.json`, which run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` also serves the stateless Streamable HTTP MCP route `/api/mcp`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
+`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `0.1.0` in this monorepo. Build the workspace package with `pnpm install` and then `pnpm --filter "@spurvik/mcp..." build`, and start `node packages/mcp/dist/index.js --root .`. Cursor and VS Code read `.cursor/mcp.json` and `.vscode/mcp.json`, which run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` also serves the stateless Streamable HTTP MCP route `/api/mcp`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
 
 ## Still open
 

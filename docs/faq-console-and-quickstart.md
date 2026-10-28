@@ -1,8 +1,8 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Pre-release (0.x).** Written for `aegis-ai` main at commit `e599000` (25 Oct 2026). Pre-release. Access by request. Planned prices at launch, excl. VAT. Not legal advice.
+> **Pre-release (0.x).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). Pre-release. Access by request. Planned prices at launch, excl. VAT. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai e599000).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ## Signup, Sandbox, and Keys
 
@@ -13,7 +13,7 @@ Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) 
 On `https://console.spurvik.com/signup`, account creation is gated by `SPURVIK_INVITE_CODE` and creates a console login (`users` row and `spurvik_session` cookie) only — it does not create an organisation or starter project. You get an organisation, project, and `spurvik_live_` key in one of two ways:
 
 1. **Hosted console (`/invites`):** An existing organisation `owner` or `admin` invites you from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`. Once you are an `owner` of an organisation, create a project on `/dashboard/projects` and mint a `spurvik_live_` key on the project page.
-2. **Local control plane (`pnpm db:seed`):** Running `pnpm db:migrate && pnpm db:seed` in `aegis-ai` creates a local `Demo Organization`, `owner` login, `Demo Project`, and prints a ready-to-use `spurvik_live_` key. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md).
+2. **Local control plane (`pnpm db:seed`):** Running `pnpm db:migrate && pnpm db:seed` in `spurvik` creates a local `Demo Organization`, `owner` login, `Demo Project`, and prints a ready-to-use `spurvik_live_` key. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md).
 
 ### 2. What is the difference between `spurvik_live_`, `spurvik_pub_`, `spurvik_reviewer_`, and `spurvik_invite_` tokens?
 
@@ -100,6 +100,6 @@ Even if you pass the `beacon` prop, `sendDisclosureBeacon` checks `beacon.consen
 
 ### 10. What is the difference between `@spurvik/react` `<AIDisclosureLabel />` and the `shadcn` registry components at `/r/eu-ai-act.json`?
 
-- **`@spurvik/react` (`packages/react` in `aegis-ai`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
+- **`@spurvik/react` (`packages/react` in `spurvik`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
 - **`https://spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik-ai-disclosure-label.tsx` (`{ model?, receipt?, label?, className? }`) and a sample `app/api/chat/route.ts` into your project.
 - **`https://console.spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik/ai-disclosure-badge.tsx` (`AiDisclosureBadge` with `{ systemName? }`) and `hooks/use-spurvik-receipt.ts` (`useSpurvikReceipt`, `readReceipt`) into your project.

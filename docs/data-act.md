@@ -1,6 +1,6 @@
 # Data Act switching information
 
-Draft for Nathaniel's approval before the first production customer, free or paid. This is pre-contract information for a hosted control plane. It is not a contract and it is not legal advice.
+Draft for EyeTea Solutions ApS approval before the first production customer, free or paid. This is pre-contract information for a hosted control plane. It is not a contract and it is not legal advice.
 
 EyeTea Solutions ApS, CVR 37093378, charges **no switching fee**. There is no early-termination charge for taking data out.
 

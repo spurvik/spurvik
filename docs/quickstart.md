@@ -1,12 +1,12 @@
 # Quickstart: wrap your first AI call with `withSpurvik`
 
-> **Applies to the pre-release (0.x) build on `aegis-ai` main at `427ae53` (through PR #21).** For a 5-minute monorepo walkthrough, see [5-minute-quickstart.md](5-minute-quickstart.md). To explore the zero-login 2x2 browser cockpit first, see [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
+> **Applies to the pre-release (0.x) build on `spurvik` main at `427ae53` (through PR #21).** For a 5-minute monorepo walkthrough, see [5-minute-quickstart.md](5-minute-quickstart.md). To explore the zero-login 2x2 browser cockpit first, see [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
 
 > **Not legal advice.** This guide describes what the software does; it does not assess your system. Ask your own legal counsel how the EU AI Act and other laws apply to you.
 >
 > **Licence.** `@spurvik/sdk`, `@spurvik/core`, `@spurvik/react`, and `@spurvik/c2pa` are licensed under the MIT License and are provided without warranty. The control plane in `apps/web` is not open source and is outside that grant: you may run it only under a design-partner or pilot agreement with EyeTea Solutions ApS.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 This guide takes you from nothing to a signed provenance record for one OpenAI call, and shows you how to check that record later. It takes about 20 minutes.
 
@@ -28,7 +28,7 @@ Using Spurvik does not, on its own, mean your system meets the Act. Ask your own
 | --- | --- |
 | Node.js 22 or later | The repository's `package.json` sets `"engines": { "node": ">=22" }`. This guide was tested on Node.js 22.23. |
 | pnpm 10 | Run `corepack enable` once. The repository pins its pnpm version. |
-| Read access to the `aegis-ai` repository | The SDK source lives there. Write to hello@spurvik.com about design-partner access. You receive the repository URL once a design-partner or pilot agreement is signed. |
+| Read access to the `spurvik` repository | The SDK source lives there. Write to hello@spurvik.com about design-partner access. You receive the repository URL once a design-partner or pilot agreement is signed. |
 | Docker, or PostgreSQL on port 5432 | Only for the local control plane in step 2. Docker Compose uses the `postgres:16` image. Without Docker, use your own PostgreSQL 16 or later (also tested on 17) and create the `aegis` role and database as shown in step 2. |
 | An OpenAI API key | Or use the mock server in [Optional: try it without an OpenAI key](#optional-try-it-without-an-openai-key). |
 
@@ -36,24 +36,29 @@ The commands below assume this layout, with every folder side by side:
 
 ```text
 workspace/
-  aegis-ai/         the Spurvik source (step 1)
+  spurvik/         the Spurvik source (step 1)
   spurvik-packs/    the two package files you build (step 1)
   my-ai-app/        your app (step 3)
 ```
 
 ## Step 1: Get the SDK (build it from source)
 
-`@spurvik/sdk` is **not on npm**. `npm install @spurvik/sdk` returns `404 Not Found`. We will announce it here if and when it is published to npm. Until then, build the two packages from the repository and install them as local package files.
-
-> **Use only the 0.1.0 packages you build from the `aegis-ai` repository.** Do not install `@spurvik/sdk` from npm or from any URL, including `spurvik.com/sdk/latest.tgz`. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records. Spurvik has not published any `@spurvik` package to npm.
-
-Replace `<repository-link>` with the repository link sent with your access.
-
-From your `workspace/` folder:
+Install the live MIT packages from npm:
 
 ```bash
-git clone <repository-link> aegis-ai
-cd aegis-ai
+npm install spurvik@1.0.1 spurvik-sdk@1.0.1
+npm install spurvik-mcp-server@1.0.2
+```
+
+`spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Source: https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/sdk` and `@spurvik/core` use workspace version `0.1.0`.
+
+> Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+
+Or build those `0.1.0` workspace packages from https://github.com/spurvik/spurvik. From your `workspace/` folder:
+
+```bash
+git clone https://github.com/spurvik/spurvik.git spurvik
+cd spurvik
 pnpm install
 pnpm --filter "@spurvik/sdk..." build
 mkdir -p ../spurvik-packs
@@ -70,7 +75,7 @@ spurvik-core-0.1.0.tgz
 spurvik-sdk-0.1.0.tgz
 ```
 
-You need **both** files. `@spurvik/sdk` lists `@spurvik/core` as a dependency, and npm cannot find `@spurvik/core` on the registry either.
+You need **both** workspace files when you pack `0.1.0` from the clone. `@spurvik/sdk` lists `@spurvik/core` as a workspace dependency. The public `spurvik` and `spurvik-sdk` packages already include that core code.
 
 ## Step 2: Run a local control plane and get your `spurvik_live_` key
 
@@ -79,7 +84,7 @@ You need **both** files. `@spurvik/sdk` lists `@spurvik/core` as a dependency, a
 > - **Hosted console (`https://console.spurvik.com`):** Pre-release and invite-gated (`/signup` requires `SPURVIK_INVITE_CODE` and claiming an organisation `spurvik_invite_…` token at `/invites`; see [console-onboarding.md](console-onboarding.md)).
 > - **Local control plane (walked below):** Keys come from your own `pnpm db:seed`, against the control plane you run locally.
 
-The SDK sends telemetry to a control plane that you run (`apps/web` in the same repository, or `https://console.spurvik.com` if you have a hosted workspace invite). `apps/web` is outside the MIT grant: run it only under a design-partner or pilot agreement (see **Licence** at the top). In a second terminal, from `workspace/aegis-ai`:
+The SDK sends telemetry to a control plane that you run (`apps/web` in the same repository, or `https://console.spurvik.com` if you have a hosted workspace invite). `apps/web` is outside the MIT grant: run it only under a design-partner or pilot agreement (see **Licence** at the top). In a second terminal, from `workspace/spurvik`:
 
 ```bash
 docker compose up -d
@@ -405,7 +410,7 @@ What to know before you switch it on:
 
 ## What happens when the control plane is unreachable
 
-The SDK never blocks or fails your model call because telemetry could not be delivered (except for `high_annex3`, below). The outcome for the telemetry event depends on how your process runs. This was tested on `aegis-ai` commit `a350ee2`. Up to main `0e9cc89`, the `packages/sdk` changes are the halt and release calls (PR #8) and the new `@spurvik/sdk/mastra` and `@spurvik/sdk/openai-agents` entry points (PR #7: new adapter files plus their package.json exports and build entries); the telemetry code is unchanged:
+The SDK never blocks or fails your model call because telemetry could not be delivered (except for `high_annex3`, below). The outcome for the telemetry event depends on how your process runs. This was tested on `spurvik` commit `a350ee2`. Up to main `0e9cc89`, the `packages/sdk` changes are the halt and release calls (PR #8) and the new `@spurvik/sdk/mastra` and `@spurvik/sdk/openai-agents` entry points (PR #7: new adapter files plus their package.json exports and build entries); the telemetry code is unchanged:
 
 | Situation | Model call | Provenance record | Telemetry event | `onTelemetryError` |
 | --- | --- | --- | --- | --- |

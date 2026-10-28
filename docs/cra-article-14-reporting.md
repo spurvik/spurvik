@@ -1,6 +1,6 @@
 # Cyber Resilience Act Article 14 reporting runbook
 
-**Draft for Nathaniel's approval.** Not legal advice. Not an operational procedure that has been used. EyeTea Solutions ApS is treated here as a manufacturer of the Spurvik packages, because it develops them and intends to monetise them through the control plane. It is not an open-source steward. The hosted control plane, standing alone, is a service. This runbook covers the packages and any control-plane function the packages need in order to perform a function.
+**Draft for EyeTea Solutions ApS approval.** Not legal advice. Not an operational procedure that has been used. EyeTea Solutions ApS is treated here as a manufacturer of the Spurvik packages, because it develops them and intends to monetise them through the control plane. It is not an open-source steward. The hosted control plane, standing alone, is a service. This runbook covers the packages and any control-plane function the packages need in order to perform a function.
 
 Article 14 reporting applies from 11 September 2026, so it applies at the 10 November 2026 launch. The other CRA obligations in this note apply from 11 December 2027 and are listed only so they are not forgotten. The single reporting platform's address is **not filled in**. Confirm it before relying on this draft.
 

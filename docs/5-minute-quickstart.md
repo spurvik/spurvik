@@ -1,6 +1,6 @@
 # 5-Minute Quickstart
 
-> Pre-release documentation (`aegis-ai` `427ae53`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 Go from a fresh clone or workspace invite to a signed provenance receipt (`record.signature`), an ingested telemetry event (`201 Created`), and a working human-oversight check in five minutes.
 
@@ -14,7 +14,7 @@ Before running commands, pick the path that matches what you have in front of yo
 | --- | --- | --- | --- |
 | **Path A: Public 2x2 sandbox cockpit** (`https://console.spurvik.com/sandbox`) | Anyone evaluating Spurvik in the browser before setting up keys | **No login or invite code required** (live in EU `fra1`, sets `0` cookies before sign-in) | Interactive 2x2 cockpit (`Badge Studio`, `Human Gate`, `Hash Vault`, `Obligations Map`), `<AIDisclosureLabel />` style switcher, simulated HMAC receipt & hash-chain blocks, and a copy action for `/api/mcp` and `/r/eu-ai-act.json`. See [First 5 Minutes in `console.spurvik.com/sandbox`](./sandbox-first-5-minutes.md). |
 | **Path B: Hosted console** (`https://console.spurvik.com`) | Pre-release teams with an access invite | **Yes** — `/signup` requires the pre-release `Invite code` (`SPURVIK_INVITE_CODE`) **and** an organisation owner must send you a workspace invite token (`spurvik_invite_...`) to claim at `/invites` | Hosted EU (`fra1`) control plane, organisation/project dashboard, live `spurvik_live_...` API keys, SIEM webhooks, and monthly quota tracking (`10,000` Free / `250,000` Pro / `2,000,000` Team events/month; pre-release planned prices at launch, excl. VAT). |
-| **Path C: Local control plane** (`http://localhost:3000`) | Developers running `aegis-ai` on their own machine with PostgreSQL | **No external invite required** — `pnpm db:seed` creates a local organisation, project, and `spurvik_live_...` key | Full local Next.js control plane + Drizzle/PostgreSQL database with pre-seeded `spurvik_live_...` and `spurvik_reviewer_...` tokens. |
+| **Path C: Local control plane** (`http://localhost:3000`) | Developers running `spurvik` on their own machine with PostgreSQL | **No external invite required** — `pnpm db:seed` creates a local organisation, project, and `spurvik_live_...` key | Full local Next.js control plane + Drizzle/PostgreSQL database with pre-seeded `spurvik_live_...` and `spurvik_reviewer_...` tokens. |
 
 > **Important note on hosted `/signup`:** Creating an account at `https://console.spurvik.com/signup` with the pre-release gate code creates your user session (`spurvik_session`), **not** a default organisation or project. Until an organisation owner invites you and you claim the `spurvik_invite_...` token at `https://console.spurvik.com/invites` (or you run Path C locally), `/dashboard` will show *"No project yet"* and `POST /api/projects` will return `401 Unauthorized`. See [Console Onboarding Guide](./console-onboarding.md) for the invite flow.
 
@@ -24,17 +24,17 @@ Before running commands, pick the path that matches what you have in front of yo
 
 - **Node.js** `>= 20.9.0` and **pnpm** `10.x` (`corepack enable`).
 - **PostgreSQL 15+** (required for Path C local control plane; optional if you already claimed a workspace invite on `https://console.spurvik.com` and created a `spurvik_live_...` key).
-- Access to the private `aegis-ai` monorepo (`@spurvik/core`, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/mcp` are version `0.1.0`, private, and not published on npm).
+- Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`, from https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/core`, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/mcp` use workspace version `0.1.0`.
 
 ---
 
 ## 1. Clone and Build the Monorepo (1 min)
 
-Clone the repository using the repository link sent with your access (`hello@spurvik.com`):
+Clone the public repository https://github.com/spurvik/spurvik:
 
 ```bash
-git clone <repository-link> aegis-ai
-cd aegis-ai
+git clone https://github.com/spurvik/spurvik.git spurvik
+cd spurvik
 pnpm install
 pnpm build
 ```

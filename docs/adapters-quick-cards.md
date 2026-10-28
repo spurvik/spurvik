@@ -1,12 +1,12 @@
 # Mastra & OpenAI Agents SDK — Adapter Quick-Cards
 
-> **Applies to:** `aegis-ai` `main` (`0e9cc89` / `d18dfba`, `@spurvik/sdk` `0.1.0` pre-release).
+> **Applies to:** `spurvik` `main` (`0e9cc89` / `d18dfba`, `@spurvik/sdk` `0.1.0` pre-release).
 >
-> **Status.** Pre-release. `@spurvik/sdk` is built from the private `aegis-ai` repository (`workspace:*`) and is not published on npm. Do not run `npm install @spurvik/sdk`.
+> **Status.** Public MIT packages: `spurvik@1.0.1` and `spurvik-sdk@1.0.1` from https://github.com/spurvik/spurvik. Workspace package `@spurvik/sdk` is `0.1.0` in the monorepo (`workspace:*`).
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. This is not legal advice.
 >
-> *Pre-release documentation (aegis-ai d18dfba).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 

@@ -1,8 +1,8 @@
 # FAQ — Human-Oversight Queue Mapping & Claude Code Plugin
 
-> **Pre-release.** Tested against `aegis-ai` `main` (`8e16fad`). Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
+> **Pre-release.** Tested against `spurvik` `main` (`8e16fad`). Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
@@ -48,18 +48,22 @@ See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 ---
 
-## 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir` during pre-release vs. after the repository is public?
+## 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-During pre-release, the repository is private and shared via the repository link sent with your access. Clone the repository and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
-1. **Local marketplace catalog (`.claude-plugin/marketplace.json` in the repo root):**
+```bash
+git clone https://github.com/spurvik/spurvik.git spurvik
+```
+
+1. **Option 1 — local marketplace catalog (`.claude-plugin/marketplace.json` in the repo root):**
    ```text
-   /plugin marketplace add /path/to/aegis-ai
+   /plugin marketplace add /path/to/spurvik
    /plugin install spurvik@spurvik-marketplace
    ```
-2. **Single-session flag (`--plugin-dir`):**
+2. **Option 2 — single-session flag (`--plugin-dir`):**
    ```bash
-   claude --plugin-dir /path/to/aegis-ai/plugins/spurvik
+   claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Once the source repository is made public at launch, Claude Code can fetch `plugins/spurvik` directly from that hosted catalog; while the repository is private during pre-release, use your local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.

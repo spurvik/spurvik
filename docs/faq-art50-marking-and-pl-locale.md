@@ -1,10 +1,10 @@
 # FAQ Additions — Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Disclosure Copy (Ruling D24), and LangGraph (`@spurvik/sdk/langgraph`)
 
-> **Applies to:** `aegis-ai` `main` (`8e16fad`, `@spurvik/sdk` `0.1.0`, `@spurvik/core` `0.1.0`, `@spurvik/react` `0.1.0`, and `@spurvik/mcp` `0.1.0` pre-release) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
+> **Applies to:** `spurvik` `main` (`8e16fad`, `@spurvik/sdk` `0.1.0`, `@spurvik/core` `0.1.0`, `@spurvik/react` `0.1.0`, and `@spurvik/mcp` `0.1.0` pre-release) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted — never why. Pre-release. Access by request. Planned prices at launch, excl. VAT. This is not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 

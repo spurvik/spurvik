@@ -1,8 +1,8 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> **Pre-release.** Describes human-oversight and tool-approval integration on `aegis-ai` `main` (`8e16fad`). `@spurvik/sdk` and `@spurvik/core` are private pre-release workspace packages (`0.1.0`) and are not published on npm. Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
+> **Pre-release.** Describes human-oversight and tool-approval integration on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk` and `@spurvik/core` use workspace version `0.1.0`). Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`finishReason` / `rawFinishReason === "interrupted"` and `tool-approval-request`), **OpenAI Agents SDK** (`needsApproval` and `RunState` interruptions), and **LangGraph** (`interrupt()` and `Command({ resume })`) to Spurvik's human-oversight queue (`hitl_approvals` and `/dashboard/projects/<projectId>/oversight`). For a dedicated LangGraph walkthrough, see [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md).
 

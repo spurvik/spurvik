@@ -1,6 +1,6 @@
 # @spurvik/mcp
 
-Local stdio MCP server for Cursor, VS Code, and other MCP clients. Version **0.1.0**. `"private": true`. Not published. Do not start it from a package registry.
+Local stdio MCP server for Cursor, VS Code, and other MCP clients. Workspace package `@spurvik/mcp` is version **0.1.0** and `"private": true`. Published on npm as `spurvik-mcp-server@1.0.2` (MIT), from https://github.com/spurvik/spurvik.
 
 It depends on `@spurvik/sdk` and `@spurvik/core` with `workspace:*`, and on `@modelcontextprotocol/sdk` 1.32.1. The tools are read-only. They do not call the Spurvik API or any other network.
 

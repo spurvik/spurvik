@@ -1,10 +1,10 @@
 # Console Onboarding Guide: Invites, Quotas, SIEM Webhooks, and `<AIDisclosureLabel />`
 
-> **Pre-release (0.x).** Written for `aegis-ai` main at commit `8e16fad` (25 Oct 2026). APIs and behaviour may change. Not legal advice.
+> **Pre-release (0.x).** Written for `spurvik` main at commit `8e16fad` (25 Oct 2026). APIs and behaviour may change. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
-This guide documents how the Spurvik console (`apps/web` in the repository and `https://console.spurvik.com`) and `@spurvik/react` work in `aegis-ai` at commit `e599000`:
+This guide documents how the Spurvik console (`apps/web` in the repository and `https://console.spurvik.com`) and `@spurvik/react` work in `spurvik` at commit `e599000`:
 
 1. **Invites and member management** (`/signup`, `/invites`, organisation roles, and the hash-chained member audit log)
 2. **Monthly event quotas and log retention** (`MONTHLY_EVENT_QUOTA`, response headers, `429` payloads, and Enterprise per-project caps)
@@ -19,7 +19,7 @@ Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks
 
 > **Pricing notice:** Pre-release. Access by request. Planned prices at launch, excl. VAT.
 
-| Area | Implemented in `aegis-ai` (`e599000`) & live console | Planned on hosted tiers |
+| Area | Implemented in `spurvik` (`e599000`) & live console | Planned on hosted tiers |
 |---|---|---|
 | **Public visual sandbox** | Live at `https://console.spurvik.com/sandbox` (EU `fra1`, no login or invite code required): Hash-Chain Diagram, Oversight Gate Diagram, and Obligations Radar. | Additional interactive walkthrough presets. |
 | **Account signup (`/signup`)** | Creates a `users` row and `spurvik_session` cookie (*"Console login only. No organisation and no project yet"*). Gated by `SPURVIK_INVITE_CODE` when that variable is set (`https://console.spurvik.com` requires an invite code; default local `.env.example` leaves it unset). | Self-serve organisation creation and self-serve plan checkout on `console.spurvik.com`. |
@@ -420,6 +420,6 @@ Spurvik also serves two zero-dependency `shadcn` registry JSON manifests for tea
 
 | Source | Install command | Installed files & props |
 |---|---|---|
-| **`@spurvik/react` package** (`packages/react` in `aegis-ai`) | `pnpm --filter @spurvik/react pack` (from source repo) | Full `<AIDisclosureLabel />` (`notice`, `presentation`, 24 EU `locale`s, `euIcon`, `beacon`, anti-hiding styles), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, `<EuMark />`. |
+| **`@spurvik/react` package** (`packages/react` in `spurvik`) | `pnpm --filter @spurvik/react pack` (from source repo) | Full `<AIDisclosureLabel />` (`notice`, `presentation`, 24 EU `locale`s, `euIcon`, `beacon`, anti-hiding styles), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, `<EuMark />`. |
 | **Marketing site registry** (`https://spurvik.com/r/eu-ai-act.json`) | `pnpm dlx shadcn@latest add https://spurvik.com/r/eu-ai-act.json` | Zero-dependency starter: `components/spurvik-ai-disclosure-label.tsx` (`AIDisclosureLabel` with `{ model?: string; receipt?: string; label?: string; className?: string }`) and `app/api/chat/route.ts`. |
 | **Console registry** (`https://console.spurvik.com/r/eu-ai-act.json`) | `pnpm dlx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json` | Zero-dependency starter: `components/spurvik/ai-disclosure-badge.tsx` (`AiDisclosureBadge` with `{ systemName?: string }`) and `hooks/use-spurvik-receipt.ts` (`useSpurvikReceipt`, `readReceipt`). |

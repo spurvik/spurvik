@@ -1,8 +1,8 @@
 # FAQ additions
 
-> **Pre-release.** Answers describe the pre-release build (`aegis-ai` main at `427ae53`, which includes PR #3, PR #4, PR #7, PR #8, PR #9, PR #11, PR #19, PR #20 and PR #21) and the spurvik.com pricing section as fetched on 25 Oct 2026. Not legal advice.
+> **Pre-release.** Answers describe the pre-release build (`spurvik` main at `427ae53`, which includes PR #3, PR #4, PR #7, PR #8, PR #9, PR #11, PR #19, PR #20 and PR #21) and the spurvik.com pricing section as fetched on 25 Oct 2026. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ## Pricing
 
@@ -25,13 +25,13 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ## What is not available yet
 
-### Can I install `@spurvik/sdk` from npm?
+### Can I install the SDK from npm?
 
-No. `@spurvik/sdk`, `@spurvik/core` and `@spurvik/react` are private and not on npm. You build them from the source repository shared with you and install the packed files. See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1`, and the local stdio MCP server is `spurvik-mcp-server@1.0.2`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `0.1.0`. See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
-There are starters for Lovable, Replit, v0 and a Next.js app in the repository's `templates/` folder, plus zero-dependency `shadcn` registry starters at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`. The full repository templates depend on the unpublished SDK, so they build inside the repository.
+There are starters for Lovable, Replit, v0 and a Next.js app in the repository's `templates/` folder, plus zero-dependency `shadcn` registry starters at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`. The full repository templates depend on the workspace packages at `0.1.0` (`workspace:*`), so they build inside the repository. The public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1`.
 
 ### Is there a hosted Spurvik service or dashboard?
 
@@ -41,7 +41,7 @@ The SDK has no hosted address built in: your code passes `baseUrl` explicitly. Y
 
 Yes, in two forms:
 
-- **Local stdio server (`packages/mcp`, version 0.1.0):** Built inside the repository (not published on npm) and bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
+- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.2` (MIT). The workspace package `@spurvik/mcp` stays at `0.1.0` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
 - **Stateless HTTP JSON-RPC endpoint (`/api/mcp`):** Exposed by `apps/web` (and live at `https://console.spurvik.com/api/mcp`, discovery manifest at `https://spurvik.com/.well-known/mcp.json`) with the same four read-only tools.
 
 ## Marking and Article 50
@@ -75,7 +75,7 @@ Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) 
 On `https://console.spurvik.com/signup`, account creation is gated by `SPURVIK_INVITE_CODE` and creates a console login (`users` row and `spurvik_session` cookie) only — it does not create an organisation or starter project. You get an organisation, project, and `spurvik_live_` key in one of two ways:
 
 1. **Hosted console (`/invites`):** An existing organisation `owner` or `admin` invites you from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`. Once you are an `owner` of an organisation, create a project on `/dashboard/projects` and mint a `spurvik_live_` key on the project page.
-2. **Local control plane (`pnpm db:seed`):** Running `pnpm db:migrate && pnpm db:seed` in `aegis-ai` creates a local `Demo Organization`, `owner` login, `Demo Project`, and prints a ready-to-use `spurvik_live_` key. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md).
+2. **Local control plane (`pnpm db:seed`):** Running `pnpm db:migrate && pnpm db:seed` in `spurvik` creates a local `Demo Organization`, `owner` login, `Demo Project`, and prints a ready-to-use `spurvik_live_` key. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md).
 
 ### 2. What is the difference between `spurvik_live_`, `spurvik_pub_`, `spurvik_reviewer_`, and `spurvik_invite_` tokens?
 
@@ -150,7 +150,7 @@ Even if you pass the `beacon` prop, `sendDisclosureBeacon` checks `beacon.consen
 
 ### 10. What is the difference between `@spurvik/react` `<AIDisclosureLabel />` and the `shadcn` registry components at `/r/eu-ai-act.json`?
 
-- **`@spurvik/react` (`packages/react` in `aegis-ai`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
+- **`@spurvik/react` (`packages/react` in `spurvik`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
 - **`https://spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik-ai-disclosure-label.tsx` (`{ model?, receipt?, label?, className? }`) and a sample `app/api/chat/route.ts` into your project.
 - **`https://console.spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik/ai-disclosure-badge.tsx` (`AiDisclosureBadge` with `{ systemName? }`) and `hooks/use-spurvik-receipt.ts` (`useSpurvikReceipt`, `readReceipt`) into your project.
 
@@ -254,21 +254,25 @@ Instead of polling with `requireHumanApproval` inside a short-lived serverless h
 See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 
-### 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir` during pre-release vs. after the repository is public?
+### 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-During pre-release, the repository is private and shared via the repository link sent with your access. Clone the repository and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
-1. **Local marketplace catalog (`.claude-plugin/marketplace.json` in the repo root):**
+```bash
+git clone https://github.com/spurvik/spurvik.git spurvik
+```
+
+1. **Option 1 — local marketplace catalog (`.claude-plugin/marketplace.json` in the repo root):**
    ```text
-   /plugin marketplace add /path/to/aegis-ai
+   /plugin marketplace add /path/to/spurvik
    /plugin install spurvik@spurvik-marketplace
    ```
-2. **Single-session flag (`--plugin-dir`):**
+2. **Option 2 — single-session flag (`--plugin-dir`):**
    ```bash
-   claude --plugin-dir /path/to/aegis-ai/plugins/spurvik
+   claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Once the source repository is made public at launch, Claude Code can fetch `plugins/spurvik` directly from that hosted catalog; while the repository is private during pre-release, use your local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
 
 ---
 

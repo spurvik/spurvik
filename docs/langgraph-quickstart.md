@@ -1,8 +1,8 @@
 # LangGraph Quickstart (`@spurvik/sdk/langgraph`, `@spurvik/sdk`, and `@spurvik/react`)
 
-> **Pre-release.** LangGraph quickstart on `aegis-ai` `main` (`8e16fad`). `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` are private pre-release workspace packages (`0.1.0`, MIT) and are not published on npm. The `apps/web` control plane is outside that grant. Designed to support Article 50(1) notices and, for high-risk systems, Article 12 record-keeping and Article 14 human oversight. The oversight record shows what happened, when, and who acted. Not legal advice.
+> **Pre-release.** LangGraph quickstart on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `0.1.0`, MIT). The `apps/web` control plane is outside that grant. Designed to support Article 50(1) notices and, for high-risk systems, Article 12 record-keeping and Article 14 human oversight. The oversight record shows what happened, when, and who acted. Not legal advice.
 >
-> *Pre-release documentation (aegis-ai 8e16fad).*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
@@ -19,13 +19,19 @@ In about 5 minutes, this guide walks through connecting a LangGraph (`@langchain
 
 ## 1. Prerequisites & Package Build
 
-`@spurvik/sdk/langgraph` uses a structural `LangGraphRunnableLike` type (`invoke(input, callOptions?)` and optional `stream(input, callOptions?)`) and does not import `@langchain/langgraph` at runtime. `@langchain/langgraph` (`^1.0.0`) is an optional peer dependency in your application.
+`@spurvik/sdk/langgraph` uses a structural `LangGraphRunnableLike` type (`invoke(input, callOptions?)` and optional `stream(input, callOptions?)`) and does not import `@langchain/langgraph` at runtime. `@langchain/langgraph` (`^1.0.0`) is an optional peer dependency in your application. The public packages expose the same subpath as `spurvik/langgraph` and `spurvik-sdk/langgraph`.
 
-Build the local packages from the public repository https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik):
+Install the live MIT packages first:
 
 ```bash
-git clone https://github.com/spurvik/spurvik.git aegis-ai
-cd aegis-ai
+npm install @langchain/langgraph spurvik@1.0.1 spurvik-sdk@1.0.1
+```
+
+Or build the `0.1.0` workspace tarballs from https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik):
+
+```bash
+git clone https://github.com/spurvik/spurvik.git spurvik
+cd spurvik
 pnpm install
 pnpm --filter @spurvik/core --filter @spurvik/sdk --filter @spurvik/react build
 ```

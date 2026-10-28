@@ -1,8 +1,8 @@
 # Troubleshooting
 
-> **Applies to the pre-release (0.x) build on `aegis-ai` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
+> **Applies to the pre-release (0.x) build on `spurvik` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
 
-Every entry below is an error or symptom we actually hit while testing [quickstart.md](quickstart.md) with Node.js 22.23 (the repository's `engines` field asks for Node 22 or later) and `openai` 7.42–7.43. Messages are copied from the terminal. The entries were first tested against the SDK built from `aegis-ai` main (commit `987ec86`). The [Starting the control plane](#starting-the-control-plane), [Telemetry and the control plane](#telemetry-and-the-control-plane) and [Streaming](#streaming) entries were tested against commit `a350ee2`. To see which commit you built from, run `git rev-parse --short HEAD` in your `aegis-ai` folder.
+Every entry below is an error or symptom we actually hit while testing [quickstart.md](quickstart.md) with Node.js 22.23 (the repository's `engines` field asks for Node 22 or later) and `openai` 7.42–7.43. Messages are copied from the terminal. The entries were first tested against the SDK built from `spurvik` main (commit `987ec86`). The [Starting the control plane](#starting-the-control-plane), [Telemetry and the control plane](#telemetry-and-the-control-plane) and [Streaming](#streaming) entries were tested against commit `a350ee2`. To see which commit you built from, run `git rev-parse --short HEAD` in your `spurvik` folder.
 
 Quick links:
 
@@ -25,11 +25,17 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not found
 ```
 
-**Cause:** `@spurvik/sdk` is not on npm. We will announce it here if and when it is published to npm.
+**Cause:** The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `0.1.0` in the monorepo.
 
-**Fix:** Build the packages from the `aegis-ai` repository and install the two `.tgz` files. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
+**Fix:** Install the public packages:
 
-Use only the 0.1.0 packages you build from `aegis-ai`. Do not install `@spurvik/sdk` from npm or from any URL, including `spurvik.com/sdk/latest.tgz`. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+```bash
+npm install spurvik@1.0.1 spurvik-sdk@1.0.1
+```
+
+Or build the `0.1.0` workspace packages from https://github.com/spurvik/spurvik. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
+
+Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records. The local stdio MCP server is `spurvik-mcp-server@1.0.2`.
 
 ### `npm error 404 … @spurvik%2fcore` when installing the SDK package file
 
@@ -38,7 +44,7 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fcore - Not found
 ```
 
-**Cause:** You installed `spurvik-sdk-0.1.0.tgz` on its own. The SDK depends on `@spurvik/core`, which is not on npm either.
+**Cause:** You installed the workspace `spurvik-sdk-0.1.0.tgz` on its own. That workspace package depends on `@spurvik/core` at `0.1.0`. The public `spurvik@1.0.1` and `spurvik-sdk@1.0.1` packages already include that core code.
 
 **Fix:** Install both package files in one command:
 
@@ -391,4 +397,4 @@ See [quickstart step 8](quickstart.md#step-8-streaming).
 
 ---
 
-Still stuck? Write to hello@spurvik.com with the exact error text, your Node.js version (`node --version`), and the `aegis-ai` commit you built from (`git rev-parse --short HEAD`).
+Still stuck? Write to hello@spurvik.com with the exact error text, your Node.js version (`node --version`), and the `spurvik` commit you built from (`git rev-parse --short HEAD`).

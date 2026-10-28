@@ -1,6 +1,6 @@
 # Spurvik for startups and SMEs: a plain-language guide
 
-> **Applies to the pre-release (0.x) build on `aegis-ai` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
+> **Applies to the pre-release (0.x) build on `spurvik` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
 
 This guide is for founders, small product teams and SMEs that build with AI models and do not have a Data Protection Officer or an in-house legal team. It explains what Spurvik does, what it does not do, how to get set up on day one, and what to hand to your advisor.
 
@@ -8,7 +8,7 @@ Spurvik is made by EyeTea Solutions ApS (CVR 37093378), Trekantområdet, Denmark
 
 > **Not legal advice.** Nothing in this guide tells you what the EU AI Act, the GDPR or any other law asks of your company. Spurvik is a technical tool designed to support your work on those questions. This guide describes what the software does; it does not assess your system. For what applies to you, ask your own legal counsel.
 >
-> *Pre-release documentation (aegis-ai 0e9cc89).* Dates and code behaviour may change.
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.* Dates and code behaviour may change.
 
 ## What Spurvik does
 
@@ -50,12 +50,12 @@ If you set `marking: { text: "signed-trailer" }`, the SDK appends the signed pro
 
 Plan for half a day with one developer. The [quickstart](quickstart.md) has every command.
 
-> **Use only the 0.1.0 packages you build from the `aegis-ai` repository.** Do not install `@spurvik/sdk` from npm or from any URL, including `spurvik.com/sdk/latest.tgz`. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+> **Public MIT release.** `npm install spurvik@1.0.1 spurvik-sdk@1.0.1` and `npm install spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Workspace packages `@spurvik/*` in this monorepo use version `0.1.0`. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 | # | Task | Who | Time |
 | --- | --- | --- | --- |
-| 1 | Ask for access to the `aegis-ai` repository at hello@spurvik.com. | Founder | 5 min |
-| 2 | Build the SDK from source. It is not on npm. ([quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source)) | Developer | 15 min |
+| 1 | Ask for access to the `spurvik` repository at hello@spurvik.com. | Founder | 5 min |
+| 2 | Install `spurvik@1.0.1` and `spurvik-sdk@1.0.1` from npm, or build the `0.1.0` workspace packages from https://github.com/spurvik/spurvik. ([quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source)) | Developer | 15 min |
 | 3 | Run the control plane locally and copy the `spurvik_live_` key it prints once. There is no hosted control plane yet; keys come from your own `pnpm db:seed`. Before the first start, set the two control-plane keys (`SPURVIK_LOG_CHECKPOINT_SECRET` and `SPURVIK_WEBHOOK_KEK`) in your own configuration: this build has no built-in defaults and will not start without them. The control plane (`apps/web`) is outside the MIT grant: run it only under a design-partner or pilot agreement. ([step 2](quickstart.md#step-2-run-a-local-control-plane-and-get-your-spurvik_live_-key)) | Developer | 20 min |
 | 4 | Create two secrets (signing and fingerprint) and store them in your password manager or secret manager. Decide who holds them. | Founder + developer | 10 min |
 | 5 | Wrap one AI call, run it, and check the record's signature. ([steps 5–6](quickstart.md#step-5-wrap-a-call-and-save-the-provenance-record)) | Developer | 30 min |
@@ -133,7 +133,7 @@ No. In the default `keyed` mode, prompts and outputs are turned into keyed HMAC 
 Your AI calls keep working, except with `riskTier: "high_annex3"`, where they stop on purpose before anything is sent to your model provider. In short scripts the telemetry event is lost. Your `onTelemetryError` handler is told, and the script still exits normally. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well. See [troubleshooting.md](troubleshooting.md#telemetry-and-the-control-plane).
 
 **Can I install it from npm?**
-No. Build it from the repository. We will announce it here if and when it is published to npm. Do not install `@spurvik/sdk` from npm or from `spurvik.com/sdk/latest.tgz`.
+Yes. Install `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Workspace packages `@spurvik/*` in this monorepo use version `0.1.0`. Builds previously served at spurvik.com/sdk/latest.tgz are unsupported.
 
 **Where is our data stored?**
 If you run the control plane yourself, the data goes to the PostgreSQL database you configure, in the region you choose. The SDK sends telemetry only to the `baseUrl` you set.
