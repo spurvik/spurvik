@@ -40,5 +40,19 @@
       "spurvik_explain_receipt",
       "spurvik_marking_hooks"
     ]
+  },
+  "homepage": "https://spurvik.com",
+  "repository": "https://github.com/spurvik/spurvik",
+  "documentation": "https://spurvik.com/docs",
+  "sandbox": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
+  "packages": {
+    "sdk": "spurvik@1.0.1",
+    "sdkAlias": "spurvik-sdk@1.0.1",
+    "mcpServer": "spurvik-mcp-server@1.0.2"
+  },
+  "autoDiscovery": {
+    "mcpRegistry": "https://github.com/spurvik/spurvik/blob/main/server.json",
+    "smithery": "https://github.com/spurvik/spurvik/blob/main/smithery.yaml",
+    "glama": "https://github.com/spurvik/spurvik/blob/main/glama.json"
   }
 }

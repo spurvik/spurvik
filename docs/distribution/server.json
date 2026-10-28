@@ -1,0 +1,102 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.spurvik/spurvik-mcp-server",
+  "title": "Spurvik",
+  "description": "EU AI Act Art. 50, 12 & 14 setup snippets, unwrapped-call scan, HMAC receipt & marking hooks.",
+  "version": "1.0.2",
+  "license": "MIT",
+  "websiteUrl": "https://spurvik.com/docs",
+  "sandboxUrl": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
+  "repository": {
+    "url": "https://github.com/spurvik/spurvik",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registry_type": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "registry_base_url": "https://registry.npmjs.org",
+      "identifier": "spurvik-mcp-server",
+      "name": "spurvik-mcp-server",
+      "version": "1.0.2",
+      "license": "MIT",
+      "sdkPackages": [
+        "spurvik@1.0.1",
+        "spurvik-sdk@1.0.1"
+      ],
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--root",
+          "description": "Project workspace root directory to scan (must contain package.json, .git, or pnpm-workspace.yaml).",
+          "isRequired": false,
+          "default": "."
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "SPURVIK_MCP_ROOT",
+          "description": "Optional workspace root path for static unwrapped-call scans when --root is not passed.",
+          "isRequired": false,
+          "isSecret": false,
+          "placeholder": "/path/to/your-project"
+        },
+        {
+          "name": "SPURVIK_API_KEY",
+          "description": "Optional Spurvik API key (spurvik_live_...) for project-linked telemetry with console.spurvik.com.",
+          "isRequired": false,
+          "isSecret": true,
+          "placeholder": "spurvik_live_..."
+        },
+        {
+          "name": "SPURVIK_HMAC_SECRET",
+          "description": "Optional server-side HMAC-SHA256 signing secret (>= 16 chars) for local receipt inspection.",
+          "isRequired": false,
+          "isSecret": true,
+          "placeholder": "your-server-side-hmac-secret-min-16-chars"
+        }
+      ],
+      "environment_variables": [
+        {
+          "name": "SPURVIK_MCP_ROOT",
+          "description": "Optional workspace root path for static unwrapped-call scans when --root is not passed.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "SPURVIK_API_KEY",
+          "description": "Optional Spurvik API key (spurvik_live_...) for project-linked telemetry with console.spurvik.com.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "SPURVIK_HMAC_SECRET",
+          "description": "Optional server-side HMAC-SHA256 signing secret (>= 16 chars) for local receipt inspection.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "transport_type": "streamable-http",
+      "url": "https://console.spurvik.com/api/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 4 read-only tools).",
+          "isRequired": false,
+          "isSecret": true,
+          "placeholder": "Bearer spurvik_live_..."
+        }
+      ]
+    }
+  ]
+}

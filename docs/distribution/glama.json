@@ -1,0 +1,22 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": [
+    "spurvik"
+  ],
+  "name": "spurvik-mcp-server",
+  "version": "1.0.2",
+  "license": "MIT",
+  "homepage": "https://spurvik.com/docs",
+  "repository": "https://github.com/spurvik/spurvik",
+  "sandboxUrl": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
+  "remoteEndpoint": {
+    "url": "https://console.spurvik.com/api/mcp",
+    "transport": "streamable-http",
+    "protocolVersion": "2025-06-18"
+  },
+  "npm": {
+    "mcpServer": "spurvik-mcp-server@1.0.2",
+    "sdk": "spurvik@1.0.1",
+    "sdkAlias": "spurvik-sdk@1.0.1"
+  }
+}
