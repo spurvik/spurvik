@@ -1,6 +1,6 @@
 {
   "name": "@spurvik/mcp",
-  "version": "0.1.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, and marking-hook notes.",

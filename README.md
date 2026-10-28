@@ -14,7 +14,7 @@ Milestones 1–4, scoped to the EU market.
 | `packages/sdk` | `withSpurvik()` wrapper for OpenAI, Anthropic, and Gemini-shaped clients, `spurvikMiddleware()` for the Vercel AI SDK, plus Mastra, OpenAI Agents, and LangGraph adapters. |
 | `packages/react` | Always-visible Article 50 labels, in all 24 official EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
-| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `@spurvik/mcp` (`0.1.0`). |
+| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `@spurvik/mcp` (`1.0.2`). |
 
 Features designed to support Article 12(3) logging for remote biometric identification systems (Annex III point 1(a); high-risk requirements apply from 2 December 2027) are in the control plane. Two-person confirmation is a product setting. It checks that two different member accounts confirmed the decision. Image marking support (`@spurvik/c2pa`) is a separate package under the MIT License. It stays private in this repository.
 
@@ -26,7 +26,7 @@ The full walkthrough, with expected output for every step, is in [`docs/quicksta
 
 Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.md`](docs/5-minute-quickstart.md), [`docs/sandbox-first-5-minutes.md`](docs/sandbox-first-5-minutes.md), [`docs/langgraph-quickstart.md`](docs/langgraph-quickstart.md), [`docs/hitl-approval-mapping.md`](docs/hitl-approval-mapping.md), [`docs/console-onboarding.md`](docs/console-onboarding.md), [`docs/adapters-quick-cards.md`](docs/adapters-quick-cards.md), [`docs/claude-code-plugin.md`](docs/claude-code-plugin.md), [`docs/faq-additions.md`](docs/faq-additions.md), [`docs/faq-sandbox-2x2.md`](docs/faq-sandbox-2x2.md), [`docs/faq-console-and-quickstart.md`](docs/faq-console-and-quickstart.md), [`docs/faq-hitl-and-plugin.md`](docs/faq-hitl-and-plugin.md), and [`docs/faq-art50-marking-and-pl-locale.md`](docs/faq-art50-marking-and-pl-locale.md).
 
-**Get the package.** Install the live MIT packages from npm, or build the `0.1.0` workspace packages from a clone of https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+**Get the package.** Install the live MIT packages from npm, or build the `1.0.1` workspace packages from a clone of https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 (a) npm:
 
@@ -37,7 +37,7 @@ npm install spurvik-mcp-server@1.0.2
 
 `spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Import those packages as `spurvik` or `spurvik-sdk`. The example below uses the workspace name `@spurvik/sdk`.
 
-(b) Workspace `0.1.0` from https://github.com/spurvik/spurvik (Node.js 22 or later, as in `engines`):
+(b) Workspace `1.0.1` from https://github.com/spurvik/spurvik (Node.js 22 or later, as in `engines`):
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik
@@ -53,7 +53,7 @@ In your app (an ES module project, because the example uses top-level `await`):
 
 ```bash
 npm pkg set type=module
-npm install openai ../spurvik-packs/spurvik-core-0.1.0.tgz ../spurvik-packs/spurvik-sdk-0.1.0.tgz
+npm install openai ../spurvik-packs/spurvik-core-1.0.1.tgz ../spurvik-packs/spurvik-sdk-1.0.1.tgz
 ```
 
 **Wrap a call and check the record:**
@@ -92,7 +92,7 @@ await ai._spurvik.shutdown(); // scripts: send queued telemetry before exit
 
 `baseUrl` is the control plane you run. In production the SDK throws if it is omitted. Development and tests still default to `http://127.0.0.1:43123`.
 
-**If the control plane is unreachable,** the wrapped model call still succeeds and returns its record (except for `high_annex3`, which fails closed). In a short script the telemetry event is lost: `onTelemetryError` is called once, `await shutdown()` returns, and the process exits with code 0. A long-running process calls `onTelemetryError` once. In this pre-release build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. With `high_annex3`, a halt check that times out throws `SpurvikOversightTimeoutError` (a `SpurvikHaltedError`), while an error response from the control plane throws `SpurvikApiError`, an API error that is a `SpurvikError`, not a `SpurvikHaltedError`; in both cases the provider is not called. See `docs/troubleshooting.md`. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
+**If the control plane is unreachable,** the wrapped model call still succeeds and returns its record (except for `high_annex3`, which fails closed). In a short script the telemetry event is lost: `onTelemetryError` is called once, `await shutdown()` returns, and the process exits with code 0. A long-running process calls `onTelemetryError` once. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. With `high_annex3`, a halt check that times out throws `SpurvikOversightTimeoutError` (a `SpurvikHaltedError`), while an error response from the control plane throws `SpurvikApiError`, an API error that is a `SpurvikError`, not a `SpurvikHaltedError`; in both cases the provider is not called. See `docs/troubleshooting.md`. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
 
 `article50Disclosure` defaults to false. Set it to true only when you state that an Article 50(1) interaction notice is shown. The flag is configuration. It is not a finding that the notice was shown or that it is sufficient.
 
@@ -121,7 +121,7 @@ Article 12 (record-keeping) and Article 11 with Annex IV (technical documentatio
 | [FAQ: console and quickstart](docs/faq-console-and-quickstart.md) | Signup, keys, and the 5-minute path. |
 | [FAQ: HITL and plugin](docs/faq-hitl-and-plugin.md) | Tool approvals, checkpoint pause/resume, and Claude Code plugin install. |
 | [FAQ: Art. 50(2) marking and Polish locale](docs/faq-art50-marking-and-pl-locale.md) | Art. 50(2) marking ahead of 2 December 2026 (Art. 111(4)), Polish `locale="pl"` copy (Ruling D24), and LangGraph. |
-| [Claude Code submission draft](docs/distribution/claude-code-submission.md) | Pre-release draft. Do not submit. |
+| [Claude Code submission draft](docs/distribution/claude-code-submission.md) | staged draft. Do not submit. |
 | [Website marketplace manifest](docs/distribution/spurvik-com-marketplace.json) | Staged website marketplace manifest for `spurvik.com/.claude-plugin/marketplace.json`. |
 
 ## Provenance is not Article 50(2) marking
@@ -314,16 +314,16 @@ Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does no
 
 ## Starters
 
-`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `0.1.0`; the public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
+`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `1.0.1`; the public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
 
 `@spurvik/sdk/ai` exports `spurvikMiddleware` for the Vercel AI SDK (`ai` 7). Pass it to `wrapLanguageModel`. It logs the call and attaches an HMAC provenance receipt. It does not mark content. A marking hook is the caller's.
 
 | Piece | MCP setup |
 | --- | --- |
-| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `0.1.0` in this monorepo. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
-| `plugins/spurvik` | Claude Code plugin. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
+| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this monorepo. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
+| `plugins/spurvik` | Claude Code plugin. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
 
-`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `0.1.0` in this monorepo. Build the workspace package with `pnpm install` and then `pnpm --filter "@spurvik/mcp..." build`, and start `node packages/mcp/dist/index.js --root .`. Cursor and VS Code read `.cursor/mcp.json` and `.vscode/mcp.json`, which run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 0.1.0 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` also serves the stateless Streamable HTTP MCP route `/api/mcp`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
+`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this monorepo. Build the workspace package with `pnpm install` and then `pnpm --filter "@spurvik/mcp..." build`, and start `node packages/mcp/dist/index.js --root .`. Cursor and VS Code read `.cursor/mcp.json` and `.vscode/mcp.json`, which run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` also serves the stateless Streamable HTTP MCP route `/api/mcp`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
 
 ## Still open
 
@@ -332,4 +332,4 @@ Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does no
 - **Article 5.** Prohibited practices are not a risk-tier value. The wizard shows an SDK setup when the answers produce a tier. It shows "No SDK setup is offered for this answer set." when the answers are Prohibited or outside the EU. An unanswered form shows neither. The wizard does not block a caller who ignores it.
 - **Annex I.** Product-embedded systems follow 2 August 2028 and are not a separate tier.
 - **Shared limits.** The ingestion rate limit and the halt SSE bus are single-process.
-- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`, as scoped in `NOTICE`. Starter folders under `templates/` and `integrations/` carry the same MIT text. Those workspace packages and starters stay `"private": true` at `0.1.0`. `apps/web` is outside that grant. See `SPLIT.md`.
+- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`, as scoped in `NOTICE`. Starter folders under `templates/` and `integrations/` carry the same MIT text. Those workspace packages and starters stay `"private": true` at `1.0.1`. `apps/web` is outside that grant. See `SPLIT.md`.

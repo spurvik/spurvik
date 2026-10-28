@@ -1,6 +1,6 @@
 # @spurvik/mcp
 
-Local stdio MCP server for Cursor, VS Code, and other MCP clients. Workspace package `@spurvik/mcp` is version **0.1.0** and `"private": true`. Published on npm as `spurvik-mcp-server@1.0.2` (MIT), from https://github.com/spurvik/spurvik.
+Local stdio MCP server for Cursor, VS Code, and other MCP clients. Workspace package `@spurvik/mcp` is version **1.0.2** and `"private": true`. Published on npm as `spurvik-mcp-server@1.0.2` (MIT), from https://github.com/spurvik/spurvik.
 
 It depends on `@spurvik/sdk` and `@spurvik/core` with `workspace:*`, and on `@modelcontextprotocol/sdk` 1.32.1. The tools are read-only. They do not call the Spurvik API or any other network.
 
@@ -40,7 +40,7 @@ Explain how to plug your own Article 50(2) marking into marking.text or marking.
 
 ## Claude Code plugin
 
-`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `@spurvik/mcp` 0.1.0 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
+`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `@spurvik/mcp` 1.0.2 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
 
 ## Cursor
 

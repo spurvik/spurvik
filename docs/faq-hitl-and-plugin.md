@@ -1,6 +1,6 @@
 # FAQ — Human-Oversight Queue Mapping & Claude Code Plugin
 
-> **Pre-release.** Tested against `spurvik` `main` (`8e16fad`). Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
+> **.** Tested against `spurvik` `main` (`8e16fad`). Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -66,4 +66,4 @@ git clone https://github.com/spurvik/spurvik.git spurvik
    claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.2"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.

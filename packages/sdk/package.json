@@ -1,6 +1,6 @@
 {
   "name": "@spurvik/sdk",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Runtime wrapper that supports EU AI Act record-keeping, human oversight, and transparency work.",

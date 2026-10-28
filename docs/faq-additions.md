@@ -1,6 +1,6 @@
 # FAQ additions
 
-> **Pre-release.** Answers describe the pre-release build (`spurvik` main at `427ae53`, which includes PR #3, PR #4, PR #7, PR #8, PR #9, PR #11, PR #19, PR #20 and PR #21) and the spurvik.com pricing section as fetched on 25 Oct 2026. Not legal advice.
+> **.** Answers describe the  build (`spurvik` main at `427ae53`, which includes PR #3, PR #4, PR #7, PR #8, PR #9, PR #11, PR #19, PR #20 and PR #21) and the spurvik.com pricing section as fetched on 25 Oct 2026. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -8,7 +8,7 @@
 
 ### What does Spurvik cost?
 
-Pre-release. Access by request. Planned prices at launch, excl. VAT. Spurvik is for businesses only (B2B).
+B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Spurvik is for businesses only (B2B).
 
 | Plan | Price | Monthly `model_call` quota per project |
 | --- | --- | --- |
@@ -27,11 +27,11 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ### Can I install the SDK from npm?
 
-Yes. The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1`, and the local stdio MCP server is `spurvik-mcp-server@1.0.2`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `0.1.0`. See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1`, and the local stdio MCP server is `spurvik-mcp-server@1.0.2`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `1.0.1`. See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
-There are starters for Lovable, Replit, v0 and a Next.js app in the repository's `templates/` folder, plus zero-dependency `shadcn` registry starters at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`. The full repository templates depend on the workspace packages at `0.1.0` (`workspace:*`), so they build inside the repository. The public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1`.
+There are starters for Lovable, Replit, v0 and a Next.js app in the repository's `templates/` folder, plus zero-dependency `shadcn` registry starters at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`. The full repository templates depend on the workspace packages at `1.0.1` (`workspace:*`), so they build inside the repository. The public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1`.
 
 ### Is there a hosted Spurvik service or dashboard?
 
@@ -41,7 +41,7 @@ The SDK has no hosted address built in: your code passes `baseUrl` explicitly. Y
 
 Yes, in two forms:
 
-- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.2` (MIT). The workspace package `@spurvik/mcp` stays at `0.1.0` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
+- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.2` (MIT). The workspace package `@spurvik/mcp` stays at `1.0.2` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
 - **Stateless HTTP JSON-RPC endpoint (`/api/mcp`):** Exposed by `apps/web` (and live at `https://console.spurvik.com/api/mcp`, discovery manifest at `https://spurvik.com/.well-known/mcp.json`) with the same four read-only tools.
 
 ## Marking and Article 50
@@ -120,7 +120,7 @@ Monthly quotas (`MONTHLY_EVENT_QUOTA`, per project per UTC calendar month) count
 - **Team / Business:** `2,000,000` `model_call` events / UTC month (90-day default retention on Team, 365-day on Business; planned Team price €79/mo or €790/yr, excl. VAT)
 - **Enterprise:** Custom per-project cap (`0..2,000,000,000`) or `unlimited` (`null`), configurable by an `owner` under **Monthly events** (planned price from €499/mo, excl. VAT)
 
-*(Pre-release. Access by request. Planned prices at launch, excl. VAT.)*
+*(B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.)*
 
 Duplicate `eventId`s (`duplicates`), `chain_gap` rows, `human_decision` rows, `oversight` rows, and `member_audit` events do not increment the counter. Every `POST /api/v1/telemetry` response that reaches quota evaluation includes `x-spurvik-monthly-quota-limit`, `x-spurvik-monthly-quota-remaining`, and `x-spurvik-monthly-quota-reset`. If `used + incoming > quota`, the entire batch is rejected (0 rows from that request are written) and the endpoint returns HTTP `429` with `{ "error": "monthly_quota_exceeded", "plan", "quota", "used", "resetAt" }`.
 
@@ -193,7 +193,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 - **`40% Free`:** Shown when the `With Spurvik` switch in Card 1 is toggled off (`Without Spurvik`).
 - **`55%` to `70%`:** Starts at `55%` when `With Spurvik` is on, adding `+5%` for each active toggle in Card 4 (`User Chat · Art. 50(1)`, `Media Gen · Art. 50(2)`, `High-Risk Actions · Art. 12/14` → `70%` when all three are on). Recording a `Human Gate` decision adds `+4%`, and clicking `Fire Test AI Call` adds `+4%` (capped at `75%` when fewer than three toggles are on).
 - **`100% Pro €19/mo`:** Shown when you click **`Preview Pro`** in Card 4, or when all three obligation toggles are on and you trigger a `Human Gate` decision (which also appends a receipt block).
-- The ring previews feature coverage inside the sandbox UI (with planned tier pricing at launch: Free `€0/mo`, Pro `€19/mo` or `€190/yr`, Team `€79/mo` or `€790/yr`, Enterprise from `€499/mo`; Pre-release. Access by request. Planned prices at launch, excl. VAT.). It is not a legal assessment or a measure of whether your system meets the EU AI Act.
+- The ring previews feature coverage inside the sandbox UI (with planned tier pricing at launch: Free `€0/mo`, Pro `€19/mo` or `€190/yr`, Team `€79/mo` or `€790/yr`, Enterprise from `€499/mo`; B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.). It is not a legal assessment or a measure of whether your system meets the EU AI Act.
 
 ### 15. Why does `pnpm dev`, `pnpm db:migrate`, or `pnpm db:seed` fail with `SPURVIK_WEBHOOK_KEK must be 32 bytes` or `500 Internal Server Error` even after I fixed `apps/web/.env`?
 
@@ -272,7 +272,7 @@ git clone https://github.com/spurvik/spurvik.git spurvik
    claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.2"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
 
 ---
 
@@ -302,7 +302,7 @@ Spurvik separates call provenance and UI disclosure from content marking:
   - Spurvik **does not mark content itself** (it does not embed pixel, audio, or video watermarks or C2PA manifests into generated files, and it does not make any system meet the EU AI Act).
   - Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
   - **Why an API receipt or database log alone is not Article 50(2) marking:** A JSON field attached to an SDK return value (`_spurvik_provenance` or `providerMetadata.spurvik`) or stored in a telemetry database does not travel with exported text, images, audio, or video once the response object is discarded. The voluntary Commission Code of Practice on marking and labelling of AI-generated content (10 June 2026, section 1.1.3) also notes that relying on fingerprinting or logging alone is not sufficient for content marking.
-  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the pre-release `@spurvik/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `@spurvik/c2pa` for production deployments.
+  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the  `@spurvik/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `@spurvik/c2pa` for production deployments.
 
 
 ### 23. How do I plug a custom marking hook into `config.marking` (`TextMarkingHook`, `MediaMarkingHook`, `signed-trailer`), and what do `markingApplied` and `evidenceTrailerAttached` record?

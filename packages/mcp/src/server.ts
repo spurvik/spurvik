@@ -30,7 +30,7 @@ function text(value: string): { content: [{ type: "text"; text: string }] } {
   return { content: [{ type: "text", text: value }] };
 }
 
-/** Version advertised on initialize. Reads the package next to the built entry, otherwise 0.1.0. */
+/** Version advertised on initialize. Reads the package next to the built entry, otherwise 1.0.2. */
 function serverVersion(): string {
   try {
     const here = dirname(fileURLToPath(import.meta.url));
@@ -38,9 +38,9 @@ function serverVersion(): string {
     const parsed = JSON.parse(raw) as { version?: unknown };
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "0.1.0";
+    return "1.0.2";
   }
-  return "0.1.0";
+  return "1.0.2";
 }
 
 /** Stdio MCP server. Tools are read-only and do not call the network. */

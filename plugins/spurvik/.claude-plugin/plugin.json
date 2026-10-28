@@ -1,7 +1,7 @@
 {
   "name": "spurvik",
   "displayName": "Spurvik",
-  "version": "0.1.0",
+  "version": "1.0.2",
   "description": "Commands and a skill covering withSpurvik for OpenAI, Anthropic, and Google GenAI clients, spurvikMiddleware for the Vercel AI SDK, withSpurvikMastra for Mastra, withSpurvikModelProvider for OpenAI Agents, and withSpurvikLangGraph for LangGraph. Designed to support Art. 50 notices and, for high-risk AI systems, Art. 12 record-keeping and Art. 14 human oversight.",
   "author": {
     "name": "EyeTea Solutions ApS",

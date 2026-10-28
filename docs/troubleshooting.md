@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> **Applies to the pre-release (0.x) build on `spurvik` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
+> **Applies to the 1.0.1 build on `spurvik` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
 
 Every entry below is an error or symptom we actually hit while testing [quickstart.md](quickstart.md) with Node.js 22.23 (the repository's `engines` field asks for Node 22 or later) and `openai` 7.42–7.43. Messages are copied from the terminal. The entries were first tested against the SDK built from `spurvik` main (commit `987ec86`). The [Starting the control plane](#starting-the-control-plane), [Telemetry and the control plane](#telemetry-and-the-control-plane) and [Streaming](#streaming) entries were tested against commit `a350ee2`. To see which commit you built from, run `git rev-parse --short HEAD` in your `spurvik` folder.
 
@@ -25,7 +25,7 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not found
 ```
 
-**Cause:** The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `0.1.0` in the monorepo.
+**Cause:** The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `1.0.1` in the monorepo.
 
 **Fix:** Install the public packages:
 
@@ -33,7 +33,7 @@ npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not fo
 npm install spurvik@1.0.1 spurvik-sdk@1.0.1
 ```
 
-Or build the `0.1.0` workspace packages from https://github.com/spurvik/spurvik. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
+Or build the `1.0.1` workspace packages from https://github.com/spurvik/spurvik. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
 
 Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records. The local stdio MCP server is `spurvik-mcp-server@1.0.2`.
 
@@ -44,12 +44,12 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fcore - Not found
 ```
 
-**Cause:** You installed the workspace `spurvik-sdk-0.1.0.tgz` on its own. That workspace package depends on `@spurvik/core` at `0.1.0`. The public `spurvik@1.0.1` and `spurvik-sdk@1.0.1` packages already include that core code.
+**Cause:** You installed the workspace `spurvik-sdk-1.0.1.tgz` on its own. That workspace package depends on `@spurvik/core` at `1.0.1`. The public `spurvik@1.0.1` and `spurvik-sdk@1.0.1` packages already include that core code.
 
 **Fix:** Install both package files in one command:
 
 ```bash
-npm install openai ../spurvik-packs/spurvik-core-0.1.0.tgz ../spurvik-packs/spurvik-sdk-0.1.0.tgz
+npm install openai ../spurvik-packs/spurvik-core-1.0.1.tgz ../spurvik-packs/spurvik-sdk-1.0.1.tgz
 ```
 
 ### `Error: EACCES: permission denied, mkdir '/usr/local/share/corepack/v1'` when running `pnpm`
@@ -232,7 +232,7 @@ Spurvik telemetry was not delivered: fetch failed
 | Answers, but is not a Spurvik control plane (for example an HTML page) | `SpurvikApiError` | `Control plane response had no data.` | about 3 s |
 | Accepts the connection but never answers | `TimeoutError` | `The telemetry flush timed out.` | about 8 s |
 
-**The telemetry event for that call is lost when the script ends.** The provenance record returned to your code is unaffected, and its signature still checks. In this pre-release build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. The exit code does not tell you that telemetry failed. Only `onTelemetryError` does, so do not leave it out.
+**The telemetry event for that call is lost when the script ends.** The provenance record returned to your code is unaffected, and its signature still checks. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. The exit code does not tell you that telemetry failed. Only `onTelemetryError` does, so do not leave it out.
 
 What to do:
 

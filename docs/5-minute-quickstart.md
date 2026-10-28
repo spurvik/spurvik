@@ -13,10 +13,10 @@ Before running commands, pick the path that matches what you have in front of yo
 | Path | Who it is for | Login / Invite required? | What you get |
 | --- | --- | --- | --- |
 | **Path A: Public 2x2 sandbox cockpit** (`https://console.spurvik.com/sandbox`) | Anyone evaluating Spurvik in the browser before setting up keys | **No login or invite code required** (live in EU `fra1`, sets `0` cookies before sign-in) | Interactive 2x2 cockpit (`Badge Studio`, `Human Gate`, `Hash Vault`, `Obligations Map`), `<AIDisclosureLabel />` style switcher, simulated HMAC receipt & hash-chain blocks, and a copy action for `/api/mcp` and `/r/eu-ai-act.json`. See [First 5 Minutes in `console.spurvik.com/sandbox`](./sandbox-first-5-minutes.md). |
-| **Path B: Hosted console** (`https://console.spurvik.com`) | Pre-release teams with an access invite | **Yes** — `/signup` requires the pre-release `Invite code` (`SPURVIK_INVITE_CODE`) **and** an organisation owner must send you a workspace invite token (`spurvik_invite_...`) to claim at `/invites` | Hosted EU (`fra1`) control plane, organisation/project dashboard, live `spurvik_live_...` API keys, SIEM webhooks, and monthly quota tracking (`10,000` Free / `250,000` Pro / `2,000,000` Team events/month; pre-release planned prices at launch, excl. VAT). |
+| **Path B: Hosted console** (`https://console.spurvik.com`) | Teams with an access invite | **Yes** — `/signup` requires the `Invite code` (`SPURVIK_INVITE_CODE`) **and** an organisation owner must send you a workspace invite token (`spurvik_invite_...`) to claim at `/invites` | Hosted EU (`fra1`) control plane, organisation/project dashboard, live `spurvik_live_...` API keys, SIEM webhooks, and monthly quota tracking (`10,000` Free / `250,000` Pro / `2,000,000` Team events/month; B2B subscription pricing, excl. VAT (ekskl. moms), B2B only). |
 | **Path C: Local control plane** (`http://localhost:3000`) | Developers running `spurvik` on their own machine with PostgreSQL | **No external invite required** — `pnpm db:seed` creates a local organisation, project, and `spurvik_live_...` key | Full local Next.js control plane + Drizzle/PostgreSQL database with pre-seeded `spurvik_live_...` and `spurvik_reviewer_...` tokens. |
 
-> **Important note on hosted `/signup`:** Creating an account at `https://console.spurvik.com/signup` with the pre-release gate code creates your user session (`spurvik_session`), **not** a default organisation or project. Until an organisation owner invites you and you claim the `spurvik_invite_...` token at `https://console.spurvik.com/invites` (or you run Path C locally), `/dashboard` will show *"No project yet"* and `POST /api/projects` will return `401 Unauthorized`. See [Console Onboarding Guide](./console-onboarding.md) for the invite flow.
+> **Important note on hosted `/signup`:** Creating an account at `https://console.spurvik.com/signup` with the access code creates your user session (`spurvik_session`), **not** a default organisation or project. Until an organisation owner invites you and you claim the `spurvik_invite_...` token at `https://console.spurvik.com/invites` (or you run Path C locally), `/dashboard` will show *"No project yet"* and `POST /api/projects` will return `401 Unauthorized`. See [Console Onboarding Guide](./console-onboarding.md) for the invite flow.
 
 ---
 
@@ -24,7 +24,7 @@ Before running commands, pick the path that matches what you have in front of yo
 
 - **Node.js** `>= 20.9.0` and **pnpm** `10.x` (`corepack enable`).
 - **PostgreSQL 15+** (required for Path C local control plane; optional if you already claimed a workspace invite on `https://console.spurvik.com` and created a `spurvik_live_...` key).
-- Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`, from https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/core`, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/mcp` use workspace version `0.1.0`.
+- Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`, from https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/core`, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/mcp` use workspace version `1.0.1`.
 
 ---
 
@@ -110,7 +110,7 @@ If `pnpm dev`, `pnpm db:migrate`, `pnpm db:seed`, or `POST /api/v1/telemetry` fa
 
 ### Option 2B — Hosted Console (`https://console.spurvik.com`)
 
-1. Sign in at `https://console.spurvik.com/login` (or create your account at `/signup` using your pre-release access code and then claim your organisation's `spurvik_invite_...` token at `https://console.spurvik.com/invites`).
+1. Sign in at `https://console.spurvik.com/login` (or create your account at `/signup` using your access code and then claim your organisation's `spurvik_invite_...` token at `https://console.spurvik.com/invites`).
 2. Open **Dashboard → API Keys** (`/dashboard/keys`), enter a label (for example `quickstart-key`), and click **Generate key**.
 3. Copy the plaintext `spurvik_live_...` value immediately — the server stores only its SHA-256 hash (`key_hash`) and never displays the full secret again.
 

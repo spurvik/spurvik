@@ -1,6 +1,6 @@
 # Quickstart: wrap your first AI call with `withSpurvik`
 
-> **Applies to the pre-release (0.x) build on `spurvik` main at `427ae53` (through PR #21).** For a 5-minute monorepo walkthrough, see [5-minute-quickstart.md](5-minute-quickstart.md). To explore the zero-login 2x2 browser cockpit first, see [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
+> **Applies to the 1.0.1 build on `spurvik` main at `427ae53` (through PR #21).** For a 5-minute monorepo walkthrough, see [5-minute-quickstart.md](5-minute-quickstart.md). To explore the zero-login 2x2 browser cockpit first, see [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
 
 > **Not legal advice.** This guide describes what the software does; it does not assess your system. Ask your own legal counsel how the EU AI Act and other laws apply to you.
 >
@@ -10,7 +10,7 @@
 
 This guide takes you from nothing to a signed provenance record for one OpenAI call, and shows you how to check that record later. It takes about 20 minutes.
 
-Spurvik is pre-release (0.x). What you get:
+Spurvik is 1.0.1. What you get:
 
 - `withSpurvik()` wraps your existing OpenAI, Anthropic or Gemini client. Your code calls the model the same way as before.
 - Each wrapped call returns a **provenance record**: a timestamp, the model id, keyed HMAC fingerprints of the prompt and output (not the text itself), your AI-notice setting (`article50Disclosure`), and an HMAC-SHA-256 signature made with a secret that stays on your side.
@@ -50,11 +50,11 @@ npm install spurvik@1.0.1 spurvik-sdk@1.0.1
 npm install spurvik-mcp-server@1.0.2
 ```
 
-`spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Source: https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/sdk` and `@spurvik/core` use workspace version `0.1.0`.
+`spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Source: https://github.com/spurvik/spurvik. In this monorepo, `@spurvik/sdk` and `@spurvik/core` use workspace version `1.0.1`.
 
 > Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
-Or build those `0.1.0` workspace packages from https://github.com/spurvik/spurvik. From your `workspace/` folder:
+Or build those `1.0.1` workspace packages from https://github.com/spurvik/spurvik. From your `workspace/` folder:
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik
@@ -71,17 +71,17 @@ ls spurvik-packs
 You should see:
 
 ```text
-spurvik-core-0.1.0.tgz
-spurvik-sdk-0.1.0.tgz
+spurvik-core-1.0.1.tgz
+spurvik-sdk-1.0.1.tgz
 ```
 
-You need **both** workspace files when you pack `0.1.0` from the clone. `@spurvik/sdk` lists `@spurvik/core` as a workspace dependency. The public `spurvik` and `spurvik-sdk` packages already include that core code.
+You need **both** workspace files when you pack `1.0.1` from the clone. `@spurvik/sdk` lists `@spurvik/core` as a workspace dependency. The public `spurvik` and `spurvik-sdk` packages already include that core code.
 
 ## Step 2: Run a local control plane and get your `spurvik_live_` key
 
 > **Browser sandbox, invite-gated hosted console, or local control plane:**
 > - **Public 2x2 sandbox (`https://console.spurvik.com/sandbox`):** Live in EU (`fra1`) with no login or invite code required; see [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
-> - **Hosted console (`https://console.spurvik.com`):** Pre-release and invite-gated (`/signup` requires `SPURVIK_INVITE_CODE` and claiming an organisation `spurvik_invite_…` token at `/invites`; see [console-onboarding.md](console-onboarding.md)).
+> - **Hosted console (`https://console.spurvik.com`):** Invite-gated (`/signup` requires `SPURVIK_INVITE_CODE` and claiming an organisation `spurvik_invite_…` token at `/invites`; see [console-onboarding.md](console-onboarding.md)).
 > - **Local control plane (walked below):** Keys come from your own `pnpm db:seed`, against the control plane you run locally.
 
 The SDK sends telemetry to a control plane that you run (`apps/web` in the same repository, or `https://console.spurvik.com` if you have a hosted workspace invite). `apps/web` is outside the MIT grant: run it only under a design-partner or pilot agreement (see **Licence** at the top). In a second terminal, from `workspace/spurvik`:
@@ -181,7 +181,7 @@ mkdir my-ai-app
 cd my-ai-app
 npm init -y
 npm pkg set type=module
-npm install openai ../spurvik-packs/spurvik-core-0.1.0.tgz ../spurvik-packs/spurvik-sdk-0.1.0.tgz
+npm install openai ../spurvik-packs/spurvik-core-1.0.1.tgz ../spurvik-packs/spurvik-sdk-1.0.1.tgz
 ```
 
 `npm pkg set type=module` matters. The examples use `import` and top-level `await`, which need an ES module project. If your `package.json` says `"type": "commonjs"` (some npm versions write that on `npm init`), Node stops with `SyntaxError: Cannot use import statement outside a module`. If it has no `type` field, Node 22 prints a `MODULE_TYPELESS_PACKAGE_JSON` warning and re-parses the file each run.
@@ -420,7 +420,7 @@ The SDK never blocks or fails your model call because telemetry could not be del
 
 The `high_annex3` halt check is designed to support human-oversight work; whether your oversight measures meet Article 14 is for you to assess.
 
-So for a script, a missing control plane means the telemetry event is lost, and the exit code stays 0. In this pre-release build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. `onTelemetryError` is how you find out. To be safe:
+So for a script, a missing control plane means the telemetry event is lost, and the exit code stays 0. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. `onTelemetryError` is how you find out. To be safe:
 
 - Check that `SPURVIK_BASE_URL` is right and the control plane is up before you run batch jobs. `GET /api/v1/health` on the control plane should answer.
 - Always pass `onTelemetryError` and make its output visible, for example in your error tracker.

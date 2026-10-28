@@ -4,7 +4,7 @@ This plugin does not register a hook when it is installed. Claude Code loads `ho
 
 Runtime controls for engineers, built by EyeTea Solutions ApS ([spurvik.com](https://spurvik.com)). They are designed to support EU AI Act Art. 50 transparency notices. For high-risk AI systems they are designed to support Art. 12 record-keeping and Art. 14 human oversight. The repository README states that Art. 50 transparency obligations apply from 2 August 2026, and that Art. 12 and Art. 14 apply to Annex III high-risk systems from 2 December 2027. This is not legal advice.
 
-`@spurvik/sdk`, `@spurvik/react`, `@spurvik/core`, and `@spurvik/mcp` are private, version 0.1.0, and not published. The MIT License applies to those packages. This plugin uses that same licence. See `LICENSE`.
+`@spurvik/sdk`, `@spurvik/react`, `@spurvik/core`, and `@spurvik/mcp` are private, version 1.0.1, and not published. The MIT License applies to those packages. This plugin uses that same licence. See `LICENSE`.
 
 ## Install from a clone
 
@@ -54,7 +54,7 @@ import { AIDisclosureLabel } from "@spurvik/react";
 
 ## MCP server
 
-This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `@spurvik/mcp` from this repository, version 0.1.0, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
+This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `@spurvik/mcp` from this repository, version 1.0.2, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
 
 The command is `node`. The first argument is `bin/spurvik-mcp.mjs`, written as `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`. That file is the local stdio server in one file, including the `@spurvik/core` and `@spurvik/sdk` code it runs. It does not load `../../packages`. The next arguments are `--root` and `${CLAUDE_PROJECT_DIR}`, the project Claude Code has open. If you start the same file without `--root`, set `SPURVIK_MCP_ROOT` to that directory. `--root` wins when both are set.
 

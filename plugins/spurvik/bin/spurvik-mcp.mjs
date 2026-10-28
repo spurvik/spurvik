@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin. Private 0.1.0. */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.2, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -26755,7 +26755,7 @@ function nodeShutdown(expr) {
 function header() {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
-    "// Unscoped npm packages: spurvik@1.0.1 and spurvik-sdk@1.0.1 (MIT). Inside this monorepo, @spurvik/sdk is version 0.1.0 (workspace:*)."
+    "// Unscoped npm packages: spurvik@1.0.1 and spurvik-sdk@1.0.1 (MIT). Inside this monorepo, @spurvik/sdk is version 1.0.1 (workspace:*)."
   ].join("\n");
 }
 function holderFlush(runtime, call) {
@@ -27083,9 +27083,9 @@ function serverVersion() {
     const parsed = JSON.parse(raw);
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "0.1.0";
+    return "1.0.2";
   }
-  return "0.1.0";
+  return "1.0.2";
 }
 function createServer(workspaceRoot) {
   const server = new McpServer(

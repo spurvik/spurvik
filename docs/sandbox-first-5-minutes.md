@@ -17,7 +17,7 @@ This guide walks you through the cockpit minute by minute and shows how every in
 | **Card 1 (Top-Left)** | `Badge Studio` · pill `Art. 50` | `card-badge-studio` | Toggle `With Spurvik` / `Without Spurvik`, switch between `Emerald Glass`, `Cyan Minimal`, and `Floating Pill`, and use `Open in v0`, `Copy Lovable/Replit Prompt`, or `Copy MCP URL` | `<AIDisclosureLabel />` (`@spurvik/react`), `https://spurvik.com/r/eu-ai-act.json` (`shadcn`), and `https://console.spurvik.com/api/mcp` |
 | **Card 2 (Top-Right)** | `Human Gate` · pill `Art. 14` | `oversight-gate` | Inspect a paused agent action (`1 Pending`) and click `Approve (€450)`, `Block Agent`, `Kill Switch`, or `Reset` | `requireHumanApproval`, `submitHumanDecision`, `engageKillSwitch`, `releaseKillSwitch`, and policy gates (`PROCEED` / `ASK_HUMAN` / `HALT`) |
 | **Card 3 (Bottom-Left)** | `Hash Vault` · pill `fra1` (`Frankfurt chain · Art. 12`) | `hash-chain` | Inspect chained blocks (`#1042`, `#1041`, `#1040`) and click `Fire Test AI Call` to prepend `#1043` with `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` | `response._spurvik.record`, `verifyProvenanceSignature(record, secret)`, and `POST /api/v1/telemetry` (`audit_logs` chain) |
-| **Card 4 (Bottom-Right)** | `Obligations Map` · pill `Pro €19` | `obligations-radar` | Toggle `User Chat · Art. 50(1)`, `Media Gen · Art. 50(2)`, and `High-Risk Actions · Art. 12/14`, compare `Free · active` vs. `Pro · pre-release`, and click `Preview Pro` | Your own risk-tier configuration (`minimal`, `limited_art50`, `high_annex3`) and workspace plan (`Free` / `Pro` / `Team` / `Enterprise`) |
+| **Card 4 (Bottom-Right)** | `Obligations Map` · pill `Pro €19` | `obligations-radar` | Toggle `User Chat · Art. 50(1)`, `Media Gen · Art. 50(2)`, and `High-Risk Actions · Art. 12/14`, compare `Free · active` vs. `Pro · `, and click `Preview Pro` | Your own risk-tier configuration (`minimal`, `limited_art50`, `high_annex3`) and workspace plan (`Free` / `Pro` / `Team` / `Enterprise`) |
 
 ---
 
@@ -120,10 +120,10 @@ Look at **Card 4 (`Obligations Map`, bottom-right, pill `Pro €19`)**.
    - **`User Chat · Art. 50(1)` (`toggle-chats`):** Toggles the `Art. 50(1) notice` pill (`"Article 50(1) AI-interaction notice (applies since 2 Aug 2026)."`).
    - **`Media Gen · Art. 50(2)` (`toggle-generates`):** Toggles the `Art. 50(2) marking` pill (`"Article 50(2) machine-readable marking (applies since 2 Aug 2026; pre-2 Aug 2026 systems have until 2 Dec 2026 under Art. 111(4))."`). Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
    - **`High-Risk Actions · Art. 12/14` (`toggle-high-risk`):** Toggles the `Art. 12 & Art. 14` pill (`"Article 12 logging & Article 14 human oversight for high-risk AI systems (Annex III applies from 2 Dec 2027)."`).
-2. **Compare `Free · active` vs. `Pro · pre-release` (`Pre-release. Access by request. Planned prices at launch, excl. VAT.`):**
+2. **Compare `Free · active` vs. `Pro · ` (`B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.`):**
    - **`Free · active` (`€0/mo`, `10k events/mo`):** `Art. 50(1) Badge`, `Keyed HMAC Receipts`, `Local /spurvik:check`.
-   - **`Pro · pre-release` (`€19/mo` or `€190/yr`, excl. VAT · B2B only · `250k events/mo`):** `Plain-English Obligations Map`, `90-Day EU fra1 Vault`, `Hosted Human Gate Queue`, `DPO Engineering Summary`.
-   - Click **`Preview Pro`** (`pro-preview-btn`) to preview the `100% Pro €19/mo` state on the Readiness Ring, or click **`Unlock Pro €19/mo ->`** to open `/signup` if you have a pre-release access code.
+   - **`Pro · ` (`€19/mo` or `€190/yr`, excl. VAT · B2B only · `250k events/mo`):** `Plain-English Obligations Map`, `90-Day EU fra1 Vault`, `Hosted Human Gate Queue`, `DPO Engineering Summary`.
+   - Click **`Preview Pro`** (`pro-preview-btn`) to preview the `100% Pro €19/mo` state on the Readiness Ring, or click **`Unlock Pro €19/mo ->`** to open `/signup` if you have a  access code.
 
 ---
 
@@ -169,4 +169,4 @@ When you are ready to mint a real `spurvik_live_...` project key and ingest sign
 
 ---
 
-*Informational overview (pre-release) — your own EU AI Act classification applies; Spurvik supports parts of your Art. 50, Art. 12 and Art. 14 work and is not legal advice. · EyeTea Solutions ApS (CVR 37093378) · [Privacy Notice](https://spurvik.com/privacy.html)*
+*Informational overview () — your own EU AI Act classification applies; Spurvik supports parts of your Art. 50, Art. 12 and Art. 14 work and is not legal advice. · EyeTea Solutions ApS (CVR 37093378) · [Privacy Notice](https://spurvik.com/privacy.html)*

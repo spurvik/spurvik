@@ -1,8 +1,8 @@
 # FAQ Additions — Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Disclosure Copy (Ruling D24), and LangGraph (`@spurvik/sdk/langgraph`)
 
-> **Applies to:** `spurvik` `main` (`8e16fad`, `@spurvik/sdk` `0.1.0`, `@spurvik/core` `0.1.0`, `@spurvik/react` `0.1.0`, and `@spurvik/mcp` `0.1.0` pre-release) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
+> **Applies to:** `spurvik` `main` (`8e16fad`, `@spurvik/sdk` `1.0.1`, `@spurvik/core` `1.0.1`, `@spurvik/react` `1.0.1`, and `@spurvik/mcp` `1.0.1` ) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
 >
-> **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted — never why. Pre-release. Access by request. Planned prices at launch, excl. VAT. This is not legal advice.
+> **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted — never why. B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. This is not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -33,7 +33,7 @@ Spurvik separates call provenance and UI disclosure from content marking:
   - Spurvik **does not mark content itself** (it does not embed pixel, audio, or video watermarks or C2PA manifests into generated files, and it does not make any system meet the EU AI Act).
   - Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
   - **Why an API receipt or database log alone is not Article 50(2) marking:** A JSON field attached to an SDK return value (`_spurvik_provenance` or `providerMetadata.spurvik`) or stored in a telemetry database does not travel with exported text, images, audio, or video once the response object is discarded. The voluntary Commission Code of Practice on marking and labelling of AI-generated content (10 June 2026, section 1.1.3) also notes that relying on fingerprinting or logging alone is not sufficient for content marking.
-  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the pre-release `@spurvik/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `@spurvik/c2pa` for production deployments.
+  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the  `@spurvik/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `@spurvik/c2pa` for production deployments.
 
 ---
 

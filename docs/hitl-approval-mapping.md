@@ -1,6 +1,6 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> **Pre-release.** Describes human-oversight and tool-approval integration on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk` and `@spurvik/core` use workspace version `0.1.0`). Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
+> **.** Describes human-oversight and tool-approval integration on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk` and `@spurvik/core` use workspace version `1.0.1`). Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 

@@ -1,8 +1,8 @@
 {
   "name": "Spurvik",
   "version": "1.0.1",
-  "description": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
-  "notice": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "description": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
   "supportedProtocolVersions": ["2024-11-05", "2025-03-26", "2025-06-18"],
   "endpoints": [
@@ -19,7 +19,7 @@
         "spurvik_explain_receipt",
         "spurvik_marking_hooks"
       ],
-      "description": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+      "description": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
   ],
   "localStdio": {
@@ -27,7 +27,7 @@
     "version": "1.0.2",
     "npmPackage": "spurvik-mcp-server",
     "sdkNpmPackages": ["spurvik@1.0.1", "spurvik-sdk@1.0.1"],
-    "privatePreRelease": true,
+    "license": "MIT",
     "command": "node",
     "args": ["packages/mcp/dist/index.js", "--root", "${workspaceFolder}"],
     "cursorConfigPath": ".cursor/mcp.json",

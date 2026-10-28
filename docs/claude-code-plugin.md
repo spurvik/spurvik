@@ -1,6 +1,6 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Pre-release (0.1.0).** Describes `plugins/spurvik` (`0.1.0`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
+> **Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT).** Describes `plugins/spurvik` (`1.0.2`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -13,8 +13,8 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- Public MIT packages are live on npm as `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (inside the monorepo, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/core` use workspace version `0.1.0`; see [5-minute quickstart](5-minute-quickstart.md)).
-- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` `0.1.0` and published on npm as `spurvik-mcp-server@1.0.2` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
+- Public MIT packages are live on npm as `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (inside the monorepo, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/core` use workspace version `1.0.1`; see [5-minute quickstart](5-minute-quickstart.md)).
+- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` `1.0.2` and published on npm as `spurvik-mcp-server@1.0.2` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
 
 ## Install
 
@@ -41,7 +41,7 @@ claude --plugin-dir /path/to/spurvik/plugins/spurvik
 
 ### Website marketplace catalog (`docs/distribution/spurvik-com-marketplace.json`)
 
-The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `url: "https://github.com/spurvik/spurvik.git"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "0.1.0"`) for `https://spurvik.com/.claude-plugin/marketplace.json`. Install from your local clone using Option 1 or Option 2, or from that git-subdir once the website catalog is served.
+The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `url: "https://github.com/spurvik/spurvik.git"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.2"`) for `https://spurvik.com/.claude-plugin/marketplace.json`. Install from your local clone using Option 1 or Option 2, or from that git-subdir once the website catalog is served.
 
 ## Slash commands
 
@@ -92,7 +92,7 @@ The file says that it is not evidence of conformity and not legal advice. It doe
 
 ## Bundled local MCP server (`.mcp.json`)
 
-`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`@spurvik/mcp`, version `0.1.0`) automatically when the plugin loads:
+`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`@spurvik/mcp`, version `1.0.2`) automatically when the plugin loads:
 
 ```json
 {

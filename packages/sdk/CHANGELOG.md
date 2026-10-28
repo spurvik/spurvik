@@ -2,7 +2,7 @@
 
 ## 0.1.1 — 2026-10-24
 
-This note is 0.1.1. The package version stays 0.1.0. That is intended.
+This note is 0.1.1. The package version stays 1.0.1. That is intended.
 
 `releaseKillSwitch` takes an optional reason: `{ reason?: string; actionName?: string }`. A call with no argument still works. When the reason is missing or blank, the client sends `Released via SDK (no reason given)` before the request. The control plane does not fill that in. Pass a reason when you have one.
 
@@ -14,7 +14,7 @@ Both calls also send `reasonSource`. It is `caller` when you passed a reason, an
 
 `@openai/agents` is an optional peer. Install it for the Agents SDK. The adapter does not check for it.
 
-The OpenAI Agents input fingerprint includes `reasoning_text` and a reasoning item's `rawContent`. It skips tool items (`function_call`, `function_call_result`, `hosted_tool_call`, and `tool_search_call`). A fingerprint can differ from 0.1.0 for the same input.
+The OpenAI Agents input fingerprint includes `reasoning_text` and a reasoning item's `rawContent`. It skips tool items (`function_call`, `function_call_result`, `hosted_tool_call`, and `tool_search_call`). A fingerprint can differ from 1.0.1 for the same input.
 
 A halt response sets `previousReason` to null. A release response sets `reason` to the release reason and `previousReason` to the halt reason that was in effect. The `oversight.changed` webhook posts that response. A later read keeps the halt reason on the control row and sets `previousReason` to null.
 

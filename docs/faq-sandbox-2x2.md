@@ -39,7 +39,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 - **`40% Free`:** Shown when the `With Spurvik` switch in Card 1 is toggled off (`Without Spurvik`).
 - **`55%` to `70%`:** Starts at `55%` when `With Spurvik` is on, adding `+5%` for each active toggle in Card 4 (`User Chat · Art. 50(1)`, `Media Gen · Art. 50(2)`, `High-Risk Actions · Art. 12/14` → `70%` when all three are on). Recording a `Human Gate` decision adds `+4%`, and clicking `Fire Test AI Call` adds `+4%` (capped at `75%` when fewer than three toggles are on).
 - **`100% Pro €19/mo`:** Shown when you click **`Preview Pro`** in Card 4, or when all three obligation toggles are on and you trigger a `Human Gate` decision (which also appends a receipt block).
-- The ring previews feature coverage inside the sandbox UI (with planned tier pricing at launch: Free `€0/mo`, Pro `€19/mo` or `€190/yr`, Team `€79/mo` or `€790/yr`, Enterprise from `€499/mo`; Pre-release. Access by request. Planned prices at launch, excl. VAT.). It is not a legal assessment or a measure of whether your system meets the EU AI Act.
+- The ring previews feature coverage inside the sandbox UI (with planned tier pricing at launch: Free `€0/mo`, Pro `€19/mo` or `€190/yr`, Team `€79/mo` or `€790/yr`, Enterprise from `€499/mo`; B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.). It is not a legal assessment or a measure of whether your system meets the EU AI Act.
 
 ### 5. Why does `pnpm dev`, `pnpm db:migrate`, or `pnpm db:seed` fail with `SPURVIK_WEBHOOK_KEK must be 32 bytes` or `500 Internal Server Error` even after I fixed `apps/web/.env`?
 
@@ -60,4 +60,4 @@ unset SPURVIK_WEBHOOK_KEK DATABASE_URL SPURVIK_SESSION_SECRET SPURVIK_SIGNING_SE
 
 ---
 
-*Informational overview (pre-release) — your own EU AI Act classification applies; Spurvik supports parts of your Art. 50, Art. 12 and Art. 14 work and is not legal advice. If you have a legal question about how the EU AI Act applies to your organisation, please consult qualified legal counsel or contact `hello@spurvik.com` to route product-scope questions to Legal.*
+*Informational overview () — your own EU AI Act classification applies; Spurvik supports parts of your Art. 50, Art. 12 and Art. 14 work and is not legal advice. If you have a legal question about how the EU AI Act applies to your organisation, please consult qualified legal counsel or contact `hello@spurvik.com` to route product-scope questions to Legal.*

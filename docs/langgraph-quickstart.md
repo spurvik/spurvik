@@ -1,6 +1,6 @@
 # LangGraph Quickstart (`@spurvik/sdk/langgraph`, `@spurvik/sdk`, and `@spurvik/react`)
 
-> **Pre-release.** LangGraph quickstart on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `0.1.0`, MIT). The `apps/web` control plane is outside that grant. Designed to support Article 50(1) notices and, for high-risk systems, Article 12 record-keeping and Article 14 human oversight. The oversight record shows what happened, when, and who acted. Not legal advice.
+> **.** LangGraph quickstart on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk`, `@spurvik/core`, and `@spurvik/react` use workspace version `1.0.1`, MIT). The `apps/web` control plane is outside that grant. Designed to support Article 50(1) notices and, for high-risk systems, Article 12 record-keeping and Article 14 human oversight. The oversight record shows what happened, when, and who acted. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -27,7 +27,7 @@ Install the live MIT packages first:
 npm install @langchain/langgraph spurvik@1.0.1 spurvik-sdk@1.0.1
 ```
 
-Or build the `0.1.0` workspace tarballs from https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik):
+Or build the `1.0.1` workspace tarballs from https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik):
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik
@@ -36,7 +36,7 @@ pnpm install
 pnpm --filter @spurvik/core --filter @spurvik/sdk --filter @spurvik/react build
 ```
 
-If you are installing the pre-release packages into a separate LangGraph project, pack the tarballs from `packages/core`, `packages/sdk`, and `packages/react`:
+If you are installing the  packages into a separate LangGraph project, pack the tarballs from `packages/core`, `packages/sdk`, and `packages/react`:
 
 ```bash
 (cd packages/core && pnpm pack --pack-destination /tmp)
@@ -47,7 +47,7 @@ If you are installing the pre-release packages into a separate LangGraph project
 Then install `@langchain/langgraph` and the packed tarballs in your application:
 
 ```bash
-pnpm add @langchain/langgraph /tmp/spurvik-core-0.1.0.tgz /tmp/spurvik-sdk-0.1.0.tgz /tmp/spurvik-react-0.1.0.tgz
+pnpm add @langchain/langgraph /tmp/spurvik-core-1.0.1.tgz /tmp/spurvik-sdk-1.0.1.tgz /tmp/spurvik-react-1.0.1.tgz
 ```
 
 Set your project credentials in the environment (the SDK never reads `process.env` implicitly; pass each field in `SpurvikConfig`):

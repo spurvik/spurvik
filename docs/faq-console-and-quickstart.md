@@ -1,6 +1,6 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Pre-release (0.x).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). Pre-release. Access by request. Planned prices at launch, excl. VAT. Not legal advice.
+> **Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -66,7 +66,7 @@ Monthly quotas (`MONTHLY_EVENT_QUOTA`, per project per UTC calendar month) count
 - **Team / Business:** `2,000,000` `model_call` events / UTC month (90-day default retention on Team, 365-day on Business; planned Team price €79/mo or €790/yr, excl. VAT)
 - **Enterprise:** Custom per-project cap (`0..2,000,000,000`) or `unlimited` (`null`), configurable by an `owner` under **Monthly events** (planned price from €499/mo, excl. VAT)
 
-*(Pre-release. Access by request. Planned prices at launch, excl. VAT.)*
+*(B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.)*
 
 Duplicate `eventId`s (`duplicates`), `chain_gap` rows, `human_decision` rows, `oversight` rows, and `member_audit` events do not increment the counter. Every `POST /api/v1/telemetry` response that reaches quota evaluation includes `x-spurvik-monthly-quota-limit`, `x-spurvik-monthly-quota-remaining`, and `x-spurvik-monthly-quota-reset`. If `used + incoming > quota`, the entire batch is rejected (0 rows from that request are written) and the endpoint returns HTTP `429` with `{ "error": "monthly_quota_exceeded", "plan", "quota", "used", "resetAt" }`.
 

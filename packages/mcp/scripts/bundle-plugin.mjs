@@ -145,7 +145,7 @@ const result = await esbuild.build({
   metafile: true,
   logLevel: "warning",
   banner: {
-    js: "/* Local stdio server for the Spurvik Claude Code plugin. Private 0.1.0. */\n",
+    js: "/* Local stdio server for the Spurvik Claude Code plugin (1.0.2, MIT). */\n",
   },
   plugins: [
     {

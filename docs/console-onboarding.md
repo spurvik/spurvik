@@ -1,6 +1,6 @@
 # Console Onboarding Guide: Invites, Quotas, SIEM Webhooks, and `<AIDisclosureLabel />`
 
-> **Pre-release (0.x).** Written for `spurvik` main at commit `8e16fad` (25 Oct 2026). APIs and behaviour may change. Not legal advice.
+> **Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `8e16fad` (25 Oct 2026). APIs and behaviour may change. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 
@@ -17,7 +17,7 @@ Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks
 
 ## Live in `e599000` vs. planned on hosted tiers
 
-> **Pricing notice:** Pre-release. Access by request. Planned prices at launch, excl. VAT.
+> **Pricing notice:** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.
 
 | Area | Implemented in `spurvik` (`e599000`) & live console | Planned on hosted tiers |
 |---|---|---|
@@ -95,14 +95,14 @@ Each row links to the project's previous `audit_events` row via `seq`, `prev_has
 
 ### Plan quotas and retention defaults
 
-> **Pricing notice:** Pre-release. Access by request. Planned prices at launch, excl. VAT.
+> **Pricing notice:** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.
 
 Each organisation has a `plan` column (`organization_plan` enum in `apps/web/src/db/schema.ts`, aligned with `ORGANIZATION_PLANS` in `@spurvik/core`):
 
 | Plan (`organization.plan`) | Planned launch price (excl. VAT) | Monthly `model_call` quota per project (`MONTHLY_EVENT_QUOTA`) | Default log retention (`PLAN_RETENTION_DAYS`) | Custom per-project quota & retention? | SIEM `telemetry.ingested` webhook stream? |
 |---|---|---|---|---|---|
 | `free` | €0 / month | `10,000` / UTC month | `30` days | No | No |
-| `developer` *(default on `organizations` and `pnpm db:seed`)* | Pre-release / local default | `10,000` / UTC month | `30` days | No | No |
+| `developer` *(default on `organizations` and `pnpm db:seed`)* |  / local default | `10,000` / UTC month | `30` days | No | No |
 | `pro` | €19 / month (€190 / year) | `250,000` / UTC month | `90` days | No | No |
 | `team` | €79 / month (€790 / year) | `2,000,000` / UTC month | `90` days | No | Yes (`siemExportEnabled`) |
 | `business` | Legacy / internal tier | `2,000,000` / UTC month | `365` days (12 months) | No | Yes (`siemExportEnabled`) |
