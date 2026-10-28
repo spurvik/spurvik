@@ -1,6 +1,6 @@
 {
   "name": "Spurvik",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "notice": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
@@ -24,7 +24,9 @@
   ],
   "localStdio": {
     "packageName": "@spurvik/mcp",
-    "version": "0.1.0",
+    "version": "1.0.2",
+    "npmPackage": "spurvik-mcp-server",
+    "sdkNpmPackages": ["spurvik@1.0.1", "spurvik-sdk@1.0.1"],
     "privatePreRelease": true,
     "command": "node",
     "args": ["packages/mcp/dist/index.js", "--root", "${workspaceFolder}"],

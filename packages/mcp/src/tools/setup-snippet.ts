@@ -99,7 +99,7 @@ function nodeShutdown(expr: string): string {
 function header(): string {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
-    "// @spurvik/sdk is version 0.1.0, private, and not on npm. Inside this monorepo the dependency is workspace:*.",
+    "// Unscoped npm packages: spurvik@1.0.1 and spurvik-sdk@1.0.1 (MIT). Inside this monorepo, @spurvik/sdk is version 0.1.0 (workspace:*).",
   ].join("\n");
 }
 

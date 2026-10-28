@@ -28,7 +28,7 @@ Using Spurvik does not, on its own, mean your system meets the Act. Ask your own
 | --- | --- |
 | Node.js 22 or later | The repository's `package.json` sets `"engines": { "node": ">=22" }`. This guide was tested on Node.js 22.23. |
 | pnpm 10 | Run `corepack enable` once. The repository pins its pnpm version. |
-| Read access to the `spurvik` repository | The SDK source lives there. Write to hello@spurvik.com about design-partner access. You receive the repository URL once a design-partner or pilot agreement is signed. |
+| Public MIT package on npm (`spurvik@1.0.1`) and GitHub (`github.com/spurvik/spurvik`) | Install `spurvik@1.0.1` / `spurvik-sdk@1.0.1` from npm or clone `https://github.com/spurvik/spurvik` (MIT). The `apps/web` control plane is run under a design-partner or pilot agreement (`hello@spurvik.com`). |
 | Docker, or PostgreSQL on port 5432 | Only for the local control plane in step 2. Docker Compose uses the `postgres:16` image. Without Docker, use your own PostgreSQL 16 or later (also tested on 17) and create the `aegis` role and database as shown in step 2. |
 | An OpenAI API key | Or use the mock server in [Optional: try it without an OpenAI key](#optional-try-it-without-an-openai-key). |
 
