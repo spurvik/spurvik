@@ -1,0 +1,30 @@
+{
+  "name": "@spurvik/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared hashing, provenance records, and a hash-chained audit log for Spurvik.",
+  "license": "MIT",
+  "repository": { "type": "git", "directory": "packages/core" },
+  "publishConfig": { "access": "restricted" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "LICENSE"],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

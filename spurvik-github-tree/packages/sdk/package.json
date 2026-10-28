@@ -1,0 +1,92 @@
+{
+  "name": "@spurvik/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runtime wrapper that supports EU AI Act record-keeping, human oversight, and transparency work.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "directory": "packages/sdk"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./ai": {
+      "types": "./dist/ai.d.ts",
+      "import": "./dist/ai.js",
+      "require": "./dist/ai.cjs"
+    },
+    "./mastra": {
+      "types": "./dist/mastra.d.ts",
+      "import": "./dist/mastra.js",
+      "require": "./dist/mastra.cjs"
+    },
+    "./openai-agents": {
+      "types": "./dist/openai-agents.d.ts",
+      "import": "./dist/openai-agents.js",
+      "require": "./dist/openai-agents.cjs"
+    },
+    "./langgraph": {
+      "types": "./dist/langgraph.d.ts",
+      "import": "./dist/langgraph.js",
+      "require": "./dist/langgraph.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "4.0.31",
+    "@spurvik/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@langchain/langgraph": "^1.0.0",
+    "@mastra/core": "^1.79.0",
+    "@openai/agents": "^0.21.0",
+    "ai": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@mastra/core": {
+      "optional": true
+    },
+    "@openai/agents": {
+      "optional": true
+    },
+    "@langchain/langgraph": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
+    "@google/genai": "^2.30.0",
+    "@langchain/langgraph": "^1.5.3",
+    "@mastra/core": "1.79.0",
+    "@openai/agents": "0.21.0",
+    "@types/node": "^22.20.5",
+    "ai": "^7.0.148",
+    "esbuild": "0.27.7",
+    "openai": "^7.42.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "webpack": "5.112.2"
+  }
+}

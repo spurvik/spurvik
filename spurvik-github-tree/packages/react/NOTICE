@@ -1,0 +1,9 @@
+Copyright EyeTea Solutions ApS
+
+Spurvik
+
+The European Commission EU AI icons in `packages/react/src/eu-icons.ts` are not Apache-licensed. They follow the Commission's own terms:
+
+https://digital-strategy.ec.europa.eu/en/policies/eu-icons-labelling-ai-generated-content
+
+Showing an icon does not, by itself, meet Article 50.

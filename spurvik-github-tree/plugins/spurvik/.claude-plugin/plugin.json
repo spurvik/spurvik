@@ -1,0 +1,16 @@
+{
+  "name": "spurvik",
+  "displayName": "Spurvik",
+  "version": "0.1.0",
+  "description": "Commands and a skill covering withSpurvik for OpenAI, Anthropic, and Google GenAI clients, spurvikMiddleware for the Vercel AI SDK, withSpurvikMastra for Mastra, withSpurvikModelProvider for OpenAI Agents, and withSpurvikLangGraph for LangGraph. Designed to support Art. 50 notices and, for high-risk AI systems, Art. 12 record-keeping and Art. 14 human oversight.",
+  "author": {
+    "name": "EyeTea Solutions ApS",
+    "email": "hello@spurvik.com",
+    "url": "https://spurvik.com"
+  },
+  "homepage": "https://spurvik.com",
+  "repository": "https://github.com/spurvik/spurvik",
+  "license": "MIT",
+  "keywords": ["eu-ai-act", "article-50", "article-12", "article-14", "hmac", "ai-governance", "spurvik"],
+  "icon": "./assets/logo.svg"
+}

@@ -1,0 +1,10 @@
+{
+  "extends": "../typescript-config/library.json",
+  "compilerOptions": {
+    "paths": {
+      "@spurvik/core": ["../core/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

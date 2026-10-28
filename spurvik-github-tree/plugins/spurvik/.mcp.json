@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "spurvik": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs",
+        "--root",
+        "${CLAUDE_PROJECT_DIR}"
+      ]
+    }
+  }
+}

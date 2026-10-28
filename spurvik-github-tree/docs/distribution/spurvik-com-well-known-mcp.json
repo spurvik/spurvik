@@ -1,0 +1,42 @@
+{
+  "name": "Spurvik",
+  "version": "0.1.0",
+  "description": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "transport": "streamable-http",
+  "supportedProtocolVersions": ["2024-11-05", "2025-03-26", "2025-06-18"],
+  "endpoints": [
+    {
+      "url": "https://console.spurvik.com/api/mcp",
+      "transport": "streamable-http",
+      "region": "fra1",
+      "stateless": true,
+      "protocolVersion": "2025-03-26",
+      "supportedProtocolVersions": ["2024-11-05", "2025-03-26", "2025-06-18"],
+      "tools": [
+        "spurvik_setup_snippet",
+        "spurvik_find_unwrapped_calls",
+        "spurvik_explain_receipt",
+        "spurvik_marking_hooks"
+      ],
+      "description": "Pre-release EU AI Act SDK & control plane (0.1.0). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+    }
+  ],
+  "localStdio": {
+    "packageName": "@spurvik/mcp",
+    "version": "0.1.0",
+    "privatePreRelease": true,
+    "command": "node",
+    "args": ["packages/mcp/dist/index.js", "--root", "${workspaceFolder}"],
+    "cursorConfigPath": ".cursor/mcp.json",
+    "vscodeConfigPath": ".vscode/mcp.json",
+    "claudeCodePluginConfigPath": "plugins/spurvik/.mcp.json",
+    "claudeCodePluginArgs": ["${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs", "--root", "${CLAUDE_PROJECT_DIR}"],
+    "tools": [
+      "spurvik_setup_snippet",
+      "spurvik_find_unwrapped_calls",
+      "spurvik_explain_receipt",
+      "spurvik_marking_hooks"
+    ]
+  }
+}

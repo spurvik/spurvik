@@ -1,0 +1,38 @@
+{
+  "name": "@spurvik/c2pa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "C2PA image marking and manifest reading for Spurvik.",
+  "license": "MIT",
+  "repository": { "type": "git", "directory": "packages/c2pa" },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "LICENSE", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
+  "dependencies": {
+    "@spurvik/core": "workspace:*",
+    "@contentauth/c2pa-node": "0.9.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

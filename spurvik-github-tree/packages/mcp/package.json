@@ -1,0 +1,57 @@
+{
+  "name": "@spurvik/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, and marking-hook notes.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "directory": "packages/mcp"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tools": {
+      "types": "./dist/tools-api.d.ts",
+      "import": "./dist/tools-api.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "bundle:plugin": "node scripts/bundle-plugin.mjs",
+    "test": "pnpm build && vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@spurvik/core": "workspace:*",
+    "@spurvik/sdk": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
+    "@google/genai": "^2.30.0",
+    "@types/node": "^22.20.5",
+    "ai": "7.0.148",
+    "openai": "^7.42.0",
+    "esbuild": "0.27.7",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
