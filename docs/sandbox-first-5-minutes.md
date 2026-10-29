@@ -88,7 +88,7 @@ Look at **Card 2 (`Human Gate`, top-right, pill `Art. 14`)**, or click `Human Ga
 3. **How `Human Gate` maps to production SDK & API calls:**
    - **Per-action approval (`Approve` / `Block Agent`):** In `@spurvik/sdk`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` records a `pending` row (or `pending_confirmation` when two-person confirmation is enabled) via `POST /api/v1/hitl`. A human reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_` token.
    - **Project or action stop (`Kill Switch` / `Reset`):** Calling `await ai._spurvik.engageKillSwitch({ reason, actionName })` or `await ai._spurvik.releaseKillSwitch({ reason, actionName })` (or clicking **Engage stop** / **Release stop** in the console) toggles the stop checked before every `high_annex3` call (`PROCEED` vs. `HALT`, throwing `SpurvikHaltedError` when active).
-   - **Scope of the audit record:** The oversight and audit record shows what happened, when, and who acted — never why.
+   - **Scope of the audit record:** The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
 ---
 

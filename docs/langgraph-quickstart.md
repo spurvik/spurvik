@@ -378,7 +378,7 @@ export async function haltAndReleaseRefundAction(config: SpurvikConfig) {
 ```
 
 - Both `engageKillSwitch({ reason })` and `releaseKillSwitch({ reason })` accept an optional `reason` in the SDK (defaulting to `"Halted via SDK (no reason given)"` and `"Released via SDK (no reason given)"`). Direct HTTP calls to `POST /api/v1/oversight` require a non-empty `reason` string (`400 Bad Request` if omitted).
-- The oversight and audit record shows what happened, when, and who acted — never why.
+- The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Applies to:** `spurvik` `main` (`8e16fad`, `@spurvik/sdk` `1.0.1`, `@spurvik/core` `1.0.1`, `@spurvik/react` `1.0.1`, and `@spurvik/mcp` `1.0.1` ) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
 >
-> **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted — never why. B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. This is not legal advice.
+> **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events. B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. This is not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
 

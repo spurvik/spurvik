@@ -17,7 +17,7 @@ Card 2 (`Human Gate · Art. 14`) previews two production mechanisms side by side
 
 - **Per-action human review (`Approve (€450)` and `Block Agent`):** In `@spurvik/sdk`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` sends `POST /api/v1/hitl`, which creates a `pending` row (or `pending_confirmation` when two-person confirmation is enabled on the project) and polls until a reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_...` token.
 - **Project or action stop (`Kill Switch` and `Reset`):** Calling `await ai._spurvik.engageKillSwitch({ reason, actionName })` or `await ai._spurvik.releaseKillSwitch({ reason, actionName })` (or clicking **Engage stop** / **Release stop** on `/dashboard/projects/<projectId>/oversight`) toggles the stop checked before every `high_annex3` call (`GET /api/v1/oversight` -> `PROCEED` vs. `HALT`, throwing `SpurvikHaltedError` while active).
-- **Audit scope:** Both in the sandbox (`#1043 · hitl.decision`) and in production (`audit_logs` / `oversight_states`), the oversight and audit record shows what happened, when, and who acted — never why.
+- **Audit scope:** Both in the sandbox (`#1043 · hitl.decision`) and in production (`audit_logs` / `oversight_states`), the oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
 ### 3. How do I move from `Badge Studio (Art. 50)` (`Open in v0`, `Copy Lovable/Replit Prompt`, `Copy MCP URL`) to my own codebase?
 
