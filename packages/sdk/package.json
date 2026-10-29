@@ -1,6 +1,6 @@
 {
   "name": "@spurvik/sdk",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "description": "Runtime wrapper that supports EU AI Act record-keeping, human oversight, and transparency work.",
@@ -51,7 +51,7 @@
     "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
   },
   "dependencies": {
-    "@ai-sdk/provider": "4.0.31",
+    "@ai-sdk/provider": "^4.0.31",
     "@spurvik/core": "workspace:*"
   },
   "peerDependencies": {
