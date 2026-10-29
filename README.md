@@ -31,7 +31,7 @@ Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.m
 (a) npm:
 
 ```bash
-npm install spurvik@1.0.1 spurvik-sdk@1.0.1
+npm install spurvik@1.0.2 spurvik-sdk@1.0.2
 npm install spurvik-mcp-server@1.0.2
 ```
 
@@ -280,7 +280,7 @@ A deployment that runs `apps/web` and its own Postgres, with the SDK `baseUrl` p
 ## Disclosure labels
 
 ```tsx
-import { AIDisclosureLabel, AIDisclosureDetails } from "@spurvik/react";
+import { AIDisclosureLabel, AIDisclosureDetails } from "spurvik/react";
 
 <AIDisclosureLabel
   notice="interaction" // or "generated" | "deepfake" | "public-interest"
@@ -310,11 +310,11 @@ The Annex IV file is a draft assembled from project fields and ledger counts. Se
 
 Spurvik helps a team implement technical measures that map to parts of Articles 12, 14, and 50 and to the Annex III / Article 50 product taxonomy. Using it does not make a system conformant. It does not perform a conformity assessment, issue an EU declaration of conformity, apply CE marking, run a quality management system, or register a system in the EU database. The Annex IV download is a draft. The risk wizard records your answers. It labels Article 5 practices Prohibited. It does not decide that a use is high-risk under Article 6.
 
-Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does not claim that data stays in the EU. Security headers, rate limits, and secret handling are in `THREAT_MODEL.md` and `SECURITY.md`. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE` and `SPLIT.md`.
+Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does not claim that data stays in the EU. Security headers, rate limits, and secret handling are in `THREAT_MODEL.md` and `SECURITY.md`. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.2`, `spurvik-sdk@1.0.2`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE` and `SPLIT.md`.
 
 ## Starters
 
-`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `1.0.1`; the public npm release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
+`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `1.0.1`; the public npm release is `spurvik@1.0.2` and `spurvik-sdk@1.0.2` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
 
 `@spurvik/sdk/ai` exports `spurvikMiddleware` for the Vercel AI SDK (`ai` 7). Pass it to `wrapLanguageModel`. It logs the call and attaches an HMAC provenance receipt. It does not mark content. A marking hook is the caller's.
 

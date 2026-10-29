@@ -18,7 +18,7 @@ Search the current workspace and report what you find. Do not invent a scanner p
    Look in chat UI, widgets, and HTML for a visible notice. In this repository the React label is `AIDisclosureLabel` from `@spurvik/react` (`notice="interaction"`). `AiDisclosure` and `AIArticle50Section3Notice` are the other exports:
 
 ```ts
-import { AiDisclosure, AIArticle50Section3Notice, AIDisclosureLabel } from "@spurvik/react";
+import { AiDisclosure, AIArticle50Section3Notice, AIDisclosureLabel } from "spurvik/react";
 ```
 
 This repository does not ship a disclosure script and does not document a script URL. `article50Disclosure: true` on `SpurvikConfig` only records that you state a notice is shown. It is not a finding that the notice is sufficient. Art. 50 transparency obligations, as stated in the repository README, apply from 2 August 2026.

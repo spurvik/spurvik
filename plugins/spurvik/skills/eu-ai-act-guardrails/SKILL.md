@@ -8,7 +8,7 @@ description: Use when writing or reviewing code that calls OpenAI, Anthropic, Go
 Use this skill when creating or reviewing code that calls a model client or defines an agent tool. The patterns below are the exports in this repository. This is not legal advice.
 
 ```ts
-import { AIDisclosureLabel } from "@spurvik/react";
+import { AIDisclosureLabel } from "spurvik/react";
 import { SpurvikConfigError, withSpurvik } from "@spurvik/sdk";
 import { dedupeToolApprovalResponses, extractFinishReason, spurvikMiddleware } from "@spurvik/sdk/ai";
 import { createSpurvikNeedsApproval, resolveAgentInterruptions } from "@spurvik/sdk/openai-agents";

@@ -23,8 +23,8 @@
       "version": "1.0.2",
       "license": "MIT",
       "sdkPackages": [
-        "spurvik@1.0.1",
-        "spurvik-sdk@1.0.1"
+        "spurvik@1.0.2",
+        "spurvik-sdk@1.0.2"
       ],
       "transport": {
         "type": "stdio"

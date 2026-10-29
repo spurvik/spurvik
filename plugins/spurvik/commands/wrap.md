@@ -201,7 +201,7 @@ await ai._spurvik.releaseKillSwitch({ reason: "release this action", actionName:
 This repository does not ship a disclosure script and does not document a script URL. Use `@spurvik/react`:
 
 ```tsx
-import { AIDisclosureLabel } from "@spurvik/react";
+import { AIDisclosureLabel } from "spurvik/react";
 
 <AIDisclosureLabel notice="interaction" />
 ```

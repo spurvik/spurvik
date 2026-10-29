@@ -1,8 +1,8 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
+> **Spurvik EU AI Act SDK (1.0.2) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.2`, `spurvik-sdk@1.0.2`, `spurvik-mcp-server@1.0.2`.*
 
 ## Signup, Sandbox, and Keys
 

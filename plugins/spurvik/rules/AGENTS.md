@@ -1,5 +1,5 @@
 ```ts
-import { AIDisclosureLabel } from "@spurvik/react";
+import { AIDisclosureLabel } from "spurvik/react";
 import { withSpurvik } from "@spurvik/sdk";
 import { spurvikMiddleware } from "@spurvik/sdk/ai";
 ```

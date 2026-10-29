@@ -25,12 +25,12 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not found
 ```
 
-**Cause:** The public MIT packages are `spurvik@1.0.1` and `spurvik-sdk@1.0.1` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `1.0.1` in the monorepo.
+**Cause:** The public MIT packages are `spurvik@1.0.2` and `spurvik-sdk@1.0.2` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `1.0.1` in the monorepo.
 
 **Fix:** Install the public packages:
 
 ```bash
-npm install spurvik@1.0.1 spurvik-sdk@1.0.1
+npm install spurvik@1.0.2 spurvik-sdk@1.0.2
 ```
 
 Or build the `1.0.1` workspace packages from https://github.com/spurvik/spurvik. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
@@ -44,7 +44,7 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fcore - Not found
 ```
 
-**Cause:** You installed the workspace `spurvik-sdk-1.0.1.tgz` on its own. That workspace package depends on `@spurvik/core` at `1.0.1`. The public `spurvik@1.0.1` and `spurvik-sdk@1.0.1` packages already include that core code.
+**Cause:** You installed the workspace `spurvik-sdk-1.0.1.tgz` on its own. That workspace package depends on `@spurvik/core` at `1.0.1`. The public `spurvik@1.0.2` and `spurvik-sdk@1.0.2` packages already include that core code.
 
 **Fix:** Install both package files in one command:
 

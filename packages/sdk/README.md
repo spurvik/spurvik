@@ -2,7 +2,7 @@
 
 Runtime client for provenance records, telemetry, a live human-oversight queue, and the halt cache.
 
-The public MIT release is `spurvik@1.0.1` and `spurvik-sdk@1.0.1` on npm (core is bundled), from https://github.com/spurvik/spurvik. In this monorepo `@spurvik/sdk` is workspace version `1.0.1` and depends on `@spurvik/core`. `@spurvik/sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
+The public MIT release is `spurvik@1.0.2` and `spurvik-sdk@1.0.2` on npm (core is bundled), from https://github.com/spurvik/spurvik. In this monorepo `@spurvik/sdk` is workspace version `1.0.1` and depends on `@spurvik/core`. `@spurvik/sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
 
 `withSpurvik` is the provider wrapper. The old `withCompliance` alias is removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `withAegis` is the previous product-name alias and is removed in the next release.
 

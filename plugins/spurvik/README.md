@@ -45,7 +45,7 @@ For `high_annex3`, `enforceHaltOnInference` defaults to on. `oversight.cacheMs` 
 This repository does not ship a disclosure script and does not document a script URL. Use the React label:
 
 ```tsx
-import { AIDisclosureLabel } from "@spurvik/react";
+import { AIDisclosureLabel } from "spurvik/react";
 
 <AIDisclosureLabel notice="interaction" />
 ```
