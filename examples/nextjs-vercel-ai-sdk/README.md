@@ -8,7 +8,7 @@ Docs: https://spurvik.com/docs
 
 ## Prerequisites
 
-Node.js 20 or newer. Spurvik `1.0.3` sets that floor. This folder pins `ai@7.0.162` and `@ai-sdk/openai@4.0.108`, and those packages set `engines.node` to `>=22`, so install and run the example on Node.js 22 or newer.
+Node.js 22 or newer. This folder pins `ai@7.0.162` and `@ai-sdk/openai@4.0.108`, and those packages need Node.js 22 or newer. `package.json` sets `engines.node` to `>=22` to match. Spurvik `1.0.4` itself allows Node.js 20 or newer.
 
 You need an OpenAI API key only if you want the model to answer.
 
