@@ -26,16 +26,16 @@ Copy `.env.example` to `.env.local`.
 
 `OPENAI_API_KEY` is sent to OpenAI. Replace `your-key-here` before you send a message. The chat route uses `gpt-4o-mini`.
 
-Spurvik runs without a live project key. Leave the `SPURVIK_*` values as the placeholders in `.env.example` (or omit them). The app then passes format-only local values and omits `baseUrl`, so the SDK uses its development base URL `http://127.0.0.1:43123`. Telemetry is not delivered when that address is down. With `riskTier` set to `limited_art50`, the model call still runs.
+The chat route returns HTTP 400 if `SPURVIK_API_KEY`, `SPURVIK_SIGNING_SECRET`, or `SPURVIK_CONTENT_HASH_SECRET` is missing or still set to a sample placeholder. The response is plain text and names the variables to set. The same happens for `SPURVIK_BASE_URL` when `NODE_ENV` is production. Those sample values are not sent to the SDK.
 
-To send records to a control plane, replace the placeholders:
+Replace the placeholders before you send a message:
 
-- `SPURVIK_API_KEY` — project key (`spurvik_live_…`)
+- `SPURVIK_API_KEY` — project key
 - `SPURVIK_SIGNING_SECRET` — HMAC secret kept on this server, at least 16 characters. `SPURVIK_HMAC_SECRET` is read when `SPURVIK_SIGNING_SECRET` is unset.
 - `SPURVIK_CONTENT_HASH_SECRET` — client-held secret for keyed fingerprints, at least 16 characters. It is not sent.
-- `SPURVIK_BASE_URL` — control plane origin. Required when `NODE_ENV` is production. For the hosted console, use `https://console.spurvik.com`.
+- `SPURVIK_BASE_URL` — control plane origin. Required when `NODE_ENV` is production. In development the SDK uses `http://127.0.0.1:43123` when this is omitted. For the hosted console, use `https://console.spurvik.com`.
 
-A Free or developer plan key may return HTTP 402 on paid-only features.
+A Free or developer plan key may return HTTP 402 on paid-only features. In development, `spurvikConfig()` can fill format-only stand-ins that pass the SDK's shape checks when the variables are absent. The chat route does not use that fill. It returns 400 instead, so a missing setting does not become an error page.
 
 ## Run
 

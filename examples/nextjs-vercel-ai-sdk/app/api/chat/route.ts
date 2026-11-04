@@ -2,7 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { convertToModelMessages, createUIMessageStreamResponse, streamText, toUIMessageStream, wrapLanguageModel, type UIMessage } from "ai";
 import { after } from "next/server";
 import { provenanceFromMetadata, spurvikMiddleware, type SpurvikMiddleware } from "spurvik/ai";
-import { spurvikConfig } from "@/lib/spurvik-config";
+import { missingSpurvikMessage, spurvikConfig } from "@/lib/spurvik-config";
 
 export const runtime = "nodejs";
 
@@ -11,6 +11,13 @@ let middleware: SpurvikMiddleware | undefined;
 function spurvik(): SpurvikMiddleware {
   middleware ??= spurvikMiddleware(spurvikConfig());
   return middleware;
+}
+
+function plain(message: string, status: number): Response {
+  return new Response(message, {
+    status,
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
 }
 
 function openAiKey(): string | undefined {
@@ -28,25 +35,30 @@ function openAiKey(): string | undefined {
  */
 export async function POST(req: Request) {
   if (!openAiKey()) {
-    return new Response("Set OPENAI_API_KEY in .env.local before sending a message.", {
-      status: 400,
-      headers: { "content-type": "text/plain; charset=utf-8" },
-    });
+    return plain("Set OPENAI_API_KEY in .env.local before sending a message.", 400);
+  }
+
+  const spurvikMessage = missingSpurvikMessage();
+  if (spurvikMessage) {
+    return plain(spurvikMessage, 400);
   }
 
   const body = (await req.json()) as { messages?: UIMessage[] };
   const messages = body.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
-    return new Response("Send a message.", {
-      status: 400,
-      headers: { "content-type": "text/plain; charset=utf-8" },
-    });
+    return plain("Send a message.", 400);
   }
 
-  const model = wrapLanguageModel({
-    model: openai("gpt-4o-mini"),
-    middleware: spurvik(),
-  });
+  let model: ReturnType<typeof wrapLanguageModel>;
+  try {
+    model = wrapLanguageModel({
+      model: openai("gpt-4o-mini"),
+      middleware: spurvik(),
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "The Spurvik settings were rejected.";
+    return plain(detail, 400);
+  }
 
   const result = streamText({
     model,
