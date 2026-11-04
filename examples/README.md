@@ -1,6 +1,6 @@
 # Spurvik Runnable Examples (`examples/`)
 
-> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`).
+> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.4`, `spurvik-sdk@1.0.4`, `spurvik-mcp-server@1.0.2`).
 
 | Example | What It Shows |
 | --- | --- |

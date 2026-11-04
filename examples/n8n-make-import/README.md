@@ -1,6 +1,6 @@
 # n8n and Make.com import guide (`n8n-nodes-spurvik`)
 
-> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik@1.0.0` is the manifest version and the published npm version (`latest`, MIT). `0.0.0-stage` is a placeholder.
+> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` 1.0.0 is the repo manifest version; npm latest is 1.0.1 (MIT). `0.0.0-stage` is a placeholder.
 
 Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.
 
