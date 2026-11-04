@@ -302,6 +302,7 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 - **`packages/n8n-nodes-spurvik`**: n8n node and importable [`make-com-blueprint.json`](packages/n8n-nodes-spurvik/make-com-blueprint.json). Separate operations add an AI interaction notice, record an HMAC-SHA256 digest designed to support Article 12 record-keeping, and send an `ask_human()` request designed to support Article 14 human oversight.
 - From 1.0.5, links from `createSignedApprovalLinks` include a nonce. The default validity stays 24 hours (86400 seconds), the same as 1.0.4. Pass `maxAgeSeconds: 900` when you want a 15-minute window. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat. A 1.0.4 token has no nonce and still verifies with `verifyChannelApprovalToken` when the nonce is omitted. `callbackBaseUrl` is required from 1.0.5: pass a URL that accepts GET clicks. The SDK does not default to the console HITL create route.
 - Full quickstart & callback verification examples: [`docs/multi-channel-hitl-and-n8n.md`](docs/multi-channel-hitl-and-n8n.md).
+- Runnable examples in [`examples/`](examples/): [`examples/nextjs-vercel-ai-sdk`](examples/nextjs-vercel-ai-sdk), [`examples/slack-telegram-linear-ask-human`](examples/slack-telegram-linear-ask-human), [`examples/n8n-make-import`](examples/n8n-make-import), and [`examples/github-actions-ci-check`](examples/github-actions-ci-check).
 
 ## Still open
 
