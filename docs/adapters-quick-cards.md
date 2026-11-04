@@ -1,25 +1,31 @@
 # Mastra & OpenAI Agents SDK — Adapter Quick-Cards
 
-> **Applies to:** `spurvik` `main` (`0e9cc89` / `d18dfba`, `@spurvik/sdk` `1.0.1` ).
+> Applies to `spurvik@1.0.3`.
 >
-> **Status.** Public MIT packages: `spurvik@1.0.1` and `spurvik-sdk@1.0.1` from https://github.com/spurvik/spurvik. Workspace package `@spurvik/sdk` is `1.0.1` in the monorepo (`workspace:*`).
+> **Status.** Public MIT packages: `spurvik@1.0.3` and `spurvik-sdk@1.0.3` from https://github.com/spurvik/spurvik. Workspace package `spurvik` is `1.0.3` in the monorepo (`workspace:*`).
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. This is not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
-## Card 1 — Mastra (`@spurvik/sdk/mastra`)
+## Card 1 — Mastra (`spurvik/mastra`)
 
-- **Entry point:** `@spurvik/sdk/mastra` (`withSpurvikMastra`, `provenanceFromMetadata`)
+- **Entry point:** `spurvik/mastra` (`withSpurvikMastra`, `provenanceFromMetadata`)
 - **Optional peers:** `@mastra/core` (`^1.79.0`) and `ai` (`^7.0.0`)
 - **Model input:** `withSpurvikMastra` accepts either an AI SDK language model instance (`LanguageModelV2`, `LanguageModelV3`, or `LanguageModelV4`) or a `(args) => model` resolver function. Mastra model-router strings such as `"openai/gpt-4o"` are not accepted.
 
 ```ts
-import { Agent } from "@mastra/core/agent";
-import { verifyProvenanceSignature } from "@spurvik/core";
-import { provenanceFromMetadata, withSpurvikMastra } from "@spurvik/sdk/mastra";
+import type { LanguageModelV4 } from "@ai-sdk/provider";
+import { verifyProvenanceSignature } from "spurvik";
+import { provenanceFromMetadata, withSpurvikMastra } from "spurvik/mastra";
+
+declare const yourLanguageModel: LanguageModelV4;
+declare class Agent {
+  constructor(args: { id: string; name: string; instructions: string; model: unknown });
+  generate(input: string): Promise<{ providerMetadata?: Parameters<typeof provenanceFromMetadata>[0] }>;
+}
 
 const spurvik = withSpurvikMastra(yourLanguageModel, {
   apiKey: process.env.SPURVIK_API_KEY!,
@@ -52,17 +58,17 @@ await spurvik.flush();
 
 ---
 
-## Card 2 — OpenAI Agents SDK (`@spurvik/sdk/openai-agents`)
+## Card 2 — OpenAI Agents SDK (`spurvik/openai-agents`)
 
-- **Entry point:** `@spurvik/sdk/openai-agents` (`withSpurvikModelProvider`, `withSpurvikModel`, `provenanceFromAgentsResponse`, `provenanceOf`)
+- **Entry point:** `spurvik/openai-agents` (`withSpurvikModelProvider`, `withSpurvikModel`, `provenanceFromAgentsResponse`, `provenanceOf`)
 - **Optional peer:** `@openai/agents` (`^0.21.0`)
 
 ### A. Wrap `ModelProvider` for `Runner` (agent uses model name string)
 
 ```ts
 import { Agent, OpenAIProvider, Runner } from "@openai/agents";
-import { verifyProvenanceSignature } from "@spurvik/core";
-import { provenanceFromAgentsResponse, withSpurvikModelProvider } from "@spurvik/sdk/openai-agents";
+import { verifyProvenanceSignature } from "spurvik";
+import { provenanceFromAgentsResponse, withSpurvikModelProvider } from "spurvik/openai-agents";
 
 const spurvik = withSpurvikModelProvider(
   new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY, useResponses: true }),
@@ -97,9 +103,11 @@ await spurvik.flush();
 ### B. Wrap a single `Model` instance directly
 
 ```ts
-import { Agent, Runner } from "@openai/agents";
-import { verifyProvenanceSignature } from "@spurvik/core";
-import { provenanceFromAgentsResponse, withSpurvikModel } from "@spurvik/sdk/openai-agents";
+import { Agent, Runner, type Model } from "@openai/agents";
+import { verifyProvenanceSignature } from "spurvik";
+import { provenanceFromAgentsResponse, withSpurvikModel } from "spurvik/openai-agents";
+
+declare const yourAgentsModel: Model;
 
 const model = withSpurvikModel(
   yourAgentsModel,
@@ -132,14 +140,14 @@ await model.flush();
 
 ---
 
-## Card 3 — LangGraph (`@spurvik/sdk/langgraph`)
+## Card 3 — LangGraph (`spurvik/langgraph`)
 
-- **Entry point:** `@spurvik/sdk/langgraph` (`withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, `provenanceFromLangGraphState`, `provenanceOf`)
+- **Entry point:** `spurvik/langgraph` (`withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, `provenanceFromLangGraphState`, `provenanceOf`)
 - **Optional peer:** `@langchain/langgraph` (`^1.0.0`). The adapter uses a structural graph type and does not import the package.
 
 ```ts
-import { verifyProvenanceSignature } from "@spurvik/core";
-import { provenanceOf, withSpurvikLangGraph, spurvikInterrupt } from "@spurvik/sdk/langgraph";
+import { verifyProvenanceSignature } from "spurvik";
+import { provenanceOf, withSpurvikLangGraph, spurvikInterrupt } from "spurvik/langgraph";
 
 declare const compiled: {
   invoke: (input: { messages: Array<{ role: string; content: string }> }) => Promise<{ output: string }>;
@@ -182,8 +190,8 @@ await graph.flush();
 
 ## Card 4 — AI SDK finish reason and Agents approval
 
-- **Finish reason:** `@spurvik/sdk/ai` exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`.
-- **Agents approval:** `@spurvik/sdk/openai-agents` exports `createSpurvikNeedsApproval` and `resolveAgentInterruptions`.
+- **Finish reason:** `spurvik/ai` exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`.
+- **Agents approval:** `spurvik/openai-agents` exports `createSpurvikNeedsApproval` and `resolveAgentInterruptions`.
 
 `extractFinishReason` reads a string or `{ unified, raw }` (`unified` wins). A generate or stream finish chunk stores that reason on the receipt. A stream that closes without a finish chunk is recorded as `"interrupted"`. `finishReason` and `interrupted` are readable on the receipt and on `providerMetadata.spurvik`, and they are left out of `Object.keys` and `JSON.stringify` so the HMAC still covers the same 16 fields.
 

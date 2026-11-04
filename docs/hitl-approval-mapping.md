@@ -1,8 +1,8 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> **.** Describes human-oversight and tool-approval integration on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `@spurvik/sdk` and `@spurvik/core` use workspace version `1.0.1`). Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
+> Describes human-oversight and tool-approval integration for `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
 Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`finishReason` / `rawFinishReason === "interrupted"` and `tool-approval-request`), **OpenAI Agents SDK** (`needsApproval` and `RunState` interruptions), and **LangGraph** (`interrupt()` and `Command({ resume })`) to Spurvik's human-oversight queue (`hitl_approvals` and `/dashboard/projects/<projectId>/oversight`). For a dedicated LangGraph walkthrough, see [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md).
 
@@ -10,38 +10,38 @@ Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`fini
 
 ## SDK Method & Control-Plane Endpoint Map
 
-`@spurvik/sdk` ships framework adapters plus blocking and non-blocking primitives for human-in-the-loop (HITL) decisions and project/action halts:
+`spurvik` ships framework adapters plus blocking and non-blocking primitives for human-in-the-loop (HITL) decisions and project/action halts:
 
-| Step | Shipped `@spurvik/sdk` / `@spurvik/core` API | Control-Plane Endpoint | Notes |
+| Step | Shipped `spurvik` / `spurvik` API | Control-Plane Endpoint | Notes |
 |---|---|---|---|
-| **AI SDK finish-reason & approval deduplication** | `extractFinishReason`, `isInterruptedFinishReason`, `dedupeToolApprovalResponses` (`@spurvik/sdk/ai`) | `POST /api/v1/telemetry` | Reads string or `{ unified, raw }` finish reasons (`unified` wins), records `"interrupted"` on streams that close without a finish chunk, and keeps the first approval response per `toolCallId` / `approvalId` / `id`. |
-| **OpenAI Agents `needsApproval` & `RunState` resolver** | `createSpurvikNeedsApproval`, `resolveAgentInterruptions` (`@spurvik/sdk/openai-agents`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Checks halt state before returning `true` (or `when` predicate), deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve(item)` or `state.reject(item)`. |
-| **LangGraph graph wrapper & interrupt resolver** | `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts` (`@spurvik/sdk/langgraph`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Marks `finishReason: "interrupted"` when `state.__interrupt__` is non-empty, deduplicates interrupt IDs (`skippedDuplicateIds`), and returns `command: { resume }` ready for `new Command(...)`. |
+| **AI SDK finish-reason & approval deduplication** | `extractFinishReason`, `isInterruptedFinishReason`, `dedupeToolApprovalResponses` (`spurvik/ai`) | `POST /api/v1/telemetry` | Reads string or `{ unified, raw }` finish reasons (`unified` wins), records `"interrupted"` on streams that close without a finish chunk, and keeps the first approval response per `toolCallId` / `approvalId` / `id`. |
+| **OpenAI Agents `needsApproval` & `RunState` resolver** | `createSpurvikNeedsApproval`, `resolveAgentInterruptions` (`spurvik/openai-agents`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Checks halt state before returning `true` (or `when` predicate), deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve(item)` or `state.reject(item)`. |
+| **LangGraph graph wrapper & interrupt resolver** | `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts` (`spurvik/langgraph`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Marks `finishReason: "interrupted"` when `state.__interrupt__` is non-empty, deduplicates interrupt IDs (`skippedDuplicateIds`), and returns `command: { resume }` ready for `new Command(...)`. |
 | **Request approval & wait** *(in-process poll)* | `spurvik.requireHumanApproval(actionName, payload, options?)` | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Summarises `payload` into `spurvik.payload_summary.v1` (key names + keyed HMAC fingerprint, never raw values) and polls until status leaves `"pending"` / `"pending_confirmation"` or throws `SpurvikHitlTimeoutError(approvalId)`. |
-| **Open pending approval without blocking** *(for checkpointed pause/resume)* | `buildPayloadSummary({ keys, contentFingerprint })` (`@spurvik/core`) | `POST /api/v1/hitl` | Creates a `"pending"` row and returns `HitlRecordWire` (`{ id, status: "pending", ... }`) immediately so a graph or workflow can checkpoint and exit. |
+| **Open pending approval without blocking** *(for checkpointed pause/resume)* | `POST /api/v1/hitl` with a `spurvik.payload_summary.v1` string you build | `POST /api/v1/hitl` | Post the summary string yourself. The response is a pending row (`HitlRecordWire`) so a graph can checkpoint and exit. |
 | **Record human decision via API** | `spurvik.submitHumanDecision(approvalId, { status, reason })` / `spurvik.overrideHumanDecision(approvalId, { reason })` | `POST /api/v1/hitl/:id/decision` | Requires `reviewerToken` (`spurvik_reviewer_...` in `x-spurvik-reviewer`). `status` is `"approved" \| "rejected" \| "overridden"`; `reason` (`1..2000` chars) is required. Decisions made in the console set `decisionSource: "console"`; API calls set `decisionSource: "api"`. |
-| **Check `hitl.decision` webhook** | `verifyHitlWebhook({ secret, body, signature, timestamp })` (`@spurvik/sdk`) | Outbound `POST` from control plane | Checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute window) and returns `HitlWebhookEnvelope` (`{ type: "hitl.decision", deliveryId, projectId, approval }`). |
+| **Check `hitl.decision` webhook** | `verifyHitlWebhook({ secret, body, signature, timestamp })` (`spurvik`) | Outbound `POST` from control plane | Checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute window) and returns `HitlWebhookEnvelope` (`{ type: "hitl.decision", deliveryId, projectId, approval }`). |
 | **Engage or release stop (kill switch)** | `spurvik.engageKillSwitch({ reason, actionName })` / `spurvik.releaseKillSwitch({ reason, actionName })` | `POST /api/v1/oversight` | Requires `reviewerToken`. Blank reasons default in the SDK to `"Halted via SDK (no reason given)"` / `"Released via SDK (no reason given)"` (`reasonSource: "sdk_default"`). Direct API calls without a `reason` return `400`. |
 
 > **Looking for `requestHumanApproval`, `waitForHumanDecision`, or `recordHumanDecision`?**
-> In `@spurvik/sdk`, requesting and waiting are combined in **`requireHumanApproval(actionName, payload, options?)`** (and wrapped by **`resolveAgentInterruptions`**, **`spurvikInterrupt`**, and **`resolveLangGraphInterrupts`**), while recording a reviewer decision via API is **`submitHumanDecision(approvalId, { status, reason })`** (or **`overrideHumanDecision(approvalId, { reason })`**). For non-blocking checkpoint workflows, post to `POST /api/v1/hitl` with `buildPayloadSummary` and resume from **`verifyHitlWebhook`**.
-
+> In `spurvik`, requesting and waiting are combined in **`requireHumanApproval(actionName, payload, options?)`** (and wrapped by **`resolveAgentInterruptions`**, **`spurvikInterrupt`**, and **`resolveLangGraphInterrupts`**), while recording a reviewer decision via API is **`submitHumanDecision(approvalId, { status, reason })`** (or **`overrideHumanDecision(approvalId, { reason })`**). For non-blocking checkpoint workflows, post a payload-summary string to `POST /api/v1/hitl` and resume from **`verifyHitlWebhook`**.
 ---
 
 ## 1. Vercel AI SDK (`interrupted` `finishReason` & `tool-approval-request`)
 
-Wrap your language model with `spurvikMiddleware` (`@spurvik/sdk/ai`). `@spurvik/sdk/ai` exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`. When a step stops for tool approval (`isInterruptedFinishReason(extractFinishReason(step.finishReason))`, `step.rawFinishReason === "interrupted"`, or `part.type === "tool-approval-request"` in `step.content`), route each pending tool call to `spurvikClient.requireHumanApproval` and deduplicate approval responses with `dedupeToolApprovalResponses`:
+Wrap your language model with `spurvikMiddleware` (`spurvik/ai`). `spurvik/ai` exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`. When a step stops for tool approval (`isInterruptedFinishReason(extractFinishReason(step.finishReason))`, `step.rawFinishReason === "interrupted"`, or `part.type === "tool-approval-request"` in `step.content`), route each pending tool call to `spurvikClient.requireHumanApproval` and deduplicate approval responses with `dedupeToolApprovalResponses`:
 
 ```ts
-import { generateText, jsonSchema, tool, wrapLanguageModel, type LanguageModelV4 } from "ai";
+import { generateText, jsonSchema, tool, wrapLanguageModel } from "ai";
+import type { LanguageModelV4 } from "@ai-sdk/provider";
 import {
   dedupeToolApprovalResponses,
   extractFinishReason,
   isInterruptedFinishReason,
   provenanceFromMetadata,
   spurvikMiddleware,
-} from "@spurvik/sdk/ai";
-import { SpurvikClient, type SpurvikConfig } from "@spurvik/sdk";
+} from "spurvik/ai";
+import { SpurvikClient, type SpurvikConfig } from "spurvik";
 
 declare const baseModel: LanguageModelV4;
 
@@ -115,16 +115,16 @@ await spurvik.flush();
 
 ## 2. OpenAI Agents SDK (`createSpurvikNeedsApproval` & `resolveAgentInterruptions`)
 
-Wrap your `ModelProvider` with `withSpurvikModelProvider` (or a single `Model` with `withSpurvikModel`) from `@spurvik/sdk/openai-agents`. Use `createSpurvikNeedsApproval(config, { actionName })` on side-effecting tools (which runs the halt check before returning `true` or your `when` predicate). When `runner.run(agent, input)` pauses with `paused.interruptions`, call `resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (or `modelProvider.resolveInterruptions(paused.interruptions, { state: paused.state })`) to deduplicate tool-call IDs, wait on `/api/v1/hitl`, and automatically call `state.approve(item)` or `state.reject(item)`:
+Wrap your `ModelProvider` with `withSpurvikModelProvider` (or a single `Model` with `withSpurvikModel`) from `spurvik/openai-agents`. Use `createSpurvikNeedsApproval(config, { actionName })` on side-effecting tools (which runs the halt check before returning `true` or your `when` predicate). When `runner.run(agent, input)` pauses with `paused.interruptions`, call `resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (or `modelProvider.resolveInterruptions(paused.interruptions, { state: paused.state })`) to deduplicate tool-call IDs, wait on `/api/v1/hitl`, and automatically call `state.approve(item)` or `state.reject(item)`:
 
 ```ts
 import { Agent, Runner, tool, type ModelProvider } from "@openai/agents";
-import type { SpurvikConfig } from "@spurvik/sdk";
+import type { SpurvikConfig } from "spurvik";
 import {
   createSpurvikNeedsApproval,
   resolveAgentInterruptions,
   withSpurvikModelProvider,
-} from "@spurvik/sdk/openai-agents";
+} from "spurvik/openai-agents";
 
 declare const baseProvider: ModelProvider;
 declare const config: SpurvikConfig;
@@ -145,8 +145,9 @@ const refundTool = tool({
     additionalProperties: false,
   } as const,
   needsApproval: createSpurvikNeedsApproval(config, { actionName: "issue_refund" }),
-  async execute(input) {
-    return `Refunded ${input.amountCents} cents for ${input.orderId}`;
+  async execute(input: unknown) {
+    const value = input as { orderId: string; amountCents: number };
+    return `Refunded ${value.amountCents} cents for ${value.orderId}`;
   },
 });
 
@@ -174,20 +175,20 @@ await modelProvider.flush();
 
 ---
 
-## 3. LangGraph (`@spurvik/sdk/langgraph` — `spurvikInterrupt`, `resolveLangGraphInterrupts`, and Webhook Resume)
+## 3. LangGraph interrupt and webhook resume
 
-In LangGraph, you can either use the `@spurvik/sdk/langgraph` helpers (`withSpurvikLangGraph`, `spurvikInterrupt`, and `resolveLangGraphInterrupts`) or checkpoint the thread with `interrupt()` and resume when Spurvik delivers the signed `hitl.decision` webhook. See [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md) for the full LangGraph quickstart.
+In LangGraph, you can either use the `spurvik/langgraph` helpers (`withSpurvikLangGraph`, `spurvikInterrupt`, and `resolveLangGraphInterrupts`) or checkpoint the thread with `interrupt()` and resume when Spurvik delivers the signed `hitl.decision` webhook. See [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md) for the full LangGraph quickstart.
 
-### Option A — In-process `spurvikInterrupt` and `resolveLangGraphInterrupts` (`@spurvik/sdk/langgraph`)
+### Option A — In-process `spurvikInterrupt` and `resolveLangGraphInterrupts` (`spurvik/langgraph`)
 
 ```ts
-import type { SpurvikConfig } from "@spurvik/sdk";
+import type { SpurvikConfig } from "spurvik";
 import {
   provenanceFromLangGraphState,
   resolveLangGraphInterrupts,
   spurvikInterrupt,
   withSpurvikLangGraph,
-} from "@spurvik/sdk/langgraph";
+} from "spurvik/langgraph";
 
 declare const config: SpurvikConfig;
 declare const compiledGraph: {
@@ -230,13 +231,7 @@ await graph.flush();
 ### Option B — Non-blocking checkpoint pause (`interrupt()`) + `hitl.decision` webhook resume (`verifyHitlWebhook`)
 
 ```ts
-import {
-  buildPayloadSummary,
-  canonicalJson,
-  fingerprintContent,
-  type HitlRecordWire,
-} from "@spurvik/core";
-import { verifyHitlWebhook } from "@spurvik/sdk";
+import { verifyHitlWebhook, type HitlRecordWire } from "spurvik";
 
 // Replace with: import { Command, interrupt } from "@langchain/langgraph";
 declare function interrupt<TInput, TResume = HitlRecordWire>(value: TInput): TResume;
@@ -246,14 +241,8 @@ declare class Command<TResume = HitlRecordWire> {
 
 // Step A — Inside your LangGraph node before executing a side-effect action:
 export async function refundNode(state: { orderId: string; amountCents: number }) {
-  const payloadSummary = buildPayloadSummary({
-    keys: Object.keys(state).sort(),
-    contentFingerprint: await fingerprintContent(
-      "keyed",
-      canonicalJson(state),
-      process.env.SPURVIK_CONTENT_HASH_SECRET!,
-    ),
-  });
+  // spurvik@1.0.3 does not export a payload-summary helper. Send key names, not values.
+  const payloadSummary = `spurvik.payload_summary.v1:${Object.keys(state).sort().join(",")}`;
 
   const res = await fetch(`${process.env.SPURVIK_BASE_URL}/api/v1/hitl`, {
     method: "POST",

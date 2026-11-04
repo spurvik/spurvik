@@ -1,10 +1,10 @@
 # First 5 Minutes in `console.spurvik.com/sandbox` (2x2 Interactive Cockpit)
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 `https://console.spurvik.com/sandbox` (and `https://console.spurvik.com/`) renders the interactive 2x2 Obsidian Harbor cockpit. It is hosted in the EU (`fra1`), requires **no login or invite code**, sets **zero cookies before sign-in**, and fits in a single `1440×900` viewport without scrolling.
 
-This guide walks you through the cockpit minute by minute and shows how every interactive control maps to `@spurvik/react`, `@spurvik/sdk`, `/api/mcp`, and `/r/eu-ai-act.json`.
+This guide walks you through the cockpit minute by minute and shows how every interactive control maps to `spurvik/react`, `spurvik`, `/api/mcp`, and `/r/eu-ai-act.json`.
 
 ---
 
@@ -14,9 +14,9 @@ This guide walks you through the cockpit minute by minute and shows how every in
 | --- | --- | --- | --- | --- |
 | **Left Icon Rail** (`7` focus items) | `Live Cockpit`, `Stack Scanner`, `Badge Studio (Art. 50)`, `Hash Vault (Art. 12)`, `Human Gate (Art. 14)`, `Legal Map (Pro €19)`, `Quick Connect` | `nav-all`, `nav-scanner`, `nav-badge`, `nav-hash`, `nav-gate`, `nav-legal`, `nav-connect` | Highlight a single card (dimming the other three to `50%` opacity), focus the URL scanner, or jump straight to the `Quick Connect` bar | Navigation helper for the 2x2 grid |
 | **Top Workspace Bar** | Readiness Ring (`70%` default), active domain pill (`nordic-retail.example`), `Lovable SaaS`, `Stripe Refund Agent`, `AI Support Bot`, `Paste App URL...` + `Scan` | `readiness-ring`, `active-domain`, `preset-lovable`, `preset-stripe`, `preset-support`, `stack-scanner` | Switch stack presets or parse an app URL client-side to preview domain-specific prompts, risk scores, and obligation toggles | `withSpurvik(client, { systemName, riskTier, ... })` configuration |
-| **Card 1 (Top-Left)** | `Badge Studio` · pill `Art. 50` | `card-badge-studio` | Toggle `With Spurvik` / `Without Spurvik`, switch between `Emerald Glass`, `Cyan Minimal`, and `Floating Pill`, and use `Open in v0`, `Copy Lovable/Replit Prompt`, or `Copy MCP URL` | `<AIDisclosureLabel />` (`@spurvik/react`), `https://spurvik.com/r/eu-ai-act.json` (`shadcn`), and `https://console.spurvik.com/api/mcp` |
+| **Card 1 (Top-Left)** | `Badge Studio` · pill `Art. 50` | `card-badge-studio` | Toggle `With Spurvik` / `Without Spurvik`, switch between `Emerald Glass`, `Cyan Minimal`, and `Floating Pill`, and use `Open in v0`, `Copy Lovable/Replit Prompt`, or `Copy MCP URL` | `<AIDisclosureLabel />` (`spurvik/react`), `https://spurvik.com/r/eu-ai-act.json` (`shadcn`), and `https://console.spurvik.com/api/mcp` |
 | **Card 2 (Top-Right)** | `Human Gate` · pill `Art. 14` | `oversight-gate` | Inspect a paused agent action (`1 Pending`) and click `Approve (€450)`, `Block Agent`, `Kill Switch`, or `Reset` | `requireHumanApproval`, `submitHumanDecision`, `engageKillSwitch`, `releaseKillSwitch`, and policy gates (`PROCEED` / `ASK_HUMAN` / `HALT`) |
-| **Card 3 (Bottom-Left)** | `Hash Vault` · pill `fra1` (`Frankfurt chain · Art. 12`) | `hash-chain` | Inspect chained blocks (`#1042`, `#1041`, `#1040`) and click `Fire Test AI Call` to prepend `#1043` with `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` | `response._spurvik.record`, `verifyProvenanceSignature(record, secret)`, and `POST /api/v1/telemetry` (`audit_logs` chain) |
+| **Card 3 (Bottom-Left)** | `Hash Vault` · pill `fra1` (`EU (fra1) hash-chained log · Art. 12`) | `hash-chain` | Inspect chained blocks (`#1042`, `#1041`, `#1040`) and click `Fire Test AI Call` to prepend `#1043` with `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` | `provenanceOf(response)`, `verifyProvenanceSignature(record, secret)`, and `POST /api/v1/telemetry` (`audit_logs` chain) |
 | **Card 4 (Bottom-Right)** | `Obligations Map` · pill `Pro €19` | `obligations-radar` | Toggle `User Chat · Art. 50(1)`, `Media Gen · Art. 50(2)`, and `High-Risk Actions · Art. 12/14`, compare `Free · active` vs. `Pro · `, and click `Preview Pro` | Your own risk-tier configuration (`minimal`, `limited_art50`, `high_annex3`) and workspace plan (`Free` / `Pro` / `Team` / `Enterprise`) |
 
 ---
@@ -48,7 +48,7 @@ Open `https://console.spurvik.com/sandbox` in your browser.
 Look at **Card 1 (`Badge Studio`, top-left, pill `Art. 50`)**, or click `Badge Studio (Art. 50)` (`nav-badge`) in the left rail to isolate it.
 
 1. **Toggle `With Spurvik` vs. `Without Spurvik` (`data-testid="switch-spurvik-mode"`):**
-   - When **`With Spurvik`** is active, the `#0B111E` dark-glass chat bubble (`chat-bubble`) renders the live `@spurvik/react` `<AIDisclosureLabel />` component inline:
+   - When **`With Spurvik`** is active, the `#0B111E` dark-glass chat bubble (`chat-bubble`) renders the live `spurvik/react` `<AIDisclosureLabel />` component inline:
      ```text
      Refund assistant. You are interacting with an AI system.
      ```
@@ -86,7 +86,7 @@ Look at **Card 2 (`Human Gate`, top-right, pill `Art. 14`)**, or click `Human Ga
    - Click **`Kill Switch`** (`gate-kill-btn`) to transition the status pill to **`Halted`** (rose) and append a `hitl.decision` block.
    - Click **`Reset`** (`gate-reset-btn`) at any time to return the gate status to **`1 Pending`**.
 3. **How `Human Gate` maps to production SDK & API calls:**
-   - **Per-action approval (`Approve` / `Block Agent`):** In `@spurvik/sdk`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` records a `pending` row (or `pending_confirmation` when two-person confirmation is enabled) via `POST /api/v1/hitl`. A human reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_` token.
+   - **Per-action approval (`Approve` / `Block Agent`):** In `spurvik`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` records a `pending` row (or `pending_confirmation` when two-person confirmation is enabled) via `POST /api/v1/hitl`. A human reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_` token.
    - **Project or action stop (`Kill Switch` / `Reset`):** Calling `await ai._spurvik.engageKillSwitch({ reason, actionName })` or `await ai._spurvik.releaseKillSwitch({ reason, actionName })` (or clicking **Engage stop** / **Release stop** in the console) toggles the stop checked before every `high_annex3` call (`PROCEED` vs. `HALT`, throwing `SpurvikHaltedError` when active).
    - **Scope of the audit record:** The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
@@ -105,7 +105,7 @@ Look at **Card 3 (`Hash Vault`, bottom-left, pill `fra1`, subtitle `Frankfurt ch
      ```
 2. **Click `Fire Test AI Call` (`data-testid="fire-test-call-btn"`):**
    - Each click prepends a new block (`#1043`, `#1044`, …) for the active preset's model (`gpt-4o` or `claude-3-7`) and links its `prev_hash` to the prior top block's hash.
-3. **What each field means when you run `@spurvik/sdk`:**
+3. **What each field means when you run `spurvik`:**
    - `raw_prompt: 0B`: Your application hashes prompt and output strings locally with `contentHash: { mode: "keyed", secret: process.env.SPURVIK_CONTENT_HASH_SECRET! }`. Raw prompts and model outputs are never sent to `POST /api/v1/telemetry`.
    - `hmac`: The `HMAC-SHA-256` signature (`record.signature`) computed on your server using `SPURVIK_SIGNING_SECRET`. You can check any receipt locally with `await verifyProvenanceSignature(record, process.env.SPURVIK_SIGNING_SECRET!)` or explain its fields via the `spurvik_explain_receipt` MCP tool.
    - `prev_hash` and `record_hash`: When telemetry is ingested into the control plane (`audit_logs`), each project row chains `prev_hash` (the previous row's `record_hash`, or `"GENESIS"` on the first row) into `record_hash = SHA-256(canonical({ prevHash, projectId, record }))`.
@@ -122,7 +122,7 @@ Look at **Card 4 (`Obligations Map`, bottom-right, pill `Pro €19`)**.
    - **`High-Risk Actions · Art. 12/14` (`toggle-high-risk`):** Toggles the `Art. 12 & Art. 14` pill (`"Article 12 logging & Article 14 human oversight for high-risk AI systems (Annex III applies from 2 Dec 2027)."`).
 2. **Compare `Free · active` vs. `Pro · ` (`B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.`):**
    - **`Free · active` (`€0/mo`, `10k events/mo`):** `Art. 50(1) Badge`, `Keyed HMAC Receipts`, `Local /spurvik:check`.
-   - **`Pro · ` (`€19/mo` or `€190/yr`, excl. VAT · B2B only · `250k events/mo`):** `Plain-English Obligations Map`, `90-Day EU fra1 Vault`, `Hosted Human Gate Queue`, `DPO Engineering Summary`.
+   - **`Pro · ` (`€19/mo` or `€190/yr`, excl. VAT · B2B only · `250k events/mo`):** `Plain-English Obligations Map` (planned), `EU (fra1) hash-chained log`, `Hosted Human Gate Queue`, `DPO Engineering Summary` (planned). This tree does not claim that data stays in the EU.
    - Click **`Preview Pro`** (`pro-preview-btn`) to preview the `100% Pro €19/mo` state on the Readiness Ring, or click **`Unlock Pro €19/mo ->`** to open `/signup` if you have a  access code.
 
 ---
@@ -135,10 +135,10 @@ To drop the standalone badge into a Next.js or React project without workspace c
 
 ```bash
 # Site starter (components/spurvik-ai-disclosure-label.tsx + sample app/api/chat/route.ts):
-pnpm dlx shadcn@latest add https://spurvik.com/r/eu-ai-act.json
+npx shadcn@latest add https://spurvik.com/r/eu-ai-act.json
 
 # Console starter opened by "Open in v0" (components/spurvik/ai-disclosure-badge.tsx + hooks/use-spurvik-receipt.ts):
-pnpm dlx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json
+npx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json
 ```
 
 ### 2. Query the Hosted Streamable HTTP MCP Endpoint (`/api/mcp`)
@@ -159,11 +159,11 @@ curl -sS -X POST https://console.spurvik.com/api/mcp \
   }'
 ```
 
-### 3. Connect Your App to a Local or Hosted Control Plane
+### 3. Connect your app to the hosted console
 
 When you are ready to mint a real `spurvik_live_...` project key and ingest signed receipts:
 
-- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** (remembering to run `unset SPURVIK_WEBHOOK_KEK DATABASE_URL SPURVIK_SESSION_SECRET SPURVIK_SIGNING_SECRET SPURVIK_LOG_CHECKPOINT_SECRET SPURVIK_ALLOW_TEST_KEYS` before `pnpm db:migrate`, `pnpm db:seed`, or `pnpm dev` if you had earlier shell variables exported).
+- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** and install with `npm install openai spurvik@1.0.3`. For an invited organisation, set `baseUrl` to `https://console.spurvik.com`.
 - Read the **[Console Onboarding Guide](./console-onboarding.md)** for organisation invites (`spurvik_invite_...`), monthly quotas, SIEM webhooks, and `<AIDisclosureLabel />` props.
 - Check **[2x2 Sandbox & Environment FAQ](./faq-sandbox-2x2.md)** for answers to common developer questions.
 

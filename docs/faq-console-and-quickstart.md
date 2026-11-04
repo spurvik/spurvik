@@ -1,6 +1,6 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Spurvik EU AI Act SDK (1.0.3) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
@@ -13,7 +13,7 @@ Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) 
 On `https://console.spurvik.com/signup`, account creation is gated by `SPURVIK_INVITE_CODE` and creates a console login (`users` row and `spurvik_session` cookie) only — it does not create an organisation or starter project. You get an organisation, project, and `spurvik_live_` key in one of two ways:
 
 1. **Hosted console (`/invites`):** An existing organisation `owner` or `admin` invites you from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`. Once you are an `owner` of an organisation, create a project on `/dashboard/projects` and mint a `spurvik_live_` key on the project page.
-2. **Local control plane (`pnpm db:seed`):** Running `pnpm db:migrate && pnpm db:seed` in `spurvik` creates a local `Demo Organization`, `owner` login, `Demo Project`, and prints a ready-to-use `spurvik_live_` key. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md).
+2. **Hosted console:** An organisation owner creates the project and the `spurvik_live_` key in the hosted console. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md). This repository does not include a seed script.
 
 ### 2. What is the difference between `spurvik_live_`, `spurvik_pub_`, `spurvik_reviewer_`, and `spurvik_invite_` tokens?
 
@@ -21,19 +21,16 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 | Prefix | Issued by | Used for |
 |---|---|---|
-| `spurvik_live_` | `owner` (**Keys -> Create or rotate live key** or `pnpm db:seed`) | Server-side SDK calls to `POST /api/v1/telemetry`, `GET/POST /api/v1/oversight`, `GET/POST /api/v1/hitl`, and `POST /api/v1/disclosure`. |
-| `spurvik_pub_` | `owner` (**Keys -> Create disclosure key** or `pnpm db:seed`) | Browser-side `<AIDisclosureLabel />` opt-in beacon (`POST /api/v1/disclosure` only; rejected by telemetry, oversight, and HITL endpoints). |
-| `spurvik_reviewer_` | `owner` (**Reviewer token -> Issue reviewer token** or `pnpm db:seed`) | Sent in the `x-spurvik-reviewer` header (`reviewerToken` in `SpurvikConfig`) alongside a `spurvik_live_` key when calling `engageKillSwitch`, `releaseKillSwitch`, or `submitHumanDecision` via the API. |
+| `spurvik_live_` | `owner` (**Keys -> Create or rotate live key** in the hosted console) | Server-side SDK calls to `POST /api/v1/telemetry`, `GET/POST /api/v1/oversight`, `GET/POST /api/v1/hitl`, and `POST /api/v1/disclosure`. |
+| `spurvik_pub_` | `owner` (**Keys -> Create disclosure key** in the hosted console) | Browser-side `<AIDisclosureLabel />` opt-in beacon (`POST /api/v1/disclosure` only; rejected by telemetry, oversight, and HITL endpoints). |
+| `spurvik_reviewer_` | `owner` (**Reviewer token -> Issue reviewer token** in the hosted console) | Sent in the `x-spurvik-reviewer` header (`reviewerToken` in `SpurvikConfig`) alongside a `spurvik_live_` key when calling `engageKillSwitch`, `releaseKillSwitch`, or `submitHumanDecision` via the API. |
 | `spurvik_invite_` | `owner` or `admin` (**Team -> Invite a member**) | One-time organisation invite token (valid for 7 days), claimed at `/invites`. |
 
-### 3. Why did `pnpm dev` fail with `SPURVIK_WEBHOOK_KEK must be 32 bytes` or `POST /api/v1/telemetry` return `500` after I edited `apps/web/.env`?
+### 3. This repository does not include a server you start with a package script
 
-Before starting Next.js, `apps/web/src/scripts/refuse-missing-keys.ts` loads `apps/web/.env` using `@next/env`, which **never overwrites environment variables that are already exported in your shell (`process.env`)**. If `SPURVIK_WEBHOOK_KEK`, `SPURVIK_LOG_CHECKPOINT_SECRET`, or `DATABASE_URL` is already set in your terminal from an earlier command or test run, clear those shell variables before starting the server:
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.3` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
 
-```bash
-unset DATABASE_URL SPURVIK_SESSION_SECRET SPURVIK_LOG_CHECKPOINT_SECRET SPURVIK_WEBHOOK_KEK SPURVIK_ALLOW_TEST_KEYS
-pnpm dev
-```
+Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 
@@ -61,10 +58,10 @@ No. Every invite, acceptance, role change, removal, and invite revocation is app
 
 Monthly quotas (`MONTHLY_EVENT_QUOTA`, per project per UTC calendar month) count **only newly inserted `audit_logs` rows with `record_kind = 'model_call'`** based on the server ingestion timestamp (`created_at`, not the client `timestamp`):
 
-- **Free / Developer:** `10,000` `model_call` events / UTC month (30-day default retention)
-- **Pro:** `250,000` `model_call` events / UTC month (90-day default retention; planned price €19/mo or €190/yr, excl. VAT)
-- **Team / Business:** `2,000,000` `model_call` events / UTC month (90-day default retention on Team, 365-day on Business; planned Team price €79/mo or €790/yr, excl. VAT)
-- **Enterprise:** Custom per-project cap (`0..2,000,000,000`) or `unlimited` (`null`), configurable by an `owner` under **Monthly events** (planned price from €499/mo, excl. VAT)
+- **Free:** `10,000` `model_call` events / UTC month (30-day retention, planned)
+- **Pro:** `250,000` `model_call` events / UTC month (90-day retention, planned; price €19/mo or €190/yr, excl. VAT)
+- **Team:** `2,000,000` `model_call` events / UTC month (90-day retention, planned; price €79/mo or €790/yr, excl. VAT)
+- **Enterprise:** a per-project period. Unset Enterprise projects keep 365 days until an owner sets one (planned). Custom per-project event caps are set by an owner.
 
 *(B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.)*
 
@@ -78,7 +75,23 @@ When an `owner` saves an `https://` endpoint URL under **HITL webhook** on `/das
 2. **`oversight.changed`** (all plans): `{ type: "oversight.changed", deliveryId, projectId, epoch, state }`
 3. **`telemetry.ingested`** (`team`, `business`, and `enterprise` plans when **Telemetry export** `siemExportEnabled` is enabled): `{ type: "telemetry.ingested", deliveryId, projectId, inserted, duplicates, eventIds }` (counts and `eventId`s only, never prompt or output text)
 
-Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (`HMAC-SHA256(secret, "${timestamp}.${rawBody}")`), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check signatures with `verifyWebhookSignature` from `@spurvik/core` or `verifyHitlWebhook` from `@spurvik/sdk`.
+Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (HMAC-SHA-256 of `` `${timestamp}.${body}` ``), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check a `hitl.decision` body with `verifyHitlWebhook` from `spurvik`. For any other body:
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+const secret = "example-webhook-secret";
+const body = "{}";
+const timestamp = String(Math.floor(Date.now() / 1000));
+const signature =
+  "v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+const expected =
+  "v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+const matches =
+  signature.length === expected.length &&
+  timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+console.log(matches);
+```
 
 ### 8. Why do `state.reason` and `state.previousReason` differ between a release response/webhook and a later `GET /api/v1/oversight`?
 
@@ -94,12 +107,12 @@ The oversight and audit record shows what happened, when, and who acted — neve
 
 ### 9. Does `<AIDisclosureLabel />` send network requests or touch `sessionStorage` by default?
 
-No. By default, `<AIDisclosureLabel />` in `@spurvik/react` is purely a local React component (`<aside role="note" lang={locale} aria-describedby={noteId} data-aegis-disclosure={notice}>`) with built-in copy in all 24 official EU languages (`locale`), `"block"` and `"inline"` presentations (`presentation`), optional `<EuMark />` icon (`euIcon`), and anti-hiding CSS rules (`display: "inline-flex"`, `visibility: "visible"`, `opacity: 1`, and non-transparent text color).
+No. By default, `<AIDisclosureLabel />` in `spurvik/react` is purely a local React component (`<aside role="note" lang={locale} aria-describedby={noteId} data-aegis-disclosure={notice}>`) with built-in copy in all 24 official EU languages (`locale`), `"block"` and `"inline"` presentations (`presentation`), optional `<EuMark />` icon (`euIcon`), and anti-hiding CSS rules (`display: "inline-flex"`, `visibility: "visible"`, `opacity: 1`, and non-transparent text color).
 
 Even if you pass the `beacon` prop, `sendDisclosureBeacon` checks `beacon.consent === true` first. Unless `beacon.consent === true`, it returns immediately without reading or writing `sessionStorage` and without sending `POST /api/v1/disclosure`.
 
-### 10. What is the difference between `@spurvik/react` `<AIDisclosureLabel />` and the `shadcn` registry components at `/r/eu-ai-act.json`?
+### 10. What is the difference between `spurvik/react` `<AIDisclosureLabel />` and the `shadcn` registry components at `/r/eu-ai-act.json`?
 
-- **`@spurvik/react` (`packages/react` in `spurvik`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
-- **`https://spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik-ai-disclosure-label.tsx` (`{ model?, receipt?, label?, className? }`) and a sample `app/api/chat/route.ts` into your project.
-- **`https://console.spurvik.com/r/eu-ai-act.json` (`pnpm dlx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik/ai-disclosure-badge.tsx` (`AiDisclosureBadge` with `{ systemName? }`) and `hooks/use-spurvik-receipt.ts` (`useSpurvikReceipt`, `readReceipt`) into your project.
+- **`spurvik/react` (`packages/react` in `spurvik`):** Full component library exporting `<AIDisclosureLabel />` (5 `notice` kinds, 24 EU locales + `registerDisclosureLocale`, `"block" | "inline"` presentation, `euIcon`, anti-hiding styles, opt-in `beacon`), `<AIArticle50Section3Notice />`, `<AIDisclosureDetails />`, and `<EuMark />`.
+- **`https://spurvik.com/r/eu-ai-act.json` (`npx shadcn@latest add https://spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik-ai-disclosure-label.tsx` (`{ model?, receipt?, label?, className? }`) and a sample `app/api/chat/route.ts` into your project.
+- **`https://console.spurvik.com/r/eu-ai-act.json` (`npx shadcn@latest add https://console.spurvik.com/r/eu-ai-act.json`):** Zero-dependency starter that copies `components/spurvik/ai-disclosure-badge.tsx` (`AiDisclosureBadge` with `{ systemName? }`) and `hooks/use-spurvik-receipt.ts` (`useSpurvikReceipt`, `readReceipt`) into your project.
