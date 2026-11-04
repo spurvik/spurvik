@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Verify Manifests, n8n Node & Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install n8n-nodes-spurvik dependencies
+        working-directory: packages/n8n-nodes-spurvik
+        run: npm install --no-package-lock --legacy-peer-deps
+      - name: Run repository CI suite
+        run: node scripts/ci/run-all-checks.mjs
+      - name: Run slack-telegram-linear-ask-human example smoke test
+        working-directory: examples/slack-telegram-linear-ask-human
+        run: npm ci && npm test
