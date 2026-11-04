@@ -1,5 +1,10 @@
 # Spurvik
 
+[![CI](https://github.com/spurvik/spurvik/actions/workflows/ci.yml/badge.svg)](https://github.com/spurvik/spurvik/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/spurvik?label=spurvik&color=10B981)](https://www.npmjs.com/package/spurvik)
+[![mcp version](https://img.shields.io/npm/v/spurvik-mcp-server?label=spurvik-mcp-server&color=38BDF8)](https://www.npmjs.com/package/spurvik-mcp-server)
+[![n8n node version](https://img.shields.io/npm/v/n8n-nodes-spurvik?label=n8n-nodes-spurvik&color=818CF8)](https://www.npmjs.com/package/n8n-nodes-spurvik)
+
 Spurvik is a developer control plane that **supports your EU AI Act work**: hash-chained record-keeping, human-oversight hooks, and transparency notices. It is infrastructure. It is not a conformity assessment, a certification, or legal advice.
 
 Regulation (EU) 2024/1689 is the legal instrument. Dates below follow the AI Omnibus timeline and the Commission’s Code of Practice on Transparency of AI-generated Content. Have counsel confirm how they apply to a specific system.
@@ -14,6 +19,8 @@ Milestones 1–4, scoped to the EU market.
 | `packages/react` | Always-visible Article 50 labels, in all 24 EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
 | `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `packages/mcp` (`1.0.2`). |
+| `packages/n8n-nodes-spurvik` | Native n8n Community Node (`SpurvikEuAiActGuard`) and importable Make.com blueprint (`make-com-blueprint.json`) for Art. 50(1) notices, Art. 12 HMAC-SHA256 digests, and Art. 14 `ask_human()` gates. Published on npm as `n8n-nodes-spurvik@1.0.2` (MIT). |
+| `examples/` | Runnable developer templates: Next.js + Vercel AI SDK (`nextjs-vercel-ai-sdk`), 9-channel `ask_human()` router (`slack-telegram-linear-ask-human` & `multi-channel-hitl.ts`), n8n & Make.com workflows (`n8n-make-import`), and GitHub Actions CI check (`github-actions-ci-check`). |
 
 Features designed to support Article 12(3) logging for remote biometric identification systems (Annex III point 1(a); high-risk requirements apply from 2 December 2027) are in the control plane. Two-person confirmation is a product setting. It checks that two different member accounts confirmed the decision. Image marking support is `packages/c2pa`. Build that directory from source. It is not a published npm package. Its `package.json` sets `"private": true` and `"license": "MIT"`.
 

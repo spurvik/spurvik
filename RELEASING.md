@@ -2,9 +2,9 @@
 
 Run these commands from a clean checkout of the merge commit. `spurvik` and `spurvik-sdk` are the same SDK build under two names. `spurvik-sdk` does not depend on `spurvik`. Do not pass `--provenance`.
 
-Publish order: `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.5`).
+Publish order: `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`).
 
-Do not `npm install` `spurvik@1.0.5` or `spurvik-sdk@1.0.5` from the registry until after `npm publish`. That install fails with `ETARGET` while the version is unpublished. Smoke-test from the local `.tgz` files.
+Do not `npm install` `spurvik@1.0.6` or `spurvik-sdk@1.0.6` from the registry until after `npm publish`. That install fails with `ETARGET` while the version is unpublished. Smoke-test from the local `.tgz` files.
 
 `packages/sdk/package.json` has no `file:` dependency. The SDK build links `packages/core` into `node_modules` for that build only. That link is not part of the published package.
 
@@ -52,14 +52,14 @@ mkdir -p /tmp/spurvik-release
 # 3. Build the n8n package against the local spurvik-sdk tarball, then pack and dry-run.
 (
   cd "$REPO"/packages/n8n-nodes-spurvik
-  npm install --no-save --no-package-lock --legacy-peer-deps /tmp/spurvik-release/spurvik-sdk-1.0.5.tgz
+  npm install --no-save --no-package-lock --legacy-peer-deps /tmp/spurvik-release/spurvik-sdk-1.0.6.tgz
   npm install --no-save --no-package-lock --legacy-peer-deps typescript@5.9.3 n8n-workflow@2.46.4 @types/node@22.20.5
   npm run build
   npm pack --pack-destination /tmp/spurvik-release
   npm publish --dry-run
 )
 
-# 4. Smoke-test the three tarballs in a fresh directory. Still no registry install of 1.0.5.
+# 4. Smoke-test the three tarballs in a fresh directory. Still no registry install of 1.0.6.
 #    Clear only these two directories, then pack again into the empty release directory.
 rm -rf /tmp/spurvik-release /tmp/spurvik-smoke
 mkdir -p /tmp/spurvik-release /tmp/spurvik-smoke
@@ -81,8 +81,8 @@ mkdir -p /tmp/spurvik-release /tmp/spurvik-smoke
   cd /tmp/spurvik-smoke
   npm init -y
   npm install --legacy-peer-deps \
-    /tmp/spurvik-release/spurvik-1.0.5.tgz \
-    /tmp/spurvik-release/spurvik-sdk-1.0.5.tgz \
+    /tmp/spurvik-release/spurvik-1.0.6.tgz \
+    /tmp/spurvik-release/spurvik-sdk-1.0.6.tgz \
     /tmp/spurvik-release/n8n-nodes-spurvik-1.0.2.tgz
   # spurvik/react imports react. React is an optional peer, so install it for this import check.
   npm install --no-save --no-package-lock --legacy-peer-deps react@19 react-dom@19
@@ -119,7 +119,7 @@ After that publish, a registry install check is valid.
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check
   npm init -y
-  npm install spurvik@1.0.5 spurvik-sdk@1.0.5 n8n-nodes-spurvik@1.0.2
+  npm install spurvik@1.0.6 spurvik-sdk@1.0.6 n8n-nodes-spurvik@1.0.2
 )
 ```
 

@@ -1,20 +1,14 @@
-# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.1`
+# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.2`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.4`, and the `n8n-nodes-spurvik@1.0.1` npm tarball). This is not legal advice.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.6`, and the `n8n-nodes-spurvik@1.0.2` npm tarball). This is not legal advice.
 
-## 1. Approval router (`spurvik@1.0.4`)
+## 1. Approval router (`spurvik@1.0.6`)
 
-`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.4` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping / Article 14 human oversight.
+`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.6` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping / Article 14 human oversight.
 
-### Callback URL
+### Callback URL & Nonce Verification
 
-In published `spurvik@1.0.4`, `callbackBaseUrl` is optional on the approval request (`callbackBaseUrl?: string` in `dist/channels.d.ts`). `createSignedApprovalLinks` in `dist/channels.js` uses this when the value is missing or blank:
-
-```js
-request.callbackBaseUrl?.trim() || "https://console.spurvik.com/api/v1/hitl"
-```
-
-That console route accepts POST only. An approver click is a GET, so the click is not accepted, and nothing is approved or recorded. The console does not hold the customer's secret, so it cannot check the link. On 1.0.4, always set `callbackBaseUrl` to your own endpoint and check the token there with `verifyChannelApprovalToken`. `callbackBaseUrl` is required from 1.0.5 (planned).
+In `spurvik@1.0.6` (and `1.0.5+`), `callbackBaseUrl` is required on the approval request (`callbackBaseUrl: string` in `dist/channels.d.ts`), and `createSignedApprovalLinks` generates a random 16-byte hex `nonce` per link and mixes it into the HMAC-SHA256 signature. Pass your own GET callback endpoint (or `https://console.spurvik.com/api/v1/hitl/callback`) and verify the token with `verifyChannelApprovalToken` (passing `nonce`) or `verifySignedChannelCallback`:
 
 ```ts
 import {
@@ -53,11 +47,11 @@ const result = await hitlRouter.requestApproval({
   actionName: "execute_sepa_transfer",
   summary: "Approve a SEPA transfer to a vendor invoice",
   context: { currency: "EUR" },
-  callbackBaseUrl: 'https://your-app.example/api/spurvik/callback',
+  callbackBaseUrl: "https://your-app.example/api/spurvik/callback",
 });
 
 // Illustrative. This parses approveUrl for demonstration.
-// A real handler reads the token and decision from the incoming request.
+// A real handler reads the token, nonce, and decision from the incoming request.
 const url = new URL(result.links.approveUrl);
 const decision = url.searchParams.get("decision");
 const tokenOk =
@@ -68,33 +62,32 @@ const tokenOk =
     actionHmac: url.searchParams.get("hmac") ?? "",
     decision,
     issuedAtUnix: Number(url.searchParams.get("ts")),
+    nonce: url.searchParams.get("nonce") ?? undefined,
     signature: url.searchParams.get("sig") ?? "",
   });
 ```
 
 ### Input fingerprint
 
-Provenance records in `spurvik@1.0.4` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters (`dist/chunk-DQUZA3T3.js`). Channel dispatch receipts are a different object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
+Provenance records in `spurvik@1.0.6` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
-## 2. `n8n-nodes-spurvik@1.0.1`
+## 2. `n8n-nodes-spurvik@1.0.2`
 
-`npm view n8n-nodes-spurvik versions dist-tags` lists `0.0.0-stage`, `1.0.0`, and `1.0.1`, with `latest` at `1.0.1`. The notes below are only what the `n8n-nodes-spurvik@1.0.1` tarball and a load under n8n 2.46.4 show.
+`npm view n8n-nodes-spurvik versions dist-tags` lists `0.0.0-stage`, `1.0.0`, `1.0.1`, and `1.0.2`, with `latest` at `1.0.2`.
 
-The tarball contains `package.json`, `dist/index.js`, `src/index.ts`, `src/n8n-nodes-spurvik.test.ts`, and `make-com-blueprint.json`. `package.json` sets `n8n.nodes` to `["dist/index.js"]`. It has no `n8n.credentials` entry. `dist/index.js` does not export a credential type.
+The `n8n-nodes-spurvik@1.0.2` tarball contains:
+- `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` (exports `SpurvikEuAiActGuard` with `description` and `execute()`)
+- `dist/nodes/SpurvikEuAiActGuard/spurvik.svg`
+- `dist/credentials/SpurvikApi.credentials.js` (exports `SpurvikApi`)
+- `dist/workflow.js` (exports `executeSpurvikWorkflowStep` and `SpurvikN8nNodeDescription`)
+- `dist/index.js`
+- `make-com-blueprint.json`
 
-`dist/index.js` exports `executeSpurvikWorkflowStep`, `SpurvikN8nNodeDescription`, and class `SpurvikEuAiActGuard`. The class sets `description` and defines `execute()`. The file name is `index.js`, which does not match the class name. n8n 2.46.4 loads `new (require(file).index)()` (`n8n-core` `loadClassInIsolation`). The tarball has no export named `index`. That call throws `TypeError: require(...).index is not a constructor`.
+`package.json` sets `n8n.nodes` to `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]` and `n8n.credentials` to `["dist/credentials/SpurvikApi.credentials.js"]`. Loaded in `n8n 2.46.4`, the native Community Node registers cleanly and exposes three operations (`art50_disclosure`, `art12_hmac_log`, `art14_ask_human`) designed to support Article 50(1) transparency notices, Article 12 record-keeping, and Article 14 human oversight. By default `passThroughFields` is blank, so incoming prompt fields are not copied onto the node output unless explicitly listed in `passThroughFields`.
 
-Started with `n8n@2.46.4` and `N8N_CUSTOM_EXTENSIONS` pointed at a directory whose `node_modules/n8n-nodes-spurvik` is the unpacked 1.0.1 tarball. The process log printed this line:
+Files in this repository:
 
-```text
-Skipping custom node "/tmp/n8n-custom/node_modules/n8n-nodes-spurvik/dist/index.js": failed to load.
-```
-
-No node from that package is registered. A native node in `n8n-nodes-spurvik` 1.0.2 (planned) is designed to support Article 12 record-keeping / Article 14 human oversight.
-
-`execute()` calls `executeSpurvikN8nGuard`, which neither `dist/index.js` nor `src/index.ts` in the tarball defines. It also calls `this.getInputData` and `this.getNodeParameter`, which the class does not define. The item built inside `execute()` is `{ json: { ...itemJson, spurvik: result } }`, so the output spreads the incoming item. Prompt text on that item is included in the output. n8n execution history keeps node inputs and outputs.
-
-Files in this repository, separate from that tarball:
-
-- [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)
+- [`packages/n8n-nodes-spurvik/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts`](../packages/n8n-nodes-spurvik/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts)
+- [`packages/n8n-nodes-spurvik/credentials/SpurvikApi.credentials.ts`](../packages/n8n-nodes-spurvik/credentials/SpurvikApi.credentials.ts)
+- [`packages/n8n-nodes-spurvik/src/workflow.ts`](../packages/n8n-nodes-spurvik/src/workflow.ts)
 - [`packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json)

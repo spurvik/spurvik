@@ -5,22 +5,22 @@ import {
 } from "spurvik";
 
 /**
- * spurvik@1.0.4 leaves callbackBaseUrl optional. createSignedApprovalLinks
- * defaults a blank value to https://console.spurvik.com/api/v1/hitl. That
- * console route accepts POST only, so an approver click (GET) is not
- * accepted. Always set callbackBaseUrl to your own endpoint and check the
- * link token there with verifyChannelApprovalToken.
- * callbackBaseUrl is required from 1.0.5 (planned).
+ * In spurvik@1.0.6, callbackBaseUrl is required on requestApproval() and
+ * createSignedApprovalLinks() includes a random 16-byte hex nonce in the
+ * signed URL query string (?gateId=...&decision=...&hmac=...&ts=...&nonce=...&sig=...).
+ * Pass nonce to verifyChannelApprovalToken (or use verifySignedChannelCallback)
+ * on your callback endpoint, and record each nonce to refuse replays.
  *
  * Provenance records carry inputHash. Keyed mode is the default: inputHash
  * is a keyed HMAC-SHA256 fingerprint of the input, and contentHash.secret
  * must be at least 16 characters. n8n execution history keeps node inputs
  * and outputs.
  */
-function checkApprovalLink(signingSecret: string, target: string): boolean {
+export function checkApprovalLink(signingSecret: string, target: string): boolean {
   const url = new URL(target);
   const decision = url.searchParams.get("decision");
   const ts = url.searchParams.get("ts");
+  const nonce = url.searchParams.get("nonce") ?? undefined;
   if (decision !== "approved" && decision !== "rejected") return false;
   if (!ts || !/^\d+$/.test(ts)) return false;
   return verifyChannelApprovalToken({
@@ -29,6 +29,7 @@ function checkApprovalLink(signingSecret: string, target: string): boolean {
     actionHmac: url.searchParams.get("hmac") ?? "",
     decision,
     issuedAtUnix: Number(ts),
+    nonce,
     signature: url.searchParams.get("sig") ?? "",
   });
 }
@@ -123,7 +124,7 @@ async function main() {
     actionName: "execute_sepa_transfer",
     summary: "Approve a SEPA transfer for supplier invoice 8841",
     context: { currency: "EUR", invoiceId: "8841" },
-    callbackBaseUrl: 'https://your-app.example/api/spurvik/callback',
+    callbackBaseUrl: "https://your-app.example/api/spurvik/callback",
   });
 
   console.log("Gate ID:", result.links.gateId);
