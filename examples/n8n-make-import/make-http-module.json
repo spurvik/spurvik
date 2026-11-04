@@ -1,0 +1,151 @@
+{
+  "name": "Spurvik HTTP module settings for Make.com",
+  "makeComLoadsN8nCommunityNodes": false,
+  "nodeCallsSpurvikHttp": false,
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "name": "Incoming workflow item"
+      },
+      "mapper": {}
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {},
+      "mapper": {
+        "url": "{{var.CHANNEL_WEBHOOK_URL}}",
+        "method": "post",
+        "headers": [
+          {
+            "name": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"text\":\"[Spurvik Art. 14 Gate] workflow.risky_action: placeholder summary (gate=gate_REPLACE_ME, hmac=REPLACE_ME)\",\"blocks\":[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*[Spurvik Art. 14 Gate] workflow.risky_action*\\nplaceholder summary\\n`gate=gate_REPLACE_ME`\"}},{\"type\":\"actions\",\"elements\":[{\"type\":\"button\",\"text\":{\"type\":\"plain_text\",\"text\":\"Approve Action\"},\"style\":\"primary\",\"url\":\"https://example.com/hitl?gateId=gate_REPLACE_ME&decision=approved&sig=REPLACE_ME\",\"action_id\":\"spurvik_approve_gate_REPLACE_ME\"},{\"type\":\"button\",\"text\":{\"type\":\"plain_text\",\"text\":\"Block Agent\"},\"style\":\"danger\",\"url\":\"https://example.com/hitl?gateId=gate_REPLACE_ME&decision=rejected&sig=REPLACE_ME\",\"action_id\":\"spurvik_reject_gate_REPLACE_ME\"}]}]}"
+      },
+      "metadata": {
+        "role": "Shape of the Slack POST from buildChannelOutboundRequest. executeSpurvikWorkflowStep sends it only when channel is passed. The n8n descriptor has no channel parameter. URLs here are placeholders."
+      }
+    }
+  ],
+  "sdkControlPlaneNotCalledByNode": {
+    "note": "HTTP calls from the SDK client. The n8n package does not call them. A Make HTTP module can send them if you want a console row.",
+    "modules": [
+      {
+        "id": 3,
+        "module": "http:ActionSendData",
+        "version": 3,
+        "mapper": {
+          "url": "{{var.SPURVIK_BASE_URL}}/api/v1/telemetry",
+          "method": "post",
+          "headers": [
+            {
+              "name": "authorization",
+              "value": "Bearer {{var.SPURVIK_API_KEY}}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "raw",
+          "contentType": "application/json",
+          "data": "{\"events\":[{\"eventId\":\"00000000-0000-4000-8000-000000000000\",\"timestamp\":\"2026-11-04T00:00:00.000Z\",\"modelProvider\":\"unknown\",\"modelVersion\":\"placeholder\",\"inputHash\":null,\"outputHash\":null,\"contentHashMode\":\"off\",\"latencyMs\":0,\"temperature\":null,\"contentMarkingApplied\":false,\"evidenceTrailerAttached\":false,\"markingHookId\":null,\"hitlStatus\":null}]}"
+        }
+      },
+      {
+        "id": 4,
+        "module": "http:ActionSendData",
+        "version": 3,
+        "mapper": {
+          "url": "{{var.SPURVIK_BASE_URL}}/api/v1/hitl",
+          "method": "post",
+          "headers": [
+            {
+              "name": "authorization",
+              "value": "Bearer {{var.SPURVIK_API_KEY}}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "raw",
+          "contentType": "application/json",
+          "data": "{\"actionName\":\"workflow.risky_action\",\"payloadSummary\":\"{\\\"contentFingerprint\\\":null,\\\"keys\\\":[\\\"invoiceId\\\"],\\\"schema\\\":\\\"spurvik.payload_summary.v1\\\"}\"}"
+        }
+      },
+      {
+        "id": 5,
+        "module": "http:ActionSendData",
+        "version": 3,
+        "mapper": {
+          "url": "{{var.SPURVIK_BASE_URL}}/api/v1/disclosure",
+          "method": "post",
+          "headers": [
+            {
+              "name": "authorization",
+              "value": "Bearer {{var.SPURVIK_API_KEY}}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "raw",
+          "contentType": "application/json",
+          "data": "{\"sessionId\":\"session_REPLACE_ME\",\"jurisdiction\":\"EU\"}"
+        }
+      },
+      {
+        "id": 6,
+        "module": "http:ActionSendData",
+        "version": 3,
+        "mapper": {
+          "url": "{{var.SPURVIK_BASE_URL}}/api/v1/hitl/REPLACE_APPROVAL_ID/decision",
+          "method": "post",
+          "headers": [
+            {
+              "name": "authorization",
+              "value": "Bearer {{var.SPURVIK_API_KEY}}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-spurvik-reviewer",
+              "value": "{{var.SPURVIK_REVIEWER_TOKEN}}"
+            }
+          ],
+          "bodyType": "raw",
+          "contentType": "application/json",
+          "data": "{\"status\":\"approved\",\"reason\":\"placeholder reason\"}"
+        }
+      }
+    ]
+  }
+}
