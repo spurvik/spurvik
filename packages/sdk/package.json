@@ -37,6 +37,11 @@
       "types": "./dist/langgraph.d.ts",
       "import": "./dist/langgraph.js",
       "require": "./dist/langgraph.cjs"
+    },
+    "./channels": {
+      "types": "./dist/channels.d.ts",
+      "import": "./dist/channels.js",
+      "require": "./dist/channels.cjs"
     }
   },
   "files": [

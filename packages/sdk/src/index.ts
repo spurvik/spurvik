@@ -31,6 +31,29 @@ export {
 export { MemoryTelemetryBuffer, KvTelemetryBuffer } from "./buffer.js";
 export type { DurableTelemetryBuffer, TelemetryKvStore } from "./buffer.js";
 export { verifyHitlWebhook } from "./webhook.js";
+export {
+  createSignedApprovalLinks,
+  verifyChannelApprovalToken,
+  buildChannelOutboundRequest,
+  dispatchHumanApprovalChannel,
+  createMultiChannelApprovalRouter,
+} from "./channels.js";
+export type {
+  HumanApprovalChannelType,
+  HumanChannelActionRequest,
+  SignedApprovalLinks,
+  HumanApprovalChannelConfig,
+  SlackChannelConfig,
+  TelegramChannelConfig,
+  EmailChannelConfig,
+  DiscordChannelConfig,
+  TeamsChannelConfig,
+  LinearChannelConfig,
+  JiraChannelConfig,
+  MondayChannelConfig,
+  AsanaChannelConfig,
+  ChannelDispatchReceipt,
+} from "./channels.js";
 export { createSignedTextTrailerHook, readSignedTextTrailer, verifyProvenanceSignature } from "@spurvik/core";
 export type {
   ContentHashMode,

@@ -1,0 +1,33 @@
+{
+  "name": "Spurvik EU AI Act Art. 50 + Art. 12 HMAC + Art. 14 Multi-Channel Human Gate (Make.com Blueprint)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "name": "Incoming AI Agent Action or Chat Turn"
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "mapper": {
+        "url": "https://console.spurvik.com/api/v1/hitl",
+        "method": "post",
+        "headers": [
+          { "name": "authorization", "value": "Bearer {{connection.spurvikSecretKey}}" },
+          { "name": "content-type", "value": "application/json" }
+        ],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"actionName\":\"{{1.actionName}}\",\"inputHmac\":\"{{sha256(1.prompt, connection.spurvikHmacSecret)}}\",\"rawPromptBytes\":0}"
+      }
+    }
+  ],
+  "metadata": {
+    "vendor": "Spurvik (EyeTea Solutions ApS, CVR 37093378)",
+    "pricingComparison": "Free €0/mo · Pro €19/mo (vs. €79/mo single-app alternatives)"
+  }
+}
