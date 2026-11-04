@@ -55,7 +55,7 @@ async function main() {
   });
 
   console.log("Approval ID:", result.approvalId);
-  console.log("Payload digest:", result.payloadDigestSha256);
+  console.log("Chained HMAC-SHA256 Digest (raw_prompt=0B):", result.payloadDigestSha256);
   console.log("Channel Deliveries:", result.deliveries);
 
   // Verify signed Approve/Block link in constant time:
