@@ -17,66 +17,68 @@ Drop a deterministic human-in-the-loop gate in front of any agent tool that move
 ```ts
 import {
   createMultiChannelApprovalRouter,
-  verifySignedChannelCallback,
+  verifyChannelApprovalToken,
 } from "spurvik";
 
 const hitlRouter = createMultiChannelApprovalRouter({
-  hmacSecret: process.env.SPURVIK_HMAC_SECRET!,
-  callbackBaseUrl: "https://console.spurvik.com/api/v1/hitl/callback",
+  signingSecret: process.env.SPURVIK_HMAC_SECRET!,
   channels: [
     {
-      channel: "slack",
+      type: "slack",
       webhookUrl: process.env.SLACK_WEBHOOK_URL!,
     },
     {
-      channel: "telegram",
+      type: "telegram",
       botToken: process.env.TELEGRAM_BOT_TOKEN!,
       chatId: process.env.TELEGRAM_APPROVAL_CHAT_ID!,
     },
     {
-      channel: "linear",
+      type: "linear",
       apiKey: process.env.LINEAR_API_KEY!,
       teamId: process.env.LINEAR_TEAM_ID!,
     },
     {
-      channel: "email",
+      type: "email",
       resendApiKey: process.env.RESEND_API_KEY!,
-      fromEmail: "approvals@your-company.eu",
-      toEmail: "ops-approvals@your-company.eu",
+      from: "approvals@your-company.eu",
+      to: "ops-approvals@your-company.eu",
     },
   ],
 });
 
-// Trigger pre-flight approval before executing a high-stakes tool call:
-const result = await hitlRouter.requestApproval({
-  approvalId: "apr_wire_2026_1104",
-  toolName: "execute_sepa_transfer",
-  actionSummary: "Approve €4,500 SEPA transfer to vendor IBAN DE89...",
-  riskLevel: "critical",
-  rawArgsOrPrompt: JSON.stringify({ amountEur: 4500, iban: "DE89..." }),
-  metadata: { tenantId: "org_eu_01", currency: "EUR" },
+const { links, receipts } = await hitlRouter.requestApproval({
+  gateId: "apr_wire_2026_1104",
+  actionName: "execute_sepa_transfer",
+  summary: "Approve a SEPA transfer to vendor IBAN DE89...",
+  context: { tenantId: "org_eu_01", currency: "EUR" },
+  callbackBaseUrl: "https://console.spurvik.com/api/v1/hitl/callback",
 });
 
-console.log(result.payloadDigestSha256); // Chained HMAC-SHA256 digest (0 raw prompt bytes stored)
-console.log(result.deliveries); // Per-channel HTTP delivery status
+console.log(links.actionHmac);
+console.log(receipts);
 ```
 
 ### Constant-Time Callback Verification
 
-When an operator clicks **Approve** or **Block** in Slack, Telegram, Email, Linear, Jira, Monday, or Asana, verify the signed callback in constant time:
+When a person opens an **Approve** or **Block** link from Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, or Asana, check it with `verifyChannelApprovalToken`. Monday.com creates an item for the request and does not send those links.
 
 ```ts
-const check = verifySignedChannelCallback({
-  hmacSecret: process.env.SPURVIK_HMAC_SECRET!,
-  approvalId: req.query.id,
-  decision: req.query.decision, // "approve" | "block"
-  channel: req.query.channel,
-  expiresAtUnix: Number(req.query.exp),
-  signatureHex: req.query.sig,
+const decision = req.query.decision;
+if (decision !== "approved" && decision !== "rejected") {
+  throw new Error("Callback decision is missing.");
+}
+
+const matches = verifyChannelApprovalToken({
+  gateId: String(req.query.gateId),
+  actionHmac: String(req.query.hmac),
+  decision,
+  issuedAtUnix: Number(req.query.ts),
+  signature: String(req.query.sig),
+  signingSecret: process.env.SPURVIK_HMAC_SECRET!,
 });
 
-if (!check.valid) {
-  throw new Error(`Invalid or expired callback signature: ${check.reason}`);
+if (!matches) {
+  throw new Error("Callback signature does not match.");
 }
 ```
 
@@ -87,8 +89,8 @@ if (!check.valid) {
 For operations and automation teams building AI workflows in **n8n** or **Make.com**, `n8n-nodes-spurvik` combines all three runtime primitives in a single node:
 
 1. **Art. 50(1) AI Interaction Notice**: Automatically injects localized disclosure headers (`EN`, `DE`, `DA`, `FR`) into outbound AI responses.
-2. **Art. 12 Zero-Raw-Prompt Chained HMAC-SHA256 Receipt**: Emits a verifiable hash-chain receipt (`rawPromptBytesPersisted: 0`) so your workflow logs never leak customer PII.
-3. **Art. 14 Multi-Channel `ask_human()` Gate**: Pauses high-risk workflow branches and dispatches signed Approve / Block links to Slack, Telegram, Email, Linear, Jira, Monday.com, or Asana.
+2. **HMAC-SHA256 record**: Logs the call as an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping.
+3. **`ask_human()` gate step**: Sends Approve / Block links to Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, or Asana, designed to support Article 14 human oversight. Monday.com creates an item for the request.
 
 - **n8n Node Source**: [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)
 - **Make.com Importable Blueprint**: [`packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json)
