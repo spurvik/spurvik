@@ -19,7 +19,7 @@
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, -120],
-      "notes": "Descriptor parameters only. The package exports no execute method, so a run does not build an HMAC receipt."
+      "notes": "Repository descriptor parameters only. n8n-nodes-spurvik@1.0.0 has no node class. 1.0.1 exports SpurvikEuAiActGuard, and n8n looks for export index from dist/index.js, which is absent."
     },
     {
       "parameters": {
@@ -31,7 +31,7 @@
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, 40],
-      "notes": "Same descriptor. art12_hmac_log is a second operation value. The function uses one path for this value and art50_disclosure."
+      "notes": "Same repository descriptor. art12_hmac_log is a second operation value. The function in this repository uses one path for this value and art50_disclosure."
     },
     {
       "parameters": {
@@ -43,7 +43,7 @@
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, 200],
-      "notes": "operation art14_ask_human. channel, hmacSecret, and gate fields are not descriptor parameters, so this node cannot send them."
+      "notes": "operation art14_ask_human. In this repository, channel, hmacSecret, and gate fields are not descriptor parameters. 1.0.1 adds signingSecret, actionName, and actionSummary, and n8n still cannot load the file."
     }
   ],
   "connections": {

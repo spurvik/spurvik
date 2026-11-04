@@ -1,6 +1,11 @@
-import { readFileSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..");
@@ -12,7 +17,7 @@ const readmePath = join(here, "README.md");
 const envPath = join(here, ".env.example");
 
 const DISCLAIMER =
-  "Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks; it does not make anyone compliant, and this is not legal advice.";
+  "Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.";
 
 const BANNED = [
   [/compliance-ready/i, "compliance-ready"],
@@ -206,13 +211,71 @@ for (const file of texts) {
   if (/hooks\.slack\.com/.test(file.text)) fail(`${file.path} contains a Slack webhook host`);
 }
 
+if (/404|not published|not on npm|stops at the registry/i.test(texts[0].text)) {
+  fail("README still says the npm package is missing or that install stops at the registry");
+}
+
+function npmJson(args) {
+  const raw = execFileSync("npm", args, {
+    encoding: "utf8",
+    timeout: 30000,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  return JSON.parse(raw);
+}
+
+function inspectPublishedVersion(version, scratch) {
+  const url = npmJson(["view", `n8n-nodes-spurvik@${version}`, "dist.tarball", "--json"]);
+  const tarball = join(scratch, `n8n-nodes-spurvik-${version}.tgz`);
+  execFileSync("curl", ["-fsSL", "-o", tarball, url], {
+    timeout: 30000,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const listing = execFileSync("tar", ["-tzf", tarball], { encoding: "utf8" });
+  const hasDist = listing.split("\n").includes("package/dist/index.js");
+  const dist = execFileSync("tar", ["-xOf", tarball, "package/dist/index.js"], { encoding: "utf8" });
+  const packed = JSON.parse(execFileSync("tar", ["-xOf", tarball, "package/package.json"], { encoding: "utf8" }));
+  const distPath = join(scratch, `dist-${version}.js`);
+  writeFileSync(distPath, dist);
+  const exported = require(distPath);
+  const guard = exported.SpurvikEuAiActGuard;
+  console.log(`- ${version} dist/index.js: ${hasDist ? "present" : "absent"}`);
+  console.log(`- ${version} exports: ${Object.keys(exported).join(", ") || "(none)"}`);
+  console.log(`- ${version} export index: ${typeof exported.index}`);
+  console.log(`- ${version} SpurvikEuAiActGuard.execute: ${typeof guard?.prototype?.execute}`);
+  console.log(`- ${version} n8n.credentials: ${JSON.stringify(packed.n8n?.credentials ?? null)}`);
+  console.log(`- ${version} n8n.nodes: ${JSON.stringify(packed.n8n?.nodes ?? null)}`);
+}
+
+console.log("published package:");
+const scratch = mkdtempSync(join(tmpdir(), "n8n-nodes-spurvik-"));
+try {
+  const view = npmJson(["view", "n8n-nodes-spurvik", "version", "dist-tags", "versions", "--json"]);
+  console.log(`- npm version: ${view.version}`);
+  console.log(`- dist-tags: ${JSON.stringify(view["dist-tags"])}`);
+  console.log(`- versions: ${JSON.stringify(view.versions)}`);
+  if ((view.versions ?? []).includes("0.0.0-stage")) {
+    console.log("- 0.0.0-stage is a placeholder");
+  }
+  for (const version of ["1.0.0", "1.0.1"]) {
+    if ((view.versions ?? []).includes(version)) inspectPublishedVersion(version, scratch);
+  }
+  console.log("- n8n loads require('dist/index.js').index; a missing index export means the node is not listed");
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  console.log(`- npm inspect failed: ${message}`);
+  console.log("- JSON checks do not depend on the registry");
+} finally {
+  rmSync(scratch, { recursive: true, force: true });
+}
+
 const distJs = join(root, "packages/n8n-nodes-spurvik/dist/index.js");
-console.log("gaps:");
-console.log(`- dist entry ${existsSync(distJs) ? "exists" : "missing"}: packages/n8n-nodes-spurvik/dist/index.js`);
+console.log("repo package:");
+console.log(`- git tree dist/index.js: ${existsSync(distJs) ? "present" : "absent; n8n installs the npm tarball"}`);
 console.log(`- manifest credentials: ${JSON.stringify(manifest.n8n?.credentials ?? null)}`);
 console.log(`- manifest scripts: ${JSON.stringify(manifest.scripts ?? null)}`);
 console.log(`- manifest dependencies: ${JSON.stringify(manifest.dependencies ?? null)}`);
-console.log("- source exports a description object and executeSpurvikWorkflowStep; no node class");
+console.log("- source exports a description object and executeSpurvikWorkflowStep; no INodeType node class");
 
 if (process.exitCode) {
   console.error("validation failed");

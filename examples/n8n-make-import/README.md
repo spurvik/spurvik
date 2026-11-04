@@ -1,19 +1,19 @@
 # n8n and Make.com import guide (`n8n-nodes-spurvik`)
 
-> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). Package name on the manifest: `n8n-nodes-spurvik` at version `1.0.0`, `"license": "MIT"`.
+> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik@1.0.0` is the manifest version and the published npm version (`latest`, MIT). `0.0.0-stage` is a placeholder.
 
-Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks; it does not make anyone compliant, and this is not legal advice.
+Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.
 
 This folder is an import guide for the files that are actually in `packages/n8n-nodes-spurvik`. The helper computes HMAC receipts in process. It does not send them to the Spurvik control plane.
 
 ## What the package contains
 
-| Item | In the tree |
+| Item | Detail |
 | --- | --- |
 | Manifest | `packages/n8n-nodes-spurvik/package.json`. `"n8n"."nodes"` is `["dist/index.js"]`. There is no `"n8n"."credentials"` entry, no `dependencies`, no `scripts`, and no `files` list. |
 | Runtime | `packages/n8n-nodes-spurvik/src/index.ts` exports `executeSpurvikWorkflowStep` and `SpurvikN8nNodeDescription`. |
-| Build output | `dist/index.js` and `dist/index.d.ts` are named by the manifest. They are not in the repository. |
-| npm | The registry name `n8n-nodes-spurvik` returns HTTP 404. Recheck with `npm view n8n-nodes-spurvik`. |
+| Build output | Published `n8n-nodes-spurvik@1.0.0` includes `dist/index.js`. That file exports `executeSpurvikWorkflowStep` and `SpurvikN8nNodeDescription`. It does not export an `INodeType` class or a credential type. The manifest names `dist/index.d.ts`; that file is not in the 1.0.0 tarball. |
+| npm | `npm view n8n-nodes-spurvik` resolves. `latest` is `1.0.1`. `1.0.0` is published. `0.0.0-stage` is a placeholder. Installing the package works. n8n still cannot load or list it as a node: it instantiates `require("dist/index.js").index`, and neither tarball exports `index`. |
 | Make file already in the package | `packages/n8n-nodes-spurvik/make-com-blueprint.json`. See [Make.com](#makecom) before importing it. |
 
 `SpurvikN8nNodeDescription` fields n8n would read:
@@ -65,17 +65,17 @@ For `art14_ask_human`, empty optional arguments become `gate_${recordHash.slice(
 
 n8n's install documentation: [Installation and management](https://docs.n8n.io/integrations/community-nodes/installation-and-management) and [GUI installation](https://docs.n8n.io/integrations/community-nodes/installation-and-management/gui-installation).
 
-n8n Cloud installs community nodes from the nodes panel (n8n 1.94.0 or later). Installing a package by npm name is a self-hosted action. `n8n-nodes-spurvik` is not on npm, so the nodes panel has no package to add, and Cloud has no other install path for this folder.
+n8n Cloud installs community nodes from the nodes panel (n8n 1.94.0 or later). Installing a package by npm name is a self-hosted action. `npm install n8n-nodes-spurvik@1.0.0` succeeds. `latest` is `1.0.1`. `0.0.0-stage` is a placeholder. The 1.0.0 tarball has `dist/index.js` and no `INodeType` node class or credential type. `1.0.1` adds class `SpurvikEuAiActGuard` with `execute`, and it still has no credential type. n8n loads `require("dist/index.js").index` because the manifest file is `dist/index.js`. That export is absent in both tarballs, so n8n cannot load or list the node on Cloud or on a self-hosted instance.
 
 Self-hosted steps, in order:
 
 1. Run a self-hosted n8n. Community-node installs from npm need `N8N_COMMUNITY_PACKAGES_ENABLED=true` (the documented default). The owner or admin account is the account that can open the install dialog.
 2. Open **Settings → Community Nodes → Install**.
 3. Enter the npm package name `n8n-nodes-spurvik`. Accept the community-node risk prompt and select **Install**.
-4. The install stops at the registry. `npm view n8n-nodes-spurvik` returns 404, so n8n has no tarball to save. The same 404 is what `npm install n8n-nodes-spurvik` inside `~/.n8n/nodes` returns. The manifest's entry file `dist/index.js` is also absent from this repository, and the package has no build script that could create it.
+4. Install saves the package. `n8n-nodes-spurvik@1.0.0` and `latest` (`1.0.1`) are both on npm. `0.0.0-stage` is a placeholder. After install, n8n still does not list a Spurvik node. In the 1.0.0 tarball, `dist/index.js` exports `executeSpurvikWorkflowStep` and `SpurvikN8nNodeDescription`. It has no `INodeType` class and no credential type. `1.0.1` also exports `SpurvikEuAiActGuard` (`execute` is on that class) and still has no credential type. n8n instantiates `require("dist/index.js").index`. Neither version exports `index`, so the node does not load.
 5. Credentials: there is nothing to add. The manifest has no credential list, and `SpurvikN8nNodeDescription` has no `credentials` field. n8n's credential screen will not offer a Spurvik credential. Placeholder names for the function argument and for SDK HTTP calls you make yourself are in [`.env.example`](./.env.example) and in the table below. Do not put a live key in the workflow JSON.
 6. Import the workflow. In the workflow editor, open the menu and choose **Import from File**. Select [`spurvik-eu-ai-act-guard.workflow.json`](./spurvik-eu-ai-act-guard.workflow.json).
-7. The file's Spurvik nodes use type `n8n-nodes-spurvik.spurvikEuAiActGuard`, `typeVersion` `1`, and parameters `operation` and `systemName` only. Those names are taken from `SpurvikN8nNodeDescription`. n8n loads a community node by requiring a class from the installed package. This package exports a plain object and a function. It does not export a class with an `execute` method. After import, the canvas shows a missing node type.
+7. The file's Spurvik nodes use type `n8n-nodes-spurvik.spurvikEuAiActGuard`, `typeVersion` `1`, and parameters `operation` and `systemName` only. Those names are taken from `SpurvikN8nNodeDescription` in this repository and in the 1.0.0 tarball. n8n loads a community node with `require("dist/index.js").index`. The repository source and the 1.0.0 tarball export a plain object and a function. `1.0.1` also exports `SpurvikEuAiActGuard`. None of them export `index`. After import, the canvas shows a missing node type. `1.0.1` adds descriptor fields `signingSecret`, `actionName`, and `actionSummary`. This workflow JSON does not set them, because they are not on the descriptor in this repository.
 8. Run the workflow from **When clicking Execute workflow**. n8n stops on the missing node. The run does not call `executeSpurvikWorkflowStep`, does not build an HMAC receipt, and does not send HTTP.
 9. Where an HMAC receipt shows up when something else calls the function: on the return value, field `art12Record`. The function does not POST that object anywhere. The hosted console does not gain a row from this package.
 10. Where a channel message shows up: only after a direct call that passes `channel`. The POST goes to that channel's own URL (`webhookUrl` for Slack, Discord, and Teams). `art14Gate.channelReceipt` then has `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. The imported workflow cannot set `channel`. Nothing in this package receives the approve or reject click.
@@ -94,8 +94,8 @@ Make.com does not load n8n community nodes. A Make scenario cannot install `n8n-
    - Content type: `application/json`
    - Header `content-type`: `application/json`
    - Body: the Slack shape from `buildChannelOutboundRequest` (`text`, `blocks` with one `section` and one `actions` array). Button URLs in the sample are `https://example.com/hitl?...` placeholders. The real URLs are the `approveUrl` and `rejectUrl` strings from `createSignedApprovalLinks`. Make's HTTP module does not compute those HMAC receipts. The sample body is the shape, with `REPLACE_ME` where the digest and signature would be.
-3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName`, `inputHmac`, and `rawPromptBytes`, and it uses Make's `sha256` on the prompt text. `executeSpurvikWorkflowStep` does not send that request. The SDK create-body for `POST /api/v1/hitl` is `actionName` plus `payloadSummary` (`HitlCreateBody` in `packages/core/src/wire.ts`). The blueprint's `sha256(...)` string is a different digest from `spurvik:workflow:input:v1|...`. Importing that blueprint does not reproduce the helper and does not match the SDK body.
-4. Console rows come from the SDK client in `packages/sdk/src/client.ts`, which this n8n package does not call. To write those rows from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For an invited organisation the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
+3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName`, `inputHmac`, and `rawPromptBytes`, and it uses Make's `sha256` on the prompt text. `executeSpurvikWorkflowStep` does not send that request. The create-body `spurvik@1.0.4` sends for `POST /api/v1/hitl` is `actionName` plus `payloadSummary`. The blueprint's `sha256(...)` string is a different digest from `spurvik:workflow:input:v1|...`. Importing that blueprint does not reproduce the helper and does not match that body.
+4. Console rows come from `spurvik@1.0.4` (`SpurvikClient`). This n8n package does not call it. To write those rows from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For an invited organisation the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
 
    `POST {{var.SPURVIK_BASE_URL}}/api/v1/telemetry` with:
 
@@ -163,11 +163,13 @@ The script loads `SpurvikN8nNodeDescription` from `packages/n8n-nodes-spurvik/sr
 
 ## Gaps
 
-- `n8n-nodes-spurvik` is not published on npm (registry 404), so neither Cloud nor self-hosted n8n can install it from the registry.
-- `dist/index.js` is missing, and the package has no build script.
+- Installing `n8n-nodes-spurvik@1.0.0` from npm works. `latest` is `1.0.1`. `0.0.0-stage` is a placeholder.
+- The 1.0.0 tarball includes `dist/index.js` and has no `INodeType` node class or credential type, so n8n cannot load or list it as a node.
+- `1.0.1` adds `SpurvikEuAiActGuard` with `execute` and still has no credential type. n8n loads export `index` from `dist/index.js`. That export is missing, so `1.0.1` does not list as a node either.
+- The git tree has no build script. The published `dist/index.js` bundles the helper and `SpurvikN8nNodeDescription`.
 - The source file is not an n8n node class. There is no `execute` method for the runner to call.
 - There is no credential type. `hmacSecret` and `channel` cannot be set on the imported node.
 - `art50_disclosure` and `art12_hmac_log` share one code path. The notice is one English string. The helper does not call `POST /api/v1/disclosure`, `POST /api/v1/telemetry`, or `POST /api/v1/hitl`.
 - The helper imports `packages/sdk/src/channels.ts` by a relative path. The manifest does not declare that dependency.
 - `packages/n8n-nodes-spurvik/make-com-blueprint.json` is a short JSON document. Its POST body does not match `HitlCreateBody`, and it is not a scenario exported from Make.
-- This guide's workflow file was checked against the descriptor. It was not executed inside a running n8n instance, because the package cannot be installed there.
+- This guide's workflow file was checked against the descriptor. It was not executed inside a running n8n instance. The package installs, and n8n still cannot load the node.
