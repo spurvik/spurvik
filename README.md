@@ -204,37 +204,11 @@ The human-approval summary is `spurvik.payload_summary.v1`: canonical JSON with 
 
 For `high_annex3`, telemetry is not dropped when the queue is full. The SDK fsyncs events to an on-disk buffer (or a `DurableTelemetryBuffer` / `KvTelemetryBuffer` you pass in) before the call is treated as recorded locally. If that write fails, `enqueue` rejects with `SpurvikTelemetryBufferError`. Other tiers still drop the oldest in-memory event when the queue is full. A jump in `clientSeq` for one process is stored as a `chain_gap` row inside the hash chain, so the ledger can show the missing sequences. Deleting the on-disk buffer removes events that had not been acknowledged.
 
-## Run locally
+## Run the SDK
 
-Requirements: Node.js 22, pnpm 10, PostgreSQL 16.
+The SDK and MCP server are MIT and run in your own stack. The hosted console is at https://console.spurvik.com.
 
-```bash
-docker compose up -d   # or use a local Postgres on port 5432
-cp apps/web/.env.example apps/web/.env
-# Generate your own values. Do not copy a sample secret. For example: openssl rand -hex 32
-echo "SPURVIK_LOG_CHECKPOINT_SECRET=$(openssl rand -hex 32)" >> apps/web/.env
-echo "SPURVIK_WEBHOOK_KEK=$(openssl rand -hex 32)" >> apps/web/.env
-pnpm install
-pnpm --filter "@spurvik/web^..." build
-pnpm db:migrate
-pnpm db:seed           # prints a reviewer login, a spurvik_live_ key, a spurvik_pub_ key, and a spurvik_reviewer_ token once
-pnpm dev               # http://127.0.0.1:43123
-```
-
-Default database URL: `postgres://aegis:aegis@127.0.0.1:5432/aegis`.
-
-The two `echo` lines set the control-plane keys. There are no built-in defaults: without `SPURVIK_LOG_CHECKPOINT_SECRET` (at least 16 characters) and `SPURVIK_WEBHOOK_KEK` (32 bytes), `pnpm dev` stops with `Refusing to start. Missing SPURVIK_LOG_CHECKPOINT_SECRET and SPURVIK_WEBHOOK_KEK.` and exits with code 1. `pnpm dev` reads the two keys from `apps/web/.env`; a value already set in your shell takes precedence. `pnpm db:seed` does not create them. Keep both keys; checkpoints and webhook secrets made with one key cannot be checked or read with another.
-
-```bash
-pnpm build
-pnpm test
-pnpm typecheck
-bash scripts/ci/no-default-keys.sh
-```
-
-The default-key scan is that script. Each package under `packages/` also runs it from `prepublishOnly`. `.github/workflows/no-default-keys.yml` runs it for GitHub pull requests and for pushes to `main`. Origin does not run GitHub Actions. This repository has no Depot, Buildkite, or CircleCI app connected, so an Origin pull request does not show that check until one of those apps is connected. Run the script before publishing.
-
-Integration tests use `postgres://aegis:aegis@127.0.0.1:5432/aegis_test` and apply the same migrations. Create that database before `pnpm test` if it does not exist.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 
 Generate client-held secrets (do not send these to Spurvik):
 
@@ -273,9 +247,9 @@ Business is the plan between Team and Enterprise. The plan applies to the whole 
 
 An organisation owner can download `GET /dashboard/projects/:id/export`. The JSON includes the project profile, audit logs, human decisions, oversight, disclosures, API key metadata (kind, last four characters, revoked time), purge checkpoints, and the webhook URL. It omits the webhook secret and API key hashes. Deleting the project removes the project row. Related logs, keys, and checkpoints cascade. Member accounts and reviewer tokens stay. That deletion is separate from the retention purge.
 
-## Self-hosted calls
+## Where calls go
 
-A deployment that runs `apps/web` and its own Postgres, with the SDK `baseUrl` pointed at that deployment, does not send data to the publisher of this software. SDK telemetry and the halt stream go to `baseUrl`. The disclosure beacon goes to the endpoint you pass. Webhooks go to the project webhook URL. There is no licence ping, error reporter, update check, or analytics call. `SPURVIK_TELEMETRY` is ignored unless it is `off`, and `GET /api/v1/health` reports `vendorTelemetry: "off"`. There is no switch that turns a vendor sink on. The console uses the system font stack, so a build does not request a font host.
+The SDK and MCP server are MIT and run in your own stack. SDK telemetry and the halt stream go to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. The disclosure beacon goes to the endpoint you pass. Webhooks go to the project webhook URL. There is no licence ping, error reporter, update check, or analytics call. `SPURVIK_TELEMETRY` is ignored unless it is `off`, and `GET /api/v1/health` reports `vendorTelemetry: "off"`. There is no switch that turns a vendor sink on. The console uses the system font stack, so a build does not request a font host.
 
 ## Disclosure labels
 
