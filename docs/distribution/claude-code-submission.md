@@ -68,7 +68,7 @@ Rules read on 23 October 2026:
 - Checklist: https://claude.com/docs/plugins/pre-submission-checklist
 - Mirror README: https://github.com/anthropics/claude-plugins-community/blob/main/README.md
 
-The directory reads a plugin from a github.com repository. The submission kind is **Plugin bundle**. The docs do not ask for a topic category. After approval the community mirror lists it, and Claude Code installs it as `spurvik@claude-community`. Pull requests to `anthropics/claude-plugins-community` are closed. The Anthropic-maintained marketplace `claude-plugins-official` does not take submissions through this portal. An MCP connector is separate from this plugin. The plugin's MCP entry is local stdio only, private 1.0.2, with no hosted endpoint.
+The directory reads a plugin from a github.com repository. The submission kind is **Plugin bundle**. The docs do not ask for a topic category. After approval the community mirror lists it, and Claude Code installs it as `spurvik@claude-community`. Pull requests to `anthropics/claude-plugins-community` are closed. The Anthropic-maintained marketplace does not take submissions through this portal. An MCP connector is separate from this plugin. The plugin's MCP entry is local stdio only, with no hosted endpoint.
 
 The repository may stay private during validation only when a connected GitHub account can push, the Claude GitHub App is installed, and the submitter agrees to a source upload. Publishing still requires a public GitHub repository.
 
