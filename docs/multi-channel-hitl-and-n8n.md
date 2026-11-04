@@ -56,7 +56,8 @@ const result = await hitlRouter.requestApproval({
   callbackBaseUrl: 'https://your-app.example/api/spurvik/callback',
 });
 
-// Handler for GET {callbackBaseUrl}?gateId&ts&hmac&decision&sig
+// Illustrative. This parses approveUrl for demonstration.
+// A real handler reads the token and decision from the incoming request.
 const url = new URL(result.links.approveUrl);
 const decision = url.searchParams.get("decision");
 const tokenOk =
@@ -83,11 +84,15 @@ The tarball contains `package.json`, `dist/index.js`, `src/index.ts`, `src/n8n-n
 
 `dist/index.js` exports `executeSpurvikWorkflowStep`, `SpurvikN8nNodeDescription`, and class `SpurvikEuAiActGuard`. The class sets `description` and defines `execute()`. The file name is `index.js`, which does not match the class name. n8n 2.46.4 loads `new (require(file).index)()` (`n8n-core` `loadClassInIsolation`). The tarball has no export named `index`. That call throws `TypeError: require(...).index is not a constructor`.
 
-Started with `n8n@2.46.4` and `N8N_CUSTOM_EXTENSIONS` pointed at a directory whose `node_modules/n8n-nodes-spurvik` is the unpacked 1.0.1 tarball. The process log says `Skipping custom node "<dir>/node_modules/n8n-nodes-spurvik/dist/index.js": failed to load.` and then `n8n ready`. No node from that package is registered. Native node (planned, 1.0.2).
+Started with `n8n@2.46.4` and `N8N_CUSTOM_EXTENSIONS` pointed at a directory whose `node_modules/n8n-nodes-spurvik` is the unpacked 1.0.1 tarball. The process log printed this line:
+
+```text
+Skipping custom node "/tmp/n8n-custom/node_modules/n8n-nodes-spurvik/dist/index.js": failed to load.
+```
+
+No node from that package is registered. A native node in `n8n-nodes-spurvik` 1.0.2 (planned) is designed to support Article 12 record-keeping / Article 14 human oversight.
 
 `execute()` calls `executeSpurvikN8nGuard`, which neither `dist/index.js` nor `src/index.ts` in the tarball defines. It also calls `this.getInputData` and `this.getNodeParameter`, which the class does not define. The item built inside `execute()` is `{ json: { ...itemJson, spurvik: result } }`, so the output spreads the incoming item. Prompt text on that item is included in the output. n8n execution history keeps node inputs and outputs.
-
-`n8n-nodes-spurvik@1.0.1` is designed to support Article 12 record-keeping / Article 14 human oversight.
 
 Files in this repository, separate from that tarball:
 
