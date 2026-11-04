@@ -9,7 +9,12 @@ const require = createRequire(import.meta.url);
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..");
-const sourcePath = join(root, "packages/n8n-nodes-spurvik/src/index.ts");
+const nodeSourcePath = join(root, "packages/n8n-nodes-spurvik/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts");
+const builtNodePath = join(
+  root,
+  "packages/n8n-nodes-spurvik/dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js",
+);
+const workflowSourcePath = join(root, "packages/n8n-nodes-spurvik/workflow.ts");
 const manifestPath = join(root, "packages/n8n-nodes-spurvik/package.json");
 const workflowPath = join(here, "spurvik-eu-ai-act-guard.workflow.json");
 const makePath = join(here, "make-http-module.json");
@@ -58,7 +63,7 @@ function fail(message) {
 }
 
 function extractDescription(source) {
-  const marker = "export const SpurvikN8nNodeDescription = ";
+  const marker = "export const SpurvikN8nNodeDescription";
   const at = source.indexOf(marker);
   if (at < 0) {
     fail("SpurvikN8nNodeDescription is missing from the package source");
@@ -101,9 +106,39 @@ function walk(value, visit) {
   for (const child of Object.values(value)) walk(child, visit);
 }
 
-const source = readFileSync(sourcePath, "utf8");
+const nodeSource = readFileSync(nodeSourcePath, "utf8");
+const workflowSource = readFileSync(workflowSourcePath, "utf8");
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-const description = extractDescription(source);
+
+function loadDescription() {
+  if (!/export class SpurvikEuAiActGuard\b/.test(nodeSource)) {
+    fail("node source does not export class SpurvikEuAiActGuard");
+    return null;
+  }
+  if (!/async execute\(/.test(nodeSource)) {
+    fail("SpurvikEuAiActGuard is missing execute()");
+    return null;
+  }
+  if (existsSync(builtNodePath)) {
+    const loaded = require(builtNodePath);
+    const Ctor = loaded.SpurvikEuAiActGuard;
+    if (typeof Ctor !== "function") {
+      fail("built node file does not export class SpurvikEuAiActGuard");
+      return null;
+    }
+    const description = new Ctor().description;
+    if (!description) {
+      fail("SpurvikEuAiActGuard.description is missing");
+      return null;
+    }
+    console.log("ok class: loaded dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js");
+    return description;
+  }
+  console.log("ok class: source nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts (dist node file is absent)");
+  return extractDescription(nodeSource);
+}
+
+const description = loadDescription();
 const workflow = JSON.parse(readFileSync(workflowPath, "utf8"));
 const makeDoc = JSON.parse(readFileSync(makePath, "utf8"));
 
@@ -122,7 +157,18 @@ if (description) {
     if (node.typeVersion !== description.version) {
       fail(`${node.name} typeVersion ${node.typeVersion} does not match descriptor version ${description.version}`);
     }
-    if (node.credentials) fail(`${node.name} sets credentials, and the descriptor has none`);
+    const credentialSpec = (description.credentials ?? []).find((item) => item.name === "spurvikApi");
+    if (!credentialSpec?.required) fail("descriptor is missing required credential spurvikApi");
+    const credential = node.credentials?.spurvikApi;
+    if (!credential || typeof credential.id !== "string" || !credential.id || typeof credential.name !== "string" || !credential.name) {
+      fail(`${node.name} is missing a spurvikApi credential reference`);
+    } else {
+      const extra = Object.keys(credential).filter((key) => key !== "id" && key !== "name");
+      if (extra.length) fail(`${node.name} credential reference has fields other than id and name (${extra.join(", ")})`);
+      if (/secret|token|password|api[_-]?key/i.test(`${credential.id} ${credential.name}`)) {
+        fail(`${node.name} credential reference looks like a secret`);
+      }
+    }
     const keys = Object.keys(node.parameters ?? {});
     for (const key of keys) {
       if (!propertyNames.includes(key)) fail(`${node.name} parameter ${key} is not on the descriptor`);
@@ -136,17 +182,30 @@ if (description) {
     if (!optionValues.has(operation)) fail(`${node.name} operation ${operation} is not a descriptor option`);
     seenOperations.add(operation);
     if (typeof node.parameters.systemName !== "string") fail(`${node.name} systemName is not a string`);
+    const operationFields = {
+      art50_disclosure: ["outputField"],
+      art12_hmac_log: ["inputField"],
+      art14_ask_human: ["channel", "callbackBaseUrl", "actionName", "actionSummary"],
+    };
+    for (const name of operationFields[operation] ?? []) {
+      if (node.parameters?.[name] === undefined || node.parameters[name] === "") {
+        fail(`${node.name} is missing required parameter ${name}`);
+      }
+    }
   }
 
   for (const value of optionValues) {
     if (!seenOperations.has(value)) fail(`workflow never sets operation ${value}`);
   }
 
-  if (!source.includes("export async function executeSpurvikWorkflowStep")) {
-    fail("executeSpurvikWorkflowStep is missing from the package source");
+  if (!workflowSource.includes("export async function executeSpurvikWorkflowStep")) {
+    fail("executeSpurvikWorkflowStep is missing from workflow.ts");
   }
-  if (/\bclass\s+\w+/.test(source) || /async execute\(/.test(source)) {
-    fail("package source now has a class or execute method; re-check the guide before treating the node as unloadable");
+  if (!manifest.n8n?.nodes?.includes("dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js")) {
+    fail("package.json n8n.nodes does not list SpurvikEuAiActGuard.node.js");
+  }
+  if (!manifest.n8n?.credentials?.includes("dist/credentials/SpurvikApi.credentials.js")) {
+    fail("package.json n8n.credentials does not list SpurvikApi.credentials.js");
   }
 
   console.log(
@@ -214,7 +273,8 @@ for (const file of texts) {
 if (/404|not published|not on npm|stops at the registry/i.test(texts[0].text)) {
   fail("README still says the npm package is missing or that install stops at the registry");
 }
-if (!texts[0].text.includes("(planned, 1.0.2)")) fail("README is missing (planned, 1.0.2)");
+if (!texts[0].text.includes("spurvikApi")) fail("README does not mention the spurvikApi credential");
+if (!texts[0].text.includes("outputField")) fail("README does not mention outputField");
 if (!texts[0].text.includes("executeSpurvikN8nGuard")) fail("README does not mention executeSpurvikN8nGuard");
 if (/leaves out `rawInputText`|raw prompt is not stored|isn't stored|is not stored/i.test(texts[0].text)) {
   fail("README still says the raw prompt is not stored");
@@ -270,7 +330,7 @@ try {
     if ((view.versions ?? []).includes(version)) inspectPublishedVersion(version, scratch);
   }
   console.log("- n8n 2.46.4 load error when index is missing: require(...).index is not a constructor");
-  console.log("- a working native node is (planned, 1.0.2)");
+  console.log("- this repository's 1.0.2 node file is dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.log(`- npm inspect failed: ${message}`);
@@ -285,7 +345,7 @@ console.log(`- git tree dist/index.js: ${existsSync(distJs) ? "present" : "absen
 console.log(`- manifest credentials: ${JSON.stringify(manifest.n8n?.credentials ?? null)}`);
 console.log(`- manifest scripts: ${JSON.stringify(manifest.scripts ?? null)}`);
 console.log(`- manifest dependencies: ${JSON.stringify(manifest.dependencies ?? null)}`);
-console.log("- source exports a description object and executeSpurvikWorkflowStep; no INodeType node class");
+console.log("- source exports class SpurvikEuAiActGuard with execute(), and executeSpurvikWorkflowStep");
 
 if (process.exitCode) {
   console.error("validation failed");
