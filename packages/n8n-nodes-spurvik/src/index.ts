@@ -211,5 +211,90 @@ export const SpurvikN8nNodeDescription = {
       default: "Customer Support AI Agent",
       required: true,
     },
+    {
+      displayName: "HMAC Signing Secret",
+      name: "signingSecret",
+      type: "string",
+      typeOptions: { password: true },
+      default: "",
+      required: true,
+      description: "Client-held HMAC-SHA256 secret (>= 16 chars) for zero-raw-prompt provenance digests.",
+    },
+    {
+      displayName: "Action Name (Art. 14 Gate)",
+      name: "actionName",
+      type: "string",
+      default: "agent.tool.execute",
+    },
+    {
+      displayName: "Action Summary (Art. 14 Gate)",
+      name: "actionSummary",
+      type: "string",
+      default: "Approve high-stakes AI workflow action",
+    },
   ],
 };
+
+/**
+ * Native n8n Community Node class (`INodeType` compatible) so n8n's node loader
+ * can instantiate `SpurvikEuAiActGuard` directly when installed via Community Nodes.
+ */
+export class SpurvikEuAiActGuard {
+  description = SpurvikN8nNodeDescription;
+
+  async execute(this: {
+    getInputData(): Array<{ json: Record<string, unknown> }>;
+    getNodeParameter(name: string, index: number, fallback?: unknown): unknown;
+  }) {
+    const items = this.getInputData();
+    const returnData: Array<{ json: Record<string, unknown> }> = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const itemJson = items[i]?.json ?? {};
+      const operation = String(
+        this.getNodeParameter("operation", i, itemJson.operation ?? "art50_disclosure"),
+      ) as SpurvikN8nOperation;
+      const systemName = String(
+        this.getNodeParameter("systemName", i, itemJson.systemName ?? "AI Assistant"),
+      );
+      const signingSecret = String(
+        this.getNodeParameter(
+          "signingSecret",
+          i,
+          itemJson.signingSecret ?? process.env.SPURVIK_HMAC_SECRET ?? "",
+        ),
+      );
+      const actionName = String(
+        this.getNodeParameter("actionName", i, itemJson.actionName ?? "workflow.action"),
+      );
+      const actionSummary = String(
+        this.getNodeParameter("actionSummary", i, itemJson.actionSummary ?? "Approve AI workflow action"),
+      );
+
+      const result = await executeSpurvikN8nGuard(
+        {
+          operation,
+          systemName,
+          locale: (itemJson.locale as "en" | "de" | "da" | "fr") ?? "en",
+          promptText: typeof itemJson.promptText === "string" ? itemJson.promptText : undefined,
+          outputText: typeof itemJson.outputText === "string" ? itemJson.outputText : undefined,
+          previousRecordHash:
+            typeof itemJson.previousRecordHash === "string" ? itemJson.previousRecordHash : undefined,
+          actionName,
+          actionSummary,
+        },
+        { signingSecret },
+      );
+
+      returnData.push({
+        json: {
+          ...itemJson,
+          spurvik: result,
+        },
+      });
+    }
+
+    return [returnData];
+  }
+}
+

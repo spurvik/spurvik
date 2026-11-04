@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-spurvik",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "EU AI Act Art. 50 AI notices, Art. 12 HMAC-SHA256 zero-raw-prompt logs, and Art. 14 multi-channel ask_human() approval gates (Slack, Telegram, Email, Linear, Jira, Monday, Asana) for n8n and Make.com workflows.",
   "license": "MIT",
   "main": "dist/index.js",
