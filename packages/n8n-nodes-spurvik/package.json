@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-spurvik",
   "version": "1.0.0",
-  "description": "EU AI Act Art. 50 AI notices, Art. 12 HMAC-SHA256 zero-raw-prompt logs, and Art. 14 multi-channel ask_human() approval gates (Slack, Telegram, Email, Linear, Jira, Monday, Asana) for n8n and Make.com workflows.",
+  "description": "n8n and Make.com workflow step that prepends an AI interaction notice, logs each call as an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping, and sends ask_human() Approve / Block links on Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana, designed to support Article 14 human oversight.",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
