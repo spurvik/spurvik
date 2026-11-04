@@ -28,15 +28,6 @@ npm install openai spurvik@1.0.3
 
 `spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
 
-The local stdio MCP server:
-
-```bash
-npm i -D spurvik-mcp-server@1.0.2
-./node_modules/.bin/spurvik-mcp-server --root .
-```
-
-`--root` is required in `spurvik-mcp-server@1.0.2`.
-
 > Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 ## Step 2: Where `baseUrl` points
@@ -55,7 +46,16 @@ npm pkg set type=module
 npm install openai spurvik@1.0.3
 ```
 
-`npm pkg set type=module` matters. The examples use `import` and top-level `await`.
+`npm pkg set type=module` matters. The examples use `import` and top-level `await`. Run a `.ts` snippet with `npx tsx file.ts` from this folder.
+
+The local stdio MCP server, from the app folder:
+
+```bash
+npm i -D spurvik-mcp-server@1.0.2
+./node_modules/.bin/spurvik-mcp-server --root .
+```
+
+`--root` is required in `spurvik-mcp-server@1.0.2`.
 
 ## Step 4: Set your environment variables
 
@@ -205,7 +205,7 @@ Retention periods are (planned). This repository does not apply them.
 | Developer (free) | 30 days |
 | Team | 90 days |
 | Business | 12 months |
-| Enterprise | A per-project period, in days. |
+| Enterprise | A per-project period, in days. Unset Enterprise projects keep 365 days until an owner sets one. (planned) |
 
 Purging a prefix of audit rows older than the project's period is a step the Spurvik operator runs on the hosted control plane. That purge is (planned). This repository does not include it, and it is not something you run from this tree. A purge is not erasure of the project.
 

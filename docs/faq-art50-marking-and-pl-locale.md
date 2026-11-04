@@ -1,10 +1,10 @@
-# FAQ Additions — Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Disclosure Copy (Ruling D24), and LangGraph (`@spurvik/sdk/langgraph`)
+# FAQ Additions — Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Disclosure Copy (Ruling D24), and LangGraph (`spurvik/langgraph`)
 
-> **Applies to:** `spurvik` `main` (`8e16fad`, `@spurvik/sdk` `1.0.1`, `@spurvik/core` `1.0.1`, `@spurvik/react` `1.0.1`, and `@spurvik/mcp` `1.0.1` ) at https://github.com/spurvik/spurvik (plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik).
+> **Applies to:** published `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2` at https://github.com/spurvik/spurvik.
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events. B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. This is not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
@@ -26,25 +26,25 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 Spurvik separates call provenance and UI disclosure from content marking:
 
 - **What Spurvik provides:**
-  1. **Signed HMAC-SHA-256 call receipts (`@spurvik/sdk`, `@spurvik/core`):** Every wrapped model or graph call produces a 16-field `ProvenanceRecord` (`eventId`, `timestamp`, `modelProvider`, `modelId`, `inputHash`, `outputHash`, `contentHashMode`, `article50Disclosure`, `markingApplied`, `markingHookId`, `evidenceTrailerAttached`, `upstreamMarking`, `kind`, `provenanceVersion`, `signatureAlg: "HMAC-SHA256"`, `signature`) with `0` bytes of raw prompt or output text stored at rest by default (`contentHash: { mode: "keyed", secret }`).
-  2. **Human-readable disclosure components (`@spurvik/react`):** `<AIDisclosureLabel />`, `<AIArticle50Section3Notice />`, and `<AIDisclosureDetails />` render visible DOM notices in 24 EU languages for Article 50(1), 50(3), and 50(4) surfaces.
+  1. **Signed HMAC-SHA-256 call receipts (`spurvik`, `spurvik`):** Every wrapped model or graph call produces a 16-field `ProvenanceRecord` (`eventId`, `timestamp`, `modelProvider`, `modelId`, `inputHash`, `outputHash`, `contentHashMode`, `article50Disclosure`, `markingApplied`, `markingHookId`, `evidenceTrailerAttached`, `upstreamMarking`, `kind`, `provenanceVersion`, `signatureAlg: "HMAC-SHA256"`, `signature`) with `0` bytes of raw prompt or output text stored at rest by default (`contentHash: { mode: "keyed", secret }`).
+  2. **Human-readable disclosure components (`spurvik/react`):** `<AIDisclosureLabel />`, `<AIArticle50Section3Notice />`, and `<AIDisclosureDetails />` render visible DOM notices in 24 EU languages for Article 50(1), 50(3), and 50(4) surfaces.
   3. **Opt-in application marking hooks (`config.marking` and `spurvik_marking_hooks`):** Hook interfaces (`TextMarkingHook` and `MediaMarkingHook`) where you plug in your own text or media marking pipeline and record the hook ID (`markingHookId`) on the receipt.
 - **What Spurvik does NOT do:**
   - Spurvik **does not mark content itself** (it does not embed pixel, audio, or video watermarks or C2PA manifests into generated files, and it does not make any system meet the EU AI Act).
   - Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
   - **Why an API receipt or database log alone is not Article 50(2) marking:** A JSON field attached to an SDK return value (`_spurvik_provenance` or `providerMetadata.spurvik`) or stored in a telemetry database does not travel with exported text, images, audio, or video once the response object is discarded. The voluntary Commission Code of Practice on marking and labelling of AI-generated content (10 June 2026, section 1.1.3) also notes that relying on fingerprinting or logging alone is not sufficient for content marking.
-  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the  `@spurvik/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `@spurvik/c2pa` for production deployments.
+  - **What providers and deployers must still implement:** If you are a provider subject to Article 50(2), you must supply and validate the actual machine-readable marking and detection mechanism (for example multi-layer metadata + imperceptible watermarking in your media pipeline). Note that the  `packages/c2pa` package in the monorepo is unpublished and stays private. It is licensed under the MIT License. Do not rely on `packages/c2pa` for production deployments.
 
 ---
 
 ### 23. How do I plug a custom marking hook into `config.marking` (`TextMarkingHook`, `MediaMarkingHook`, `signed-trailer`), and what do `markingApplied` and `evidenceTrailerAttached` record?
 
-Leave `config.marking` unset unless you are plugging in your own hook (or run `spurvik_marking_hooks` in `@spurvik/mcp` to inspect the hook templates).
+Leave `config.marking` unset unless you are plugging in your own hook (or run `spurvik_marking_hooks` in `spurvik-mcp-server` to inspect the hook templates).
 
 ```ts
-import type { MediaMarkingHook, TextMarkingHook } from "@spurvik/core";
+import type { MediaMarkingHook, TextMarkingHook } from "spurvik";
 import OpenAI from "openai";
-import { provenanceOf, withSpurvik, type SpurvikConfig } from "@spurvik/sdk";
+import { provenanceOf, withSpurvik, type SpurvikConfig } from "spurvik";
 
 const customTextHook: TextMarkingHook = {
   id: "customer-text-hook",
@@ -85,9 +85,9 @@ export function createClientWithCustomHooks(openai: OpenAI, baseConfig: SpurvikC
 
 ---
 
-### 24. How does `@spurvik/react` handle the Polish (`locale="pl"`) disclosure copy (Ruling D24), and how can we customize `emotionBiometric` for gender-neutral phrasing?
+### 24. How does `spurvik/react` handle the Polish (`locale="pl"`) disclosure copy (Ruling D24), and how can we customize `emotionBiometric` for gender-neutral phrasing?
 
-`@spurvik/react` includes built-in translations for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). Under **Legal Ruling D24**, the built-in Polish (`locale="pl"`) copy in `EU_DISCLOSURE_LOCALES.pl` (`packages/react/src/locales.ts:405–426`) was reviewed against the Polish EU AI Act text and cleared as written:
+`spurvik/react` includes built-in translations for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). Under **Legal Ruling D24**, the built-in Polish (`locale="pl"`) copy in `EU_DISCLOSURE_LOCALES.pl` (`packages/react/src/locales.ts:405–426`) was reviewed against the Polish EU AI Act text and cleared as written:
 
 - **Article 50(1) (`notice="interaction"`):** `"Korzystasz z systemu AI."`
 - **Article 50(3) (`<AIArticle50Section3Notice locale="pl" />` or `notice="emotion-biometric"`):** `"Jesteś narażony na system rozpoznawania emocji lub kategoryzacji biometrycznej."`
@@ -103,7 +103,7 @@ import {
   AIArticle50Section3Notice,
   disclosureCopy,
   registerDisclosureLocale,
-} from "@spurvik/react";
+} from "spurvik/react";
 
 registerDisclosureLocale("pl", {
   ...disclosureCopy("pl"),
@@ -122,9 +122,9 @@ Spurvik is designed to help providers and deployers document the measures they t
 
 ---
 
-### 25. How do I wrap a LangGraph workflow (`@spurvik/sdk/langgraph`) and connect `interrupt()` pauses to Spurvik's human-oversight queue?
+### 25. How do I wrap a LangGraph workflow (`spurvik/langgraph`) and connect `interrupt()` pauses to Spurvik's human-oversight queue?
 
-`@spurvik/sdk/langgraph` exports `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, `provenanceFromLangGraphState`, and `provenanceOf`:
+`spurvik/langgraph` exports `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, `provenanceFromLangGraphState`, and `provenanceOf`:
 
 1. **Wrap the compiled graph:** Pass your compiled `StateGraph` (`invoke` and optional `stream`) to `withSpurvikLangGraph(compiledGraph, config, { modelId })`. Every run checks `beforeInference()`, hashes non-tool messages (`role` or `type` in `"tool"`, `"function"`, `"function_call_result"` are excluded from `inputHash`), and attaches a signed 16-field `ProvenanceRecord` on `_spurvik_provenance` (readable via `provenanceFromLangGraphState(state)` or `provenanceOf(state)`).
 2. **Detect interrupted runs:** When the returned state has a non-empty `__interrupt__` array, `withSpurvikLangGraph` sets non-enumerable `receipt.finishReason = "interrupted"` and `receipt.interrupted = true` while keeping the 16 signed fields unchanged for `verifyProvenanceSignature(receipt, signingSecret)`.

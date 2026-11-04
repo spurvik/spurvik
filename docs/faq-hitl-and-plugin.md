@@ -2,17 +2,17 @@
 
 > **.** Tested against `spurvik` `main` (`8e16fad`). Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
 ## 16. How do I map Vercel AI SDK `interrupted` / `tool-approval-request`, OpenAI Agents `needsApproval`, and LangGraph `interrupt()` into Spurvik's human-oversight queue?
 
-`@spurvik/sdk` provides framework-specific helpers alongside `requireHumanApproval(actionName, payload, options?)` for in-process waits, `submitHumanDecision(approvalId, { status, reason })` / `overrideHumanDecision(approvalId, { reason })` for API-driven reviewer decisions, and `verifyHitlWebhook({ secret, body, signature, timestamp })` for event-driven webhook resumes:
+`spurvik` provides framework-specific helpers alongside `requireHumanApproval(actionName, payload, options?)` for in-process waits, `submitHumanDecision(approvalId, { status, reason })` / `overrideHumanDecision(approvalId, { reason })` for API-driven reviewer decisions, and `verifyHitlWebhook({ secret, body, signature, timestamp })` for event-driven webhook resumes:
 
-- **Vercel AI SDK (`@spurvik/sdk/ai`):** Wrap your model with `spurvikMiddleware(config)`. Use `extractFinishReason` and `isInterruptedFinishReason` to check for `"interrupted"` stops (`step.rawFinishReason === "interrupted"` or `step.content` parts with `part.type === "tool-approval-request"`), pass `req.toolCall.toolName` and `req.toolCall.input` to `await spurvikClient.requireHumanApproval(...)`, and deduplicate responses with `dedupeToolApprovalResponses`.
-- **OpenAI Agents SDK (`@spurvik/sdk/openai-agents`):** Wrap your model or provider with `withSpurvikModel` or `withSpurvikModelProvider` and set `needsApproval: createSpurvikNeedsApproval(config, { actionName })` on side-effect tools. Pass `paused.interruptions` to `await resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (which deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve` or `state.reject`), then resume with `await runner.run(agent, paused.state)`.
-- **LangGraph (`@spurvik/sdk/langgraph`):** Wrap your compiled graph with `withSpurvikLangGraph(compiled, config)`. Either call `await spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node, call `await resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs and returns `resolved.command` for `new Command(resolved.command)`), or create a `"pending"` row via `POST /api/v1/hitl` using `buildPayloadSummary({ keys, contentFingerprint })`, pause the graph checkpoint with `interrupt({ approvalId, actionName, payloadSummary })`, and resume with `new Command({ resume: envelope.approval })` when `verifyHitlWebhook` receives the `hitl.decision` webhook.
+- **Vercel AI SDK (`spurvik/ai`):** Wrap your model with `spurvikMiddleware(config)`. Use `extractFinishReason` and `isInterruptedFinishReason` to check for `"interrupted"` stops (`step.rawFinishReason === "interrupted"` or `step.content` parts with `part.type === "tool-approval-request"`), pass `req.toolCall.toolName` and `req.toolCall.input` to `await spurvikClient.requireHumanApproval(...)`, and deduplicate responses with `dedupeToolApprovalResponses`.
+- **OpenAI Agents SDK (`spurvik/openai-agents`):** Wrap your model or provider with `withSpurvikModel` or `withSpurvikModelProvider` and set `needsApproval: createSpurvikNeedsApproval(config, { actionName })` on side-effect tools. Pass `paused.interruptions` to `await resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (which deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve` or `state.reject`), then resume with `await runner.run(agent, paused.state)`.
+- **LangGraph (`spurvik/langgraph`):** Wrap your compiled graph with `withSpurvikLangGraph(compiled, config)`. Either call `await spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node, call `await resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs and returns `resolved.command` for `new Command(resolved.command)`), or create a `"pending"` row via `POST /api/v1/hitl` using `buildPayloadSummary({ keys, contentFingerprint })`, pause the graph checkpoint with `interrupt({ approvalId, actionName, payloadSummary })`, and resume with `new Command({ resume: envelope.approval })` when `verifyHitlWebhook` receives the `hitl.decision` webhook.
 
 See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](hitl-approval-mapping.md) and [LangGraph Quickstart](langgraph-quickstart.md) for copy-paste examples.
 
@@ -22,9 +22,9 @@ See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](
 
 Instead of polling with `requireHumanApproval` inside a short-lived serverless handler:
 
-1. **Create the pending row (`POST /api/v1/hitl`):** Build a canonical `spurvik.payload_summary.v1` string with `buildPayloadSummary({ keys, contentFingerprint })` (`@spurvik/core`) and `POST { actionName, payloadSummary }` with your `x-spurvik-api-key` (`spurvik_live_...`). The control plane returns `HitlRecordWire` with `status: "pending"` and an `id`.
+1. **Create the pending row (`POST /api/v1/hitl`):** Build a canonical `spurvik.payload_summary.v1` string with `buildPayloadSummary({ keys, contentFingerprint })` (`spurvik`) and `POST { actionName, payloadSummary }` with your `x-spurvik-api-key` (`spurvik_live_...`). The control plane returns `HitlRecordWire` with `status: "pending"` and an `id`.
 2. **Checkpoint the agent:** Pass `{ approvalId: pending.id, actionName, payloadSummary }` into LangGraph's `interrupt(...)` (or persist OpenAI Agents' `paused.state` keyed by `pending.id`) and let the request exit.
-3. **Resume from the `hitl.decision` webhook:** Register an HTTPS webhook endpoint in the console (`hitl.decision` event). When a reviewer decides in `/dashboard/projects/<projectId>/oversight` or via `submitHumanDecision`, Spurvik sends a signed `POST`. Check the payload with `verifyHitlWebhook({ secret, body, signature, timestamp })` (`@spurvik/sdk`), which checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute replay window) and returns `HitlWebhookEnvelope` (`envelope.approval`), then resume your thread (`new Command({ resume: envelope.approval })`).
+3. **Resume from the `hitl.decision` webhook:** Register an HTTPS webhook endpoint in the console (`hitl.decision` event). When a reviewer decides in `/dashboard/projects/<projectId>/oversight` or via `submitHumanDecision`, Spurvik sends a signed `POST`. Check the payload with `verifyHitlWebhook({ secret, body, signature, timestamp })` (`spurvik`), which checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute replay window) and returns `HitlWebhookEnvelope` (`envelope.approval`), then resume your thread (`new Command({ resume: envelope.approval })`).
 
 ---
 
@@ -50,7 +50,7 @@ See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 ## 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik

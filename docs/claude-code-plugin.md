@@ -1,8 +1,8 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT).** Describes `plugins/spurvik` (`1.0.2`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** Describes `plugins/spurvik` (`1.0.2`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
 The Spurvik plugin in `plugins/spurvik` gives Claude Code three slash commands, one skill (`eu-ai-act-guardrails`), and a bundled local stdio MCP server (`bin/spurvik-mcp.mjs`). They help you find model calls in your code that are not wrapped yet, add `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, or `withSpurvikLangGraph`, and write a short engineering summary.
 
@@ -13,8 +13,8 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- Public MIT packages are live on npm as `spurvik@1.0.1`, `spurvik-sdk@1.0.1`, and `spurvik-mcp-server@1.0.2` (inside the monorepo, `@spurvik/sdk`, `@spurvik/react`, and `@spurvik/core` use workspace version `1.0.1`; see [5-minute quickstart](5-minute-quickstart.md)).
-- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` `1.0.2` and published on npm as `spurvik-mcp-server@1.0.2` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
+- Public MIT packages are live on npm as `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2` (inside the monorepo, `spurvik`, `spurvik/react`, and `spurvik` use published version `1.0.3`; see [5-minute quickstart](5-minute-quickstart.md)).
+- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `spurvik-mcp-server` `1.0.2` and published on npm as `spurvik-mcp-server@1.0.2` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
 
 ## Install
 
@@ -55,9 +55,9 @@ The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`na
 
 Claude searches your workspace and reports:
 
-1. **Model clients that are not wrapped.** For example `new OpenAI`, `new Anthropic`, `new GoogleGenAI`, `generateText`, `streamText`, and `@langchain/langgraph` (`StateGraph`, `interrupt(`). A client counts as wrapped when it goes through `withSpurvik` (`@spurvik/sdk`), or when the model goes through `wrapLanguageModel` with `spurvikMiddleware` (`@spurvik/sdk/ai`). A Mastra agent counts as wrapped when its model comes from `withSpurvikMastra` (`@spurvik/sdk/mastra`); read that receipt with `provenanceFromMetadata`. An OpenAI Agents model counts as wrapped when it comes from `withSpurvikModel` or `withSpurvikModelProvider` (`@spurvik/sdk/openai-agents`); read that receipt with `provenanceFromAgentsResponse`. A LangGraph graph counts as wrapped when it is passed to `withSpurvikLangGraph` (`@spurvik/sdk/langgraph`); read that receipt with `provenanceOf` or `provenanceFromLangGraphState`. Embeddings, image generation, speech, moderations, batches and file uploads are not recorded by `withSpurvik`; the command says so instead of flagging them.
+1. **Model clients that are not wrapped.** For example `new OpenAI`, `new Anthropic`, `new GoogleGenAI`, `generateText`, `streamText`, and `@langchain/langgraph` (`StateGraph`, `interrupt(`). A client counts as wrapped when it goes through `withSpurvik` (`spurvik`), or when the model goes through `wrapLanguageModel` with `spurvikMiddleware` (`spurvik/ai`). A Mastra agent counts as wrapped when its model comes from `withSpurvikMastra` (`spurvik/mastra`); read that receipt with `provenanceFromMetadata`. An OpenAI Agents model counts as wrapped when it comes from `withSpurvikModel` or `withSpurvikModelProvider` (`spurvik/openai-agents`); read that receipt with `provenanceFromAgentsResponse`. A LangGraph graph counts as wrapped when it is passed to `withSpurvikLangGraph` (`spurvik/langgraph`); read that receipt with `provenanceOf` or `provenanceFromLangGraphState`. Embeddings, image generation, speech, moderations, batches and file uploads are not recorded by `withSpurvik`; the command says so instead of flagging them.
 2. **Logs that print prompt or message text.**
-3. **AI chat UIs with no visible AI interaction notice** (Art. 50(1)). The React label in the repository is `AIDisclosureLabel` from `@spurvik/react`.
+3. **AI chat UIs with no visible AI interaction notice** (Art. 50(1)). The React label in the repository is `AIDisclosureLabel` from `spurvik/react`.
 4. **Tools with side effects (refund, delete, send, …) that have no human-oversight call**, for high-risk AI systems. See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](hitl-approval-mapping.md).
 
 Output: a count by file and a table of `File:Line`, the article it relates to, what was found, and the matching `/spurvik:wrap` change. Claude then offers to apply the changes. The table is a to-do list, not evidence of conformity.
@@ -66,12 +66,12 @@ Output: a count by file and a table of `File:Line`, the article it relates to, w
 
 Claude adds the setup the repository actually exports to your project, or to the file you name (`/spurvik:wrap src/chat.ts`), shows the diff, and runs your typecheck if you have one.
 
-- **OpenAI, Anthropic, Google GenAI:** `withSpurvik(client, config)`, with `apiKey`, `signingSecret` and `contentHash.secret` read from your environment. The SDK does not read them for you; it throws `SpurvikConfigError` if they are missing. `provenanceOf` from `@spurvik/sdk` reads that response.
+- **OpenAI, Anthropic, Google GenAI:** `withSpurvik(client, config)`, with `apiKey`, `signingSecret` and `contentHash.secret` read from your environment. The SDK does not read them for you; it throws `SpurvikConfigError` if they are missing. `provenanceOf` from `spurvik` reads that response.
 - **Vercel AI SDK (`ai` 7):** `spurvikMiddleware` passed to `wrapLanguageModel`; read the record with `provenanceFromMetadata`.
-- **Mastra:** `withSpurvikMastra` from `@spurvik/sdk/mastra`. Pass the function it returns as the agent's `model`. Read the receipt with `provenanceFromMetadata`.
-- **OpenAI Agents:** `withSpurvikModel` wraps one `Model`, and `withSpurvikModelProvider` wraps a `ModelProvider`, both from `@spurvik/sdk/openai-agents`. Read the receipt with `provenanceFromAgentsResponse`. `provenanceOf` reads an Agents stream. `createSpurvikNeedsApproval` is the tool `needsApproval` callback. `resolveAgentInterruptions` sends each unique interruption to the human-oversight queue and calls `state.approve` or `state.reject`.
-- **LangGraph:** `withSpurvikLangGraph`, `spurvikInterrupt`, and `resolveLangGraphInterrupts` come from `@spurvik/sdk/langgraph`. A state with `__interrupt__` is recorded with finish reason `"interrupted"`. See [LangGraph Quickstart](langgraph-quickstart.md).
-- **Vercel AI SDK finish reason:** `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses` come from `@spurvik/sdk/ai`. A stream that closes without a finish chunk is recorded as `"interrupted"`. Those fields stay off the signed HMAC record.
+- **Mastra:** `withSpurvikMastra` from `spurvik/mastra`. Pass the function it returns as the agent's `model`. Read the receipt with `provenanceFromMetadata`.
+- **OpenAI Agents:** `withSpurvikModel` wraps one `Model`, and `withSpurvikModelProvider` wraps a `ModelProvider`, both from `spurvik/openai-agents`. Read the receipt with `provenanceFromAgentsResponse`. `provenanceOf` reads an Agents stream. `createSpurvikNeedsApproval` is the tool `needsApproval` callback. `resolveAgentInterruptions` sends each unique interruption to the human-oversight queue and calls `state.approve` or `state.reject`.
+- **LangGraph:** `withSpurvikLangGraph`, `spurvikInterrupt`, and `resolveLangGraphInterrupts` come from `spurvik/langgraph`. A state with `__interrupt__` is recorded with finish reason `"interrupted"`. See [LangGraph Quickstart](langgraph-quickstart.md).
+- **Vercel AI SDK finish reason:** `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses` come from `spurvik/ai`. A stream that closes without a finish chunk is recorded as `"interrupted"`. Those fields stay off the signed HMAC record.
 - **High-risk AI systems** (`riskTier: "high_annex3"`): `requireHumanApproval`, `engageKillSwitch({ reason, actionName })` and `releaseKillSwitch({ reason, actionName })` on `client._spurvik`. The command's examples pass a reason to both calls. In the SDK the reason is optional: if it is missing or blank, the SDK sends `"Halted via SDK (no reason given)"` or `"Released via SDK (no reason given)"` instead. Always pass one. Both calls need `reviewerToken`. These are designed to support Art. 14 human oversight; they are not a complete Art. 14 system.
 - **React:** `<AIDisclosureLabel notice="interaction" />`.
 
@@ -92,7 +92,7 @@ The file says that it is not evidence of conformity and not legal advice. It doe
 
 ## Bundled local MCP server (`.mcp.json`)
 
-`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`@spurvik/mcp`, version `1.0.2`) automatically when the plugin loads:
+`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`spurvik-mcp-server`, version `1.0.2`) automatically when the plugin loads:
 
 ```json
 {

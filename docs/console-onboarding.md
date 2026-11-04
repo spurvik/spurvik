@@ -58,16 +58,24 @@ Purging a prefix of audit rows older than the project's period, and writing a si
 Decisions and halt changes are POSTed as canonical JSON. `x-spurvik-signature` is `v1=` plus HMAC-SHA-256 of `` `${timestamp}.${body}` ``, and `x-spurvik-timestamp` is unix seconds. Check a human-decision envelope with `verifyHitlWebhook` from `spurvik`.
 
 ```ts
+import { createHmac } from "node:crypto";
 import { verifyHitlWebhook } from "spurvik";
 
-const envelope = await verifyHitlWebhook({
-  secret: process.env.SPURVIK_WEBHOOK_SECRET!,
-  body: "{}",
-  signature: "v1=example",
-  timestamp: "0",
+const secret = process.env.SPURVIK_WEBHOOK_SECRET ?? "example-webhook-secret";
+const body = JSON.stringify({
+  type: "hitl.decision",
+  deliveryId: "example",
+  projectId: "example",
+  approval: { id: "example" },
 });
+const timestamp = String(Math.floor(Date.now() / 1000));
+const signature = "v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+
+const envelope = await verifyHitlWebhook({ secret, body, signature, timestamp });
 console.log(envelope.deliveryId);
 ```
+
+That sample signs its own body, so the check can run without a live delivery. Replace `body`, `signature`, and `timestamp` with the raw request when you receive one.
 
 A match shows the timestamp and body still match the HMAC-SHA-256 signature made with your webhook secret, and that the timestamp is within five minutes of your clock (the default). It does not show that your oversight measures meet Article 14.
 

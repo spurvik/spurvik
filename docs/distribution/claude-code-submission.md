@@ -5,7 +5,7 @@
 Each item must be done before any submission is opened:
 
 1. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The server stays local stdio only, private 1.0.2, with no hosted endpoint. No package is published. Other items below are still open before any directory submission.
-2. The owner has approved publishing the npm packages. The packages are `@spurvik/sdk` and, if used, `@spurvik/mcp`. Both are private at 1.0.1 today.
+2. The owner has approved publishing the npm packages. The published names are `spurvik`, `spurvik-sdk` (`1.0.3`), and `spurvik-mcp-server` (`1.0.2`).
 3. The owner has approved making the repo reachable to installers, through a public repo or a public mirror. The public repository is https://github.com/spurvik/spurvik. The plugin tree is https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
 4. The site manifest is served and resolves.
 5. QA has passed the plugin.
@@ -79,7 +79,7 @@ The repository may stay private during validation only when a connected GitHub a
 - A paid Claude plan and a role that can submit are outside this change.
 - Directory terms are not accepted here.
 - `claude plugin validate --strict ./plugins/spurvik` and `claude plugin validate --strict .` must be re-run on the final release tag before any submission.
-- Preconditions 2 through 5 are open before any directory submission. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. `@spurvik/mcp` and `@spurvik/sdk` stay private at 1.0.1. There is no hosted endpoint.
+- Preconditions 2 through 5 are open before any directory submission. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The published stdio package is `spurvik-mcp-server@1.0.2`. There is no hosted endpoint in this repository.
 
 **Category:** Plugin bundle (submission kind). No topic category is defined on the submit page.
 
@@ -156,7 +156,7 @@ Spurvik local stdio MCP server (`bin/spurvik-mcp.mjs`) with `spurvik_setup_snipp
 Two transports exist in the product plan. Only the first is live today, and it is the console route, not the Claude plugin:
 
 1. Streamable HTTP at `https://console.spurvik.com/api/mcp`, discovered from `https://spurvik.com/.well-known/mcp.json`.
-2. Local stdio from the private `@spurvik/mcp` package at `1.0.2`, started with `node packages/mcp/dist/index.js --root <workspace>` or, inside the Claude plugin, `node` and `bin/spurvik-mcp.mjs`. The plugin stays local stdio only, with no hosted endpoint.
+2. Local stdio from `spurvik-mcp-server@1.0.2`, started with `./node_modules/.bin/spurvik-mcp-server --root .` (`--root` is required), or, inside the Claude plugin, `node` and `plugins/spurvik/bin/spurvik-mcp.mjs`. The plugin stays local stdio only.
 
 `server.json` draft for the registry (do not publish):
 
@@ -164,7 +164,7 @@ Two transports exist in the product plan. Only the first is live today, and it i
 {
   "name": "com.spurvik/mcp",
   "description": "Spurvik setup snippets, unwrapped-call scan, HMAC receipt explanation, and marking-hook notes. Supports OpenAI, Anthropic, Google GenAI, Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "remotes": [
     {
       "type": "streamable-http",
@@ -174,14 +174,14 @@ Two transports exist in the product plan. Only the first is live today, and it i
 }
 ```
 
-Smithery and Glama drafts should name the same HTTP URL and, after `@spurvik/mcp` is published, the local stdio package. Until then, write "private 1.0.2, not published" and do not submit either listing. The scan tool reports unwrapped LangGraph `StateGraph` and `interrupt()` calls.
+Smithery and Glama drafts should name the same HTTP URL and the local stdio package `spurvik-mcp-server@1.0.2`. The scan tool reports unwrapped LangGraph `StateGraph` and `interrupt()` calls.
 
 ## 7. EyeTea Solutions ApS Release-Day Submission Runbook
 
-Do this in order, and only when the owner decides to publish `1.0.1` and open the directory submissions. The public repository is https://github.com/spurvik/spurvik.
+Do this in order, and only when the owner decides to open the directory submissions. The public repository is https://github.com/spurvik/spurvik. The published packages are already `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`.
 
-1. Keep every workspace package at `"version": "1.0.1"` until the publish commit. Leave `"private": true` until that commit removes it for the packages the owner chooses to publish.
-2. Run `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm turbo test --force`.
+1. Install those packages with npm. This repository has no root package script for a workspace build.
+2. Check the plugin files under `plugins/spurvik` before any directory submission.
 3. Run `node scripts/ci/no-default-keys.mjs`, `bash scripts/ci/no-default-keys.sh`, and `node --test scripts/ci/plugin-manifest.test.mjs`.
 4. Run `node packages/mcp/scripts/bundle-plugin.mjs --check` and `npm pack --dry-run` in `packages/core`, `packages/sdk`, `packages/react`, `packages/mcp`, and `packages/c2pa`.
 5. Confirm https://github.com/spurvik/spurvik/tree/main/plugins/spurvik shows `plugins/spurvik/LICENSE`.

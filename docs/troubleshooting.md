@@ -1,14 +1,12 @@
 # Troubleshooting
 
-> **Applies to the 1.0.1 build on `spurvik` main at `0e9cc89` (PR #3, PR #4, PR #7 and PR #8 merged). PR #3 includes the changes in PR #1 and PR #2.**
-
-Every entry below is an error or symptom we actually hit while testing [quickstart.md](quickstart.md) with Node.js 22.23 (the repository's `engines` field asks for Node 22 or later) and `openai` 7.42–7.43. Messages are copied from the terminal. The entries were first tested against the SDK built from `spurvik` main (commit `987ec86`). The [Starting the control plane](#starting-the-control-plane), [Telemetry and the control plane](#telemetry-and-the-control-plane) and [Streaming](#streaming) entries were tested against commit `a350ee2`. To see which commit you built from, run `git rev-parse --short HEAD` in your `spurvik` folder.
+> Applies to `spurvik@1.0.3` and `spurvik-mcp-server@1.0.2`. `spurvik@1.0.3` sets `"engines": { "node": ">=20" }`.
 
 Quick links:
 
-- [Installing and building](#installing-and-building)
+- [Installing](#installing)
 - [Running your app](#running-your-app)
-- [Starting the control plane](#starting-the-control-plane)
+- [If `baseUrl` is unreachable](#if-baseurl-is-unreachable)
 - [Configuration errors from the SDK](#configuration-errors-from-the-sdk)
 - [Telemetry and the control plane](#telemetry-and-the-control-plane)
 - [Signature checks](#signature-checks)
@@ -16,7 +14,7 @@ Quick links:
 
 ---
 
-## Installing and building
+## Installing
 
 ### `npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk`
 
@@ -25,65 +23,22 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not found
 ```
 
-**Cause:** The public MIT packages are `spurvik@1.0.3` and `spurvik-sdk@1.0.3` on npm, from https://github.com/spurvik/spurvik. `@spurvik/sdk` is the workspace package name at `1.0.1` in the monorepo.
+**Cause:** That scoped name is not the published package. The public MIT packages are `spurvik@1.0.3` and `spurvik-sdk@1.0.3`.
 
-**Fix:** Install the public packages:
-
-```bash
-npm install spurvik@1.0.3 spurvik-sdk@1.0.3
-```
-
-Or build the `1.0.1` workspace packages from https://github.com/spurvik/spurvik. See [quickstart step 1](quickstart.md#step-1-get-the-sdk-build-it-from-source).
-
-Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records. The local stdio MCP server is `spurvik-mcp-server@1.0.2`.
-
-### `npm error 404 … @spurvik%2fcore` when installing the SDK package file
-
-```text
-npm error code E404
-npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fcore - Not found
-```
-
-**Cause:** You installed the workspace `spurvik-sdk-1.0.1.tgz` on its own. That workspace package depends on `@spurvik/core` at `1.0.1`. The public `spurvik@1.0.3` and `spurvik-sdk@1.0.3` packages already include that core code.
-
-**Fix:** Install both package files in one command:
+**Fix:**
 
 ```bash
-npm install openai ../spurvik-packs/spurvik-core-1.0.1.tgz ../spurvik-packs/spurvik-sdk-1.0.1.tgz
+npm install openai spurvik@1.0.3
 ```
 
-### `Error: EACCES: permission denied, mkdir '/usr/local/share/corepack/v1'` when running `pnpm`
-
-On Node.js 22.23, `pnpm --version` in the repository fails with:
-
-```text
-Error: EACCES: permission denied, mkdir '/usr/local/share/corepack/v1'
-    at mkdirSync (node:fs:1370:26)
-    at getTemporaryFolder (…/lib/node_modules/corepack/dist/lib/corepack.cjs:13030:27)
-  errno: -13,
-  code: 'EACCES',
-  syscall: 'mkdir',
-  path: '/usr/local/share/corepack/v1'
-```
-
-**Cause:** The repository pins its pnpm version (`packageManager: "pnpm@10.33.4"` in `package.json`). Corepack tries to download that version into its cache folder, and your user cannot write to it. We saw this on a machine where `COREPACK_HOME` was preset to a root-owned folder (`/usr/local/share/corepack`); the path in your message shows which folder Corepack used.
-
-**Fix:** Point Corepack at a folder you own, then run the command again:
+The local stdio MCP server is `spurvik-mcp-server@1.0.2`:
 
 ```bash
-export COREPACK_HOME="$HOME/.cache/corepack"
-pnpm --version
+npm i -D spurvik-mcp-server@1.0.2
+./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
-### `ERR_PNPM_UNUSED_PATCH … @contentauth/c2pa-node@0.9.10`
-
-```text
- ERR_PNPM_UNUSED_PATCH  The following patches were not used: @contentauth/c2pa-node@0.9.10
-```
-
-**Cause:** We saw this when we tried to install only the SDK's part of the workspace (`pnpm install --filter "@spurvik/sdk..."`). The root `package.json` patches a dependency of another workspace package, and a filtered install never uses that patch.
-
-**Fix:** Run a plain `pnpm install` in the repository root, as in the quickstart. Then build only what you need with `pnpm --filter "@spurvik/sdk..." build`.
+`--root` is required in 1.0.2. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK.
 
 ---
 
@@ -126,37 +81,11 @@ OpenAIError: Missing credentials. Please pass an `apiKey`, `workloadIdentity`, `
 
 ---
 
-## Starting the control plane
+## If `baseUrl` is unreachable
 
-### The control plane will not start
+This repository does not include a server you start yourself. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. If that address does not answer, the wrapped model call still succeeds except for `high_annex3`, which fails closed. See [quickstart](quickstart.md#if-baseurl-is-unreachable).
 
-```text
-Refusing to start. Missing SPURVIK_LOG_CHECKPOINT_SECRET and SPURVIK_WEBHOOK_KEK.
-```
-
-**What you see:** `pnpm dev` prints this message before Next.js starts (there is no `✓ Ready` line), then `Exit status 1` and `ELIFECYCLE Command failed with exit code 1.` The process exits with code 1 and nothing is left listening on port 43123. The control plane is not running, so your app's telemetry fails with `fetch failed`.
-
-**Cause:** this build has no built-in default keys. The control plane checks its keys when it starts and stops if one is missing or unusable. These are the messages we saw. Each one is printed on its own line, and the process then exits with code 1:
-
-| Message | Cause | Fix |
-| --- | --- | --- |
-| `Refusing to start. Missing SPURVIK_LOG_CHECKPOINT_SECRET and SPURVIK_WEBHOOK_KEK.` | Neither key is set, either in your shell or in `apps/web/.env`. `pnpm dev` and `pnpm start` read both, and a value in your shell takes precedence over the file. If only one is missing, the message names only that one, for example `Refusing to start. Missing SPURVIK_WEBHOOK_KEK.` | Generate the keys as in [step 2](quickstart.md#step-2-run-a-local-control-plane-and-get-your-spurvik_live_-key) and start again. |
-| `SPURVIK_LOG_CHECKPOINT_SECRET is shorter than 16 characters.` | The checkpoint secret is too short. `SPURVIK_ALLOW_TEST_KEYS=1` does not get around this. | Use a longer secret, for example one generated as in step 2. |
-| `SPURVIK_WEBHOOK_KEK must be 32 bytes (base64url, hex, or 32-byte utf8).` | The webhook key is not 32 bytes. | Generate a new one as in step 2. |
-| `Refusing to start. SPURVIK_ALLOW_TEST_KEYS=1 is refused when NODE_ENV or VERCEL_ENV is production.` | `SPURVIK_ALLOW_TEST_KEYS=1` is set while `NODE_ENV` or `VERCEL_ENV` is `production`. This happens even when both keys are set. | Remove `SPURVIK_ALLOW_TEST_KEYS` and set both keys. |
-| `SPURVIK_LOG_CHECKPOINT_SECRET is missing or only whitespace.` (or the same for `SPURVIK_WEBHOOK_KEK`) | The variable is set to spaces only. `SPURVIK_ALLOW_TEST_KEYS=1` does not get around this. | Set a real value as in step 2, or remove the line. |
-
-`pnpm db:migrate` and `pnpm db:seed` run without these keys, so step 2 can get as far as `pnpm dev` before you see the error. `pnpm db:seed` does not create these keys.
-
-**Production server (`pnpm start`):** the same check runs first, with the keys from your shell or `apps/web/.env`. It prints the same messages before Next.js starts, then `Exit status 1`, and exits with code 1. With both keys set and no test flag, the server stays up and `GET /api/v1/health` returns 200. With `SPURVIK_ALLOW_TEST_KEYS=1`, `pnpm start` prints `Refusing to start. SPURVIK_ALLOW_TEST_KEYS=1 is refused when NODE_ENV or VERCEL_ENV is production.` before `✓ Ready` and exits with code 1. This happens even if both keys are set, and also when the flag is only in `apps/web/.env`. If the keys are missing too, the `integrity protection is off` warning is printed first, then that refusal. If you run `next start` or `next dev` directly (for example `pnpm exec next start`), the same check runs before `✓ Ready`. A missing or unusable key, or the test flag in production, is refused with the same message, and the process exits with code 1.
-
-### `SPURVIK_ALLOW_TEST_KEYS=1: integrity protection is off. This is for local testing only.`
-
-`SPURVIK_ALLOW_TEST_KEYS=1` is set outside production, and the control plane is running with random keys made for that process. They are gone when it stops. Webhook secrets saved while the flag is on cannot be read after a restart, and while the flag is on, saved checkpoints do not check. Use it only for throwaway local testing. For anything you want to keep, unset it and set both keys as in step 2.
-
-### `Set SPURVIK_LOG_CHECKPOINT_SECRET (at least 16 characters) before purging logs. SPURVIK_ALLOW_TEST_KEYS does not sign a purge.`
-
-`pnpm purge-logs` exits with code 1. It needs your real checkpoint secret, in your shell or in `apps/web/.env`, and it never accepts `SPURVIK_ALLOW_TEST_KEYS=1`. If the secret is set to spaces only, the message is `SPURVIK_LOG_CHECKPOINT_SECRET is missing or only whitespace.` An empty value counts as not set and gives the message above. Set the same `SPURVIK_LOG_CHECKPOINT_SECRET` your control plane uses.
+Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules it or runs it. Retention periods are (planned).
 
 ---
 
@@ -175,7 +104,7 @@ SpurvikConfigError: apiKey must be a spurvik_live_ project key.
 - `SPURVIK_API_KEY` was not set in the shell that ran `node`.
 - The placeholder `spurvik_live_PASTE_THE_KEY_FROM_DB_SEED` was still in place. It has the right prefix but is too short.
 
-**Fix:** Use the key that `pnpm db:seed` printed. The SDK checks for `spurvik_live_` (or the older `aegis_live_`) followed by at least 32 characters from `A–Z a–z 0–9 _ -`. A seeded key has 43 characters after the prefix. The SDK only checks the shape. Whether the key is valid is decided by the control plane.
+**Fix:** Use a `spurvik_live_` key from the hosted console. The SDK checks for `spurvik_live_` (or the older `aegis_live_`) followed by at least 32 characters from `A–Z a–z 0–9 _ -`. The SDK only checks the shape. Whether the key is accepted is decided at `baseUrl`.
 
 ### `signingSecret must be a client-held secret of at least 16 characters.`
 
@@ -205,7 +134,7 @@ SpurvikConfigError: baseUrl is required when NODE_ENV is production. Point it at
 
 ### I set `AEGIS_API_KEY` but the SDK still says the key is missing
 
-**Cause:** `AEGIS_*` variables are read only by the control plane server (`apps/web`), with a deprecation warning. The SDK in your app reads no `SPURVIK_*` or `AEGIS_*` variables by itself. Your code passes values into `withSpurvik()`.
+**Cause:** The SDK in your app reads no `SPURVIK_*` or `AEGIS_*` variables by itself. Your code passes values into `withSpurvik()`.
 
 **Fix:** Rename the variables to `SPURVIK_*` and pass them in, as in [quickstart step 5](quickstart.md#step-5-wrap-a-call-and-save-the-provenance-record).
 
@@ -288,7 +217,7 @@ TypeError: fetch failed
 > **Watch out:** if your code catches only `SpurvikHaltedError`, an API error (`SpurvikApiError`, a `SpurvikError`) or a network `TypeError` is not caught by that branch. Handle the other errors as well, as in the example below.
 
 ```js
-import { SpurvikApiError, SpurvikHaltedError, SpurvikOversightTimeoutError } from "@spurvik/sdk";
+import { SpurvikApiError, SpurvikHaltedError, SpurvikOversightTimeoutError } from "spurvik";
 
 try {
   const completion = await ai.chat.completions.create({

@@ -35,6 +35,7 @@ export SPURVIK_API_KEY="spurvik_live_<your-key>"
 export SPURVIK_SIGNING_SECRET="$(openssl rand -hex 32)"
 export SPURVIK_CONTENT_HASH_SECRET="$(openssl rand -hex 32)"
 export SPURVIK_BASE_URL="https://console.spurvik.com"
+export SPURVIK_REVIEWER_TOKEN="spurvik_reviewer_<your-reviewer-token>"
 ```
 
 For an invited organisation, `SPURVIK_BASE_URL` is `https://console.spurvik.com`. In production the SDK throws if `baseUrl` is omitted. Development and tests still default to `http://127.0.0.1:43123`. The SDK does not read these variables by itself.
@@ -71,7 +72,9 @@ await ai._spurvik.shutdown();
 
 ## Halt and release
 
-This block is self-contained. It uses the same `withSpurvik` options as the quickstart above.
+Warning: `engageKillSwitch` halts the real project at `baseUrl`. Do not run this against a project you need to keep serving until you mean to stop it.
+
+Run a `.ts` snippet with `npx tsx file.ts` from the app folder after `npm install openai spurvik@1.0.3`.
 
 ```ts
 import OpenAI from "openai";
@@ -83,6 +86,7 @@ const ai = withSpurvik(new OpenAI(), {
   contentHash: { mode: "keyed", secret: process.env.SPURVIK_CONTENT_HASH_SECRET! },
   baseUrl: process.env.SPURVIK_BASE_URL!,
   riskTier: "limited_art50",
+  reviewerToken: process.env.SPURVIK_REVIEWER_TOKEN!,
 });
 
 const halted = await ai._spurvik.engageKillSwitch({
