@@ -22,8 +22,6 @@ Channel objects use `type` (`"slack"`, `"telegram"`, `"linear"`). The approval r
 
 1.0.4's email channel inserts the request summary into HTML without escaping; a fix is planned for 1.0.5.
 
-`docs/multi-channel-hitl-and-n8n.md` shows `verifySignedChannelCallback` and fields such as `hmacSecret`, `approvalId`, `toolName`, and `approve` / `block`. Those names are not in `channels.ts`. Use the table above.
-
 `npm test` typechecks and runs against the installed `spurvik` package. Channel helpers ship in `spurvik@1.0.4` (`spurvik` and `spurvik/channels`). This folder depends on `spurvik` `^1.0.4`.
 
 The channel `gateId` and the queue row id from `requireHumanApproval` are different values. Nothing in the SDK writes the callback decision onto that row.
