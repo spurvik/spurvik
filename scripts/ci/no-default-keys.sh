@@ -13,3 +13,4 @@ if [[ "$found" -ne 0 ]]; then
   exit 1
 fi
 echo "no-default-keys: no live project key in dist"
+node "$root/scripts/ci/verify-release-integrity.mjs"

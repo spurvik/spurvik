@@ -9,6 +9,7 @@ const pairs = [
   ["index.js", "react.js"],
   ["index.cjs", "react.cjs"],
   ["index.d.ts", "react.d.ts"],
+  ["index.d.ts", "react.d.cts"],
   ["index.js.map", "react.js.map"],
   ["index.cjs.map", "react.cjs.map"],
   ["index.d.ts.map", "react.d.ts.map"],
