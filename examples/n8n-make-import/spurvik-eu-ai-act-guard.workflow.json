@@ -19,7 +19,7 @@
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, -120],
-      "notes": "Repository descriptor parameters only. n8n-nodes-spurvik@1.0.0 has no node class. 1.0.1 exports SpurvikEuAiActGuard, and n8n looks for export index from dist/index.js, which is absent."
+      "notes": "Repository descriptor parameters only. n8n 2.46.4 reports require(...).index is not a constructor for 1.0.1. execute() calls executeSpurvikN8nGuard, which that file does not define. A working native node is (planned, 1.0.2)."
     },
     {
       "parameters": {
@@ -43,7 +43,7 @@
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, 200],
-      "notes": "operation art14_ask_human. In this repository, channel, hmacSecret, and gate fields are not descriptor parameters. 1.0.1 adds signingSecret, actionName, and actionSummary, and n8n still cannot load the file."
+      "notes": "operation art14_ask_human. 1.0.1 execute() copies the incoming item onto the output, including prompt text. n8n execution history keeps that input and output. A working native node is (planned, 1.0.2)."
     }
   ],
   "connections": {

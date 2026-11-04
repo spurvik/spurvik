@@ -214,6 +214,11 @@ for (const file of texts) {
 if (/404|not published|not on npm|stops at the registry/i.test(texts[0].text)) {
   fail("README still says the npm package is missing or that install stops at the registry");
 }
+if (!texts[0].text.includes("(planned, 1.0.2)")) fail("README is missing (planned, 1.0.2)");
+if (!texts[0].text.includes("executeSpurvikN8nGuard")) fail("README does not mention executeSpurvikN8nGuard");
+if (/leaves out `rawInputText`|raw prompt is not stored|isn't stored|is not stored/i.test(texts[0].text)) {
+  fail("README still says the raw prompt is not stored");
+}
 
 function npmJson(args) {
   const raw = execFileSync("npm", args, {
@@ -239,10 +244,14 @@ function inspectPublishedVersion(version, scratch) {
   writeFileSync(distPath, dist);
   const exported = require(distPath);
   const guard = exported.SpurvikEuAiActGuard;
+  const guardDefined = /function executeSpurvikN8nGuard|executeSpurvikN8nGuard\s*=/.test(dist);
   console.log(`- ${version} dist/index.js: ${hasDist ? "present" : "absent"}`);
   console.log(`- ${version} exports: ${Object.keys(exported).join(", ") || "(none)"}`);
   console.log(`- ${version} export index: ${typeof exported.index}`);
   console.log(`- ${version} SpurvikEuAiActGuard.execute: ${typeof guard?.prototype?.execute}`);
+  console.log(`- ${version} calls executeSpurvikN8nGuard: ${dist.includes("executeSpurvikN8nGuard")}`);
+  console.log(`- ${version} executeSpurvikN8nGuard defined: ${guardDefined}`);
+  console.log(`- ${version} output copies incoming item: ${dist.includes("...itemJson")}`);
   console.log(`- ${version} n8n.credentials: ${JSON.stringify(packed.n8n?.credentials ?? null)}`);
   console.log(`- ${version} n8n.nodes: ${JSON.stringify(packed.n8n?.nodes ?? null)}`);
 }
@@ -260,7 +269,8 @@ try {
   for (const version of ["1.0.0", "1.0.1"]) {
     if ((view.versions ?? []).includes(version)) inspectPublishedVersion(version, scratch);
   }
-  console.log("- n8n loads require('dist/index.js').index; a missing index export means the node is not listed");
+  console.log("- n8n 2.46.4 load error when index is missing: require(...).index is not a constructor");
+  console.log("- a working native node is (planned, 1.0.2)");
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.log(`- npm inspect failed: ${message}`);
