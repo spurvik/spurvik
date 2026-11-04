@@ -8,3 +8,5 @@
 | [`slack-telegram-linear-ask-human/`](./slack-telegram-linear-ask-human/README.md) | Slack, Telegram, and Linear. Imports `createMultiChannelApprovalRouter` and `verifyChannelApprovalToken` from `spurvik`. `verifyChannelApprovalToken` checks Spurvik's approval-link token. Continues only when the queue status is `approved`. |
 | [`nextjs-vercel-ai-sdk.tsx`](./nextjs-vercel-ai-sdk.tsx) | Next.js App Router + Vercel AI SDK (`spurvik/ai` `spurvikMiddleware`) + `<AIDisclosureLabel />` (`spurvik/react`) for EU AI Act Art. 50(1) transparency and Art. 12 chained HMAC-SHA256 provenance receipts. |
 | [`../packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json) | Importable **Make.com** blueprint and **n8n** workflow guard combining Art. 50 notices, Art. 12 HMAC-SHA256 receipts, and Art. 14 multi-channel `ask_human()` gates. |
+
+1.0.4's email channel inserts the request summary into HTML without escaping; a fix is planned for 1.0.5.

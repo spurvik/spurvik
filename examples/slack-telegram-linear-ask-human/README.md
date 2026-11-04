@@ -1,6 +1,6 @@
 # Slack, Telegram, and Linear ask_human() router
 
-Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks; it does not make anyone compliant, and this is not legal advice.
+Spurvik is designed to support Article 12 record-keeping and Article 14 human oversight; this is not legal advice.
 
 This folder imports `createMultiChannelApprovalRouter` and `verifyChannelApprovalToken` from `spurvik` and fans one request out to Slack, Telegram, and Linear. `verifyChannelApprovalToken` checks Spurvik's own signed approval-link token. It does not check a Slack, Telegram, or Linear request signature. The action continues only when the queue status is `approved`.
 
@@ -19,6 +19,8 @@ This folder imports `createMultiChannelApprovalRouter` and `verifyChannelApprova
 `verifySignedChannelCallback` is not exported. The router method `verifyCallback` calls `verifyChannelApprovalToken` with the router signing secret. It is not a separate package export.
 
 Channel objects use `type` (`"slack"`, `"telegram"`, `"linear"`). The approval request uses `gateId`, `actionName`, `summary`, optional `context`, and optional `callbackBaseUrl`. `callbackBaseUrl` is a field on the request, not on the router. Decision strings are `approved` and `rejected`.
+
+1.0.4's email channel inserts the request summary into HTML without escaping; a fix is planned for 1.0.5.
 
 `docs/multi-channel-hitl-and-n8n.md` shows `verifySignedChannelCallback` and fields such as `hmacSecret`, `approvalId`, `toolName`, and `approve` / `block`. Those names are not in `channels.ts`. Use the table above.
 
