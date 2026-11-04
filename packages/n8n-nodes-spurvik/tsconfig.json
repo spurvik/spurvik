@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node"
+  },
+  "include": [
+    "index.ts",
+    "workflow.ts",
+    "nodes/**/*.ts",
+    "credentials/**/*.ts"
+  ],
+  "exclude": ["dist", "node_modules", "test", "src"]
+}

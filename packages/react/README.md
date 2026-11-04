@@ -1,4 +1,6 @@
-# @spurvik/react
+# packages/react
+
+Published as the `spurvik/react` export of the `spurvik` package. This directory is build-from-source inside the repository.
 
 Disclosure labels for EU transparency notices, including `AIArticle50Section3Notice` for Article 50(3).
 

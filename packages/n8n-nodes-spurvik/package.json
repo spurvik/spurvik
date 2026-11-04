@@ -1,22 +1,51 @@
 {
   "name": "n8n-nodes-spurvik",
-  "version": "1.0.1",
-  "description": "EU AI Act Art. 50 AI notices, Art. 12 HMAC-SHA256 zero-raw-prompt logs, and Art. 14 multi-channel ask_human() approval gates (Slack, Telegram, Email, Linear, Jira, Monday, Asana) for n8n and Make.com workflows.",
+  "version": "1.0.2",
+  "description": "Designed to support Article 50 interaction notices, Article 12 HMAC-SHA256 record-keeping, and Article 14 human approval requests for n8n. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana.",
+  "author": "EyeTea Solutions ApS",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spurvik/spurvik.git",
+    "directory": "packages/n8n-nodes-spurvik"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "keywords": [
     "n8n-community-node-package",
     "eu-ai-act",
     "spurvik",
     "human-in-the-loop",
-    "ai-agents",
-    "make-com"
+    "ai-agents"
   ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/SpurvikEuAiActGuard && cp nodes/SpurvikEuAiActGuard/spurvik.svg dist/nodes/SpurvikEuAiActGuard/spurvik.svg",
+    "test": "npm run build && node --test test/execute.test.mjs",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/SpurvikApi.credentials.js"
+    ],
     "nodes": [
-      "dist/index.js"
+      "dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"
     ]
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "dependencies": {
+    "spurvik-sdk": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "n8n-workflow": "2.46.4",
+    "typescript": "^5.9.3"
   }
 }

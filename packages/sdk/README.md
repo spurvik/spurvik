@@ -1,20 +1,20 @@
-# @spurvik/sdk
+# spurvik-sdk
 
 Runtime client for provenance records, telemetry, a live human-oversight queue, and the halt cache.
 
-The public MIT release is `spurvik@1.0.3` and `spurvik-sdk@1.0.3` on npm (core is bundled), from https://github.com/spurvik/spurvik. In this monorepo `@spurvik/sdk` is workspace version `1.0.1` and depends on `@spurvik/core`. `@spurvik/sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
+The public MIT release is `spurvik@1.0.5` and `spurvik-sdk@1.0.5` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
 
-`withSpurvik` is the provider wrapper. The old `withCompliance` alias is removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `withAegis` is the previous product-name alias and is removed in the next release.
+`withSpurvik` is the provider wrapper. An older name of that function was removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
 
-`spurvikMiddleware` wraps an AI SDK language model. Pass it to `wrapLanguageModel`. It takes the same `SpurvikConfig` object as `withSpurvik`. It records the call and stores the HMAC receipt on that language-model result under `providerMetadata.spurvik`. It does not add `_aegis_provenance`. It does not mark content. Set `marking` only when you supply your own hook.
+`spurvikMiddleware` wraps an AI SDK language model. Pass it to `wrapLanguageModel`. It takes the same `SpurvikConfig` object as `withSpurvik`. It records the call and stores the HMAC receipt on that language-model result under `providerMetadata.spurvik`. It does not mark content. Set `marking` only when you supply your own hook.
 
-`@spurvik/sdk/mastra` and `@spurvik/sdk/openai-agents` are the Mastra and OpenAI Agents adapters. Both take the same `SpurvikConfig`. Neither reads `SPURVIK_` environment variables. The constructor throws when `apiKey` or `signingSecret` is missing. Article 12 (record-keeping) and Article 14 (human oversight) apply to high-risk AI systems. These adapters are designed to support that work. They do not mark content. A marking hook runs only when you set `marking`.
+`spurvik-sdk/mastra` and `spurvik-sdk/openai-agents` are the Mastra and OpenAI Agents adapters. Both take the same `SpurvikConfig`. Neither reads `SPURVIK_` environment variables. The constructor throws when `apiKey` or `signingSecret` is missing. Article 12 (record-keeping) and Article 14 (human oversight) apply to high-risk AI systems. These adapters are designed to support that work. They do not mark content. A marking hook runs only when you set `marking`.
 
 `generateText` and `streamText` do not put that receipt on `_spurvik_provenance`, and `provenanceOf` does not read their results. Read it with `provenanceFromMetadata(result.providerMetadata)`. For a stream, await `providerMetadata` first. `provenanceOf` is for a `withSpurvik` response or stream. Check a receipt with `verifyProvenanceSignature`. A match shows the signed fields still match the HMAC-SHA-256 signature made with your signing secret. It does not show that a notice was shown, that output is marked, or that your system meets the Act.
 
 Telemetry is queued. The queue sends when the batch is full, on its interval, on `flush()`, and once as the process is about to exit when process hooks are on. A call does not flush the queue by itself. One process-wide exit listener serves every client, so constructing the middleware again does not add another listener. An idle empty queue is dropped from that registry. Each control-plane request ends after `telemetry.requestTimeoutMs` (default 5 seconds). `flush()` stops retrying after `telemetry.flushTimeoutMs` (default 8 seconds). Callers that share an in-flight flush share that deadline. If that flush failed and nothing new is queued, process exit keeps only the time left on that deadline, so a slow error still ends in about 8 seconds and does not open a second window. A new event queued while that flush is still running, or after it has returned, gets a fresh deadline once the in-flight flush has finished. A timed-out flush, then a new event, then exit can therefore take up to about 16 seconds. An event recorded after a flush that finished still goes out on exit, under a new deadline. `flush()` then settles, and `onTelemetryError` receives a `TimeoutError`.
 
-Decision and oversight calls send `reviewerToken` as `x-spurvik-reviewer`. They do not take a free-text reviewer id. Any organisation member can halt or decide in the console. Deciding through the API needs a reviewer token, which only an organisation owner can issue. You choose who in your organisation does human oversight (Art. 26(2), for high-risk AI systems). Image C2PA marking lives in `@spurvik/c2pa` so this package does not load a native addon.
+Decision and oversight calls send `reviewerToken` as `x-spurvik-reviewer`. They do not take a free-text reviewer id. Any organisation member can halt or decide in the console. Deciding through the API needs a reviewer token, which only an organisation owner can issue. You choose who in your organisation does human oversight (Art. 26(2), for high-risk AI systems). Image C2PA marking lives in `packages/c2pa` (build from source; it is not published on npm) so this package does not load a native addon.
 
 ## What `withSpurvik` records
 
@@ -69,7 +69,7 @@ The middleware does not see provider HTTP. Its output fingerprint is the concate
 
 ```ts
 import { generateText, streamText, wrapLanguageModel } from "ai";
-import { provenanceFromMetadata, spurvikMiddleware } from "@spurvik/sdk/ai";
+import { provenanceFromMetadata, spurvikMiddleware } from "spurvik-sdk/ai";
 
 const spurvik = spurvikMiddleware({
   apiKey: process.env.SPURVIK_API_KEY!,
@@ -105,17 +105,19 @@ Vercel handlers call `waitUntil(spurvik.flush())` from `@vercel/functions`. Inst
 
 `registerProcessHooks` can stay off in those handlers. With the default on, further requests still share one exit listener, and an idle empty queue is dropped from it. Flush from the wait helper either way, because the isolate may not reach `beforeExit`.
 
-`ai` is an optional peer (`^7.0.0`). Install it in the app that calls `wrapLanguageModel`. The subpath import `@spurvik/sdk/ai` is the middleware entry.
+`ai` is an optional peer (`^7.0.0`). Install it in the app that calls `wrapLanguageModel`. The subpath import `spurvik-sdk/ai` is the middleware entry.
 
 ## Mastra
 
 Checked against `@mastra/core` 1.79.0. Mastra's `MastraModelConfig` includes an AI SDK language model (`LanguageModelV2`, `LanguageModelV3`, or `LanguageModelV4` from `@ai-sdk/provider`). `resolveModelConfig` keeps a `specificationVersion: "v4"` model and calls `doGenerate` / `doStream` (`AISDKV7LanguageModel`). `Agent`'s `model` field is a `DynamicArgument`, so it accepts that object or a function that returns it. `withSpurvikMastra` returns the function. Mastra calls it from `Agent.getLLM` before `stream()` starts. A halt there rejects `agent.stream` and `agent.generate` with `SpurvikHaltedError`. A thrown `doStream` inside the stream loop becomes an empty text stream, so the check does not wait until `doStream`. The function's return value is what `spurvikMiddleware` records.
 
+`@mastra/core` 1.79.0 nests its own copy of `@ai-sdk/provider`. That copy is a different type identity from the `@ai-sdk/provider` this package depends on, so `spurvik.model` is not assignable to `Agent`'s `model` without a cast. The example below is the form that typechecks against `@mastra/core` 1.79.0. `generate()` returns `providerMetadata` as a promise; await it before reading the receipt.
+
 Model-router strings such as `openai/gpt-4o` are not wrapped. Pass a model object.
 
 ```ts
 import { Agent } from "@mastra/core/agent";
-import { provenanceFromMetadata, withSpurvikMastra } from "@spurvik/sdk/mastra";
+import { provenanceFromMetadata, withSpurvikMastra } from "spurvik-sdk/mastra";
 
 const spurvik = withSpurvikMastra(yourLanguageModel, {
   apiKey: process.env.SPURVIK_API_KEY!,
@@ -129,11 +131,11 @@ const agent = new Agent({
   id: "assistant",
   name: "Assistant",
   instructions: "Reply briefly.",
-  model: spurvik.model,
+  model: spurvik.model as ConstructorParameters<typeof Agent>[0]["model"],
 });
 
 const generated = await agent.generate("Hello");
-const record = provenanceFromMetadata(generated.providerMetadata);
+const record = provenanceFromMetadata(await generated.providerMetadata);
 ```
 
 `withSpurvikMastra` calls `wrapLanguageModel` with `spurvikMiddleware`. It does not keep a second copy of the recorder. `flush()` sends that middleware's queue.
@@ -160,7 +162,7 @@ Checked against `@openai/agents` 0.21.0. A model call is `Model.getResponse` or 
 
 ```ts
 import { Agent, OpenAIProvider, Runner } from "@openai/agents";
-import { provenanceFromAgentsResponse, withSpurvikModelProvider } from "@spurvik/sdk/openai-agents";
+import { provenanceFromAgentsResponse, withSpurvikModelProvider } from "spurvik-sdk/openai-agents";
 
 const spurvik = withSpurvikModelProvider(
   new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY, useResponses: true }),
@@ -201,3 +203,15 @@ What it does not do:
 ## Deno
 
 Deno can import the built package. The on-disk telemetry buffer and the unref'd `node:http` halt poll are Node-only. On Deno, pass `DurableTelemetryBuffer` or `KvTelemetryBuffer`. `MemoryTelemetryBuffer` stays in memory for either runtime.
+
+## Channels
+
+`spurvik-sdk/channels` sends an `ask_human()` approval request on Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. Monday.com only creates a board item. It does not send Approve or Block links.
+
+`verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. It does not verify a Slack, Telegram, Discord, or other platform webhook signature. Approvers click signed links. The SDK does not receive platform webhooks. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
+
+From 1.0.5, `callbackBaseUrl` is required. Pass a URL that accepts GET clicks. The SDK does not default to the console HITL create route. New links include a nonce. The default validity stays 24 hours (86400 seconds). Pass `maxAgeSeconds: 900` for a 15-minute window. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. `maxAgeSeconds: 0` throws. Omit it to keep 86400 seconds. NaN, Infinity, and negative values still use 86400 seconds.
+
+The published `spurvik` and `spurvik-sdk` packages do not read `SPURVIK_*` or `AEGIS_*` environment variables at runtime. Pass `apiKey`, `signingSecret`, `contentHash.secret`, and `baseUrl` in code. These reads exist only in this repository: `vendorTelemetryMode()` in `packages/core/src/telemetry-policy.ts` reads `SPURVIK_TELEMETRY`, then `AEGIS_TELEMETRY`, and the published packages do not call it. `packages/c2pa/src/index.ts` reads `SPURVIK_C2PA_CERT_PEM` then `AEGIS_C2PA_CERT_PEM`, and `SPURVIK_C2PA_KEY_PEM` then `AEGIS_C2PA_KEY_PEM`. That directory is build-from-source and is not in the published tarball. `packages/sdk/src/telemetry-exit.child.ts` is a repository test script and reads only `SPURVIK_BASE_URL`. `packages/sdk/tsup.config.ts` reads `SPURVIK_SDK_DIST` during the repository build. `packages/mcp` reads `SPURVIK_MCP_ROOT` and `SPURVIK_SIGNING_SECRET`. Those reads are not in `spurvik` or `spurvik-sdk`.
+
+The same build is published as `spurvik` and `spurvik-sdk`. `spurvik/react` is the disclosure-label entry. Neither package depends on the other.

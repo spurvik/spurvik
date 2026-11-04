@@ -149,7 +149,7 @@ export function appliedFromStatus(status: UpstreamMarkingStatus): UpstreamApplie
 
 /**
  * Sign one evidence event with the client-held secret.
- * A later match shows the payload still matches the HMAC-SHA-256 signature made with your signing secret. It is not a finding of legal compliance.
+ * A later match shows the payload still matches the HMAC-SHA-256 signature made with your signing secret. It is not a finding that a system meets the Act.
  */
 export async function signUpstreamMarkingEvidence(
   fields: UpstreamMarkingFields,
@@ -161,7 +161,7 @@ export async function signUpstreamMarkingEvidence(
   return { ...fields, signature, signedPayload };
 }
 
-/** A match shows the stored payload still matches the HMAC-SHA-256 signature made with your signing secret. It is not a finding of legal compliance. */
+/** A match shows the stored payload still matches the HMAC-SHA-256 signature made with your signing secret. It is not a finding that a system meets the Act. */
 export async function verifyUpstreamMarkingEvidence(
   signedPayload: string,
   signature: string,

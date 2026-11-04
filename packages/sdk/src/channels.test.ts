@@ -36,6 +36,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
         issuedAtUnix: 1_793_770_000,
         signature: links.approveToken,
         signingSecret: TEST_SECRET,
+        nonce: links.nonce,
         nowUnixSeconds: 1_793_770_120,
       }),
     ).toBe(true);
@@ -49,6 +50,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
         issuedAtUnix: 1_793_770_000,
         signature: links.approveToken,
         signingSecret: TEST_SECRET,
+        nonce: links.nonce,
         nowUnixSeconds: 1_793_770_120,
       }),
     ).toBe(false);
@@ -62,6 +64,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
         issuedAtUnix: 1_793_770_000,
         signature: links.approveToken,
         signingSecret: TEST_SECRET,
+        nonce: links.nonce,
         maxAgeSeconds: 60,
         nowUnixSeconds: 1_793_770_300,
       }),
@@ -73,6 +76,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
       gateId: "gate_9ch",
       actionName: "db.delete_records",
       summary: "Delete 12 archived rows",
+      callbackBaseUrl: "https://approvals.example/hitl/callback",
     };
     const links = createSignedApprovalLinks(req, TEST_SECRET, 1_793_770_000);
 
@@ -97,7 +101,12 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
     for (const ch of channels) {
       const built = buildChannelOutboundRequest(ch, req, links);
       expect(built.url).toMatch(/^https:\/\//);
+      expect(typeof built.body).toBe("string");
       expect(built.body).toContain("gate_9ch");
+      if (ch.type === "monday") {
+        expect(built.body).not.toContain(links.approveUrl);
+        expect(built.body).not.toContain("Approve");
+      }
     }
   });
 
@@ -125,6 +134,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
       gateId: "gate_fanout",
       actionName: "contract.modify_permissions",
       summary: "Grant admin role to service account",
+      callbackBaseUrl: "https://approvals.example/hitl/callback",
     });
 
     expect(calls).toHaveLength(3);
@@ -136,6 +146,7 @@ describe("Multi-Channel Drop-In ask_human() Approval Router (EU AI Act Art. 12 &
         decision: "approved",
         issuedAtUnix: links.issuedAtUnix,
         signature: links.approveToken,
+        nonce: links.nonce,
       }),
     ).toBe(true);
   });

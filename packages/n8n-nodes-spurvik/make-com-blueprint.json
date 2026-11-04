@@ -1,12 +1,12 @@
 {
-  "name": "Spurvik EU AI Act Art. 50 + Art. 12 HMAC + Art. 14 Multi-Channel Human Gate (Make.com Blueprint)",
+  "name": "Spurvik human approval request (Make.com blueprint)",
   "flow": [
     {
       "id": 1,
       "module": "gateway:CustomWebHook",
       "version": 1,
       "parameters": {
-        "name": "Incoming AI Agent Action or Chat Turn"
+        "name": "Incoming AI agent action"
       }
     },
     {
@@ -17,17 +17,21 @@
         "url": "https://console.spurvik.com/api/v1/hitl",
         "method": "post",
         "headers": [
-          { "name": "authorization", "value": "Bearer {{connection.spurvikSecretKey}}" },
+          { "name": "authorization", "value": "Bearer {{var.organization.spurvikApiKey}}" },
           { "name": "content-type", "value": "application/json" }
         ],
         "bodyType": "raw",
         "contentType": "application/json",
-        "data": "{\"actionName\":\"{{1.actionName}}\",\"inputHmac\":\"{{sha256(1.prompt, connection.spurvikHmacSecret)}}\",\"rawPromptBytes\":0}"
+        "data": "{\"actionName\":\"{{1.actionName}}\",\"payloadSummary\":\"{{1.payloadSummary}}\"}"
+      },
+      "metadata": {
+        "note": "Hosted console HITL create route. Invite-only during early access. Body is actionName plus payloadSummary. Bearer token {{var.organization.spurvikApiKey}}. Make's custom-variables page (https://help.make.com/custom-variables) says organization custom variables are only on Pro, Teams, and Enterprise, and that values are plain text, not for secrets. If that plan is unavailable, use a scenario input spurvikApiKey mapped as {{var.input.spurvikApiKey}} (https://help.make.com/use-scenario-inputs does not state a plan requirement). This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload."
       }
     }
   ],
   "metadata": {
     "vendor": "Spurvik (EyeTea Solutions ApS, CVR 37093378)",
-    "pricingComparison": "Free €0/mo · Pro €19/mo (vs. €79/mo single-app alternatives)"
+    "hostedConsole": "Hosted console features are invite-only during early access.",
+    "pricingComparison": "Free €0/mo · Pro €19/mo. Invite-only during early access."
   }
 }

@@ -1,6 +1,7 @@
 {
   "name": "@spurvik/mcp",
   "version": "1.0.2",
+  "author": "EyeTea Solutions ApS",
   "private": true,
   "type": "module",
   "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, and marking-hook notes.",
@@ -40,7 +41,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "@spurvik/core": "workspace:*",
-    "@spurvik/sdk": "workspace:*",
+    "spurvik-sdk": "file:../sdk",
     "zod": "^3.25.76"
   },
   "devDependencies": {

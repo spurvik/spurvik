@@ -4,7 +4,7 @@ This plugin does not register a hook when it is installed. Claude Code loads `ho
 
 Runtime controls for engineers, built by EyeTea Solutions ApS ([spurvik.com](https://spurvik.com)). They are designed to support EU AI Act Art. 50 transparency notices. For high-risk AI systems they are designed to support Art. 12 record-keeping and Art. 14 human oversight. The repository README states that Art. 50 transparency obligations apply from 2 August 2026, and that Art. 12 and Art. 14 apply to Annex III high-risk systems from 2 December 2027. This is not legal advice.
 
-`@spurvik/sdk`, `@spurvik/react`, `@spurvik/core`, and `@spurvik/mcp` are private, version 1.0.1, and not published. The MIT License applies to those packages. This plugin uses that same licence. See `LICENSE`.
+The published npm packages are `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server`. `packages/core` and `packages/c2pa` are build-from-source. `packages/react` is published as the `spurvik/react` export. The MIT License applies. This plugin uses that same licence. See `LICENSE`.
 
 ## Install from a clone
 
@@ -22,7 +22,7 @@ A website copy of the marketplace file is not served from this repository. Do no
 | Piece | Name | What it does |
 | --- | --- | --- |
 | Command | `/spurvik:check` | Looks for model clients that are not passed to `withSpurvik` or `spurvikMiddleware`. |
-| Command | `/spurvik:wrap` | Shows the `withSpurvik` and `spurvikMiddleware` setup that exists in this repository, and the `@spurvik/react` disclosure label. |
+| Command | `/spurvik:wrap` | Shows the `withSpurvik` and `spurvikMiddleware` setup that exists in this repository, and the `spurvik/react` disclosure label. |
 | Command | `/spurvik:engineering-summary` | Writes `SPURVIK-ENGINEERING-SUMMARY.md`, an engineering summary for your DPO or counsel. It is not evidence of conformity. |
 | Skill | `eu-ai-act-guardrails` | Loaded when the task is model-client or agent-tool code. It carries the same rules as `rules/AGENTS.md`. |
 
@@ -30,11 +30,11 @@ Claude Code does not load `rules/AGENTS.md` as session context. The skill is the
 
 ## What the SDK actually exports
 
-`withSpurvik` from `@spurvik/sdk` wraps OpenAI, Anthropic, and Google GenAI (`@google/genai`) clients. `spurvikMiddleware` and `flush()` come from `@spurvik/sdk/ai`. Pass the middleware to `wrapLanguageModel` from the Vercel AI SDK (`ai` 7). The same `SpurvikConfig` object is used for both. Pass `apiKey`, `signingSecret`, and the keyed `contentHash.secret` yourself, read from the environment. The SDK throws `SpurvikConfigError` when those values are missing or invalid. It does not read them from the environment for you. `baseUrl` is required when `NODE_ENV` is production.
+`withSpurvik` from `spurvik` wraps OpenAI, Anthropic, and Google GenAI (`@google/genai`) clients. `spurvikMiddleware` and `flush()` come from `spurvik/ai`. Pass the middleware to `wrapLanguageModel` from the Vercel AI SDK (`ai` 7). The same `SpurvikConfig` object is used for both. Pass `apiKey`, `signingSecret`, and the keyed `contentHash.secret` yourself, read from the environment. The SDK throws `SpurvikConfigError` when those values are missing or invalid. It does not read them from the environment for you. `baseUrl` is required when `NODE_ENV` is production.
 
 The middleware records the call and stores an HMAC receipt on `providerMetadata.spurvik`. Read it with `provenanceFromMetadata`. `provenanceOf` reads a `withSpurvik` response. Neither call marks content. A marking hook runs only when you set `marking`. That hook is where you plug in your own Art. 50(2) marking. A match from `verifyProvenanceSignature` shows the signed fields still match. It does not show that a mark is robust, detectable, or adequate under Art. 50(2).
 
-`@spurvik/sdk/mastra` exports `withSpurvikMastra` and `provenanceFromMetadata`. Pass the function it returns as a Mastra agent's `model`. `@spurvik/sdk/openai-agents` exports `withSpurvikModel`, `withSpurvikModelProvider`, `provenanceFromAgentsResponse`, `createSpurvikNeedsApproval`, and `resolveAgentInterruptions`. `withSpurvikModel` wraps one Agents SDK `Model`. `withSpurvikModelProvider` wraps a `ModelProvider` so each `getModel` result is wrapped. Read an Agents receipt with `provenanceFromAgentsResponse`. `provenanceOf` from `@spurvik/sdk` also reads an Agents stream. `createSpurvikNeedsApproval` is a `needsApproval` callback. `resolveAgentInterruptions` sends each unique tool call to the human-oversight queue. `@spurvik/sdk/langgraph` exports `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, and `provenanceFromLangGraphState`. `@spurvik/sdk/ai` also exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`. A stream that closes without a finish chunk is recorded as `"interrupted"`. Those fields stay off the signed HMAC record. Those exports sit with `withSpurvik` and `provenanceOf` from `@spurvik/sdk`, and with `spurvikMiddleware` and `provenanceFromMetadata` from `@spurvik/sdk/ai`.
+`spurvik/mastra` exports `withSpurvikMastra` and `provenanceFromMetadata`. Pass the function it returns as a Mastra agent's `model`. `spurvik/openai-agents` exports `withSpurvikModel`, `withSpurvikModelProvider`, `provenanceFromAgentsResponse`, `createSpurvikNeedsApproval`, and `resolveAgentInterruptions`. `withSpurvikModel` wraps one Agents SDK `Model`. `withSpurvikModelProvider` wraps a `ModelProvider` so each `getModel` result is wrapped. Read an Agents receipt with `provenanceFromAgentsResponse`. `provenanceOf` from `spurvik` also reads an Agents stream. `createSpurvikNeedsApproval` is a `needsApproval` callback. `resolveAgentInterruptions` sends each unique tool call to the human-oversight queue. `spurvik/langgraph` exports `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, and `provenanceFromLangGraphState`. `spurvik/ai` also exports `extractFinishReason`, `isInterruptedFinishReason`, and `dedupeToolApprovalResponses`. A stream that closes without a finish chunk is recorded as `"interrupted"`. Those fields stay off the signed HMAC record. Those exports sit with `withSpurvik` and `provenanceOf` from `spurvik`, and with `spurvikMiddleware` and `provenanceFromMetadata` from `spurvik/ai`.
 
 The telemetry body carries fingerprints, model version, temperature, and latency. The ingestion route rejects prompt or output text. Keyed fingerprints are the default (`contentHash.mode` `"keyed"`). The repository states that this tree does not claim that data stays in the EU.
 
@@ -54,9 +54,9 @@ import { AIDisclosureLabel } from "spurvik/react";
 
 ## MCP server
 
-This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `@spurvik/mcp` from this repository, version 1.0.2, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
+This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `packages/mcp (published as spurvik-mcp-server)` from this repository, version 1.0.2, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
 
-The command is `node`. The first argument is `bin/spurvik-mcp.mjs`, written as `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`. That file is the local stdio server in one file, including the `@spurvik/core` and `@spurvik/sdk` code it runs. It does not load `../../packages`. The next arguments are `--root` and `${CLAUDE_PROJECT_DIR}`, the project Claude Code has open. If you start the same file without `--root`, set `SPURVIK_MCP_ROOT` to that directory. `--root` wins when both are set.
+The command is `node`. The first argument is `bin/spurvik-mcp.mjs`, written as `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`. That file is the local stdio server in one file, including the `packages/core (build from source)` and `spurvik` code it runs. It does not load `../../packages`. The next arguments are `--root` and `${CLAUDE_PROJECT_DIR}`, the project Claude Code has open. If you start the same file without `--root`, set `SPURVIK_MCP_ROOT` to that directory. `--root` wins when both are set.
 
 The directory passed with `--root` or `SPURVIK_MCP_ROOT` needs a `package.json`, a `.git` directory, or `pnpm-workspace.yaml`. The server refuses `/`, `/tmp`, a home directory, and system directories. `/etc`, `/usr/lib`, `/opt`, `/home`, and `/mnt` are refused.
 

@@ -1,16 +1,21 @@
 {
-  "name": "@spurvik/sdk",
-  "version": "1.0.4",
-  "private": true,
+  "name": "spurvik-sdk",
+  "version": "1.0.5",
   "type": "module",
-  "description": "Runtime wrapper that supports EU AI Act record-keeping, human oversight, and transparency work.",
+  "description": "Runtime wrapper designed to support EU AI Act record-keeping, human oversight, and transparency work. It does not by itself mean a system meets the Act.",
+  "author": "EyeTea Solutions ApS",
   "license": "MIT",
+  "homepage": "https://spurvik.com",
+  "engines": {
+    "node": ">=20"
+  },
   "repository": {
     "type": "git",
+    "url": "git+https://github.com/spurvik/spurvik.git",
     "directory": "packages/sdk"
   },
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
   },
   "exports": {
     ".": {
@@ -22,6 +27,11 @@
       "types": "./dist/ai.d.ts",
       "import": "./dist/ai.js",
       "require": "./dist/ai.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
     },
     "./mastra": {
       "types": "./dist/mastra.d.ts",
@@ -44,26 +54,30 @@
       "require": "./dist/channels.cjs"
     }
   },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit",
+    "build": "node scripts/link-core.mjs && tsup && node scripts/copy-react-export.mjs",
+    "test": "node scripts/link-core.mjs && vitest run",
+    "typecheck": "node scripts/link-core.mjs && tsc --noEmit",
+    "lint": "node scripts/link-core.mjs && tsc --noEmit",
     "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
   },
   "dependencies": {
-    "@ai-sdk/provider": "^4.0.31",
-    "@spurvik/core": "workspace:*"
+    "@ai-sdk/provider": "^4.0.31"
   },
   "peerDependencies": {
     "@langchain/langgraph": "^1.0.0",
     "@mastra/core": "^1.79.0",
     "@openai/agents": "^0.21.0",
-    "ai": "^7.0.0"
+    "ai": "^7.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
     "@mastra/core": {
@@ -76,6 +90,12 @@
       "optional": true
     },
     "ai": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
       "optional": true
     }
   },

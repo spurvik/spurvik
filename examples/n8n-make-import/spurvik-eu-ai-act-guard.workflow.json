@@ -12,38 +12,64 @@
     {
       "parameters": {
         "operation": "art50_disclosure",
-        "systemName": "Customer Support AI Agent"
+        "systemName": "Customer Support AI Agent",
+        "inputField": "promptText",
+        "outputField": "outputText",
+        "noticeText": "You are interacting with an AI system."
+      },
+      "credentials": {
+        "spurvikApi": {
+          "id": "spurvikApi",
+          "name": "Spurvik"
+        }
       },
       "id": "22222222-2222-4222-8222-222222222222",
       "name": "Spurvik Guard notice",
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, -120],
-      "notes": "Repository descriptor parameters only. n8n 2.46.4 reports require(...).index is not a constructor for 1.0.1. execute() calls executeSpurvikN8nGuard, which that file does not define. A working native node is (planned, 1.0.2)."
+      "notes": "Notice operation. outputField names the AI output. The signing secret stays on the spurvikApi credential, not in this file."
     },
     {
       "parameters": {
         "operation": "art12_hmac_log",
-        "systemName": "Customer Support AI Agent"
+        "systemName": "Customer Support AI Agent",
+        "inputField": "promptText"
+      },
+      "credentials": {
+        "spurvikApi": {
+          "id": "spurvikApi",
+          "name": "Spurvik"
+        }
       },
       "id": "33333333-3333-4333-8333-333333333333",
       "name": "Spurvik Guard log",
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, 40],
-      "notes": "Same repository descriptor. art12_hmac_log is a second operation value. The function in this repository uses one path for this value and art50_disclosure."
+      "notes": "Digest operation. inputField is hashed with the prefix spurvik:workflow:input:v1| and is not copied to the node output."
     },
     {
       "parameters": {
         "operation": "art14_ask_human",
-        "systemName": "Customer Support AI Agent"
+        "systemName": "Customer Support AI Agent",
+        "channel": "slack",
+        "callbackBaseUrl": "https://example.com/hitl",
+        "actionName": "workflow.action",
+        "actionSummary": "Human approval requested"
+      },
+      "credentials": {
+        "spurvikApi": {
+          "id": "spurvikApi",
+          "name": "Spurvik"
+        }
       },
       "id": "44444444-4444-4444-8444-444444444444",
       "name": "Spurvik Guard ask human",
       "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
       "typeVersion": 1,
       "position": [280, 200],
-      "notes": "operation art14_ask_human. 1.0.1 execute() copies the incoming item onto the output, including prompt text. n8n execution history keeps that input and output. A working native node is (planned, 1.0.2)."
+      "notes": "ask_human operation. Select the same spurvikApi credential. Monday.com creates an item only and does not send Approve or Block links."
     }
   ],
   "connections": {

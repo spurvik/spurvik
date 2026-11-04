@@ -1,4 +1,6 @@
-# @spurvik/c2pa
+# packages/c2pa
+
+Build from source. This directory is not published on npm.
 
 Sign and read C2PA manifests on PNG and JPEG images with `@contentauth/c2pa-node` 0.9.10, which pins the Rust crate `c2pa` to 0.91.3. A matching signature is a check of that manifest. It is not a conformity assessment.
 

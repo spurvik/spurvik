@@ -9,6 +9,14 @@ type Input = Parameters<typeof withSpurvikMastra>[0];
 type AgentModel = ConstructorParameters<typeof Agent>[0]["model"];
 
 /**
+ * Excluded from `tsc --noEmit` in tsconfig.json.
+ * `@mastra/core` 1.79.0 ships its own nested `@ai-sdk/provider` types. Those are not
+ * the same type identity as the `@ai-sdk/provider` this package depends on, so
+ * `LanguageModelV4` is not assignable to `MastraModelConfig` and the wrapped model
+ * is not assignable to `Agent`'s model argument. The adapter still returns that
+ * model at runtime. This file records the assignability check; it is not imported
+ * by the published build.
+ *
  * Compiled against `@mastra/core` and `@ai-sdk/provider`.
  * `wrapLanguageModel` returns a `LanguageModelV4`. Mastra's `MastraModelConfig`
  * includes that shape. `Agent`'s `model` field is a `DynamicArgument`, so it

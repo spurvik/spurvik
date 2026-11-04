@@ -1,0 +1,87 @@
+{
+  "name": "spurvik",
+  "version": "1.0.5",
+  "type": "module",
+  "description": "Runtime wrapper designed to support EU AI Act record-keeping, human oversight, and transparency work. It does not by itself mean a system meets the Act.",
+  "author": "EyeTea Solutions ApS",
+  "license": "MIT",
+  "homepage": "https://spurvik.com",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spurvik/spurvik.git",
+    "directory": "packages/spurvik"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./ai": {
+      "types": "./dist/ai.d.ts",
+      "import": "./dist/ai.js",
+      "require": "./dist/ai.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
+    },
+    "./mastra": {
+      "types": "./dist/mastra.d.ts",
+      "import": "./dist/mastra.js",
+      "require": "./dist/mastra.cjs"
+    },
+    "./openai-agents": {
+      "types": "./dist/openai-agents.d.ts",
+      "import": "./dist/openai-agents.js",
+      "require": "./dist/openai-agents.cjs"
+    },
+    "./langgraph": {
+      "types": "./dist/langgraph.d.ts",
+      "import": "./dist/langgraph.js",
+      "require": "./dist/langgraph.cjs"
+    },
+    "./channels": {
+      "types": "./dist/channels.d.ts",
+      "import": "./dist/channels.js",
+      "require": "./dist/channels.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/stage-spurvik-package.mjs",
+    "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "^4.0.31"
+  },
+  "peerDependencies": {
+    "@langchain/langgraph": "^1.0.0",
+    "@mastra/core": "^1.79.0",
+    "@openai/agents": "^0.21.0",
+    "ai": "^7.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@mastra/core": { "optional": true },
+    "@openai/agents": { "optional": true },
+    "@langchain/langgraph": { "optional": true },
+    "ai": { "optional": true },
+    "react": { "optional": true },
+    "react-dom": { "optional": true }
+  }
+}

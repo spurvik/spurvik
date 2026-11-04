@@ -23,7 +23,7 @@ You wrap your existing OpenAI, Anthropic or Gemini client with `withSpurvik()`. 
 The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends an event for each call (fingerprints, model and timing details, no text) to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. The hosted console keeps the events in a hash-chained log. A hash chain shows whether stored events changed after they were written. It does not stop whoever controls the database from rebuilding the chain. The console also has a human-review queue and a stop switch, designed to support human-oversight work for high-risk systems.
 
 **3. It offers disclosure hooks.**
-- A React label (`spurvik/react`) that shows users they are dealing with an AI system, in all 24 official EU languages. Whether its wording and placement are clear enough for your users is your decision.
+- A React label (`spurvik/react`) that shows users they are dealing with an AI system, in all 24 EU languages. Whether its wording and placement are clear enough for your users is your decision.
 - A server call, `recordDisclosure()`, that logs that a notice was shown in a session.
 - A configuration flag, `article50Disclosure`, that you set to `true` only when your interface really shows an AI interaction notice. The flag is copied into every provenance record.
 

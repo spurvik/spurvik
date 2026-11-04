@@ -34,10 +34,12 @@ export { verifyHitlWebhook } from "./webhook.js";
 export {
   createSignedApprovalLinks,
   verifyChannelApprovalToken,
+  verifySignedChannelCallback,
   buildChannelOutboundRequest,
   dispatchHumanApprovalChannel,
   createMultiChannelApprovalRouter,
 } from "./channels.js";
+export type { SignedChannelCallbackResult } from "./channels.js";
 export type {
   HumanApprovalChannelType,
   HumanChannelActionRequest,
