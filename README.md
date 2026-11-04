@@ -296,6 +296,12 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 
 `packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this repository. Install and start it with `npm i -D spurvik-mcp-server@1.0.2` and then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required in 1.0.2. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
 
+## Multi-channel `ask_human()` router & `n8n` / `Make.com` workflow guard
+
+- **`packages/sdk/src/channels.ts` (`createMultiChannelApprovalRouter` & `verifySignedChannelCallback`)**: Fans out pre-flight human-in-the-loop approval requests with chained HMAC-SHA256 digests (`0` raw prompt bytes persisted) and signed **Approve / Block** action links across **Slack**, **Telegram**, **Email (Resend)**, **Discord**, **Microsoft Teams**, **Linear**, **Jira**, **Monday.com**, and **Asana**.
+- **`packages/n8n-nodes-spurvik`**: Drop-in `n8n` node and importable [`make-com-blueprint.json`](packages/n8n-nodes-spurvik/make-com-blueprint.json) combining Article 50(1) AI interaction notices, Article 12 zero-raw-prompt HMAC-SHA256 receipts, and Article 14 multi-channel `ask_human()` gates in a single workflow step.
+- Full quickstart & callback verification examples: [`docs/multi-channel-hitl-and-n8n.md`](docs/multi-channel-hitl-and-n8n.md).
+
 ## Still open
 
 - **Code of Practice detection.** Signatories commit to interoperable detection by 2 February 2027. The C2PA hook is a manifest writer and reader, not that detection programme.
