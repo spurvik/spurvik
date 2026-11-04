@@ -30,10 +30,10 @@ Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.m
 (a) npm:
 
 ```bash
-npm install spurvik@1.0.3 spurvik-sdk@1.0.3
+npm install spurvik@1.0.6 spurvik-sdk@1.0.6
 ```
 
-`spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
+`spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, `spurvik/channels`, and `spurvik/react`.
 
 (b) Local MCP server. `--root` is required in `spurvik-mcp-server@1.0.2`:
 
@@ -46,7 +46,7 @@ In your app (an ES module project, because the example uses top-level `await`):
 
 ```bash
 npm pkg set type=module
-npm install openai spurvik@1.0.3
+npm install openai spurvik@1.0.6
 ```
 
 **Wrap a call and check the record:**
@@ -154,7 +154,7 @@ The disclosure label does not write browser storage unless the integrator sets `
 
 A deployer that wraps a third-party model may rely on that provider's output marking only when it can show the marking works. `withSpurvik` records one signed evidence event per wrapped call. The event stores the provider, the model, the modality, marking settings the request and the response actually expose, and `upstreamMarking`. Settings are read only from flags and headers the SDK object carries (`watermark`, `synthid`, `c2pa`, provenance headers, and the same names inside `metadata`, `generationConfig`, or a `withResponse()` body). When the public SDK object has no such field, the status is `unknown`, including OpenAI text (no per-request parameter), Anthropic models the dated help-center table does not list, Gemini text, and Mistral. Cloud-partner routes (Bedrock, Vertex, Foundry, Azure) are not inferred from the first-party table. The support table in `packages/core/src/upstream-support.ts` is dated and lists a source URL on each row.
 
-The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. The published `spurvik@1.0.3` package does not export a function that checks this signature. It is designed to support your EU AI Act work.
+The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. The published `spurvik@1.0.6` package does not export a function that checks this signature. It is designed to support your EU AI Act work.
 
 `packages/core/src/marking-registry.ts` lists OpenAI, Anthropic, Google, Mistral, and open-weight models for text, image, audio, and video. Each entry has a source URL and the date that source was read (`sourceReadOn`). Edit that list when a public page changes.
 
@@ -283,7 +283,7 @@ The Annex IV file is a draft assembled from project fields and ledger counts. Se
 
 Spurvik helps a team implement technical measures that map to parts of Articles 12, 14, and 50 and to the Annex III / Article 50 product taxonomy. Using it does not make a system conformant. It does not perform a conformity assessment, issue an EU declaration of conformity, apply CE marking, run a quality management system, or register a system in the EU database. The Annex IV download is a draft. The risk wizard records your answers. It labels Article 5 practices Prohibited. It does not decide that a use is high-risk under Article 6.
 
-This tree does not claim that data stays in the EU. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE`.
+This tree does not claim that data stays in the EU. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`, `n8n-nodes-spurvik@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE`.
 
 ## MCP server
 
@@ -310,4 +310,4 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 - **Article 5.** Prohibited practices are not a risk-tier value. The wizard shows an SDK setup when the answers produce a tier. It shows "No SDK setup is offered for this answer set." when the answers are Prohibited or outside the EU. An unanswered form shows neither. The wizard does not block a caller who ignores it.
 - **Annex I.** Product-embedded systems follow 2 August 2028 and are not a separate tier.
 - **Shared limits.** The ingestion rate limit and the halt SSE bus are single-process.
-- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`. Those workspace packages stay `"private": true`. Published versions are `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
+- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`. Those workspace packages stay `"private": true`. Published versions are `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`, and `n8n-nodes-spurvik@1.0.2`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.

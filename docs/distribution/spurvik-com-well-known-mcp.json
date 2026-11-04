@@ -1,8 +1,8 @@
 {
   "name": "Spurvik",
-  "version": "1.0.1",
-  "description": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
-  "notice": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "version": "1.0.6",
+  "description": "Spurvik EU AI Act SDK (1.0.6) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Spurvik EU AI Act SDK (1.0.6) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
   "supportedProtocolVersions": ["2024-11-05", "2025-03-26", "2025-06-18"],
   "endpoints": [
@@ -19,14 +19,14 @@
         "spurvik_explain_receipt",
         "spurvik_marking_hooks"
       ],
-      "description": "Spurvik EU AI Act SDK (1.0.1) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+      "description": "Spurvik EU AI Act SDK (1.0.6) & MCP control plane (1.0.2, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
   ],
   "localStdio": {
     "packageName": "@spurvik/mcp",
     "version": "1.0.2",
     "npmPackage": "spurvik-mcp-server",
-    "sdkNpmPackages": ["spurvik@1.0.1", "spurvik-sdk@1.0.1"],
+    "sdkNpmPackages": ["spurvik@1.0.6", "spurvik-sdk@1.0.6"],
     "license": "MIT",
     "command": "node",
     "args": ["packages/mcp/dist/index.js", "--root", "${workspaceFolder}"],
@@ -46,8 +46,8 @@
   "documentation": "https://spurvik.com/docs",
   "sandbox": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
   "packages": {
-    "sdk": "spurvik@1.0.1",
-    "sdkAlias": "spurvik-sdk@1.0.1",
+    "sdk": "spurvik@1.0.6",
+    "sdkAlias": "spurvik-sdk@1.0.6",
     "mcpServer": "spurvik-mcp-server@1.0.2"
   },
   "autoDiscovery": {

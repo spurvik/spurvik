@@ -9,19 +9,19 @@ const manifestPath = join(root, "docs/distribution/spurvik-com-well-known-mcp.js
 
 test("spurvik.com well-known MCP manifest versions", () => {
   const body = JSON.parse(readFileSync(manifestPath, "utf8"));
-  assert.equal(body.version, "1.0.1");
+  assert.equal(body.version, "1.0.6");
   assert.equal(body.localStdio.version, "1.0.2");
   assert.equal(body.localStdio.npmPackage, "spurvik-mcp-server");
-  assert.deepEqual(body.localStdio.sdkNpmPackages, ["spurvik@1.0.1", "spurvik-sdk@1.0.1"]);
+  assert.deepEqual(body.localStdio.sdkNpmPackages, ["spurvik@1.0.6", "spurvik-sdk@1.0.6"]);
   assert.equal(body.homepage, "https://spurvik.com");
-  assert.equal(body.packages.sdk, "spurvik@1.0.1");
+  assert.equal(body.packages.sdk, "spurvik@1.0.6");
   assert.equal(body.packages.mcpServer, "spurvik-mcp-server@1.0.2");
   assert.equal(body.autoDiscovery.mcpRegistry, "https://github.com/spurvik/spurvik/blob/main/server.json");
   assert.equal(body.autoDiscovery.smithery, "https://github.com/spurvik/spurvik/blob/main/smithery.yaml");
   assert.equal(body.autoDiscovery.glama, "https://github.com/spurvik/spurvik/blob/main/glama.json");
 });
 
-test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) match 1.0.1/1.0.2 MIT metadata", () => {
+test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) match 1.0.6/1.0.2 MIT metadata", () => {
   for (const relDir of ["", "packages/mcp", "docs/distribution"]) {
     const dir = relDir ? join(root, relDir) : root;
     const serverText = readFileSync(join(dir, "server.json"), "utf8");
@@ -48,9 +48,9 @@ test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) matc
     assert.equal(glama.repository, "https://github.com/spurvik/spurvik");
     assert.equal(glama.sandboxUrl, "https://console.spurvik.com/sandbox?scan=https://your-app.com");
     assert.equal(glama.npm.mcpServer, "spurvik-mcp-server@1.0.2");
-    assert.equal(glama.npm.sdk, "spurvik@1.0.1");
+    assert.equal(glama.npm.sdk, "spurvik@1.0.6");
 
-    assert.match(smitheryText, /spurvik@1\.0\.1/);
+    assert.match(smitheryText, /spurvik@1\.0\.6/);
     assert.match(smitheryText, /spurvik-mcp-server@1\.0\.2/);
     assert.match(smitheryText, /https:\/\/github\.com\/spurvik\/spurvik/);
     assert.match(smitheryText, /https:\/\/spurvik\.com\/docs/);
