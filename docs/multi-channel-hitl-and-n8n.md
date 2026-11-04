@@ -1,94 +1,95 @@
-# 9-Channel `ask_human()` Approval Router & `n8n` / `Make.com` Workflow Guard
+# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.1`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts` & `packages/n8n-nodes-spurvik`). Spurvik emits chained HMAC-SHA256 provenance digests with zero raw prompt text persisted (`raw_prompt=0B`) and provides deterministic pre-flight `ask_human()` gates. It is not legal advice and does not certify EU AI Act compliance.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.4`, and the `n8n-nodes-spurvik@1.0.1` npm tarball). This is not legal advice.
 
----
+## 1. Approval router (`spurvik@1.0.4`)
 
-## 1. Universal 9-Channel `ask_human()` Approval Router (EU AI Act Art. 14)
+`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.4` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping / Article 14 human oversight.
 
-Drop a deterministic human-in-the-loop gate in front of any agent tool that moves money, modifies contracts or permissions, deletes records, or sends external messages — and fan out signed **Approve / Block** actions to the tools your team already uses:
+### Callback URL
 
-- **Chat & Messaging**: `slack`, `telegram`, `discord`, `teams` (Microsoft Teams Adaptive Card)
-- **Email**: `email` (Resend transactional HTML approval card)
-- **Issue & Work Trackers**: `linear` (GraphQL `issueCreate`), `jira` (REST v3 issue), `monday` (GraphQL `create_item`), `asana` (REST task)
+In published `spurvik@1.0.4`, `callbackBaseUrl` is optional on the approval request (`callbackBaseUrl?: string` in `dist/channels.d.ts`). `createSignedApprovalLinks` in `dist/channels.js` uses this when the value is missing or blank:
 
-### Quickstart (`spurvik` / `spurvik/channels`)
+```js
+request.callbackBaseUrl?.trim() || "https://console.spurvik.com/api/v1/hitl"
+```
+
+That console route accepts POST only. An approver click is a GET, so the click is not accepted, and nothing is approved or recorded. The console does not hold the customer's secret, so it cannot check the link. On 1.0.4, always set `callbackBaseUrl` to your own endpoint and check the token there with `verifyChannelApprovalToken`. `callbackBaseUrl` is required from 1.0.5 (planned).
 
 ```ts
 import {
   createMultiChannelApprovalRouter,
-  verifySignedChannelCallback,
+  verifyChannelApprovalToken,
 } from "spurvik";
 
 const hitlRouter = createMultiChannelApprovalRouter({
-  hmacSecret: process.env.SPURVIK_HMAC_SECRET!,
-  callbackBaseUrl: "https://console.spurvik.com/api/v1/hitl/callback",
+  signingSecret: process.env.SPURVIK_SIGNING_SECRET!,
   channels: [
     {
-      channel: "slack",
+      type: "slack",
       webhookUrl: process.env.SLACK_WEBHOOK_URL!,
     },
     {
-      channel: "telegram",
+      type: "telegram",
       botToken: process.env.TELEGRAM_BOT_TOKEN!,
       chatId: process.env.TELEGRAM_APPROVAL_CHAT_ID!,
     },
     {
-      channel: "linear",
+      type: "linear",
       apiKey: process.env.LINEAR_API_KEY!,
       teamId: process.env.LINEAR_TEAM_ID!,
     },
     {
-      channel: "email",
+      type: "email",
       resendApiKey: process.env.RESEND_API_KEY!,
-      fromEmail: "approvals@your-company.eu",
-      toEmail: "ops-approvals@your-company.eu",
+      from: "approvals@your-company.eu",
+      to: "ops-approvals@your-company.eu",
     },
   ],
 });
 
-// Trigger pre-flight approval before executing a high-stakes tool call:
 const result = await hitlRouter.requestApproval({
-  approvalId: "apr_wire_2026_1104",
-  toolName: "execute_sepa_transfer",
-  actionSummary: "Approve €4,500 SEPA transfer to vendor IBAN DE89...",
-  riskLevel: "critical",
-  rawArgsOrPrompt: JSON.stringify({ amountEur: 4500, iban: "DE89..." }),
-  metadata: { tenantId: "org_eu_01", currency: "EUR" },
+  gateId: "apr_wire_2026_1104",
+  actionName: "execute_sepa_transfer",
+  summary: "Approve a SEPA transfer to a vendor invoice",
+  context: { currency: "EUR" },
+  callbackBaseUrl: 'https://your-app.example/api/spurvik/callback',
 });
 
-console.log(result.payloadDigestSha256); // Chained HMAC-SHA256 digest (0 raw prompt bytes stored)
-console.log(result.deliveries); // Per-channel HTTP delivery status
+// Handler for GET {callbackBaseUrl}?gateId&ts&hmac&decision&sig
+const url = new URL(result.links.approveUrl);
+const decision = url.searchParams.get("decision");
+const tokenOk =
+  (decision === "approved" || decision === "rejected") &&
+  verifyChannelApprovalToken({
+    signingSecret: process.env.SPURVIK_SIGNING_SECRET!,
+    gateId: url.searchParams.get("gateId") ?? "",
+    actionHmac: url.searchParams.get("hmac") ?? "",
+    decision,
+    issuedAtUnix: Number(url.searchParams.get("ts")),
+    signature: url.searchParams.get("sig") ?? "",
+  });
 ```
 
-### Constant-Time Callback Verification
+### Input fingerprint
 
-When an operator clicks **Approve** or **Block** in Slack, Telegram, Email, Linear, Jira, Monday, or Asana, verify the signed callback in constant time:
+Provenance records in `spurvik@1.0.4` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters (`dist/chunk-DQUZA3T3.js`). Channel dispatch receipts are a different object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
-```ts
-const check = verifySignedChannelCallback({
-  hmacSecret: process.env.SPURVIK_HMAC_SECRET!,
-  approvalId: req.query.id,
-  decision: req.query.decision, // "approve" | "block"
-  channel: req.query.channel,
-  expiresAtUnix: Number(req.query.exp),
-  signatureHex: req.query.sig,
-});
+## 2. `n8n-nodes-spurvik@1.0.1`
 
-if (!check.valid) {
-  throw new Error(`Invalid or expired callback signature: ${check.reason}`);
-}
-```
+`npm view n8n-nodes-spurvik versions dist-tags` lists `0.0.0-stage`, `1.0.0`, and `1.0.1`, with `latest` at `1.0.1`. The notes below are only what the `n8n-nodes-spurvik@1.0.1` tarball and a load under n8n 2.46.4 show.
 
----
+The tarball contains `package.json`, `dist/index.js`, `src/index.ts`, `src/n8n-nodes-spurvik.test.ts`, and `make-com-blueprint.json`. `package.json` sets `n8n.nodes` to `["dist/index.js"]`. It has no `n8n.credentials` entry. `dist/index.js` does not export a credential type.
 
-## 2. `n8n` & `Make.com` No-Code / Low-Code AI Workflow Guard (`packages/n8n-nodes-spurvik`)
+`dist/index.js` exports `executeSpurvikWorkflowStep`, `SpurvikN8nNodeDescription`, and class `SpurvikEuAiActGuard`. The class sets `description` and defines `execute()`. The file name is `index.js`, which does not match the class name. n8n 2.46.4 loads `new (require(file).index)()` (`n8n-core` `loadClassInIsolation`). The tarball has no export named `index`. That call throws `TypeError: require(...).index is not a constructor`.
 
-For operations and automation teams building AI workflows in **n8n** or **Make.com**, `n8n-nodes-spurvik` combines all three runtime primitives in a single node:
+Started with `n8n@2.46.4` and `N8N_CUSTOM_EXTENSIONS` pointed at a directory whose `node_modules/n8n-nodes-spurvik` is the unpacked 1.0.1 tarball. The process log says `Skipping custom node "<dir>/node_modules/n8n-nodes-spurvik/dist/index.js": failed to load.` and then `n8n ready`. No node from that package is registered. Native node (planned, 1.0.2).
 
-1. **Art. 50(1) AI Interaction Notice**: Automatically injects localized disclosure headers (`EN`, `DE`, `DA`, `FR`) into outbound AI responses.
-2. **Art. 12 Zero-Raw-Prompt Chained HMAC-SHA256 Receipt**: Emits a verifiable hash-chain receipt (`rawPromptBytesPersisted: 0`) so your workflow logs never leak customer PII.
-3. **Art. 14 Multi-Channel `ask_human()` Gate**: Pauses high-risk workflow branches and dispatches signed Approve / Block links to Slack, Telegram, Email, Linear, Jira, Monday.com, or Asana.
+`execute()` calls `executeSpurvikN8nGuard`, which neither `dist/index.js` nor `src/index.ts` in the tarball defines. It also calls `this.getInputData` and `this.getNodeParameter`, which the class does not define. The item built inside `execute()` is `{ json: { ...itemJson, spurvik: result } }`, so the output spreads the incoming item. Prompt text on that item is included in the output. n8n execution history keeps node inputs and outputs.
 
-- **n8n Node Source**: [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)
-- **Make.com Importable Blueprint**: [`packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json)
+`n8n-nodes-spurvik@1.0.1` is designed to support Article 12 record-keeping / Article 14 human oversight.
+
+Files in this repository, separate from that tarball:
+
+- [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)
+- [`packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json)
