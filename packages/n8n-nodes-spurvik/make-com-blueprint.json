@@ -17,7 +17,7 @@
         "url": "https://console.spurvik.com/api/v1/hitl",
         "method": "post",
         "headers": [
-          { "name": "authorization", "value": "Bearer {{var.spurvikApiKey}}" },
+          { "name": "authorization", "value": "Bearer {{var.organization.spurvikApiKey}}" },
           { "name": "content-type", "value": "application/json" }
         ],
         "bodyType": "raw",
@@ -25,7 +25,7 @@
         "data": "{\"actionName\":\"{{1.actionName}}\",\"payloadSummary\":\"{{1.payloadSummary}}\"}"
       },
       "metadata": {
-        "note": "Hosted console HITL create route. Invite-only during early access. Body is actionName plus payloadSummary. The bearer token is the scenario variable spurvikApiKey. Do not map the API key from the webhook payload."
+        "note": "Hosted console HITL create route. Invite-only during early access. Body is actionName plus payloadSummary. The bearer token is the Make organization custom variable spurvikApiKey ({{var.organization.spurvikApiKey}}). Create that organization variable before import. This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload."
       }
     }
   ],

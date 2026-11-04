@@ -68,6 +68,29 @@ describe("SpurvikEuAiActGuard.execute", () => {
     assert.equal(out[0].json.spurvik.art12Record, null);
   });
 
+  it("rejects an output field that is the prompt or the input field", async () => {
+    const sameAsPrompt = ctx(
+      { operation: "art50_disclosure", outputField: "promptText", inputField: "query", systemName: "Support bot" },
+      { signingSecret: SECRET },
+      [{ json: { promptText: PROMPT, query: "other", outputText: "Invoice updated." } }],
+    );
+    await assert.rejects(() => node.execute.call(sameAsPrompt), (error) => {
+      assert.match(error.message, /cannot be "promptText"/);
+      assert.equal(error.message.includes(PROMPT), false);
+      return true;
+    });
+    const sameAsInput = ctx(
+      { operation: "art50_disclosure", outputField: "query", inputField: "query", systemName: "Support bot" },
+      { signingSecret: SECRET },
+      [{ json: { query: PROMPT, outputText: "Invoice updated." } }],
+    );
+    await assert.rejects(() => node.execute.call(sameAsInput), (error) => {
+      assert.match(error.message, /cannot equal inputField/);
+      assert.equal(error.message.includes(PROMPT), false);
+      return true;
+    });
+  });
+
   it("throws when the art50 output field is missing", async () => {
     const context = ctx(
       { operation: "art50_disclosure", outputField: "outputText", systemName: "Support bot" },

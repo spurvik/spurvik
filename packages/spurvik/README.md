@@ -111,6 +111,8 @@ Vercel handlers call `waitUntil(spurvik.flush())` from `@vercel/functions`. Inst
 
 Checked against `@mastra/core` 1.79.0. Mastra's `MastraModelConfig` includes an AI SDK language model (`LanguageModelV2`, `LanguageModelV3`, or `LanguageModelV4` from `@ai-sdk/provider`). `resolveModelConfig` keeps a `specificationVersion: "v4"` model and calls `doGenerate` / `doStream` (`AISDKV7LanguageModel`). `Agent`'s `model` field is a `DynamicArgument`, so it accepts that object or a function that returns it. `withSpurvikMastra` returns the function. Mastra calls it from `Agent.getLLM` before `stream()` starts. A halt there rejects `agent.stream` and `agent.generate` with `SpurvikHaltedError`. A thrown `doStream` inside the stream loop becomes an empty text stream, so the check does not wait until `doStream`. The function's return value is what `spurvikMiddleware` records.
 
+`@mastra/core` 1.79.0 nests its own copy of `@ai-sdk/provider`. That copy is a different type identity from the `@ai-sdk/provider` this package depends on, so `spurvik.model` is not assignable to `Agent`'s `model` without a cast. The example below is the form that typechecks against `@mastra/core` 1.79.0. `generate()` returns `providerMetadata` as a promise; await it before reading the receipt.
+
 Model-router strings such as `openai/gpt-4o` are not wrapped. Pass a model object.
 
 ```ts
@@ -129,11 +131,11 @@ const agent = new Agent({
   id: "assistant",
   name: "Assistant",
   instructions: "Reply briefly.",
-  model: spurvik.model,
+  model: spurvik.model as ConstructorParameters<typeof Agent>[0]["model"],
 });
 
 const generated = await agent.generate("Hello");
-const record = provenanceFromMetadata(generated.providerMetadata);
+const record = provenanceFromMetadata(await generated.providerMetadata);
 ```
 
 `withSpurvikMastra` calls `wrapLanguageModel` with `spurvikMiddleware`. It does not keep a second copy of the recorder. `flush()` sends that middleware's queue.
@@ -208,6 +210,6 @@ Deno can import the built package. The on-disk telemetry buffer and the unref'd 
 
 `verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. It does not verify a Slack, Telegram, Discord, or other platform webhook signature. Approvers click signed links. The SDK does not receive platform webhooks. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
 
-From 1.0.5, `callbackBaseUrl` is required. Pass a URL that accepts GET clicks. The SDK does not default to the console HITL create route. New links include a nonce. The default validity stays 24 hours (86400 seconds). Pass `maxAgeSeconds: 900` for a 15-minute window. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. Where the code reads an environment variable, it reads `SPURVIK_*` first and then the matching `AEGIS_*` name.
+From 1.0.5, `callbackBaseUrl` is required. Pass a URL that accepts GET clicks. The SDK does not default to the console HITL create route. New links include a nonce. The default validity stays 24 hours (86400 seconds). Pass `maxAgeSeconds: 900` for a 15-minute window. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. The only `AEGIS_*` fallbacks are the names passed to `readSpurvikEnv` in `packages/core/src/env.ts`: `SPURVIK_TELEMETRY` (`packages/core/src/telemetry-policy.ts`), `SPURVIK_C2PA_CERT_PEM`, and `SPURVIK_C2PA_KEY_PEM` (`packages/c2pa/src/index.ts`). Each of those reads `SPURVIK_<NAME>` first and then `AEGIS_<NAME>`. `packages/sdk/src/telemetry-exit.child.ts` reads only `SPURVIK_BASE_URL`. `SPURVIK_API_KEY`, `SPURVIK_SIGNING_SECRET`, `SPURVIK_CONTENT_HASH_SECRET`, `SPURVIK_MCP_ROOT`, `SPURVIK_BASE_URL`, and `SPURVIK_SDK_DIST` have no `AEGIS_*` fallback.
 
 The same build is published as `spurvik` and `spurvik-sdk`. `spurvik/react` is the disclosure-label entry. Neither package depends on the other.

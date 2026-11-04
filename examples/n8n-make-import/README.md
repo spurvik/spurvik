@@ -169,5 +169,5 @@ The script checks every Spurvik node: type `n8n-nodes-spurvik.spurvikEuAiActGuar
 - This repository's `1.0.2` node class is `SpurvikEuAiActGuard` in `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js`, with credential `spurvikApi`.
 - `art50_disclosure` and `art12_hmac_log` are separate. The notice reads `outputField`. The helper does not call `POST /api/v1/disclosure`, `POST /api/v1/telemetry`, or `POST /api/v1/hitl`.
 - The node depends on `spurvik-sdk`. It does not import `packages/sdk/src`.
-- `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts `actionName` and `payloadSummary`. The bearer token is the scenario variable `spurvikApiKey`, not a field from the webhook payload. It is not a scenario exported from a Make account.
+- `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts `actionName` and `payloadSummary`. The bearer token is the Make organization custom variable `spurvikApiKey` (`{{var.organization.spurvikApiKey}}`). Create that organization variable in Make before importing the blueprint. This blueprint has not been test-imported in Make. The token is not a field from the webhook payload. It is not a scenario exported from a Make account.
 - This guide's workflow file is checked against the 1.0.2 descriptor. Published `1.0.0` and `1.0.1` still cannot be loaded by n8n 2.46.4.

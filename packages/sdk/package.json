@@ -62,10 +62,10 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup && node scripts/copy-react-export.mjs",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit",
+    "build": "node scripts/link-core.mjs && tsup && node scripts/copy-react-export.mjs",
+    "test": "node scripts/link-core.mjs && vitest run",
+    "typecheck": "node scripts/link-core.mjs && tsc --noEmit",
+    "lint": "node scripts/link-core.mjs && tsc --noEmit",
     "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
   },
   "dependencies": {
@@ -100,7 +100,6 @@
     }
   },
   "devDependencies": {
-    "@spurvik/core": "file:../core",
     "@anthropic-ai/sdk": "^1.1.0",
     "@google/genai": "^2.30.0",
     "@langchain/langgraph": "^1.5.3",

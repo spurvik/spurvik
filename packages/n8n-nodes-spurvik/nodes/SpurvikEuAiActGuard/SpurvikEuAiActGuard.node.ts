@@ -174,7 +174,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "",
       description:
-        "The notice operation reads outputField (default outputText) and throws if that field is missing. It does not read the prompt field. Output is { spurvik: result } plus explicitly named non-prompt fields. promptText is never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
+        "The notice operation reads outputField (default outputText) and throws if that field is missing, if it is promptText, or if it equals inputField. It does not read the prompt field. Output is { spurvik: result } plus explicitly named non-prompt fields. promptText is never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
     },
   ],
 };
@@ -294,6 +294,11 @@ export class SpurvikEuAiActGuard implements INodeType {
       let stepInput: SpurvikWorkflowNodeInput;
       if (operation === "art50_disclosure") {
         const outputField = String(this.getNodeParameter("outputField", i, "outputText"));
+        if (outputField === inputField || outputField === "promptText") {
+          throw new Error(
+            `art50_disclosure outputField ("${outputField}") must be the AI output. It cannot be "promptText" and it cannot equal inputField ("${inputField}").`,
+          );
+        }
         if (!Object.prototype.hasOwnProperty.call(item, outputField) || typeof item[outputField] !== "string") {
           throw new Error(
             `art50_disclosure requires a string field "${outputField}" on the incoming item. The notice is applied to the AI output, not the prompt.`,
