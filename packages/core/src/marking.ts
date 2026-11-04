@@ -31,7 +31,7 @@ export interface MediaMarkingResult {
 
 /**
  * Extension point for C2PA manifests on images and other media.
- * `@spurvik/c2pa` ships an image writer. A text trailer is not this hook.
+ * An image writer can implement this hook. A text trailer is not this hook.
  */
 export interface MediaMarkingHook {
   readonly id: string;

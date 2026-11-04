@@ -13,6 +13,7 @@
       "parameters": {
         "operation": "art50_disclosure",
         "systemName": "Customer Support AI Agent",
+        "inputField": "promptText",
         "outputField": "outputText",
         "noticeText": "You are interacting with an AI system."
       },

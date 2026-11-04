@@ -7,10 +7,27 @@ import { SpurvikApi } from "../dist/credentials/SpurvikApi.credentials.js";
 const SECRET = "spurvik-n8n-test-secret-2026";
 const PROMPT = "RAW_PROMPT_SHOULD_NOT_LEAK_1105";
 
+function parameterShown(property, params) {
+  const rules = property.displayOptions?.show;
+  if (!rules) return true;
+  for (const [key, allowed] of Object.entries(rules)) {
+    const dependency = SpurvikN8nNodeDescription.properties.find((item) => item.name === key);
+    const value = Object.prototype.hasOwnProperty.call(params, key) ? params[key] : dependency?.default;
+    if (!allowed.map(String).includes(String(value))) return false;
+  }
+  return true;
+}
+
 function ctx(params, credentials, items) {
   return {
     getInputData: () => items,
-    getNodeParameter: (name, _index, fallback) => (name in params ? params[name] : fallback),
+    getNodeParameter: (name, _index, fallback) => {
+      const property = SpurvikN8nNodeDescription.properties.find((item) => item.name === name);
+      if (property && !parameterShown(property, params)) return property.default;
+      if (Object.prototype.hasOwnProperty.call(params, name)) return params[name];
+      if (property && Object.prototype.hasOwnProperty.call(property, "default")) return property.default;
+      return fallback;
+    },
     getCredentials: async (name) => {
       if (name !== "spurvikApi") throw new Error(`unexpected credential ${name}`);
       if (credentials === undefined) throw new Error("No credentials of type spurvikApi");
@@ -68,27 +85,49 @@ describe("SpurvikEuAiActGuard.execute", () => {
     assert.equal(out[0].json.spurvik.art12Record, null);
   });
 
-  it("rejects an output field that is the prompt or the input field", async () => {
-    const sameAsPrompt = ctx(
-      { operation: "art50_disclosure", outputField: "promptText", inputField: "query", systemName: "Support bot" },
+  it("rejects an output field that is a prompt name or the input field", async () => {
+    const cases = [
+      { outputField: "promptText", inputField: "promptText", item: { promptText: PROMPT, outputText: "Invoice updated." } },
+      { outputField: "query", inputField: "query", item: { query: PROMPT, outputText: "Invoice updated." } },
+      { outputField: "chatInput", inputField: "promptText", item: { chatInput: PROMPT, outputText: "Invoice updated." } },
+      { outputField: "Query", inputField: "promptText", item: { Query: PROMPT, outputText: "Invoice updated." } },
+      { outputField: "userAsk", inputField: "userAsk", item: { userAsk: PROMPT, outputText: "Invoice updated." } },
+    ];
+    for (const entry of cases) {
+      const context = ctx(
+        {
+          operation: "art50_disclosure",
+          outputField: entry.outputField,
+          inputField: entry.inputField,
+          systemName: "Support bot",
+        },
+        { signingSecret: SECRET },
+        [{ json: entry.item }],
+      );
+      await assert.rejects(() => node.execute.call(context), (error) => {
+        assert.match(error.message, /must be the AI output/);
+        assert.equal(error.message.includes(PROMPT), false);
+        return true;
+      });
+    }
+  });
+
+  it("uses the descriptor default when displayOptions hide the parameter", () => {
+    const inputField = SpurvikN8nNodeDescription.properties.find((property) => property.name === "inputField");
+    assert.deepEqual(inputField.displayOptions.show.operation, ["art50_disclosure", "art12_hmac_log"]);
+    const notice = ctx(
+      { operation: "art50_disclosure", inputField: "query" },
       { signingSecret: SECRET },
-      [{ json: { promptText: PROMPT, query: "other", outputText: "Invoice updated." } }],
+      [{ json: {} }],
     );
-    await assert.rejects(() => node.execute.call(sameAsPrompt), (error) => {
-      assert.match(error.message, /cannot be "promptText"/);
-      assert.equal(error.message.includes(PROMPT), false);
-      return true;
-    });
-    const sameAsInput = ctx(
-      { operation: "art50_disclosure", outputField: "query", inputField: "query", systemName: "Support bot" },
+    assert.equal(notice.getNodeParameter("inputField", 0, "ignored"), "query");
+    const approval = ctx(
+      { operation: "art14_ask_human", inputField: "query", outputField: "chatInput" },
       { signingSecret: SECRET },
-      [{ json: { query: PROMPT, outputText: "Invoice updated." } }],
+      [{ json: {} }],
     );
-    await assert.rejects(() => node.execute.call(sameAsInput), (error) => {
-      assert.match(error.message, /cannot equal inputField/);
-      assert.equal(error.message.includes(PROMPT), false);
-      return true;
-    });
+    assert.equal(approval.getNodeParameter("inputField", 0, "ignored"), "promptText");
+    assert.equal(approval.getNodeParameter("outputField", 0, "ignored"), "outputText");
   });
 
   it("throws when the art50 output field is missing", async () => {

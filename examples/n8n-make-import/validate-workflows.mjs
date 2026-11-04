@@ -183,7 +183,7 @@ if (description) {
     seenOperations.add(operation);
     if (typeof node.parameters.systemName !== "string") fail(`${node.name} systemName is not a string`);
     const operationFields = {
-      art50_disclosure: ["outputField"],
+      art50_disclosure: ["outputField", "inputField"],
       art12_hmac_log: ["inputField"],
       art14_ask_human: ["channel", "callbackBaseUrl", "actionName", "actionSummary"],
     };

@@ -87,8 +87,32 @@ describe("verifyChannelApprovalToken (independent HMAC computation)", () => {
     expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: 300, nowUnixSeconds: T0 + 301, decision: "approved", signature: links.approveToken })).toBe(false);
   });
 
-  it("uses the 24 h default when maxAge is NaN, Infinity, zero, or negative, and caps at 7 days", () => {
-    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0, -1]) {
+  it("throws when maxAgeSeconds is 0", () => {
+    expect(() =>
+      verifyChannelApprovalToken({
+        ...base,
+        maxAgeSeconds: 0,
+        decision: "approved",
+        signature: links.approveToken,
+      }),
+    ).toThrow(/maxAgeSeconds must be greater than 0/);
+    expect(() =>
+      verifySignedChannelCallback({
+        gateId: req.gateId,
+        actionHmac: links.actionHmac,
+        decision: "approved",
+        issuedAtUnix: T0,
+        signature: links.approveToken,
+        nonce: links.nonce,
+        signingSecret: SECRET,
+        maxAgeSeconds: 0,
+        nowUnixSeconds: T0 + 10,
+      }),
+    ).toThrow(/maxAgeSeconds must be greater than 0/);
+  });
+
+  it("uses the 24 h default when maxAge is NaN, Infinity, or negative, and caps at 7 days", () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -1]) {
       expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: bad, nowUnixSeconds: T0 + 86_400, decision: "approved", signature: links.approveToken })).toBe(true);
       expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: bad, nowUnixSeconds: T0 + 86_401, decision: "approved", signature: links.approveToken })).toBe(false);
     }
@@ -226,7 +250,7 @@ describe("domain prefixes, legacy tokens, and verifySignedChannelCallback", () =
     expect(() => createSignedApprovalLinks(without, SECRET, T0)).toThrow(/callbackBaseUrl is required/);
   });
 
-  it("verifySignedChannelCallback is an alias that returns false for a missing signature and does not throw", () => {
+  it("verifySignedChannelCallback returns false for a missing signature and does not throw", () => {
     expect(
       verifySignedChannelCallback({
         gateId: req.gateId,

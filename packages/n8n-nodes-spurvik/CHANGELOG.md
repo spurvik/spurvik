@@ -5,7 +5,7 @@ The published 1.0.1 class lived in `dist/index.js`, so n8n looked for an export 
 - The node type id stays `spurvikEuAiActGuard`.
 - `execute()` calls `executeSpurvikWorkflowStep`. The notice, digest, and approval operations are separate.
 - The HMAC secret is read only from the `spurvikApi` credential. A missing secret throws.
-- The notice operation reads outputField (default outputText) and throws if that field is missing, if it is promptText, or if it equals inputField. It does not read the prompt field. Output is { spurvik: result } plus explicitly named non-prompt fields. promptText is never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
+- The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names are never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
 - Nine channels are listed. Monday.com creates an item only.
 
 ## n8n-nodes-spurvik 1.0.1

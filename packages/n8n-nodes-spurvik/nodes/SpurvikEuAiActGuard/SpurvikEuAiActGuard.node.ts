@@ -12,14 +12,19 @@ import {
   type SpurvikWorkflowOperation,
 } from "../../workflow";
 
+const PROMPT_FIELD_NAMES = new Set(["prompttext", "prompt", "chatinput", "query", "input"]);
+
 const BLOCKED_PASSTHROUGH = new Set([
-  "prompt",
-  "promptText",
-  "rawInputText",
-  "rawPrompt",
-  "signingSecret",
-  "hmacSecret",
+  ...PROMPT_FIELD_NAMES,
+  "rawinputtext",
+  "rawprompt",
+  "signingsecret",
+  "hmacsecret",
 ]);
+
+function isPromptFieldName(name: string): boolean {
+  return PROMPT_FIELD_NAMES.has(name.trim().toLowerCase());
+}
 
 export const SpurvikN8nNodeDescription: INodeTypeDescription = {
   displayName: "Spurvik AI Act Guard",
@@ -71,9 +76,9 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "inputField",
       type: "string",
       default: "promptText",
-      displayOptions: { show: { operation: ["art12_hmac_log"] } },
+      displayOptions: { show: { operation: ["art50_disclosure", "art12_hmac_log"] } },
       description:
-        "Name of the incoming JSON field to digest. The digest is HMAC-SHA256 of spurvik:workflow:input:v1| plus that field. The field value is not returned.",
+        "Name of the incoming JSON field that holds the prompt. Shown for the notice and the digest. The digest is HMAC-SHA256 of spurvik:workflow:input:v1| plus this field. The notice throws if outputField equals this name. The field value is not returned.",
     },
     {
       displayName: "Output Field",
@@ -82,7 +87,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       default: "outputText",
       displayOptions: { show: { operation: ["art50_disclosure"] } },
       description:
-        "Name of the incoming JSON field that holds the AI output. The notice is prepended to that field. It does not read the prompt field. The node throws if this field is missing.",
+        "The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names are never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
     },
     {
       displayName: "Notice Text",
@@ -90,7 +95,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "",
       displayOptions: { show: { operation: ["art50_disclosure"] } },
-      description: "Notice prepended to the input field. Leave empty for the default notice.",
+      description: "Notice prepended to the output field. Leave empty for the default notice.",
     },
     {
       displayName: "Channel",
@@ -174,7 +179,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "",
       description:
-        "The notice operation reads outputField (default outputText) and throws if that field is missing, if it is promptText, or if it equals inputField. It does not read the prompt field. Output is { spurvik: result } plus explicitly named non-prompt fields. promptText is never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
+        "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, and input are never copied, in any letter case.",
     },
   ],
 };
@@ -294,9 +299,12 @@ export class SpurvikEuAiActGuard implements INodeType {
       let stepInput: SpurvikWorkflowNodeInput;
       if (operation === "art50_disclosure") {
         const outputField = String(this.getNodeParameter("outputField", i, "outputText"));
-        if (outputField === inputField || outputField === "promptText") {
+        if (
+          outputField.trim().toLowerCase() === inputField.trim().toLowerCase() ||
+          isPromptFieldName(outputField)
+        ) {
           throw new Error(
-            `art50_disclosure outputField ("${outputField}") must be the AI output. It cannot be "promptText" and it cannot equal inputField ("${inputField}").`,
+            `art50_disclosure outputField ("${outputField}") must be the AI output. It cannot equal inputField ("${inputField}") and it cannot match promptText, prompt, chatInput, query, or input.`,
           );
         }
         if (!Object.prototype.hasOwnProperty.call(item, outputField) || typeof item[outputField] !== "string") {
@@ -346,7 +354,7 @@ export class SpurvikEuAiActGuard implements INodeType {
       const json: IDataObject = { spurvik: result as unknown as IDataObject };
       const passThrough = String(this.getNodeParameter("passThroughFields", i, ""));
       for (const field of passThrough.split(",").map((part) => part.trim()).filter(Boolean)) {
-        if (BLOCKED_PASSTHROUGH.has(field)) continue;
+        if (BLOCKED_PASSTHROUGH.has(field.toLowerCase())) continue;
         if (Object.prototype.hasOwnProperty.call(item, field)) json[field] = item[field];
       }
       returnData.push({ json });

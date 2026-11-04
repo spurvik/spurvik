@@ -175,7 +175,12 @@ function escapeHtml(value: string): string {
 }
 
 function resolveMaxAgeSeconds(value: number | undefined): number {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return DEFAULT_LINK_MAX_AGE_SECONDS;
+  if (value === 0) {
+    throw new SpurvikConfigError(
+      "maxAgeSeconds must be greater than 0. Omit it to use the 86400 second default.",
+    );
+  }
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return DEFAULT_LINK_MAX_AGE_SECONDS;
   return Math.min(value, MAX_LINK_MAX_AGE_SECONDS);
 }
 
