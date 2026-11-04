@@ -30,8 +30,9 @@ function openAiKey(): string | undefined {
  * Chat route adapted from the earlier `runGuardedAssistant` snippet.
  * That snippet called `generateText`. This route calls `streamText` so the page
  * can show the reply as it arrives. The wrap is the same: `spurvikMiddleware`
- * passed to `wrapLanguageModel`. The middleware records the call and attaches
- * an HMAC receipt on provider metadata. It does not mark the reply.
+ * passed to `wrapLanguageModel`. With content-hash mode `keyed`, the middleware
+ * records a keyed HMAC-SHA256 fingerprint of the input on the HMAC receipt
+ * attached to provider metadata. It does not mark the reply.
  */
 export async function POST(req: Request) {
   if (!openAiKey()) {

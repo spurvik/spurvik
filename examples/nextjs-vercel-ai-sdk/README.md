@@ -2,7 +2,7 @@
 
 A small App Router chat app. The model is wrapped with `spurvikMiddleware` from `spurvik/ai`. Assistant replies sit next to `<AIDisclosureLabel />` from `spurvik/react`.
 
-The label is a visible Article 50(1) interaction notice. It is not Article 50(2) machine-readable marking. The middleware records the call and attaches an HMAC receipt on provider metadata. It does not mark the reply.
+The label is a visible Article 50(1) interaction notice. It is not Article 50(2) machine-readable marking. This example sets content-hash mode to `keyed`. In that mode, `spurvikMiddleware` records a keyed HMAC-SHA256 fingerprint of the input on the HMAC receipt attached to provider metadata. It does not mark the reply.
 
 Docs: https://spurvik.com/docs
 
