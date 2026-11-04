@@ -1,6 +1,6 @@
 # 9-Channel `ask_human()` Approval Router & `n8n` / `Make.com` Workflow Guard
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts` & `packages/n8n-nodes-spurvik`). Spurvik emits chained HMAC-SHA256 provenance digests with zero raw prompt text persisted (`raw_prompt=0B`) and provides deterministic pre-flight `ask_human()` gates. It is not legal advice and does not certify EU AI Act compliance.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts` & `packages/n8n-nodes-spurvik`). Spurvik builds an HMAC-SHA256 receipt of the input and provides a pre-flight `ask_human()` gate step. It is not legal advice. n8n's execution history keeps node inputs and outputs.
 
 ---
 
@@ -86,10 +86,10 @@ if (!matches) {
 
 ## 2. `n8n` & `Make.com` No-Code / Low-Code AI Workflow Guard (`packages/n8n-nodes-spurvik`)
 
-For operations and automation teams building AI workflows in **n8n** or **Make.com**, `n8n-nodes-spurvik` combines all three runtime primitives in a single node:
+`executeSpurvikWorkflowStep` can be called from code. A native n8n node is (planned, 1.0.2). `n8n-nodes-spurvik@1.0.1` exports `SpurvikEuAiActGuard` from `dist/index.js`. Loading it throws `require(...).index is not a constructor`. Its `execute()` calls `executeSpurvikN8nGuard`, which is not defined, and copies the input item, including raw prompt text, into the output. n8n's execution history keeps node inputs and outputs.
 
-1. **Art. 50(1) AI Interaction Notice**: Automatically injects localized disclosure headers (`EN`, `DE`, `DA`, `FR`) into outbound AI responses.
-2. **HMAC-SHA256 record**: Logs the call as an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping.
+1. **AI interaction notice**: The step function prepends an AI interaction notice when output text is passed.
+2. **HMAC-SHA256 receipt**: The step function builds an HMAC-SHA256 receipt of the input, designed to support Article 12 record-keeping.
 3. **`ask_human()` gate step**: Sends Approve / Block links that carry Spurvik's own approval-link token to Slack, Telegram, Discord, Microsoft Teams, Linear, Jira, or Asana, designed to support Article 14 human oversight. **Email (Resend)**: use 1.0.5 once released (planned). Monday.com creates an item for the request. `verifyChannelApprovalToken` checks only that Spurvik token. Checking each platform's request signature is the integrator's job.
 
 - **n8n Node Source**: [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)

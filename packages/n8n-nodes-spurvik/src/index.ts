@@ -186,7 +186,7 @@ export const SpurvikN8nNodeDescription = {
   group: ["transform"],
   version: 1,
   description:
-    "Prepends an AI interaction notice, logs an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping, and runs the ask_human() gate step, designed to support Article 14 human oversight.",
+    "Prepends an AI interaction notice, builds an HMAC-SHA256 receipt of the input, designed to support Article 12 record-keeping, and runs the ask_human() gate step, designed to support Article 14 human oversight. n8n's execution history keeps node inputs and outputs.",
   defaults: {
     name: "Spurvik Guard",
   },

@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-spurvik",
   "version": "1.0.0",
-  "description": "n8n and Make.com workflow step that prepends an AI interaction notice, logs each call as an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping, and sends ask_human() Approve / Block links on Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, and Asana. Monday.com creates an item for the request, designed to support Article 14 human oversight.",
+  "description": "Step function for n8n and Make.com workflows. It prepends an AI interaction notice, builds an HMAC-SHA256 receipt of the input, designed to support Article 12 record-keeping, and on the ask_human() gate step sends Approve / Block links that carry Spurvik's own approval-link token on Slack, Telegram, Discord, Microsoft Teams, Linear, Jira, and Asana. Email (Resend): use 1.0.5 once released (planned). Monday.com creates an item for the request, designed to support Article 14 human oversight. n8n's execution history keeps node inputs and outputs. A native n8n node is (planned, 1.0.2).",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
