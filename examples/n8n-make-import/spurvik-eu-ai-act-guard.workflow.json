@@ -1,0 +1,80 @@
+{
+  "name": "Spurvik guard descriptor parameters",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "When clicking Execute workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "art50_disclosure",
+        "systemName": "Customer Support AI Agent"
+      },
+      "id": "22222222-2222-4222-8222-222222222222",
+      "name": "Spurvik Guard notice",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, -120],
+      "notes": "Repository descriptor parameters only. n8n 2.46.4 reports require(...).index is not a constructor for 1.0.1. execute() calls executeSpurvikN8nGuard, which that file does not define. A working native node is (planned, 1.0.2)."
+    },
+    {
+      "parameters": {
+        "operation": "art12_hmac_log",
+        "systemName": "Customer Support AI Agent"
+      },
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Spurvik Guard log",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 40],
+      "notes": "Same repository descriptor. art12_hmac_log is a second operation value. The function in this repository uses one path for this value and art50_disclosure."
+    },
+    {
+      "parameters": {
+        "operation": "art14_ask_human",
+        "systemName": "Customer Support AI Agent"
+      },
+      "id": "44444444-4444-4444-8444-444444444444",
+      "name": "Spurvik Guard ask human",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 200],
+      "notes": "operation art14_ask_human. 1.0.1 execute() copies the incoming item onto the output, including prompt text. n8n execution history keeps that input and output. A working native node is (planned, 1.0.2)."
+    }
+  ],
+  "connections": {
+    "When clicking Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "Spurvik Guard notice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Guard log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Guard ask human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
