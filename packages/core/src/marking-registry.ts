@@ -19,7 +19,7 @@ export interface ProviderMarkingEntry {
   modality: MarkingModality;
   marking: DocumentedMarking;
   detection: DocumentedDetection;
-  /** Factual limit. Supports compliance work. Not a legal conclusion. */
+  /** Factual limit. Designed to support record-keeping. Not a legal conclusion. */
   summary: string;
   sourceUrl: string;
   sourceReadOn: string;
@@ -281,7 +281,7 @@ export function documentedTextLimits(events: readonly MarkingCoverageEvent[]): s
   const lines = [
     "Documented limits for text outputs",
     "",
-    "This statement supports compliance work for a deployer that wraps a third-party model. Commission guidance on Article 50 allows reliance on a provider's output marking only when the deployer can show that the marking works. The lines below say what each provider documents, and what a wrapped SDK response actually exposes. This is not a conformity assessment.",
+    "This statement is designed to support a deployer that wraps a third-party model. Commission guidance on Article 50 allows reliance on a provider's output marking only when the deployer can show that the marking works. The lines below say what each provider documents, and what a wrapped SDK response actually exposes. This is not a conformity assessment.",
     "",
   ];
   for (const entry of textEntries) {

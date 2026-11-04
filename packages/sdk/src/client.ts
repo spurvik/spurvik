@@ -103,7 +103,7 @@ export interface CompletionFinish {
 
 /**
  * Client for the Spurvik control plane and the provenance recorder.
- * It supports compliance work. It does not certify a system or assess conformity.
+ * It is designed to support record-keeping and human oversight. It does not certify a system or assess conformity.
  */
 export class SpurvikClient {
   readonly config: ResolvedSpurvikConfig;

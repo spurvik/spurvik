@@ -20,7 +20,7 @@ export interface SignedPurgeCheckpoint extends PurgeCheckpointFields {
 /**
  * Sign the last hash removed by a retention purge.
  * A later check shows the checkpoint still matches the HMAC-SHA-256 signature made with your checkpoint secret.
- * It is not a finding of legal compliance.
+ * It is not a finding that a system meets the Act.
  */
 export async function signPurgeCheckpoint(
   fields: PurgeCheckpointFields,
@@ -31,7 +31,7 @@ export async function signPurgeCheckpoint(
   return { ...fields, signature };
 }
 
-/** A match shows the checkpoint fields still match the HMAC-SHA-256 signature made with your checkpoint secret. It is not a finding of legal compliance. */
+/** A match shows the checkpoint fields still match the HMAC-SHA-256 signature made with your checkpoint secret. It is not a finding that a system meets the Act. */
 export async function verifyPurgeCheckpoint(
   checkpoint: SignedPurgeCheckpoint,
   secret: string,
@@ -104,7 +104,7 @@ export async function verifyAuditChain(
       return {
         ok: false,
         checked: 0,
-        reason: "Purge checkpoint signature does not match. A match would show the checkpoint still matches its HMAC signature; it is not a finding of legal compliance.",
+        reason: "Purge checkpoint signature does not match. A match would show the checkpoint still matches its HMAC signature; it is not a finding that a system meets the Act.",
       };
     }
     if (ordered.length === 0) return { ok: true, checked: 0 };

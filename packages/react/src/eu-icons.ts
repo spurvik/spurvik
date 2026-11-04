@@ -1,4 +1,4 @@
-/** Official EU icons for labelling AI-generated content.
+/** EU icons for labelling AI-generated content.
  * Published by the European Commission for optional use with Article 50(4) labels.
  * Showing an icon does not, by itself, meet Article 50.
  * Source: https://digital-strategy.ec.europa.eu/en/policies/eu-icons-labelling-ai-generated-content

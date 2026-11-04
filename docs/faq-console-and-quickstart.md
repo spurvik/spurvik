@@ -107,7 +107,7 @@ The oversight and audit record shows what happened, when, and who acted — neve
 
 ### 9. Does `<AIDisclosureLabel />` send network requests or touch `sessionStorage` by default?
 
-No. By default, `<AIDisclosureLabel />` in `spurvik/react` is purely a local React component (`<aside role="note" lang={locale} aria-describedby={noteId} data-aegis-disclosure={notice}>`) with built-in copy in all 24 official EU languages (`locale`), `"block"` and `"inline"` presentations (`presentation`), optional `<EuMark />` icon (`euIcon`), and anti-hiding CSS rules (`display: "inline-flex"`, `visibility: "visible"`, `opacity: 1`, and non-transparent text color).
+No. By default, `<AIDisclosureLabel />` in `spurvik/react` is purely a local React component (`<aside role="note" lang={locale} aria-describedby={noteId} data-aegis-disclosure={notice}>`) with built-in copy in all 24 EU languages (`locale`), `"block"` and `"inline"` presentations (`presentation`), optional `<EuMark />` icon (`euIcon`), and anti-hiding CSS rules (`display: "inline-flex"`, `visibility: "visible"`, `opacity: 1`, and non-transparent text color).
 
 Even if you pass the `beacon` prop, `sendDisclosureBeacon` checks `beacon.consent === true` first. Unless `beacon.consent === true`, it returns immediately without reading or writing `sessionStorage` and without sending `POST /api/v1/disclosure`.
 

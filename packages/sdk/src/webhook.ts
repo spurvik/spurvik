@@ -5,7 +5,7 @@ import { SpurvikError } from "./errors.js";
  * Check a control-plane HITL webhook. The caller passes the raw body and the
  * `x-spurvik-signature` / `x-spurvik-timestamp` headers.
  * A match shows the payload still matches the HMAC-SHA-256 signature made with
- * your webhook secret. It is not a finding of legal compliance.
+ * your webhook secret. It is not a finding that a system meets the Act.
  */
 export async function verifyHitlWebhook(input: {
   secret: string;

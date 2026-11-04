@@ -1,4 +1,4 @@
-# @spurvik/sdk
+# spurvik-sdk
 
 ## 1.0.5 — 2026-11-04
 
@@ -8,8 +8,21 @@ Fixes to the `spurvik/channels` functions shipped in 1.0.4. Published as `spurvi
 - The email HTML escapes the action title, summary, gate ID and links. In 1.0.4 the summary was inserted as raw HTML.
 - Linear and Monday.com GraphQL replies that carry an `errors` array throw, even with HTTP 200. In 1.0.4 they were reported as sent.
 - `verifyChannelApprovalToken` returns `false` when the signature is not a string (for example a missing `sig` query parameter). In 1.0.4 it threw a `TypeError`.
-- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. Expiry is unchanged (default 24 hours).
+- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. The default validity is 15 minutes (it was 24 hours in 1.0.4).
 - Monday.com: the dispatch reads the created item id. The item carries the gate ID in its name. It does not carry the Approve / Block links.
+- `callbackBaseUrl` is required. The SDK does not default to the console HITL create route, which accepts POST, not GET link clicks.
+- New links include a nonce. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat.
+- The channel approval secret is rejected when it is missing, shorter than 16 characters, or has leading or trailing whitespace. The error text does not cite the AI Act. HMAC domain prefixes are unchanged.
+- From 1.0.5, `verifySignedChannelCallback` is an alias of `verifyChannelApprovalToken`. It returns `{ ok, decision, ... }` or `false`. A missing signature returns `false` and does not throw. It checks Spurvik's own approval-link token. It does not verify a platform webhook signature.
+- `buildChannelOutboundRequest().body` is a JSON string.
+
+## n8n-nodes-spurvik 1.0.2
+
+See `packages/n8n-nodes-spurvik/CHANGELOG.md`. The node file is `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js`.
+
+## n8n-nodes-spurvik 1.0.1
+
+Published from main. n8n could not construct the class because `n8n.nodes` pointed at `dist/index.js`.
 
 ## 1.0.4 — 2026-11-04
 

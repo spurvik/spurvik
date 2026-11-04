@@ -8,7 +8,7 @@ const keys = {
 } as const;
 
 /**
- * Official EU icon (basic, fully AI-generated, or partially AI-modified).
+ * EU icon (basic, fully AI-generated, or partially AI-modified).
  * The icon is optional. It does not by itself meet Article 50.
  */
 export function EuMark({

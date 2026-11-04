@@ -11,7 +11,7 @@ Milestones 1–4, scoped to the EU market.
 | Piece | Role |
 | --- | --- |
 | `packages/sdk` | `withSpurvik()` wrapper for OpenAI, Anthropic, and Gemini-shaped clients, `spurvikMiddleware()` for the Vercel AI SDK, plus Mastra, OpenAI Agents, and LangGraph adapters. |
-| `packages/react` | Always-visible Article 50 labels, in all 24 official EU languages. |
+| `packages/react` | Always-visible Article 50 labels, in all 24 EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
 | `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `@spurvik/mcp` (`1.0.2`). |
 
@@ -81,7 +81,7 @@ await ai._spurvik.shutdown(); // scripts: send queued telemetry before exit
 
 `matches` is `true` when the signed fields match a signature made with that secret. Any change to a signed field makes the check return `false`, unless whoever changed it also re-signed it with the same secret. So a match shows that the signed fields still match a signature made with that secret. Anyone who holds the secret can make a matching signature, so limit who holds it.
 
-**Keys and environment variables.** The project API key has the form `spurvik_live_` plus at least 32 base64url characters. It is sent as a Bearer token, and the server stores only its SHA-256 hash. `SPURVIK_SIGNING_SECRET` and `SPURVIK_CONTENT_HASH_SECRET` stay in the caller and are never sent to the control plane. Keep them: records signed with a lost secret can no longer be checked. None of these has a built-in default. The SDK reads none of these variables by itself; your code passes them in. `AEGIS_*` environment variables are read only by the control plane server in this release, with a deprecation warning. Keys issued as `aegis_live_` and `aegis_pub_` still authenticate. New keys use the Spurvik prefixes.
+**Keys and environment variables.** The project API key has the form `spurvik_live_` plus at least 32 base64url characters. It is sent as a Bearer token, and the server stores only its SHA-256 hash. `SPURVIK_SIGNING_SECRET` and `SPURVIK_CONTENT_HASH_SECRET` stay in the caller and are never sent to the control plane. Keep them: records signed with a lost secret can no longer be checked. None of these has a built-in default. The SDK reads none of `SPURVIK_API_KEY`, `SPURVIK_SIGNING_SECRET`, or `SPURVIK_CONTENT_HASH_SECRET` by itself; your code passes them in. Project keys use the `spurvik_live_` prefix. Disclosure keys use the `spurvik_pub_` prefix.
 
 `baseUrl` is where SDK telemetry and the halt stream go. For an invited organisation, that address is `https://console.spurvik.com`. In production the SDK throws if it is omitted. Development and tests still default to `http://127.0.0.1:43123`.
 
@@ -121,7 +121,7 @@ Article 12 (record-keeping) and Article 11 with Annex IV (technical documentatio
 
 `provenanceOf(res)` is exported from `spurvik`. It reads a **provenance record**: timestamp, model id, keyed fingerprints, an Article 50(1) disclosure flag, the upstream marking status, and an HMAC-SHA-256 signature. `markingApplied` and `evidenceTrailerAttached` are inside that signature. The same value is on `res._spurvik_provenance`. `provenanceOf` also reads `_aegis_provenance` from earlier responses. Check the signature with `verifyProvenanceSignature`. A match shows the signed fields still match the HMAC-SHA-256 signature made with your signing secret. It does not show that a notice was shown, that output is marked, or that your system meets the Act.
 
-`withSpurvik` is the wrapper. The old `withCompliance` alias is removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `withAegis` is the previous product-name alias and is removed in the next release.
+`withSpurvik` is the wrapper. An older alias of that function was removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `withAegis` is the previous product-name alias and is removed in the next release.
 
 A field on the API object does not travel with the content after the object is discarded, so it is not, by itself, the machine-readable marking in Article 50(2).
 
@@ -211,13 +211,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 
 ### Ingestion routes
 
-All of these require `Authorization: Bearer spurvik_live_…` (an `aegis_live_…` key issued earlier still works).
+All of these require `Authorization: Bearer spurvik_live_…`.
 
 - `POST /api/v1/telemetry`
 - `POST /api/v1/hitl` and `GET /api/v1/hitl/:id`
 - `POST /api/v1/hitl/:id/decision`
 - `GET /api/v1/oversight` and `POST /api/v1/oversight`
-- `POST /api/v1/disclosure` also accepts a publishable `spurvik_pub_` key, or an `aegis_pub_` key issued earlier. `GET` does not.
+- `POST /api/v1/disclosure` also accepts a publishable `spurvik_pub_` key. `GET` does not.
 
 Audit rows are chained per project. The append takes a row lock on `audit_chain_heads`, so concurrent inserts for one project cannot fork the chain. The ledger button **Verify hash chain** recomputes each record hash and checks `prev_log_hash`. A match means the stored rows still link. It is not a certification of the AI system.
 
@@ -255,7 +255,7 @@ export function DisclosureExample() {
       <AIDisclosureLabel
         notice="interaction" // or "generated" | "deepfake" | "public-interest"
         presentation="inline" // pill; "block" is the default
-        locale="de" // 24 official EU languages, or registerDisclosureLocale
+        locale="de" // all 24 EU languages, or registerDisclosureLocale
         euIcon // optional Commission icon; always paired with visible text
         beacon={{ endpoint: "https://your-endpoint.example/beacon", apiKey: process.env.NEXT_PUBLIC_SPURVIK_PUB_KEY! }}
       />
@@ -267,7 +267,7 @@ export function DisclosureExample() {
 
 Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
 
-The label text is in the page without a click. The dialog is supplementary. A beacon fires once per session after `IntersectionObserver` reports the label on screen. Pass `spurvik_pub_…`, not the live key. Browser keys `aegis.disclosure.*` are copied to `spurvik.disclosure.*` and then deleted. That migration is removed in 1.0, and no later than 26 January 2027. The official EU icons (basic, AI-generated, AI-modified) are the Commission’s optional marks for Article 50(4). Using one does not by itself meet Article 50.
+The label text is in the page without a click. The dialog is supplementary. A beacon fires once per session after `IntersectionObserver` reports the label on screen. Pass `spurvik_pub_…`, not the live key. Browser keys `aegis.disclosure.*` are copied to `spurvik.disclosure.*` and then deleted. That migration is removed in 1.0, and no later than 26 January 2027. The EU icons (basic, AI-generated, AI-modified) are the Commission’s optional marks for Article 50(4). Using one does not by itself meet Article 50.
 
 `/labels` renders the variants, including `AIArticle50Section3Notice` for Article 50(3). The console is at `/login`.
 
@@ -298,8 +298,9 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 
 ## Multi-channel `ask_human()` router & `n8n` / `Make.com` workflow guard
 
-- **`packages/sdk/src/channels.ts` (`createMultiChannelApprovalRouter` & `verifySignedChannelCallback`)**: Fans out pre-flight human-in-the-loop approval requests with chained HMAC-SHA256 digests (`0` raw prompt bytes persisted) and signed **Approve / Block** action links across **Slack**, **Telegram**, **Email (Resend)**, **Discord**, **Microsoft Teams**, **Linear**, **Jira**, **Monday.com**, and **Asana**.
-- **`packages/n8n-nodes-spurvik`**: Drop-in `n8n` node and importable [`make-com-blueprint.json`](packages/n8n-nodes-spurvik/make-com-blueprint.json) combining Article 50(1) AI interaction notices, Article 12 zero-raw-prompt HMAC-SHA256 receipts, and Article 14 multi-channel `ask_human()` gates in a single workflow step.
+- **`packages/sdk/src/channels.ts` (`createMultiChannelApprovalRouter` and `verifyChannelApprovalToken`)**: Fans out pre-flight human-in-the-loop approval requests with HMAC-SHA256 digests and signed Approve / Block links across Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, and Asana. Monday.com creates an item only and does not send Approve or Block links. `verifyChannelApprovalToken` checks Spurvik's own approval-link token. It does not verify a platform webhook signature. From 1.0.5, `verifySignedChannelCallback` is an alias of `verifyChannelApprovalToken`.
+- **`packages/n8n-nodes-spurvik`**: n8n node and importable [`make-com-blueprint.json`](packages/n8n-nodes-spurvik/make-com-blueprint.json). Separate operations add an AI interaction notice, record an HMAC-SHA256 digest designed to support Article 12 record-keeping, and send an `ask_human()` request designed to support Article 14 human oversight.
+- From 1.0.5, links from `createSignedApprovalLinks` include a nonce and are valid for 15 minutes. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat. A 1.0.4 token has no nonce and still verifies with `verifyChannelApprovalToken` when the nonce is omitted. `callbackBaseUrl` is required from 1.0.5: pass a URL that accepts GET clicks. The SDK does not default to the console HITL create route.
 - Full quickstart & callback verification examples: [`docs/multi-channel-hitl-and-n8n.md`](docs/multi-channel-hitl-and-n8n.md).
 
 ## Still open

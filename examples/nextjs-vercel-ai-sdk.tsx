@@ -28,7 +28,7 @@ export async function runGuardedAssistant(baseModel: any, userPrompt: string) {
 
 /**
  * 2. Client-side: Render an EU AI Act Art. 50(1) AI interaction notice badge
- *    in any of the 24 official EU languages.
+ *    in all 24 EU languages.
  */
 export function AssistantChatHeader({ locale = "en" }: { locale?: string }) {
   return (

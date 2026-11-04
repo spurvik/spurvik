@@ -1,19 +1,19 @@
-import { provenanceOf, withSpurvik } from "@spurvik/sdk";
-import { provenanceFromMetadata, spurvikMiddleware } from "@spurvik/sdk/ai";
-import { withSpurvikMastra } from "@spurvik/sdk/mastra";
+import { provenanceOf, withSpurvik } from "spurvik-sdk";
+import { provenanceFromMetadata, spurvikMiddleware } from "spurvik-sdk/ai";
+import { withSpurvikMastra } from "spurvik-sdk/mastra";
 import {
   createSpurvikNeedsApproval,
   provenanceFromAgentsResponse,
   resolveAgentInterruptions,
   withSpurvikModel,
   withSpurvikModelProvider,
-} from "@spurvik/sdk/openai-agents";
+} from "spurvik-sdk/openai-agents";
 import {
   provenanceFromLangGraphState,
   resolveLangGraphInterrupts,
   spurvikInterrupt,
   withSpurvikLangGraph,
-} from "@spurvik/sdk/langgraph";
+} from "spurvik-sdk/langgraph";
 
 function liveExport(value: unknown, name: string): string {
   if (typeof value !== "function") {

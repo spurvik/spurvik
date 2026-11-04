@@ -6,13 +6,19 @@ import {
   createSignedApprovalLinks,
   dispatchHumanApprovalChannel,
   verifyChannelApprovalToken,
+  verifySignedChannelCallback,
   type HumanApprovalChannelConfig,
 } from "./channels.js";
 import { SpurvikConfigError } from "./errors.js";
 
 const SECRET = "release-1104-channel-secret-xyz";
 const T0 = 1_793_770_000;
-const req = { gateId: "gate_r1104", actionName: "db.delete_records", summary: "Delete 12 archived rows" };
+const req = {
+  gateId: "gate_r1104",
+  actionName: "db.delete_records",
+  summary: "Delete 12 archived rows",
+  callbackBaseUrl: "https://approvals.example/hitl/callback",
+};
 
 const VALID: HumanApprovalChannelConfig[] = [
   { type: "slack", webhookUrl: "https://hooks.slack.com/services/T0/B0/X0" },
@@ -37,21 +43,21 @@ const REQUIRED: Record<string, string[]> = {
   asana: ["accessToken", "projectGid"],
 };
 
-function expectedToken(decision: "approved" | "rejected", actionHmac: string, ts: number, secret = SECRET) {
+function expectedToken(decision: "approved" | "rejected", actionHmac: string, ts: number, nonce: string, secret = SECRET) {
   return createHmac("sha256", secret)
-    .update(`spurvik:art14:decision:v1|${req.gateId}|${actionHmac}|${decision}|${ts}`, "utf8")
+    .update(`spurvik:art14:decision:v1|${req.gateId}|${actionHmac}|${decision}|${ts}|${nonce}`, "utf8")
     .digest("hex");
 }
 
 describe("verifyChannelApprovalToken (independent HMAC computation)", () => {
   const links = createSignedApprovalLinks(req, SECRET, T0);
-  const base = { gateId: req.gateId, actionHmac: links.actionHmac, issuedAtUnix: T0, signingSecret: SECRET, nowUnixSeconds: T0 + 60 };
+  const base = { gateId: req.gateId, actionHmac: links.actionHmac, issuedAtUnix: T0, signingSecret: SECRET, nowUnixSeconds: T0 + 60, nonce: links.nonce };
 
   it("matches an independently computed HMAC-SHA256 and accepts it", () => {
     const actionHmac = createHmac("sha256", SECRET).update(`spurvik:art12:v1|${req.gateId}|${req.actionName}|`, "utf8").digest("hex");
     expect(links.actionHmac).toBe(actionHmac);
-    expect(links.approveToken).toBe(expectedToken("approved", actionHmac, T0));
-    expect(links.rejectToken).toBe(expectedToken("rejected", actionHmac, T0));
+    expect(links.approveToken).toBe(expectedToken("approved", actionHmac, T0, links.nonce));
+    expect(links.rejectToken).toBe(expectedToken("rejected", actionHmac, T0, links.nonce));
     expect(verifyChannelApprovalToken({ ...base, decision: "approved", signature: links.approveToken })).toBe(true);
     expect(verifyChannelApprovalToken({ ...base, decision: "rejected", signature: links.rejectToken })).toBe(true);
   });
@@ -73,9 +79,9 @@ describe("verifyChannelApprovalToken (independent HMAC computation)", () => {
     expect(verifyChannelApprovalToken({ ...base, actionHmac: other.actionHmac, decision: "approved", signature: other.approveToken })).toBe(false);
   });
 
-  it("rejects an expired token (default 24 h and custom window)", () => {
-    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 86_401, decision: "approved", signature: links.approveToken })).toBe(false);
-    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 86_400, decision: "approved", signature: links.approveToken })).toBe(true);
+  it("rejects an expired token (default 15 min and custom window)", () => {
+    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 901, decision: "approved", signature: links.approveToken })).toBe(false);
+    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 900, decision: "approved", signature: links.approveToken })).toBe(true);
     expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: 300, nowUnixSeconds: T0 + 301, decision: "approved", signature: links.approveToken })).toBe(false);
   });
 
@@ -106,6 +112,7 @@ describe("channel config validation (throw when no key is passed)", () => {
     it(`${ch.type}: a complete config builds an https request carrying the gate id`, () => {
       const built = buildChannelOutboundRequest(ch, req, links);
       expect(built.url).toMatch(/^https:\/\//);
+      expect(typeof built.body).toBe("string");
       expect(built.body).toContain(req.gateId);
     });
   }
@@ -146,12 +153,83 @@ describe("outbound payload safety", () => {
 
 describe("1.0.5 timestamp handling", () => {
   const links = createSignedApprovalLinks(req, SECRET, T0);
-  const base = { gateId: req.gateId, actionHmac: links.actionHmac, issuedAtUnix: T0, signingSecret: SECRET, decision: "approved" as const, signature: links.approveToken };
+  const base = { gateId: req.gateId, actionHmac: links.actionHmac, issuedAtUnix: T0, signingSecret: SECRET, decision: "approved" as const, signature: links.approveToken, nonce: links.nonce };
   it("rejects a token issued more than 5 minutes in the future", () => {
     expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 - 301 })).toBe(false);
     expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 - 300 })).toBe(true);
   });
   it("rejects a non-numeric issuedAt", () => {
     expect(verifyChannelApprovalToken({ ...base, issuedAtUnix: Number.NaN, nowUnixSeconds: T0 })).toBe(false);
+  });
+});
+
+describe("domain prefixes, legacy tokens, and verifySignedChannelCallback", () => {
+  const links = createSignedApprovalLinks(req, SECRET, T0);
+
+  it("pins spurvik:art12 and spurvik:art14 prefixes and still verifies a 1.0.4 token with no nonce", () => {
+    const actionHmac = createHmac("sha256", SECRET)
+      .update(`spurvik:art12:v1|${req.gateId}|${req.actionName}|`, "utf8")
+      .digest("hex");
+    expect(links.actionHmac).toBe(actionHmac);
+    const legacy = createHmac("sha256", SECRET)
+      .update(`spurvik:art14:decision:v1|${req.gateId}|${actionHmac}|approved|${T0}`, "utf8")
+      .digest("hex");
+    expect(
+      verifyChannelApprovalToken({
+        gateId: req.gateId,
+        actionHmac,
+        decision: "approved",
+        issuedAtUnix: T0,
+        signature: legacy,
+        signingSecret: SECRET,
+        nowUnixSeconds: T0 + 30,
+      }),
+    ).toBe(true);
+    const current = createHmac("sha256", SECRET)
+      .update(`spurvik:art14:decision:v1|${req.gateId}|${actionHmac}|approved|${T0}|${links.nonce}`, "utf8")
+      .digest("hex");
+    expect(links.approveToken).toBe(current);
+  });
+
+  it("rejects a secret with leading or trailing whitespace", () => {
+    expect(() => createSignedApprovalLinks(req, ` ${SECRET}`, T0)).toThrow(/whitespace/);
+    expect(() => createSignedApprovalLinks(req, `${SECRET}\n`, T0)).toThrow(/whitespace/);
+  });
+
+  it("throws when callbackBaseUrl is missing", () => {
+    const { callbackBaseUrl: _omit, ...without } = req;
+    expect(() => createSignedApprovalLinks(without, SECRET, T0)).toThrow(/callbackBaseUrl is required/);
+  });
+
+  it("verifySignedChannelCallback is an alias that returns false for a missing signature and does not throw", () => {
+    expect(
+      verifySignedChannelCallback({
+        gateId: req.gateId,
+        actionHmac: links.actionHmac,
+        decision: "approved",
+        issuedAtUnix: T0,
+        signature: undefined,
+        nonce: links.nonce,
+        signingSecret: "short",
+      }),
+    ).toBe(false);
+    const ok = verifySignedChannelCallback({
+      gateId: req.gateId,
+      actionHmac: links.actionHmac,
+      decision: "approved",
+      issuedAtUnix: T0,
+      signature: links.approveToken,
+      nonce: links.nonce,
+      signingSecret: SECRET,
+      nowUnixSeconds: T0 + 10,
+    });
+    expect(ok).toEqual({
+      ok: true,
+      decision: "approved",
+      gateId: req.gateId,
+      actionHmac: links.actionHmac,
+      issuedAtUnix: T0,
+      nonce: links.nonce,
+    });
   });
 });

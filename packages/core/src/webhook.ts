@@ -29,7 +29,7 @@ export interface WebhookCheck {
 
 /**
  * Check a HITL webhook signature. A match shows the payload still matches the
- * HMAC-SHA-256 signature made with your webhook secret. It is not a finding of legal compliance,
+ * HMAC-SHA-256 signature made with your webhook secret. It is not a finding that a system meets the Act,
  * and it does not mean the decision was lawful.
  */
 export async function verifyWebhookSignature(input: {

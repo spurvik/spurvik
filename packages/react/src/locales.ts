@@ -1,5 +1,5 @@
 /**
- * Default strings for the 24 official languages of the European Union.
+ * Default strings for all 24 EU languages.
  * Add another language with `registerDisclosureLocale`. Unknown codes fall back to English.
  * These strings support transparency notices. They are not legal advice.
  */
