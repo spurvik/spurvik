@@ -169,6 +169,15 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function assertSigningSecret(secret: string): void {
   if (typeof secret !== "string" || secret.length === 0) {
     throw new SpurvikConfigError("Channel approval secret is missing.");
@@ -431,7 +440,7 @@ export function buildChannelOutboundRequest(
           html: `<div style="font-family:sans-serif;background:#05080F;color:#F8FAFC;padding:24px;border-radius:12px;">
   <h2 style="margin:0 0 8px;color:#10B981;">${escapeHtml(title)}</h2>
   <p style="margin:0 0 16px;color:#CBD5E1;">${escapeHtml(request.summary)}</p>
-  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${shortHmac} · raw_prompt=0B</p>
+  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${escapeHtml(shortHmac)} · raw_prompt=0B</p>
   <div style="margin-top:20px;">
     <a href="${escapeHtml(links.approveUrl)}" style="background:#10B981;color:#05080F;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;margin-right:12px;">Approve Action</a>
     <a href="${escapeHtml(links.rejectUrl)}" style="background:#EF4444;color:#FFFFFF;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Block Agent</a>
