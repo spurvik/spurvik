@@ -10,60 +10,53 @@ Milestones 1–4, scoped to the EU market.
 
 | Piece | Role |
 | --- | --- |
-| `apps/web` | Next.js control plane, ingestion API, and operator console. |
 | `packages/sdk` | `withSpurvik()` wrapper for OpenAI, Anthropic, and Gemini-shaped clients, `spurvikMiddleware()` for the Vercel AI SDK, plus Mastra, OpenAI Agents, and LangGraph adapters. |
 | `packages/react` | Always-visible Article 50 labels, in all 24 official EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
 | `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, and marking-hook notes. Published on npm as `spurvik-mcp-server@1.0.2` (MIT). Workspace package `@spurvik/mcp` (`1.0.2`). |
 
-Features designed to support Article 12(3) logging for remote biometric identification systems (Annex III point 1(a); high-risk requirements apply from 2 December 2027) are in the control plane. Two-person confirmation is a product setting. It checks that two different member accounts confirmed the decision. Image marking support (`@spurvik/c2pa`) is a separate package under the MIT License. It stays private in this repository.
+Features designed to support Article 12(3) logging for remote biometric identification systems (Annex III point 1(a); high-risk requirements apply from 2 December 2027) are in the control plane. Two-person confirmation is a product setting. It checks that two different member accounts confirmed the decision. Image marking support is `packages/c2pa` (`@spurvik/c2pa`). That directory is in this repository. Its `package.json` sets `"private": true` and `"license": "MIT"`. It is not published on npm.
 
 ## Quickstart
 
-> **Licence.** `@spurvik/sdk`, `@spurvik/core`, `@spurvik/react`, `@spurvik/mcp`, and `@spurvik/c2pa` are licensed under the MIT License (Copyright (c) 2026 EyeTea Solutions ApS (CVR 37093378)) and are provided without warranty. The control plane in `apps/web` is not open source and is outside that grant: you may run it only under a design-partner or pilot agreement with EyeTea Solutions ApS. See **Trademark** below.
+> **Licence.** `packages/sdk` (published as `spurvik` and `spurvik-sdk`), `@spurvik/core`, `@spurvik/react`, and `@spurvik/mcp` are licensed under the MIT License (Copyright (c) 2026 EyeTea Solutions ApS (CVR 37093378)) and are provided without warranty. `packages/c2pa` (`@spurvik/c2pa`) is in this repository with `"private": true` and `"license": "MIT"`, and it is not published on npm. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it. See **Trademark** below.
 
 The full walkthrough, with expected output for every step, is in [`docs/quickstart.md`](docs/quickstart.md). Errors we hit while testing it are in [`docs/troubleshooting.md`](docs/troubleshooting.md). For a plain-language overview, see [`docs/onboarding-startups-smes.md`](docs/onboarding-startups-smes.md).
 
 Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.md`](docs/5-minute-quickstart.md), [`docs/sandbox-first-5-minutes.md`](docs/sandbox-first-5-minutes.md), [`docs/langgraph-quickstart.md`](docs/langgraph-quickstart.md), [`docs/hitl-approval-mapping.md`](docs/hitl-approval-mapping.md), [`docs/console-onboarding.md`](docs/console-onboarding.md), [`docs/adapters-quick-cards.md`](docs/adapters-quick-cards.md), [`docs/claude-code-plugin.md`](docs/claude-code-plugin.md), [`docs/faq-additions.md`](docs/faq-additions.md), [`docs/faq-sandbox-2x2.md`](docs/faq-sandbox-2x2.md), [`docs/faq-console-and-quickstart.md`](docs/faq-console-and-quickstart.md), [`docs/faq-hitl-and-plugin.md`](docs/faq-hitl-and-plugin.md), and [`docs/faq-art50-marking-and-pl-locale.md`](docs/faq-art50-marking-and-pl-locale.md).
 
-**Get the package.** Install the live MIT packages from npm, or build the `1.0.1` workspace packages from a clone of https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+**Get the package.** Install the live MIT packages from npm. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 (a) npm:
 
 ```bash
 npm install spurvik@1.0.3 spurvik-sdk@1.0.3
-npm install spurvik-mcp-server@1.0.2
 ```
 
-`spurvik` and `spurvik-sdk` publish the same SDK. `spurvik-mcp-server` is the local stdio MCP server. Import those packages as `spurvik` or `spurvik-sdk`. The example below uses the workspace name `@spurvik/sdk`.
+`spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
 
-(b) Workspace `1.0.1` from https://github.com/spurvik/spurvik (Node.js 22 or later, as in `engines`):
+(b) Local MCP server. `--root` is required in `spurvik-mcp-server@1.0.2`:
 
 ```bash
-git clone https://github.com/spurvik/spurvik.git spurvik
-cd spurvik
-pnpm install
-pnpm --filter "@spurvik/sdk..." build
-mkdir -p ../spurvik-packs
-(cd packages/core && pnpm pack --pack-destination ../../../spurvik-packs)
-(cd packages/sdk && pnpm pack --pack-destination ../../../spurvik-packs)
+npm i -D spurvik-mcp-server@1.0.2
+./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
 In your app (an ES module project, because the example uses top-level `await`):
 
 ```bash
 npm pkg set type=module
-npm install openai ../spurvik-packs/spurvik-core-1.0.1.tgz ../spurvik-packs/spurvik-sdk-1.0.1.tgz
+npm install openai spurvik@1.0.3
 ```
 
 **Wrap a call and check the record:**
 
 ```ts
 import OpenAI from "openai";
-import { provenanceOf, verifyProvenanceSignature, withSpurvik } from "@spurvik/sdk";
+import { provenanceOf, verifyProvenanceSignature, withSpurvik } from "spurvik";
 
 const ai = withSpurvik(new OpenAI(), {
-  apiKey: process.env.SPURVIK_API_KEY!, // spurvik_live_…, printed once by `pnpm db:seed`
+  apiKey: process.env.SPURVIK_API_KEY!, // spurvik_live_…
   signingSecret: process.env.SPURVIK_SIGNING_SECRET!,
   contentHash: { mode: "keyed", secret: process.env.SPURVIK_CONTENT_HASH_SECRET! },
   baseUrl: process.env.SPURVIK_BASE_URL!, // the SDK throws without it when NODE_ENV is production
@@ -88,11 +81,11 @@ await ai._spurvik.shutdown(); // scripts: send queued telemetry before exit
 
 `matches` is `true` when the signed fields match a signature made with that secret. Any change to a signed field makes the check return `false`, unless whoever changed it also re-signed it with the same secret. So a match shows that the signed fields still match a signature made with that secret. Anyone who holds the secret can make a matching signature, so limit who holds it.
 
-**Keys and environment variables.** The project API key has the form `spurvik_live_` plus at least 32 base64url characters. `pnpm db:seed` prints one for local use (43 characters after the prefix). It is sent as a Bearer token, and the server stores only its SHA-256 hash. `SPURVIK_SIGNING_SECRET` and `SPURVIK_CONTENT_HASH_SECRET` stay in the caller and are never sent to the control plane. Keep them: records signed with a lost secret can no longer be checked. None of these has a built-in default: the project key comes from your own `pnpm db:seed`, and the two secrets from your own configuration. The SDK reads none of these variables by itself; your code passes them in. `AEGIS_*` environment variables are read only by the control plane server (`apps/web`) in this release, with a deprecation warning. Keys issued as `aegis_live_` and `aegis_pub_` still authenticate. New keys use the Spurvik prefixes.
+**Keys and environment variables.** The project API key has the form `spurvik_live_` plus at least 32 base64url characters. It is sent as a Bearer token, and the server stores only its SHA-256 hash. `SPURVIK_SIGNING_SECRET` and `SPURVIK_CONTENT_HASH_SECRET` stay in the caller and are never sent to the control plane. Keep them: records signed with a lost secret can no longer be checked. None of these has a built-in default. The SDK reads none of these variables by itself; your code passes them in. `AEGIS_*` environment variables are read only by the control plane server in this release, with a deprecation warning. Keys issued as `aegis_live_` and `aegis_pub_` still authenticate. New keys use the Spurvik prefixes.
 
-`baseUrl` is the control plane you run. In production the SDK throws if it is omitted. Development and tests still default to `http://127.0.0.1:43123`.
+`baseUrl` is where SDK telemetry and the halt stream go. For an invited organisation, that address is `https://console.spurvik.com`. In production the SDK throws if it is omitted. Development and tests still default to `http://127.0.0.1:43123`.
 
-**If the control plane is unreachable,** the wrapped model call still succeeds and returns its record (except for `high_annex3`, which fails closed). In a short script the telemetry event is lost: `onTelemetryError` is called once, `await shutdown()` returns, and the process exits with code 0. A long-running process calls `onTelemetryError` once. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. With `high_annex3`, a halt check that times out throws `SpurvikOversightTimeoutError` (a `SpurvikHaltedError`), while an error response from the control plane throws `SpurvikApiError`, an API error that is a `SpurvikError`, not a `SpurvikHaltedError`; in both cases the provider is not called. See `docs/troubleshooting.md`. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
+**If `baseUrl` is unreachable,** the wrapped model call still succeeds and returns its record (except for `high_annex3`, which fails closed). In a short script the telemetry event is lost: `onTelemetryError` is called once, `await shutdown()` returns, and the process exits with code 0. A long-running process calls `onTelemetryError` once. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. With `high_annex3`, a halt check that times out throws `SpurvikOversightTimeoutError` (a `SpurvikHaltedError`), while an error response from the control plane throws `SpurvikApiError`, an API error that is a `SpurvikError`, not a `SpurvikHaltedError`; in both cases the provider is not called. See `docs/troubleshooting.md`. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
 
 `article50Disclosure` defaults to false. Set it to true only when you state that an Article 50(1) interaction notice is shown. The flag is configuration. It is not a finding that the notice was shown or that it is sufficient.
 
@@ -111,8 +104,8 @@ Article 12 (record-keeping) and Article 11 with Annex IV (technical documentatio
 | [Full quickstart](docs/quickstart.md) | Expected output for every step of the local walkthrough. |
 | [5-minute quickstart](docs/5-minute-quickstart.md) | Wrap one model call, keep the provenance record, and check its HMAC signature. |
 | [Sandbox first 5 minutes](docs/sandbox-first-5-minutes.md) | Public 2x2 sandbox cockpit before you set up keys. |
-| [Console onboarding](docs/console-onboarding.md) | Sandbox, hosted console, and a local control plane. |
-| [LangGraph quickstart](docs/langgraph-quickstart.md) | Wrap compiled LangGraph workflows (`@spurvik/sdk/langgraph`), read HMAC receipts, render `<AIDisclosureLabel />` (including Polish `locale="pl"` copy), and map `interrupt()` / `Command({ resume })` to `/api/v1/hitl`. |
+| [Console onboarding](docs/console-onboarding.md) | Sandbox and the hosted console. |
+| [LangGraph quickstart](docs/langgraph-quickstart.md) | Wrap compiled LangGraph workflows (`spurvik/langgraph`), read HMAC receipts, render `<AIDisclosureLabel />` (including Polish `locale="pl"` copy), and map `interrupt()` / `Command({ resume })` to `/api/v1/hitl`. |
 | [HITL approval mapping](docs/hitl-approval-mapping.md) | Map Vercel AI SDK `interrupted`, OpenAI Agents `needsApproval`, and LangGraph `interrupt()` into Spurvik's human-oversight queue. |
 | [Adapter quick cards](docs/adapters-quick-cards.md) | `withSpurvikMastra`, `withSpurvikModel` / `withSpurvikModelProvider`, and `withSpurvikLangGraph`. |
 | [Claude Code plugin](docs/claude-code-plugin.md) | `/spurvik:check`, `/spurvik:wrap`, and `/spurvik:engineering-summary`. |
@@ -126,7 +119,7 @@ Article 12 (record-keeping) and Article 11 with Annex IV (technical documentatio
 
 ## Provenance is not Article 50(2) marking
 
-`provenanceOf(res)` is exported from `@spurvik/sdk`. It reads a **provenance record**: timestamp, model id, keyed fingerprints, an Article 50(1) disclosure flag, the upstream marking status, and an HMAC-SHA-256 signature. `markingApplied` and `evidenceTrailerAttached` are inside that signature. The same value is on `res._spurvik_provenance`. `provenanceOf` also reads `_aegis_provenance` from earlier responses. Check the signature with `verifyProvenanceSignature`. A match shows the signed fields still match the HMAC-SHA-256 signature made with your signing secret. It does not show that a notice was shown, that output is marked, or that your system meets the Act.
+`provenanceOf(res)` is exported from `spurvik`. It reads a **provenance record**: timestamp, model id, keyed fingerprints, an Article 50(1) disclosure flag, the upstream marking status, and an HMAC-SHA-256 signature. `markingApplied` and `evidenceTrailerAttached` are inside that signature. The same value is on `res._spurvik_provenance`. `provenanceOf` also reads `_aegis_provenance` from earlier responses. Check the signature with `verifyProvenanceSignature`. A match shows the signed fields still match the HMAC-SHA-256 signature made with your signing secret. It does not show that a notice was shown, that output is marked, or that your system meets the Act.
 
 `withSpurvik` is the wrapper. The old `withCompliance` alias is removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `withAegis` is the previous product-name alias and is removed in the next release.
 
@@ -153,7 +146,7 @@ A fingerprint of text that relates to an identifiable person can still be person
 
 The telemetry body carries fingerprints, model version, temperature, and latency. `contentMarkingApplied` / `markingApplied` is true only when a C2PA manifest was embedded, a watermark hook changed the content, or the upstream status is `provider_confirmed` (the response or a marking header said a mark was present). It is false for a signed text trailer, a metadata hook, a mere request, a support-table inference, an unknown model, and a failed call. `evidenceTrailerAttached` records the trailer or metadata hook separately and is also inside the provenance signature. The status on the record is `upstreamMarking`: `requested` (a marking parameter was on the request), `provider_confirmed`, `not_requested` (the request or response said marking was off), `inferred` (the model id is on the dated support table and the SDK object had no signal), or `unknown`. Unknown is the default. This does not show the mark is robust, detectable or adequate under Art. 50(2). The previous ingest boolean name is still accepted for one minor version and stored as `contentMarkingApplied`. Rows sealed before that rename keep matching: the same boolean was hashed under the old field name. The ingestion route rejects prompt or output text.
 
-The methods `withSpurvik` records, and the ones it leaves alone, are listed in `packages/sdk/README.md`. Embeddings, image generation, speech, moderations, batches, and file uploads have no provenance record. Chat, messages, responses, Gemini `generateContent`, and Gemini chat `sendMessage` are wrapped, including the stream helpers covered in that table. `@spurvik/sdk/ai` exports `spurvikMiddleware` for `wrapLanguageModel`. `@spurvik/sdk/mastra` passes that middleware to `wrapLanguageModel` for a Mastra agent model. `@spurvik/sdk/openai-agents` wraps an Agents SDK `Model` and `ModelProvider`. A thrown provider call does not produce a record. Telemetry is queued and sent in batches, on `shutdown()`, and once as the process exits. A call does not flush the queue by itself.
+The methods `withSpurvik` records, and the ones it leaves alone, are listed in `packages/sdk/README.md`. Embeddings, image generation, speech, moderations, batches, and file uploads have no provenance record. Chat, messages, responses, Gemini `generateContent`, and Gemini chat `sendMessage` are wrapped, including the stream helpers covered in that table. `spurvik/ai` exports `spurvikMiddleware` for `wrapLanguageModel`. `spurvik/mastra` passes that middleware to `wrapLanguageModel` for a Mastra agent model. `spurvik/openai-agents` wraps an Agents SDK `Model` and `ModelProvider`. A thrown provider call does not produce a record. Telemetry is queued and sent in batches, on `shutdown()`, and once as the process exits. A call does not flush the queue by itself.
 
 The disclosure label does not write browser storage unless the integrator sets `beacon.consent` to true. The site operator obtains that consent. Without it, the label still renders and sends nothing. A server-side note that a page containing the label was served does not use the beacon.
 
@@ -161,7 +154,7 @@ The disclosure label does not write browser storage unless the integrator sets `
 
 A deployer that wraps a third-party model may rely on that provider's output marking only when it can show the marking works. `withSpurvik` (and the `withAegis` alias) records one signed evidence event per wrapped call. The event stores the provider, the model, the modality, marking settings the request and the response actually expose, and `upstreamMarking`. Settings are read only from flags and headers the SDK object carries (`watermark`, `synthid`, `c2pa`, provenance headers, and the same names inside `metadata`, `generationConfig`, or a `withResponse()` body). When the public SDK object has no such field, the status is `unknown`, including OpenAI text (no per-request parameter), Anthropic models the dated help-center table does not list, Gemini text, and Mistral. Cloud-partner routes (Bedrock, Vertex, Foundry, Azure) are not inferred from the first-party table. The support table in `packages/core/src/upstream-support.ts` is dated and lists a source URL on each row.
 
-The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. `verifyUpstreamMarkingEvidence` does that on the client. A match shows the payload still matches the HMAC-SHA-256 signature made with your signing secret. It is designed to support your EU AI Act work.
+The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. The published `spurvik@1.0.3` package does not export a function that checks this signature. It is designed to support your EU AI Act work.
 
 `packages/core/src/marking-registry.ts` lists OpenAI, Anthropic, Google, Mistral, and open-weight models for text, image, audio, and video. Each entry has a source URL and the date that source was read (`sourceReadOn`). Edit that list when a public page changes.
 
@@ -177,7 +170,7 @@ Article 14 requires more than an approve/reject gate for high-risk systems, incl
 - `submitHumanDecision(id, { status, reason })` records an API decision. `decisionSource` is `api`. The console sets `console`. Approve, reject, and override each require a reason. The reason stays on the decision row and is not an input to the record hash.
 - A final decision, and the first half of a two-person confirmation, appends a `human_decision` hash-chain row. That row stores the approval id, the status, and the source. Rows sealed before this field omit it, so their hashes still match.
 - `overrideHumanDecision(id, { reason })` records a human reversal. The caller is `reviewerToken`, not a free-text id.
-- `engageKillSwitch({ reason, actionName })` halts a whole project or one action, and `releaseKillSwitch({ reason, actionName })` releases it (leave out `actionName` for the whole project). Both need `reviewerToken` and send `x-spurvik-reviewer`. In the SDK, `reason` is optional for both. Always pass one:
+- `engageKillSwitch({ reason, actionName })` halts a whole project or one action, and `releaseKillSwitch({ reason, actionName })` releases it (leave out `actionName` for the whole project). Both need `reviewerToken` and send `x-spurvik-reviewer`. In the SDK, `reason` is optional for both.   Always pass one. Continuation of the quickstart `ai` binding above. This fragment is not a standalone file:
 
   ```ts
   await ai._spurvik.releaseKillSwitch({ reason: "Operator released the stop." });
@@ -206,7 +199,7 @@ For `high_annex3`, telemetry is not dropped when the queue is full. The SDK fsyn
 
 ## Run the SDK
 
-The SDK and MCP server are MIT and run in your own stack. The hosted console is at https://console.spurvik.com.
+The SDK and MCP server are MIT and run in your own stack.
 
 The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 
@@ -230,18 +223,18 @@ Audit rows are chained per project. The append takes a row lock on `audit_chain_
 
 ## Log retention
 
-Each organisation has a plan, shown on the project page:
+Retention periods are (planned). This repository does not apply them.
 
-| Plan | Default retention |
+| Plan | Default retention (planned) |
 | --- | --- |
 | Developer (free) | 30 days |
 | Team | 90 days |
 | Business | 12 months |
 | Enterprise | A per-project period, in days. Unset Enterprise projects keep 365 days until an owner sets one. |
 
-Business is the plan between Team and Enterprise. The plan applies to the whole organisation. For a project recorded as `high_annex3`, retention cannot go below six months. Until an owner confirms the risk tier, the project is treated as `high_annex3` for retention: logs are kept for at least six calendar months, and a recorded other law is not applied. Articles 19 and 26(6) require logs to be kept at least that long unless another law says otherwise. Once the tier is confirmed, an owner can record that other law, with a short note, and the floor is then not applied. Spurvik does not check that law. That is a product rule. It is not a finding that the project meets those articles.
+Business is the plan between Team and Enterprise. These rules are (planned). The plan would apply to the whole organisation. For a project recorded as `high_annex3`, the planned floor is six months. Until an owner confirms the risk tier, the planned rule treats the project as `high_annex3` for retention. Articles 19 and 26(6) require logs to be kept at least that long unless another law says otherwise. Once the tier is confirmed, an owner could record that other law, with a short note, and the floor would then not be applied. Spurvik does not check that law. That is a product rule. It is not a finding that the project meets those articles.
 
-`pnpm purge-logs` deletes a prefix of audit rows older than the project's period and writes a signed checkpoint of the last purged hash. Remaining rows are not rewritten, so their hashes still match, and the next append continues from the chain head. Schedule it daily. Set `SPURVIK_LOG_CHECKPOINT_SECRET` (at least 16 characters) and keep it: the ledger uses the same secret to check the checkpoint. The key is required in every mode. The app refuses to run a purge when that variable is missing or only whitespace, including when `SPURVIK_ALLOW_TEST_KEYS=1` is set. That flag is for local testing only, gives no integrity protection, and is refused when `NODE_ENV` or `VERCEL_ENV` is production. It does not sign a purge. Checkpoints signed with the old development fallback will not verify. Do not reuse any key or secret value from an earlier release. Expect those checkpoints to fail verification. A matching checkpoint shows that the checkpoint's fields (project, sequence number, that hash and the purge time) still match the HMAC-SHA-256 signature made with your checkpoint secret. It is not a finding that your system meets the Act. A purge is not erasure of the project.
+Purging a prefix of audit rows older than the project's period, and writing a signed checkpoint of the last purged hash, is a step the Spurvik operator runs on the hosted control plane. That purge is (planned). This repository does not include it, and it is not something you run from this tree. A matching checkpoint would show that the checkpoint's fields (project, sequence number, that hash and the purge time) still match the HMAC-SHA-256 signature made with the operator's checkpoint secret. It is not a finding that your system meets the Act. A purge is not erasure of the project.
 
 ## Project export and deletion
 
@@ -249,21 +242,27 @@ An organisation owner can download `GET /dashboard/projects/:id/export`. The JSO
 
 ## Where calls go
 
-The SDK and MCP server are MIT and run in your own stack. SDK telemetry and the halt stream go to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. The disclosure beacon goes to the endpoint you pass. Webhooks go to the project webhook URL. There is no licence ping, error reporter, update check, or analytics call. `SPURVIK_TELEMETRY` is ignored unless it is `off`, and `GET /api/v1/health` reports `vendorTelemetry: "off"`. There is no switch that turns a vendor sink on. The console uses the system font stack, so a build does not request a font host.
+SDK telemetry and the halt stream go to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. The disclosure beacon goes to the endpoint you pass. Webhooks go to the project webhook URL. There is no licence ping, error reporter, update check, or analytics call. `SPURVIK_TELEMETRY` is ignored unless it is `off`, and `GET /api/v1/health` reports `vendorTelemetry: "off"`. There is no switch that turns a vendor sink on. The console uses the system font stack, so a build does not request a font host.
 
 ## Disclosure labels
 
 ```tsx
 import { AIDisclosureLabel, AIDisclosureDetails } from "spurvik/react";
 
-<AIDisclosureLabel
-  notice="interaction" // or "generated" | "deepfake" | "public-interest"
-  presentation="inline" // pill; "block" is the default
-  locale="de" // 24 official EU languages, or registerDisclosureLocale
-  euIcon // optional Commission icon; always paired with visible text
-  beacon={{ endpoint: "http://127.0.0.1:43123/api/v1/disclosure", apiKey: process.env.NEXT_PUBLIC_SPURVIK_PUB_KEY! }}
-/>
-<AIDisclosureDetails riskTier="limited_art50" modelSummary="gpt-4o" provenance={{ signature: "unchecked" }} />
+export function DisclosureExample() {
+  return (
+    <>
+      <AIDisclosureLabel
+        notice="interaction" // or "generated" | "deepfake" | "public-interest"
+        presentation="inline" // pill; "block" is the default
+        locale="de" // 24 official EU languages, or registerDisclosureLocale
+        euIcon // optional Commission icon; always paired with visible text
+        beacon={{ endpoint: "https://your-endpoint.example/beacon", apiKey: process.env.NEXT_PUBLIC_SPURVIK_PUB_KEY! }}
+      />
+      <AIDisclosureDetails riskTier="limited_art50" modelSummary="gpt-4o" provenance={{ signature: "unchecked" }} />
+    </>
+  );
+}
 ```
 
 Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
@@ -274,7 +273,7 @@ The label text is in the page without a click. The dialog is supplementary. A be
 
 ## Operator console
 
-Organisation members sign in with an email and a scrypt password. `pnpm db:seed` prints a reviewer password and a reviewer token once. Any organisation member can halt or decide in the console. Deciding through the API needs a reviewer token, which only an organisation owner can issue. You choose who in your organisation does human oversight (Art. 26(2), for high-risk AI systems). Only an organisation owner can create, rotate, or revoke live and disclosure keys. A member can revoke their own reviewer token. Only an organisation owner can issue a reviewer token. You can set log retention, run the EU risk wizard, read the hash-chained log designed to support Article 12 record-keeping, read upstream marking coverage, decide the human-oversight queue, engage a stop, download **Annex IV technical documentation (draft)** as Markdown or PDF, and, as an owner, export or delete the project. The Data inventory page lists what an owner can export and what is withheld. There is no switching fee in this software.
+Organisation members sign in with an email and a scrypt password. Any organisation member can halt or decide in the console. Deciding through the API needs a reviewer token, which only an organisation owner can issue. You choose who in your organisation does human oversight (Art. 26(2), for high-risk AI systems). Only an organisation owner can create, rotate, or revoke live and disclosure keys. A member can revoke their own reviewer token. Only an organisation owner can issue a reviewer token. You can set log retention, run the EU risk wizard, read the hash-chained log designed to support Article 12 record-keeping, read upstream marking coverage, decide the human-oversight queue, engage a stop, download **Annex IV technical documentation (draft)** as Markdown or PDF, and, as an owner, export or delete the project. The Data inventory page lists what an owner can export and what is withheld. There is no switching fee in this software.
 
 The wizard asks whether the system is on the EU market, whether an Article 5 practice is Prohibited, which Annex III areas apply, and which Article 50 triggers apply. Prohibited answers do not produce an SDK snippet. Social scoring covers public and private actors (Article 5(1)(c)). Non-consensual intimate deepfakes (Article 5(1)(ba)) and generating child sexual abuse material (Article 5(1)(bb)) are included and apply from 2 December 2026. The recorded tier is your answer.
 
@@ -284,20 +283,18 @@ The Annex IV file is a draft assembled from project fields and ledger counts. Se
 
 Spurvik helps a team implement technical measures that map to parts of Articles 12, 14, and 50 and to the Annex III / Article 50 product taxonomy. Using it does not make a system conformant. It does not perform a conformity assessment, issue an EU declaration of conformity, apply CE marking, run a quality management system, or register a system in the EU database. The Annex IV download is a draft. The risk wizard records your answers. It labels Article 5 practices Prohibited. It does not decide that a use is high-risk under Article 6.
 
-Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does not claim that data stays in the EU. Security headers, rate limits, and secret handling are in `THREAT_MODEL.md` and `SECURITY.md`. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE` and `SPLIT.md`.
+This tree does not claim that data stays in the EU. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`) and synced to https://github.com/spurvik/spurvik; see `LICENSE`.
 
-## Starters
+## MCP server
 
-`templates/` and `integrations/` are 0.x starters. In this monorepo, `@spurvik/sdk` is workspace version `1.0.1`; the public npm release is `spurvik@1.0.3` and `spurvik-sdk@1.0.3` (MIT). The starters depend on the workspace package with `workspace:*`. Build them with `pnpm templates:build`.
-
-`@spurvik/sdk/ai` exports `spurvikMiddleware` for the Vercel AI SDK (`ai` 7). Pass it to `wrapLanguageModel`. It logs the call and attaches an HMAC provenance receipt. It does not mark content. A marking hook is the caller's.
+`spurvik/ai` exports `spurvikMiddleware` for the Vercel AI SDK (`ai` 7). Pass it to `wrapLanguageModel`. It logs the call and attaches an HMAC provenance receipt. It does not mark content. A marking hook is the caller's.
 
 | Piece | MCP setup |
 | --- | --- |
-| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this monorepo. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
-| `plugins/spurvik` | Claude Code plugin. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `.cursor/mcp.json` and `.vscode/mcp.json` run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. `apps/web` serves the stateless Streamable HTTP MCP route `/api/mcp`. |
+| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this repository. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
+| `plugins/spurvik` | Claude Code plugin. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
 
-`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this monorepo. Build the workspace package with `pnpm install` and then `pnpm --filter "@spurvik/mcp..." build`, and start `node packages/mcp/dist/index.js --root .`. Cursor and VS Code read `.cursor/mcp.json` and `.vscode/mcp.json`, which run `node ${workspaceFolder}/packages/mcp/dist/index.js --root ${workspaceFolder}`. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. `apps/web` also serves the stateless Streamable HTTP MCP route `/api/mcp`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
+`packages/mcp` (`@spurvik/mcp`) and `plugins/spurvik` expose the same four read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.2` (MIT); workspace package `@spurvik/mcp` stays `"private": true` at `1.0.2` in this repository. Install and start it with `npm i -D spurvik-mcp-server@1.0.2` and then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required in 1.0.2. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `@spurvik/mcp` 1.0.2 via `node packages/mcp/scripts/bundle-plugin.mjs`. The tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
 
 ## Still open
 
@@ -306,4 +303,4 @@ Deploy notes and the environment checklist are in `DEPLOY.md`. This tree does no
 - **Article 5.** Prohibited practices are not a risk-tier value. The wizard shows an SDK setup when the answers produce a tier. It shows "No SDK setup is offered for this answer set." when the answers are Prohibited or outside the EU. An unanswered form shows neither. The wizard does not block a caller who ignores it.
 - **Annex I.** Product-embedded systems follow 2 August 2028 and are not a separate tier.
 - **Shared limits.** The ingestion rate limit and the halt SSE bus are single-process.
-- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`, as scoped in `NOTICE`. Starter folders under `templates/` and `integrations/` carry the same MIT text. Those workspace packages and starters stay `"private": true` at `1.0.1`. `apps/web` is outside that grant. See `SPLIT.md`.
+- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`. Those workspace packages stay `"private": true`. Published versions are `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
