@@ -123,6 +123,15 @@ export interface ChannelDispatchReceipt {
 
 const MIN_SECRET_LENGTH = 16;
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function assertSigningSecret(secret: string): void {
   if (typeof secret !== "string" || secret.trim().length < MIN_SECRET_LENGTH) {
     throw new SpurvikConfigError(
@@ -294,12 +303,12 @@ export function buildChannelOutboundRequest(
           subject: `${title} — Human approval required`,
           text: `${title}\n\n${request.summary}\nGate ID: ${request.gateId}\nHMAC-SHA256: ${links.actionHmac}\n\nApprove: ${links.approveUrl}\nBlock: ${links.rejectUrl}`,
           html: `<div style="font-family:sans-serif;background:#05080F;color:#F8FAFC;padding:24px;border-radius:12px;">
-  <h2 style="margin:0 0 8px;color:#10B981;">${title}</h2>
-  <p style="margin:0 0 16px;color:#CBD5E1;">${request.summary}</p>
-  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${request.gateId} · hmac=${shortHmac} · raw_prompt=0B</p>
+  <h2 style="margin:0 0 8px;color:#10B981;">${escapeHtml(title)}</h2>
+  <p style="margin:0 0 16px;color:#CBD5E1;">${escapeHtml(request.summary)}</p>
+  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${escapeHtml(shortHmac)} · raw_prompt=0B</p>
   <div style="margin-top:20px;">
-    <a href="${links.approveUrl}" style="background:#10B981;color:#05080F;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;margin-right:12px;">Approve Action</a>
-    <a href="${links.rejectUrl}" style="background:#EF4444;color:#FFFFFF;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Block Agent</a>
+    <a href="${escapeHtml(links.approveUrl)}" style="background:#10B981;color:#05080F;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;margin-right:12px;">Approve Action</a>
+    <a href="${escapeHtml(links.rejectUrl)}" style="background:#EF4444;color:#FFFFFF;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Block Agent</a>
   </div>
 </div>`,
         }),
