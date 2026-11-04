@@ -585,14 +585,14 @@ function applyMarkedOutput(response: ModelResponse, marked: string): ModelRespon
   let replaced = false;
   const output = response.output.map((item) => {
     if (replaced || !("role" in item) || item.role !== "assistant" || !Array.isArray(item.content)) return item;
-    const content = item.content.map((part) => {
+    const content = (item.content as Array<Record<string, unknown>>).map((part) => {
       if (replaced || part.type !== "output_text") return part;
       replaced = true;
       return { ...part, text: marked };
     });
     return { ...item, content };
   });
-  return { ...response, output };
+  return { ...response, output: output as ModelResponse["output"] };
 }
 
 function withReceipt(response: ModelResponse, provenance: SpurvikProvenance, apply: boolean): ModelResponse {
