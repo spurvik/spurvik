@@ -92,10 +92,13 @@ export async function executeSpurvikWorkflowStep(
   const systemName = input.systemName?.trim() || "AI system";
 
   if (input.operation === "art50_disclosure") {
+    if (typeof input.outputText !== "string") {
+      throw new Error("art50_disclosure requires the AI output text. The output field was missing.");
+    }
     const notice =
       input.noticeText?.trim() ||
       `You are interacting with an AI system (${systemName}). This notice is designed to support transparency about that interaction.`;
-    const body = input.outputText ?? "";
+    const body = input.outputText;
     return {
       operation: "art50_disclosure",
       systemName,

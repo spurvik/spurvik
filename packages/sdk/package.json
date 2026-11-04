@@ -5,6 +5,10 @@
   "description": "Runtime wrapper designed to support EU AI Act record-keeping, human oversight, and transparency work. It does not by itself mean a system meets the Act.",
   "author": "EyeTea Solutions ApS",
   "license": "MIT",
+  "homepage": "https://spurvik.com",
+  "engines": {
+    "node": ">=20"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/spurvik/spurvik.git",
@@ -71,7 +75,9 @@
     "@langchain/langgraph": "^1.0.0",
     "@mastra/core": "^1.79.0",
     "@openai/agents": "^0.21.0",
-    "ai": "^7.0.0"
+    "ai": "^7.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
     "@mastra/core": {
@@ -84,6 +90,12 @@
       "optional": true
     },
     "ai": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
       "optional": true
     }
   },

@@ -46,24 +46,35 @@ describe("SpurvikEuAiActGuard.execute", () => {
     await assert.rejects(() => node.execute.call(context), /whitespace/);
   });
 
-  it("adds a notice and does not echo promptText", async () => {
+  it("adds a notice to outputField and the prompt marker appears 0 times", async () => {
     const context = ctx(
       {
         operation: "art50_disclosure",
         systemName: "Support bot",
-        inputField: "outputText",
+        inputField: "promptText",
+        outputField: "outputText",
         noticeText: "You are interacting with an AI system.",
+        passThroughFields: "ticketId,promptText",
       },
       { signingSecret: SECRET },
-      [{ json: { promptText: PROMPT, outputText: "Invoice updated." } }],
+      [{ json: { promptText: PROMPT, outputText: "Invoice updated.", ticketId: "T-9" } }],
     );
     const [out] = await node.execute.call(context);
     const body = JSON.stringify(out);
-    assert.equal(body.includes(PROMPT), false);
+    assert.equal(body.split(PROMPT).length - 1, 0);
+    assert.equal(out[0].json.ticketId, "T-9");
     assert.match(out[0].json.spurvik.disclosedOutputText, /Invoice updated\./);
     assert.match(out[0].json.spurvik.art50Notice, /interacting with an AI system/);
     assert.equal(out[0].json.spurvik.art12Record, null);
-    assert.equal(out[0].json.promptText, undefined);
+  });
+
+  it("throws when the art50 output field is missing", async () => {
+    const context = ctx(
+      { operation: "art50_disclosure", outputField: "outputText", systemName: "Support bot" },
+      { signingSecret: SECRET },
+      [{ json: { promptText: PROMPT } }],
+    );
+    await assert.rejects(() => node.execute.call(context), /outputText/);
   });
 
   it("records an HMAC-SHA256 digest that matches node:crypto and omits the prompt", async () => {

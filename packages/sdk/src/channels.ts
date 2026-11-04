@@ -22,7 +22,10 @@ export interface HumanChannelActionRequest {
   gateId: string;
   /** Deterministic action name (e.g. `"stripe.refunds.create"` or `"db.delete_workspace"`). */
   actionName: string;
-  /** Short, non-PII summary of the proposed action (raw prompts are never sent or logged). */
+  /**
+   * Short summary sent to the channel as provided.
+   * The SDK does not add the prompt. If the summary itself contains prompt text, that text is sent.
+   */
   summary: string;
   /** Optional pre-hashed or structured non-PII metadata (e.g. `{ amountEur: 240, currency: "EUR" }`). */
   context?: Record<string, string | number | boolean>;
@@ -128,8 +131,10 @@ export interface ChannelDispatchReceipt {
 
 const MIN_SECRET_LENGTH = 16;
 const MAX_CLOCK_SKEW_SECONDS = 300;
-/** Default lifetime of an approval link. A link can be reused until this window ends. */
-const DEFAULT_LINK_MAX_AGE_SECONDS = 900;
+/** Default lifetime of an approval link, same as 1.0.4. A link can be reused until this window ends. */
+const DEFAULT_LINK_MAX_AGE_SECONDS = 86_400;
+/** Upper bound for a caller-supplied maxAgeSeconds. Longer values use this cap. */
+const MAX_LINK_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
 const REQUIRED_CHANNEL_FIELDS: { [K in HumanApprovalChannelType]: string[] } = {
   slack: ["webhookUrl"],
@@ -169,13 +174,9 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+function resolveMaxAgeSeconds(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return DEFAULT_LINK_MAX_AGE_SECONDS;
+  return Math.min(value, MAX_LINK_MAX_AGE_SECONDS);
 }
 
 function assertSigningSecret(secret: string): void {
@@ -276,7 +277,7 @@ export function verifyChannelApprovalToken(params: {
 }): boolean {
   if (typeof params.signature !== "string") return false;
   assertSigningSecret(params.signingSecret);
-  const maxAge = params.maxAgeSeconds ?? DEFAULT_LINK_MAX_AGE_SECONDS;
+  const maxAge = resolveMaxAgeSeconds(params.maxAgeSeconds);
   const now = params.nowUnixSeconds ?? Math.floor(Date.now() / 1000);
   if (!Number.isFinite(params.issuedAtUnix)) return false;
   if (now - params.issuedAtUnix > maxAge) return false;
@@ -306,9 +307,10 @@ export interface SignedChannelCallbackResult {
 }
 
 /**
- * Alias of `verifyChannelApprovalToken` added in 1.0.5.
- * Checks Spurvik's own approval-link token and returns `{ ok, decision, ... }` or `false`.
- * A missing signature returns `false` and does not throw.
+ * Checks Spurvik's own approval-link token.
+ * Returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when the token matches.
+ * Returns `false` when it does not, including when `signature` is missing or not a string.
+ * A missing signature does not throw. A missing or too-short signing secret still throws.
  * This does not verify a Slack, Telegram, Discord, or other platform webhook signature.
  */
 export function verifySignedChannelCallback(input: {
@@ -440,7 +442,7 @@ export function buildChannelOutboundRequest(
           html: `<div style="font-family:sans-serif;background:#05080F;color:#F8FAFC;padding:24px;border-radius:12px;">
   <h2 style="margin:0 0 8px;color:#10B981;">${escapeHtml(title)}</h2>
   <p style="margin:0 0 16px;color:#CBD5E1;">${escapeHtml(request.summary)}</p>
-  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${escapeHtml(shortHmac)} · raw_prompt=0B</p>
+  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${escapeHtml(shortHmac)}</p>
   <div style="margin-top:20px;">
     <a href="${escapeHtml(links.approveUrl)}" style="background:#10B981;color:#05080F;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;margin-right:12px;">Approve Action</a>
     <a href="${escapeHtml(links.rejectUrl)}" style="background:#EF4444;color:#FFFFFF;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Block Agent</a>
@@ -606,29 +608,34 @@ export async function dispatchHumanApprovalChannel(
   }
 
   let externalId: string | null = null;
-  let graphqlErrors = 0;
+  let notSent: string | null = null;
   try {
     const data = (await response.json()) as Record<string, unknown>;
     if (Array.isArray(data?.errors) && data.errors.length > 0) {
-      graphqlErrors = data.errors.length;
-    } else if (typeof data?.id === "string") externalId = data.id;
-    else if (typeof (data?.result as { message_id?: number } | undefined)?.message_id === "number") {
-      externalId = String((data.result as { message_id: number }).message_id);
-    } else if (
-      typeof (data?.data as { issueCreate?: { issue?: { id?: string } } } | undefined)?.issueCreate?.issue?.id ===
-      "string"
-    ) {
-      externalId = (data.data as { issueCreate: { issue: { id: string } } }).issueCreate.issue.id;
-    } else if (typeof (data?.data as { gid?: string } | undefined)?.gid === "string") {
-      externalId = (data.data as { gid: string }).gid;
-    } else if (typeof (data?.data as { create_item?: { id?: string } } | undefined)?.create_item?.id === "string") {
-      externalId = (data.data as { create_item: { id: string } }).create_item.id;
+      notSent = `Channel dispatch (${channel.type}) returned ${data.errors.length} GraphQL error(s) with HTTP ${response.status}.`;
+    } else if (data?.error_code !== undefined && data.error_code !== null && String(data.error_code).length > 0) {
+      notSent = `Channel dispatch (${channel.type}) was not sent (error_code ${String(data.error_code)}) with HTTP ${response.status}.`;
+    } else {
+      const issueCreate = (data?.data as { issueCreate?: { success?: boolean; issue?: { id?: string } } } | undefined)
+        ?.issueCreate;
+      if (issueCreate && issueCreate.success === false) {
+        notSent = `Channel dispatch (${channel.type}) was not sent (success is false) with HTTP ${response.status}.`;
+      } else if (typeof data?.id === "string") externalId = data.id;
+      else if (typeof (data?.result as { message_id?: number } | undefined)?.message_id === "number") {
+        externalId = String((data.result as { message_id: number }).message_id);
+      } else if (typeof issueCreate?.issue?.id === "string") {
+        externalId = issueCreate.issue.id;
+      } else if (typeof (data?.data as { gid?: string } | undefined)?.gid === "string") {
+        externalId = (data.data as { gid: string }).gid;
+      } else if (typeof (data?.data as { create_item?: { id?: string } } | undefined)?.create_item?.id === "string") {
+        externalId = (data.data as { create_item: { id: string } }).create_item.id;
+      }
     }
   } catch {
     // Non-JSON responses (e.g. Slack `"ok"` text) are valid.
   }
-  if (graphqlErrors > 0) {
-    throw new Error(`Channel dispatch (${channel.type}) returned ${graphqlErrors} GraphQL error(s) with HTTP ${response.status}.`);
+  if (notSent) {
+    throw new Error(notSent);
   }
 
   return {

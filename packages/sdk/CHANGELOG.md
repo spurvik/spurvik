@@ -8,12 +8,14 @@ Fixes to the `spurvik/channels` functions shipped in 1.0.4. Published as `spurvi
 - The email HTML escapes the action title, summary, gate ID and links. In 1.0.4 the summary was inserted as raw HTML.
 - Linear and Monday.com GraphQL replies that carry an `errors` array throw, even with HTTP 200. In 1.0.4 they were reported as sent.
 - `verifyChannelApprovalToken` returns `false` when the signature is not a string (for example a missing `sig` query parameter). In 1.0.4 it threw a `TypeError`.
-- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. The default validity is 15 minutes (it was 24 hours in 1.0.4).
+- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. The default validity stays 24 hours (86400 seconds). `maxAgeSeconds: 900` is a 15-minute window. A non-finite, NaN, or non-positive `maxAgeSeconds` uses the 24-hour default. Values above 7 days are capped at 7 days.
 - Monday.com: the dispatch reads the created item id. The item carries the gate ID in its name. It does not carry the Approve / Block links.
 - `callbackBaseUrl` is required. The SDK does not default to the console HITL create route, which accepts POST, not GET link clicks.
 - New links include a nonce. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat.
 - The channel approval secret is rejected when it is missing, shorter than 16 characters, or has leading or trailing whitespace. The error text does not cite the AI Act. HMAC domain prefixes are unchanged.
-- From 1.0.5, `verifySignedChannelCallback` is an alias of `verifyChannelApprovalToken`. It returns `{ ok, decision, ... }` or `false`. A missing signature returns `false` and does not throw. It checks Spurvik's own approval-link token. It does not verify a platform webhook signature.
+- From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when Spurvik's own approval-link token matches, and `false` otherwise. A missing signature returns `false` and does not throw. It does not verify a platform webhook signature.
+- Linear `issueCreate.success: false` and a Monday.com `error_code` are not treated as sent.
+- `src/mastra.types.ts` is excluded from `tsc --noEmit`. `@mastra/core` 1.79.0 uses a nested `@ai-sdk/provider` type identity, so the assignability checks in that file do not typecheck. The file is not part of the published build.
 - `buildChannelOutboundRequest().body` is a JSON string.
 
 ## n8n-nodes-spurvik 1.0.2

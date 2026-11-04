@@ -71,9 +71,18 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "inputField",
       type: "string",
       default: "promptText",
-      displayOptions: { show: { operation: ["art50_disclosure", "art12_hmac_log"] } },
+      displayOptions: { show: { operation: ["art12_hmac_log"] } },
       description:
-        "Name of the incoming JSON field. The notice operation returns that text with a notice. The digest operation hashes it and does not return it.",
+        "Name of the incoming JSON field to digest. The digest is HMAC-SHA256 of spurvik:workflow:input:v1| plus that field. The field value is not returned.",
+    },
+    {
+      displayName: "Output Field",
+      name: "outputField",
+      type: "string",
+      default: "outputText",
+      displayOptions: { show: { operation: ["art50_disclosure"] } },
+      description:
+        "Name of the incoming JSON field that holds the AI output. The notice is prepended to that field. It does not read the prompt field. The node throws if this field is missing.",
     },
     {
       displayName: "Notice Text",
@@ -164,7 +173,8 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "passThroughFields",
       type: "string",
       default: "",
-      description: "Comma-separated incoming JSON fields to copy. promptText and other prompt fields are never copied.",
+      description:
+        "The notice operation reads outputField (default outputText) and throws if that field is missing. It does not read the prompt field. Output is { spurvik: result } plus explicitly named non-prompt fields. promptText is never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
     },
   ],
 };
@@ -280,20 +290,26 @@ export class SpurvikEuAiActGuard implements INodeType {
       const operation = String(this.getNodeParameter("operation", i, "art50_disclosure")) as SpurvikWorkflowOperation;
       const systemName = String(this.getNodeParameter("systemName", i, "AI system"));
       const inputField = String(this.getNodeParameter("inputField", i, "promptText"));
-      const fieldValue = item[inputField];
-      const text = typeof fieldValue === "string" ? fieldValue : fieldValue == null ? "" : String(fieldValue);
 
       let stepInput: SpurvikWorkflowNodeInput;
       if (operation === "art50_disclosure") {
+        const outputField = String(this.getNodeParameter("outputField", i, "outputText"));
+        if (!Object.prototype.hasOwnProperty.call(item, outputField) || typeof item[outputField] !== "string") {
+          throw new Error(
+            `art50_disclosure requires a string field "${outputField}" on the incoming item. The notice is applied to the AI output, not the prompt.`,
+          );
+        }
         const noticeText = String(this.getNodeParameter("noticeText", i, ""));
         stepInput = {
           operation,
           hmacSecret: signingSecret,
           systemName,
-          outputText: text,
+          outputText: item[outputField] as string,
           noticeText,
         };
       } else if (operation === "art12_hmac_log") {
+        const fieldValue = item[inputField];
+        const text = typeof fieldValue === "string" ? fieldValue : fieldValue == null ? "" : String(fieldValue);
         const previous = item.previousRecordHash;
         stepInput = {
           operation,

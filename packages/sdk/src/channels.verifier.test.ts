@@ -79,10 +79,23 @@ describe("verifyChannelApprovalToken (independent HMAC computation)", () => {
     expect(verifyChannelApprovalToken({ ...base, actionHmac: other.actionHmac, decision: "approved", signature: other.approveToken })).toBe(false);
   });
 
-  it("rejects an expired token (default 15 min and custom window)", () => {
-    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 901, decision: "approved", signature: links.approveToken })).toBe(false);
-    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 900, decision: "approved", signature: links.approveToken })).toBe(true);
+  it("rejects an expired token (default 24 h, same as 1.0.4, and a custom window)", () => {
+    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 86_401, decision: "approved", signature: links.approveToken })).toBe(false);
+    expect(verifyChannelApprovalToken({ ...base, nowUnixSeconds: T0 + 86_400, decision: "approved", signature: links.approveToken })).toBe(true);
+    expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: 900, nowUnixSeconds: T0 + 901, decision: "approved", signature: links.approveToken })).toBe(false);
+    expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: 900, nowUnixSeconds: T0 + 900, decision: "approved", signature: links.approveToken })).toBe(true);
     expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: 300, nowUnixSeconds: T0 + 301, decision: "approved", signature: links.approveToken })).toBe(false);
+  });
+
+  it("uses the 24 h default when maxAge is NaN, Infinity, zero, or negative, and caps at 7 days", () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0, -1]) {
+      expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: bad, nowUnixSeconds: T0 + 86_400, decision: "approved", signature: links.approveToken })).toBe(true);
+      expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: bad, nowUnixSeconds: T0 + 86_401, decision: "approved", signature: links.approveToken })).toBe(false);
+    }
+    const eightDays = 8 * 24 * 60 * 60;
+    const sevenDays = 7 * 24 * 60 * 60;
+    expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: eightDays, nowUnixSeconds: T0 + sevenDays, decision: "approved", signature: links.approveToken })).toBe(true);
+    expect(verifyChannelApprovalToken({ ...base, maxAgeSeconds: eightDays, nowUnixSeconds: T0 + sevenDays + 1, decision: "approved", signature: links.approveToken })).toBe(false);
   });
 
   it("throws when the signing secret is missing or short", () => {
@@ -136,6 +149,18 @@ describe("outbound payload safety", () => {
       new Response(JSON.stringify({ errors: [{ message: "bad team" }] }), { status: 200 })) as typeof fetch;
     await expect(dispatchHumanApprovalChannel(VALID[5]!, req, { signingSecret: SECRET, fetchImpl })).rejects.toThrow(/GraphQL/);
     await expect(dispatchHumanApprovalChannel(VALID[7]!, req, { signingSecret: SECRET, fetchImpl })).rejects.toThrow(/GraphQL/);
+  });
+
+  it("throws when Linear reports success false", async () => {
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ data: { issueCreate: { success: false, issue: null } } }), { status: 200 })) as typeof fetch;
+    await expect(dispatchHumanApprovalChannel(VALID[5]!, req, { signingSecret: SECRET, fetchImpl })).rejects.toThrow(/success is false/);
+  });
+
+  it("throws when Monday returns a legacy error_code", async () => {
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ error_code: "InvalidColumnIdException", error_message: "no" }), { status: 200 })) as typeof fetch;
+    await expect(dispatchHumanApprovalChannel(VALID[7]!, req, { signingSecret: SECRET, fetchImpl })).rejects.toThrow(/error_code/);
   });
 
   it("reads the Monday create_item id", async () => {

@@ -9,7 +9,7 @@ export default defineConfig({
   outDir,
   dts: true,
   clean: true,
-  sourcemap: true,
+  sourcemap: false,
   splitting: true,
   target: "es2022",
   platform: "neutral",
