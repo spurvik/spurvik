@@ -30,6 +30,7 @@ async function main() {
           },
         ]
       : []),
+    // Email (Resend): use 1.0.5 once released (planned).
     ...(process.env.RESEND_API_KEY && process.env.APPROVAL_EMAIL_TO
       ? [
           {
@@ -69,6 +70,7 @@ async function main() {
     throw new Error("Approval link is missing a decision.");
   }
 
+  // Checks Spurvik's own approval-link token. Checking each platform's request signature is the integrator's job.
   const matches = verifyChannelApprovalToken({
     gateId: url.searchParams.get("gateId") ?? "",
     actionHmac: url.searchParams.get("hmac") ?? "",
@@ -77,7 +79,7 @@ async function main() {
     signature: url.searchParams.get("sig") ?? "",
     signingSecret,
   });
-  console.log("Callback signature matches:", matches);
+  console.log("Spurvik approval-link token matches:", matches);
 }
 
 main().catch(console.error);

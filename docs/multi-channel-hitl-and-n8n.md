@@ -6,10 +6,10 @@
 
 ## 1. Universal 9-Channel `ask_human()` Approval Router (EU AI Act Art. 14)
 
-Drop a deterministic human-in-the-loop gate in front of any agent tool that moves money, modifies contracts or permissions, deletes records, or sends external messages — and fan out signed **Approve / Block** actions to the tools your team already uses:
+Drop a deterministic human-in-the-loop gate in front of any agent tool that moves money, modifies contracts or permissions, deletes records, or sends external messages, and send **Approve / Block** links that carry Spurvik's own approval-link token. `verifyChannelApprovalToken` checks only that token. Checking each platform's request signature is the integrator's job.
 
 - **Chat & Messaging**: `slack`, `telegram`, `discord`, `teams` (Microsoft Teams Adaptive Card)
-- **Email**: `email` (Resend transactional HTML approval card)
+- **Email**: `email` (Resend). Use 1.0.5 once released (planned).
 - **Issue & Work Trackers**: `linear` (GraphQL `issueCreate`), `jira` (REST v3 issue), `monday` (GraphQL `create_item`), `asana` (REST task)
 
 ### Quickstart (`spurvik` / `spurvik/channels`)
@@ -38,7 +38,7 @@ const hitlRouter = createMultiChannelApprovalRouter({
       teamId: process.env.LINEAR_TEAM_ID!,
     },
     {
-      type: "email",
+      type: "email", // use 1.0.5 once released (planned)
       resendApiKey: process.env.RESEND_API_KEY!,
       from: "approvals@your-company.eu",
       to: "ops-approvals@your-company.eu",
@@ -58,9 +58,9 @@ console.log(links.actionHmac);
 console.log(receipts);
 ```
 
-### Constant-Time Callback Verification
+### Spurvik approval-link token
 
-When a person opens an **Approve** or **Block** link from Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, or Asana, check it with `verifyChannelApprovalToken`. Monday.com creates an item for the request and does not send those links.
+When a person opens an **Approve** or **Block** link from Slack, Telegram, Discord, Microsoft Teams, Linear, Jira, or Asana, check Spurvik's own approval-link token with `verifyChannelApprovalToken`. **Email (Resend)**: use 1.0.5 once released (planned). Monday.com creates an item for the request and does not send those links. Checking each platform's request signature is the integrator's job.
 
 ```ts
 const decision = req.query.decision;
@@ -78,7 +78,7 @@ const matches = verifyChannelApprovalToken({
 });
 
 if (!matches) {
-  throw new Error("Callback signature does not match.");
+  throw new Error("Spurvik approval-link token does not match.");
 }
 ```
 
@@ -90,7 +90,7 @@ For operations and automation teams building AI workflows in **n8n** or **Make.c
 
 1. **Art. 50(1) AI Interaction Notice**: Automatically injects localized disclosure headers (`EN`, `DE`, `DA`, `FR`) into outbound AI responses.
 2. **HMAC-SHA256 record**: Logs the call as an HMAC-SHA256 digest in place of the raw prompt text, designed to support Article 12 record-keeping.
-3. **`ask_human()` gate step**: Sends Approve / Block links to Slack, Telegram, Email, Discord, Microsoft Teams, Linear, Jira, or Asana, designed to support Article 14 human oversight. Monday.com creates an item for the request.
+3. **`ask_human()` gate step**: Sends Approve / Block links that carry Spurvik's own approval-link token to Slack, Telegram, Discord, Microsoft Teams, Linear, Jira, or Asana, designed to support Article 14 human oversight. **Email (Resend)**: use 1.0.5 once released (planned). Monday.com creates an item for the request. `verifyChannelApprovalToken` checks only that Spurvik token. Checking each platform's request signature is the integrator's job.
 
 - **n8n Node Source**: [`packages/n8n-nodes-spurvik/src/index.ts`](../packages/n8n-nodes-spurvik/src/index.ts)
 - **Make.com Importable Blueprint**: [`packages/n8n-nodes-spurvik/make-com-blueprint.json`](../packages/n8n-nodes-spurvik/make-com-blueprint.json)
