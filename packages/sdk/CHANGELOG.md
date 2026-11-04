@@ -1,5 +1,20 @@
 # @spurvik/sdk
 
+## 1.0.5 — 2026-11-04
+
+Fixes to the `spurvik/channels` functions shipped in 1.0.4. Published as `spurvik@1.0.5` and `spurvik-sdk@1.0.5` (same build). No exports were removed.
+
+- Each channel throws `SpurvikConfigError` when a required credential or target (for example `webhookUrl`, `botToken`, `resendApiKey`, `apiKey`) is missing or blank. In 1.0.4 the request went out with `undefined` in the URL or header.
+- The email HTML escapes the action title, summary, gate ID and links. In 1.0.4 the summary was inserted as raw HTML.
+- Linear and Monday.com GraphQL replies that carry an `errors` array throw, even with HTTP 200. In 1.0.4 they were reported as sent.
+- `verifyChannelApprovalToken` returns `false` when the signature is not a string (for example a missing `sig` query parameter). In 1.0.4 it threw a `TypeError`.
+- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. Expiry is unchanged (default 24 hours).
+- Monday.com: the dispatch reads the created item id. The item carries the gate ID in its name. It does not carry the Approve / Block links.
+
+## 1.0.4 — 2026-11-04
+
+Published to npm as `spurvik-sdk@1.0.4`. New `spurvik/channels` entry, also re-exported from `spurvik`: `createSignedApprovalLinks`, `verifyChannelApprovalToken`, `buildChannelOutboundRequest`, `dispatchHumanApprovalChannel` and `createMultiChannelApprovalRouter`. These functions use `node:crypto`.
+
 ## 0.1.1 — 2026-10-24
 
 This note is 0.1.1. The package version stays 1.0.1. That is intended.
