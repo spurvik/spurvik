@@ -1,6 +1,6 @@
 # Mastra & OpenAI Agents SDK — Adapter Quick-Cards
 
-> **Applies to:** `spurvik` `main` (`0e9cc89` / `d18dfba`, `spurvik` `1.0.3` ).
+> Applies to `spurvik@1.0.3`.
 >
 > **Status.** Public MIT packages: `spurvik@1.0.3` and `spurvik-sdk@1.0.3` from https://github.com/spurvik/spurvik. Workspace package `spurvik` is `1.0.3` in the monorepo (`workspace:*`).
 >

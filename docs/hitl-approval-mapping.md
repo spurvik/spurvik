@@ -1,6 +1,6 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> **.** Describes human-oversight and tool-approval integration on `spurvik` `main` (`8e16fad`). Public MIT packages on npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2` (monorepo workspace packages `spurvik` and `spurvik` use published version `1.0.3`). Public source: https://github.com/spurvik/spurvik. Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik. Not legal advice.
+> Describes human-oversight and tool-approval integration for `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
@@ -18,14 +18,13 @@ Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`fini
 | **OpenAI Agents `needsApproval` & `RunState` resolver** | `createSpurvikNeedsApproval`, `resolveAgentInterruptions` (`spurvik/openai-agents`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Checks halt state before returning `true` (or `when` predicate), deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve(item)` or `state.reject(item)`. |
 | **LangGraph graph wrapper & interrupt resolver** | `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts` (`spurvik/langgraph`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Marks `finishReason: "interrupted"` when `state.__interrupt__` is non-empty, deduplicates interrupt IDs (`skippedDuplicateIds`), and returns `command: { resume }` ready for `new Command(...)`. |
 | **Request approval & wait** *(in-process poll)* | `spurvik.requireHumanApproval(actionName, payload, options?)` | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Summarises `payload` into `spurvik.payload_summary.v1` (key names + keyed HMAC fingerprint, never raw values) and polls until status leaves `"pending"` / `"pending_confirmation"` or throws `SpurvikHitlTimeoutError(approvalId)`. |
-| **Open pending approval without blocking** *(for checkpointed pause/resume)* | `POST /api/v1/hitl` with a `spurvik.payload_summary.v1` string you build | `POST /api/v1/hitl` | `spurvik@1.0.3` does not export `buildPayloadSummary`. Post the summary string yourself. The response is a pending row (`HitlRecordWire`) so a graph can checkpoint and exit. |
+| **Open pending approval without blocking** *(for checkpointed pause/resume)* | `POST /api/v1/hitl` with a `spurvik.payload_summary.v1` string you build | `POST /api/v1/hitl` | Post the summary string yourself. The response is a pending row (`HitlRecordWire`) so a graph can checkpoint and exit. |
 | **Record human decision via API** | `spurvik.submitHumanDecision(approvalId, { status, reason })` / `spurvik.overrideHumanDecision(approvalId, { reason })` | `POST /api/v1/hitl/:id/decision` | Requires `reviewerToken` (`spurvik_reviewer_...` in `x-spurvik-reviewer`). `status` is `"approved" \| "rejected" \| "overridden"`; `reason` (`1..2000` chars) is required. Decisions made in the console set `decisionSource: "console"`; API calls set `decisionSource: "api"`. |
 | **Check `hitl.decision` webhook** | `verifyHitlWebhook({ secret, body, signature, timestamp })` (`spurvik`) | Outbound `POST` from control plane | Checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute window) and returns `HitlWebhookEnvelope` (`{ type: "hitl.decision", deliveryId, projectId, approval }`). |
 | **Engage or release stop (kill switch)** | `spurvik.engageKillSwitch({ reason, actionName })` / `spurvik.releaseKillSwitch({ reason, actionName })` | `POST /api/v1/oversight` | Requires `reviewerToken`. Blank reasons default in the SDK to `"Halted via SDK (no reason given)"` / `"Released via SDK (no reason given)"` (`reasonSource: "sdk_default"`). Direct API calls without a `reason` return `400`. |
 
 > **Looking for `requestHumanApproval`, `waitForHumanDecision`, or `recordHumanDecision`?**
-> In `spurvik`, requesting and waiting are combined in **`requireHumanApproval(actionName, payload, options?)`** (and wrapped by **`resolveAgentInterruptions`**, **`spurvikInterrupt`**, and **`resolveLangGraphInterrupts`**), while recording a reviewer decision via API is **`submitHumanDecision(approvalId, { status, reason })`** (or **`overrideHumanDecision(approvalId, { reason })`**). For non-blocking checkpoint workflows, post a payload-summary string to `POST /api/v1/hitl` and resume from **`verifyHitlWebhook`**. `spurvik@1.0.3` does not export `buildPayloadSummary`.
-
+> In `spurvik`, requesting and waiting are combined in **`requireHumanApproval(actionName, payload, options?)`** (and wrapped by **`resolveAgentInterruptions`**, **`spurvikInterrupt`**, and **`resolveLangGraphInterrupts`**), while recording a reviewer decision via API is **`submitHumanDecision(approvalId, { status, reason })`** (or **`overrideHumanDecision(approvalId, { reason })`**). For non-blocking checkpoint workflows, post a payload-summary string to `POST /api/v1/hitl` and resume from **`verifyHitlWebhook`**.
 ---
 
 ## 1. Vercel AI SDK (`interrupted` `finishReason` & `tool-approval-request`)
@@ -176,7 +175,7 @@ await modelProvider.flush();
 
 ---
 
-## 3. LangGraph (`spurvik/langgraph` — `spurvikInterrupt`, `resolveLangGraphInterrupts`, and Webhook Resume)
+## 3. LangGraph interrupt and webhook resume
 
 In LangGraph, you can either use the `spurvik/langgraph` helpers (`withSpurvikLangGraph`, `spurvikInterrupt`, and `resolveLangGraphInterrupts`) or checkpoint the thread with `interrupt()` and resume when Spurvik delivers the signed `hitl.decision` webhook. See [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md) for the full LangGraph quickstart.
 

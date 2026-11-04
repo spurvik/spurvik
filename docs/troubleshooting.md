@@ -102,7 +102,7 @@ SpurvikConfigError: apiKey must be a spurvik_live_ project key.
 **Causes we hit:**
 
 - `SPURVIK_API_KEY` was not set in the shell that ran `node`.
-- The placeholder `spurvik_live_PASTE_THE_KEY_FROM_DB_SEED` was still in place. It has the right prefix but is too short.
+- The placeholder key was still in place. It has the right prefix but is too short. Use a `spurvik_live_` key from the hosted console.
 
 **Fix:** Use a `spurvik_live_` key from the hosted console. The SDK checks for `spurvik_live_` (or the older `aegis_live_`) followed by at least 32 characters from `A–Z a–z 0–9 _ -`. The SDK only checks the shape. Whether the key is accepted is decided at `baseUrl`.
 
@@ -130,7 +130,7 @@ SpurvikConfigError: Keyed prompt and output fingerprints require contentHash.sec
 SpurvikConfigError: baseUrl is required when NODE_ENV is production. Point it at the control plane you run.
 ```
 
-**Fix:** Set `SPURVIK_BASE_URL` and pass it as `baseUrl`. Outside production the SDK falls back to `http://127.0.0.1:43123`.
+**Fix:** Set `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. Spurvik runs that console. The SDK and MCP server run in your own stack. Outside production the SDK falls back to `http://127.0.0.1:43123`.
 
 ### I set `AEGIS_API_KEY` but the SDK still says the key is missing
 
@@ -161,7 +161,7 @@ Spurvik telemetry was not delivered: fetch failed
 | Answers, but is not a Spurvik control plane (for example an HTML page) | `SpurvikApiError` | `Control plane response had no data.` | about 3 s |
 | Accepts the connection but never answers | `TimeoutError` | `The telemetry flush timed out.` | about 8 s |
 
-**The telemetry event for that call is lost when the script ends.** The provenance record returned to your code is unaffected, and its signature still checks. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). This is not in `987ec86`, the build design partners run. The exit code does not tell you that telemetry failed. Only `onTelemetryError` does, so do not leave it out.
+**The telemetry event for that call is lost when the script ends.** The provenance record returned to your code is unaffected, and its signature still checks. In this build, an event that is queued after a failed flush stays in memory (up to 500 events; the oldest are dropped first) and is sent with a later flush: on the next wrapped call, on `await ai._spurvik.shutdown()`, or once when the process ends on its own. Nothing retries it on a timer. The event whose flush already failed is not tried again when the process ends on its own unless something was queued after it, and `process.exit()` or a signal such as Ctrl+C skips that last flush. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events one more try (up to 8 seconds by default). The exit code does not tell you that telemetry failed. Only `onTelemetryError` does, so do not leave it out.
 
 What to do:
 
@@ -183,9 +183,8 @@ What to do:
 
 3. Keep your provenance records (for example `record.json`) on your side. They do not depend on the control plane. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
 
-In a **long-running server**, `onTelemetryError` is called once, about 4 seconds after the call (about 9 seconds if the control plane never answers). The event is not delivered by those attempts. It stays queued (up to 500 events) and is sent with a later flush, for example with the next wrapped call after the control plane comes back. Nothing retries it on a timer. It is lost if the process stops first, so keep your own records. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events a last try. This is not in `987ec86`, the build design partners run.
-
-**Older builds:** if `git rev-parse --short HEAD` shows `987ec86`, a script in this situation exits with code **13** instead. Node prints `Warning: Detected unsettled top-level await`, nothing after `await ai._spurvik.shutdown()` runs, and `onTelemetryError` is not called. Rebuild the SDK from commit `a350ee2` or later.
+In a **long-running server**, `onTelemetryError` is called once, about 4 seconds after the call (about 9 seconds if the control plane never answers). The event is not delivered by those attempts. It stays queued (up to 500 events) and is sent with a later flush, for example with the next wrapped call after the control plane comes back. Nothing retries it on a timer. It is lost if the process stops first, so keep your own records. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events a last try. 
+Use `spurvik@1.0.3`. Call `await ai._spurvik.shutdown()` before a short script exits, and keep `onTelemetryError` where you can see it.
 
 ### `429` with `monthly_quota_exceeded`
 
@@ -242,7 +241,7 @@ Check `SpurvikOversightTimeoutError` before `SpurvikHaltedError`, because a time
 
 **Fix:** Make sure the control plane is reachable and is a Spurvik control plane (see the `curl` check above).
 
-**Older builds:** `987ec86` has no `SpurvikOversightTimeoutError`. Rebuild the SDK from commit `a350ee2` or later before you rely on the table above.
+On `spurvik@1.0.3`, a halt check that times out throws `SpurvikOversightTimeoutError`.
 
 ---
 
@@ -314,7 +313,7 @@ Causes we reproduced:
 TypeError: Cannot read properties of undefined (reading 'signatureAlg')
 ```
 
-**Cause:** You're on a `987ec86` build, where `provenanceOf(stream)` returns `undefined`. Rebuild from `a350ee2` or later. On `a350ee2`, forgetting `await` gives `undefined` rather than an error.
+**Cause:** `provenanceOf` on a stream returns a promise. Forget `await` and the value is still a promise, so `signatureAlg` is missing. `await provenanceOf(stream)` after the stream ends.
 
 **Fix:** Read the whole stream, then await the record:
 

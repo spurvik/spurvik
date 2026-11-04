@@ -1,6 +1,6 @@
 # FAQ additions
 
-> **.** Answers describe the  build (`spurvik` main at `427ae53`, which includes PR #3, PR #4, PR #7, PR #8, PR #9, PR #11, PR #19, PR #20 and PR #21) and the spurvik.com pricing section as fetched on 25 Oct 2026. Not legal advice.
+> Answers describe `spurvik@1.0.3` and the hosted console. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
@@ -27,12 +27,11 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ### Can I install the SDK from npm?
 
-Yes. The public MIT packages are `spurvik@1.0.3` and `spurvik-sdk@1.0.3`, and the local stdio MCP server is `spurvik-mcp-server@1.0.2`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `spurvik`, `spurvik`, and `spurvik/react` use published version `1.0.3`. See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.3` and `spurvik-sdk@1.0.3`, and the local stdio MCP server is `spurvik-mcp-server@1.0.2`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `spurvik`, and `spurvik/react` use published version `1.0.3`. See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
-There are starters for Lovable, Replit, v0 and a Next.js app in the repository's `templates/` folder, plus zero-dependency `shadcn` registry starters at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`. The full repository templates depend on the workspace packages at `1.0.3` (`workspace:*`), so they build inside the repository. The public npm release is `spurvik@1.0.3` and `spurvik-sdk@1.0.3`.
-
+The public npm release is `spurvik@1.0.3` and `spurvik-sdk@1.0.3`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
 ### Is there a hosted Spurvik service or dashboard?
 
 The SDK has no hosted address built in: your code passes `baseUrl` explicitly. For an invited organisation, that address is `https://console.spurvik.com`. The sandbox is at [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox). See the [Console Onboarding Guide](console-onboarding.md). The hosted console is a hosted service. Its source is not in this repository.
@@ -112,10 +111,10 @@ No. Every invite, acceptance, role change, removal, and invite revocation is app
 
 Monthly quotas (`MONTHLY_EVENT_QUOTA`, per project per UTC calendar month) count **only newly inserted `audit_logs` rows with `record_kind = 'model_call'`** based on the server ingestion timestamp (`created_at`, not the client `timestamp`):
 
-- **Free / Developer:** `10,000` `model_call` events / UTC month (30-day default retention)
-- **Pro:** `250,000` `model_call` events / UTC month (90-day default retention; planned price €19/mo or €190/yr, excl. VAT)
-- **Team / Business:** `2,000,000` `model_call` events / UTC month (90-day default retention on Team, 365-day on Business; planned Team price €79/mo or €790/yr, excl. VAT)
-- **Enterprise:** Custom per-project cap (`0..2,000,000,000`) or `unlimited` (`null`), configurable by an `owner` under **Monthly events** (planned price from €499/mo, excl. VAT)
+- **Free:** `10,000` `model_call` events / UTC month (30-day retention, planned)
+- **Pro:** `250,000` `model_call` events / UTC month (90-day retention, planned; price €19/mo or €190/yr, excl. VAT)
+- **Team:** `2,000,000` `model_call` events / UTC month (90-day retention, planned; price €79/mo or €790/yr, excl. VAT)
+- **Enterprise:** a per-project period. Unset Enterprise projects keep 365 days until an owner sets one (planned). Custom per-project event caps are set by an owner.
 
 *(B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.)*
 
@@ -129,7 +128,7 @@ When an `owner` saves an `https://` endpoint URL under **HITL webhook** on `/das
 2. **`oversight.changed`** (all plans): `{ type: "oversight.changed", deliveryId, projectId, epoch, state }`
 3. **`telemetry.ingested`** (`team`, `business`, and `enterprise` plans when **Telemetry export** `siemExportEnabled` is enabled): `{ type: "telemetry.ingested", deliveryId, projectId, inserted, duplicates, eventIds }` (counts and `eventId`s only, never prompt or output text)
 
-Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (`HMAC-SHA256(secret, "${timestamp}.${rawBody}")`), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check signatures with `verifyWebhookSignature` from `spurvik` or `verifyHitlWebhook` from `spurvik`.
+Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (HMAC-SHA-256 of `` `${timestamp}.${body}` ``), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check a `hitl.decision` body with `verifyHitlWebhook` from `spurvik`. For any other body, compare that header with `v1=` plus HMAC-SHA-256 from `node:crypto` `createHmac`, as in [console onboarding](console-onboarding.md) and the console FAQ.
 
 ### 8. Why do `state.reason` and `state.previousReason` differ between a release response/webhook and a later `GET /api/v1/oversight`?
 
@@ -206,7 +205,7 @@ Install with `npm install openai spurvik@1.0.3`. For an invited organisation, `b
 
 - **Vercel AI SDK (`spurvik/ai`):** Wrap your model with `spurvikMiddleware(config)`. Use `extractFinishReason` and `isInterruptedFinishReason` to check for `"interrupted"` stops (`step.rawFinishReason === "interrupted"` or `step.content` parts with `part.type === "tool-approval-request"`), pass `req.toolCall.toolName` and `req.toolCall.input` to `await spurvikClient.requireHumanApproval(...)`, and deduplicate responses with `dedupeToolApprovalResponses`.
 - **OpenAI Agents SDK (`spurvik/openai-agents`):** Wrap your model or provider with `withSpurvikModel` or `withSpurvikModelProvider` and set `needsApproval: createSpurvikNeedsApproval(config, { actionName })` on side-effect tools. Pass `paused.interruptions` to `await resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (which deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve` or `state.reject`), then resume with `await runner.run(agent, paused.state)`.
-- **LangGraph (`spurvik/langgraph`):** Wrap your compiled graph with `withSpurvikLangGraph(compiled, config)`. Either call `await spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node, call `await resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs and returns `resolved.command` for `new Command(resolved.command)`), or create a `"pending"` row via `POST /api/v1/hitl` using `buildPayloadSummary({ keys, contentFingerprint })`, pause the graph checkpoint with `interrupt({ approvalId, actionName, payloadSummary })`, and resume with `new Command({ resume: envelope.approval })` when `verifyHitlWebhook` receives the `hitl.decision` webhook.
+- **LangGraph (`spurvik/langgraph`):** Wrap your compiled graph with `withSpurvikLangGraph(compiled, config)`. Either call `await spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node, call `await resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs and returns `resolved.command` for `new Command(resolved.command)`), or create a `"pending"` row via `POST /api/v1/hitl` using a `spurvik.payload_summary.v1` string of identifier-shaped key names you build yourself (values are not included), pause the graph checkpoint with `interrupt({ approvalId, actionName, payloadSummary })`, and resume with `new Command({ resume: envelope.approval })` when `verifyHitlWebhook` receives the `hitl.decision` webhook.
 
 See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](hitl-approval-mapping.md) and [LangGraph Quickstart](langgraph-quickstart.md) for copy-paste examples.
 
@@ -215,7 +214,7 @@ See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](
 
 Instead of polling with `requireHumanApproval` inside a short-lived serverless handler:
 
-1. **Create the pending row (`POST /api/v1/hitl`):** Build a canonical `spurvik.payload_summary.v1` string with `buildPayloadSummary({ keys, contentFingerprint })` (`spurvik`) and `POST { actionName, payloadSummary }` with your `x-spurvik-api-key` (`spurvik_live_...`). The control plane returns `HitlRecordWire` with `status: "pending"` and an `id`.
+1. **Create the pending row (`POST /api/v1/hitl`):** Build a `spurvik.payload_summary.v1` string of identifier-shaped key names you build yourself (values are not included) and `POST { actionName, payloadSummary }` with your `x-spurvik-api-key` (`spurvik_live_...`). The control plane returns `HitlRecordWire` with `status: "pending"` and an `id`.
 2. **Checkpoint the agent:** Pass `{ approvalId: pending.id, actionName, payloadSummary }` into LangGraph's `interrupt(...)` (or persist OpenAI Agents' `paused.state` keyed by `pending.id`) and let the request exit.
 3. **Resume from the `hitl.decision` webhook:** Register an HTTPS webhook endpoint in the console (`hitl.decision` event). When a reviewer decides in `/dashboard/projects/<projectId>/oversight` or via `submitHumanDecision`, Spurvik sends a signed `POST`. Check the payload with `verifyHitlWebhook({ secret, body, signature, timestamp })` (`spurvik`), which checks `x-spurvik-signature` (`v1=<hex>`) and `x-spurvik-timestamp` (`5`-minute replay window) and returns `HitlWebhookEnvelope` (`envelope.approval`), then resume your thread (`new Command({ resume: envelope.approval })`).
 
@@ -229,7 +228,7 @@ Instead of polling with `requireHumanApproval` inside a short-lived serverless h
 
 ### 19. Where is `/spurvik:dpo-pack` in the Claude Code plugin, and what does `/spurvik:engineering-summary` generate?
 
-`/spurvik:dpo-pack` was renamed to **`/spurvik:engineering-summary`** in PR #6 (`plugins/spurvik/commands/engineering-summary.md` replaced `commands/dpo-pack.md`). The plugin provides three slash commands:
+The plugin command is **`/spurvik:engineering-summary`** (`plugins/spurvik/commands/engineering-summary.md`). The plugin provides three slash commands:
 
 - `/spurvik:check` — scans the workspace for unwrapped model calls, logs that print prompt/message text, user-facing AI UIs without an Art. 50(1) notice, and side-effect tools without a human-oversight call.
 - `/spurvik:wrap` — wraps model calls with `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, or `withSpurvikLangGraph`, and adds `<AIDisclosureLabel />` where needed.
@@ -260,7 +259,7 @@ The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`
 
 ---
 
-## Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Copy (Ruling D24), and LangGraph
+## Article 50(2) Marking Ahead of 2 December 2026, Polish (`locale="pl"`) Copy, and LangGraph
 
 ### 21. What changes on 2 December 2026 for Article 50(2) machine-readable marking, and how does that relate to 2 August 2026?
 
@@ -279,7 +278,7 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 Spurvik separates call provenance and UI disclosure from content marking:
 
 - **What Spurvik provides:**
-  1. **Signed HMAC-SHA-256 call receipts (`spurvik`, `spurvik`):** Every wrapped model or graph call produces a 16-field `ProvenanceRecord` (`eventId`, `timestamp`, `modelProvider`, `modelId`, `inputHash`, `outputHash`, `contentHashMode`, `article50Disclosure`, `markingApplied`, `markingHookId`, `evidenceTrailerAttached`, `upstreamMarking`, `kind`, `provenanceVersion`, `signatureAlg: "HMAC-SHA256"`, `signature`) with `0` bytes of raw prompt or output text stored at rest by default (`contentHash: { mode: "keyed", secret }`).
+  1. **Signed HMAC-SHA-256 call receipts (`spurvik`):** Every wrapped model or graph call produces a 16-field `ProvenanceRecord` (`eventId`, `timestamp`, `modelProvider`, `modelId`, `inputHash`, `outputHash`, `contentHashMode`, `article50Disclosure`, `markingApplied`, `markingHookId`, `evidenceTrailerAttached`, `upstreamMarking`, `kind`, `provenanceVersion`, `signatureAlg: "HMAC-SHA-256"`, `signature`) with `0` bytes of raw prompt or output text stored at rest by default (`contentHash: { mode: "keyed", secret }`).
   2. **Human-readable disclosure components (`spurvik/react`):** `<AIDisclosureLabel />`, `<AIArticle50Section3Notice />`, and `<AIDisclosureDetails />` render visible DOM notices in 24 EU languages for Article 50(1), 50(3), and 50(4) surfaces.
   3. **Opt-in application marking hooks (`config.marking` and `spurvik_marking_hooks`):** Hook interfaces (`TextMarkingHook` and `MediaMarkingHook`) where you plug in your own text or media marking pipeline and record the hook ID (`markingHookId`) on the receipt.
 - **What Spurvik does NOT do:**
@@ -336,9 +335,9 @@ export function createClientWithCustomHooks(openai: OpenAI, baseConfig: SpurvikC
 | `markingApplied` | Only when (a) your custom `TextMarkingHook` modifies the text, (b) your `MediaMarkingHook` returns `manifestEmbedded: true`, or (c) `upstreamMarking` is `"provider_confirmed"`. | Records that your configured hook or upstream provider reported applying a mark. It is a configuration and execution record, not a technical or legal verification that the mark is robust or detectable under Article 50(2). |
 
 
-### 24. How does `spurvik/react` handle the Polish (`locale="pl"`) disclosure copy (Ruling D24), and how can we customize `emotionBiometric` for gender-neutral phrasing?
+### 24. How does `spurvik/react` handle the Polish (`locale="pl"`) disclosure copy, and how can we customize `emotionBiometric` for gender-neutral phrasing?
 
-`spurvik/react` includes built-in translations for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). Under **Legal Ruling D24**, the built-in Polish (`locale="pl"`) copy in `EU_DISCLOSURE_LOCALES.pl` (`packages/react/src/locales.ts:405–426`) was reviewed against the Polish EU AI Act text and cleared as written:
+`spurvik/react` includes built-in translations for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). The built-in Polish (`locale="pl"`) copy in `packages/react/src/locales.ts` is:
 
 - **Article 50(1) (`notice="interaction"`):** `"Korzystasz z systemu AI."`
 - **Article 50(3) (`<AIArticle50Section3Notice locale="pl" />` or `notice="emotion-biometric"`):** `"Jesteś narażony na system rozpoznawania emocji lub kategoryzacji biometrycznej."`
@@ -346,7 +345,7 @@ export function createClientWithCustomHooks(openai: OpenAI, baseConfig: SpurvikC
 - **Generated badge (`notice="generated"`):** `"Wygenerowane przez AI"` (`"Te treści zostały wygenerowane przez system AI."`)
 - **Details panel (`<AIDisclosureDetails locale="pl" />`):** Uses role-neutral wording (`riskTier: "Zapisany poziom ryzyka"`) and states the human-readable scope (`"Ta etykieta jest informacją czytelną dla człowieka. Sama w sobie nie jest oznaczeniem maszynowym."` and `"Ta informacja wspiera obowiązki przejrzystości. Nie jest poradą prawną."`).
 
-**Optional gender-neutral override for `emotionBiometric` (Ruling D24):**
+**Optional gender-neutral override for `emotionBiometric`:**
 The default `emotionBiometric` sentence (`"Jesteś narażony..."`) mirrors the literal Polish EU AI Act wording for Article 50(3) (*"osoby fizyczne, które są narażone na działanie systemu..."*) using a masculine singular adjective (`narażony`). If your team prefers a gender-neutral Polish phrasing on `<AIArticle50Section3Notice locale="pl" />`, override `pl` at runtime with `registerDisclosureLocale`:
 
 ```tsx
@@ -367,7 +366,7 @@ export function PolishBiometricBanner() {
 }
 ```
 
-**National procedural context (Poland):** Poland's Act of 3 July 2026 on artificial intelligence systems (Dz.U. 2026 poz. 1003) makes the Komisja Rozwoju i Bezpieczeństwa Sztucznej Inteligencji (KRiBSI) Poland's market surveillance authority under the AI Act. Its powers to inspect, issue warnings and orders, and impose administrative fines apply from 28 October 2026. The Act sets no fine amounts of its own: it refers to the AI Act. Fines can only follow AI Act obligations that already apply on their own dates. From the same date, businesses can ask KRiBSI for an individual opinion on how the AI Act applies to them.
+**National procedural context (Poland):** Poland's Act of 3 July 2026 on artificial intelligence systems (Dz.U. 2026 poz. 1003) names the Komisja Rozwoju i Bezpieczeństwa Sztucznej Inteligencji (KRiBSI) as Poland's market surveillance authority. Article 99 of Regulation (EU) 2024/1689 sets the maximum administrative fines: EUR 35 000 000 or 7% of total worldwide annual turnover for infringements of the prohibited-practice rules in Article 5, EUR 15 000 000 or 3% for infringements of other obligations in the Regulation, and EUR 7 500 000 or 1% for supplying incorrect, incomplete or misleading information to notified bodies or national competent authorities. The Polish act refers to those ceilings and does not set amounts of its own.
 
 Spurvik is designed to help providers and deployers document the measures they take under the AI Act. The obligations remain theirs; Spurvik is not legal advice.
 
@@ -378,6 +377,6 @@ Spurvik is designed to help providers and deployers document the measures they t
 
 1. **Wrap the compiled graph:** Pass your compiled `StateGraph` (`invoke` and optional `stream`) to `withSpurvikLangGraph(compiledGraph, config, { modelId })`. Every run checks `beforeInference()`, hashes non-tool messages (`role` or `type` in `"tool"`, `"function"`, `"function_call_result"` are excluded from `inputHash`), and attaches a signed 16-field `ProvenanceRecord` on `_spurvik_provenance` (readable via `provenanceFromLangGraphState(state)` or `provenanceOf(state)`).
 2. **Detect interrupted runs:** When the returned state has a non-empty `__interrupt__` array, `withSpurvikLangGraph` sets non-enumerable `receipt.finishReason = "interrupted"` and `receipt.interrupted = true` while keeping the 16 signed fields unchanged for `verifyProvenanceSignature(receipt, signingSecret)`.
-3. **Route interrupts through `/api/v1/hitl`:** Call `spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node or `resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs via `skippedDuplicateIds` and returns `resolved.command` ready for `new Command(resolved.command)`). For long-running reviews, create a pending row via `POST /api/v1/hitl` with `buildPayloadSummary`, pause with `interrupt(...)`, and resume when `verifyHitlWebhook` receives `hitl.decision`.
+3. **Route interrupts through `/api/v1/hitl`:** Call `spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node or `resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs via `skippedDuplicateIds` and returns `resolved.command` ready for `new Command(resolved.command)`). For long-running reviews, create a pending row via `POST /api/v1/hitl` with a `spurvik.payload_summary.v1` string of identifier-shaped key names you build yourself (values are not included), pause with `interrupt(...)`, and resume when `verifyHitlWebhook` receives `hitl.decision`.
 
 See [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md) and [`docs/hitl-approval-mapping.md`](./hitl-approval-mapping.md) for full copy-paste examples.

@@ -207,7 +207,7 @@ Retention periods are (planned). This repository does not apply them.
 | Business | 12 months |
 | Enterprise | A per-project period, in days. Unset Enterprise projects keep 365 days until an owner sets one. (planned) |
 
-Purging a prefix of audit rows older than the project's period is a step the Spurvik operator runs on the hosted control plane. That purge is (planned). This repository does not include it, and it is not something you run from this tree. A purge is not erasure of the project.
+The purge function exists. The Spurvik operator runs it by hand on the hosted control plane. Nothing schedules it. Retention periods are (planned). A purge is not erasure of the project.
 
 ## Optional: try it without an OpenAI key
 

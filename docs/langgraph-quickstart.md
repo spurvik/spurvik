@@ -12,7 +12,7 @@ In about 5 minutes, this guide walks through connecting a LangGraph (`@langchain
 
 1. **Wrap a compiled graph with `withSpurvikLangGraph` (`spurvik/langgraph`)** so every `invoke()` and `stream()` run checks the project halt state, hashes user and assistant messages with keyed HMAC-SHA-256 (`0` bytes of raw prompt or output text stored at rest), and attaches a signed 16-field `ProvenanceRecord` onto the graph state (`provenanceFromLangGraphState(state)` / `provenanceOf(state)`).
 2. **Wrap individual model calls inside a node (`withSpurvik` from `spurvik`)** when a graph runs multiple model steps and you want a per-node receipt alongside the graph-level receipt.
-3. **Return receipt metadata to a React UI (`spurvik/react`)** using `<AIDisclosureLabel />`, `<AIArticle50Section3Notice />`, and `<AIDisclosureDetails />` — including the built-in Polish (`locale="pl"`) copy and optional gender-neutral override (Legal Ruling D24).
+3. **Return receipt metadata to a React UI (`spurvik/react`)** using `<AIDisclosureLabel />`, `<AIArticle50Section3Notice />`, and `<AIDisclosureDetails />` — including the built-in Polish (`locale="pl"`) copy and optional gender-neutral override.
 4. **Map LangGraph `interrupt()` and `Command({ resume })` pauses to Spurvik's human-oversight queue** using `spurvikInterrupt` and `resolveLangGraphInterrupts` (or non-blocking checkpoint pause + `verifyHitlWebhook`), with `engageKillSwitch` / `releaseKillSwitch` halt controls.
 
 ---
@@ -169,7 +169,7 @@ export function createDraftReplyNode(openaiClient: OpenAI, config: SpurvikConfig
 
 ---
 
-## 4. Render the Disclosure Notice & Receipt in React (`spurvik/react`) + Polish (`locale="pl"`) Note (Ruling D24)
+## 4. Render the Disclosure Notice & Receipt in React (`spurvik/react`) + Polish (`locale="pl"`) Note
 
 Pass the `ProvenanceRecord` returned by `provenanceFromLangGraphState(state)` (or stored on `state.nodeReceipt`) to your React UI and render `<AIDisclosureLabel />` and `<AIDisclosureDetails />` from `spurvik/react`:
 
@@ -183,7 +183,7 @@ import {
   registerDisclosureLocale,
 } from "spurvik/react";
 
-// Optional (Legal Ruling D24): Override the Polish Art. 50(3) emotion/biometric sentence
+// Optional: Override the Polish Art. 50(3) emotion/biometric sentence
 // if your team prefers gender-neutral Polish phrasing instead of the literal EU AI Act
 // masculine singular participle ("Jesteś narażony...").
 export function registerGenderNeutralPolishEmotionNotice(): void {
@@ -228,9 +228,9 @@ export function LangGraphAssistantCard(props: {
 }
 ```
 
-### Polish (`locale="pl"`) disclosure copy in `spurvik/react` (Legal Ruling D24)
+### Polish (`locale="pl"`) disclosure copy in `spurvik/react`
 
-`spurvik/react` ships built-in copy for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). Under **Legal Ruling D24**, the built-in Polish (`locale="pl"`) strings are cleared for production use as written:
+`spurvik/react` ships built-in copy for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). The built-in Polish (`locale="pl"`) strings in that file are:
 
 | Key in `EU_DISCLOSURE_LOCALES.pl` | Surface / EU AI Act reference | Built-in Polish string |
 |---|---|---|
@@ -244,7 +244,7 @@ export function LangGraphAssistantCard(props: {
 | `notLegalAdvice` | `<AIDisclosureDetails locale="pl" />` | `"Ta informacja wspiera obowiązki przejrzystości. Nie jest poradą prawną."` |
 | `signatureMatches` | `<AIDisclosureDetails locale="pl" />` | `"Podpis jest zgodny z tym zapisem proweniencji."` |
 
-- **Gender-neutral option for `emotionBiometric` (Ruling D24):** The built-in `emotionBiometric` string (`"Jesteś narażony na system rozpoznawania emocji lub kategoryzacji biometrycznej."`) mirrors the Polish EU AI Act text for Article 50(3) (*"osoby fizyczne, które są narażone na działanie systemu..."*) using a masculine singular adjective (`narażony`). If your product team prefers a gender-neutral phrasing in Polish, call `registerDisclosureLocale("pl", { ...disclosureCopy("pl"), emotionBiometric: "Objęty działaniem systemu rozpoznawania emocji lub kategoryzacji biometrycznej." })` (or `"Znajdujesz się w zasięgu działania systemu rozpoznawania emocji lub kategoryzacji biometrycznej."`) once at startup, as shown above.
+- **Gender-neutral option for `emotionBiometric`:** The built-in `emotionBiometric` string (`"Jesteś narażony na system rozpoznawania emocji lub kategoryzacji biometrycznej."`) mirrors the Polish EU AI Act text for Article 50(3) (*"osoby fizyczne, które są narażone na działanie systemu..."*) using a masculine singular adjective (`narażony`). If your product team prefers a gender-neutral phrasing in Polish, call `registerDisclosureLocale("pl", { ...disclosureCopy("pl"), emotionBiometric: "Objęty działaniem systemu rozpoznawania emocji lub kategoryzacji biometrycznej." })` (or `"Znajdujesz się w zasięgu działania systemu rozpoznawania emocji lub kategoryzacji biometrycznej."`) once at startup, as shown above.
 - **Human-readable notice vs. Article 50(2) marking:** `<AIDisclosureLabel />` renders a visible DOM notice (`<aside role="note">`). Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
 
 ---
@@ -326,11 +326,11 @@ export async function resolvePausedGraphInterrupts(
 
 When human review takes minutes or hours and you do not want a worker holding an open polling loop:
 
-1. Compute `const payloadSummary = buildPayloadSummary({ keys: Object.keys(payload).sort(), contentFingerprint: await fingerprintContent("keyed", canonicalJson(payload), hashSecret) })` (`spurvik`) and `POST /api/v1/hitl` with `{ actionName, payloadSummary }` to create a `"pending"` row (`approval.id`).
+1. Build a `spurvik.payload_summary.v1` string of identifier-shaped key names you build yourself (values are not included) and `POST /api/v1/hitl` with `{ actionName, payloadSummary }` to create a `"pending"` row (`approval.id`).
 2. Call LangGraph's `interrupt({ hitlApprovalId: approval.id, actionName, payloadSummary })` so the checkpointer persists the thread and exits the worker.
 3. When a reviewer calls `client.submitHumanDecision(...)` (or `client.overrideHumanDecision(...)`), Spurvik signs and sends a `hitl.decision` webhook (`x-spurvik-signature`, `x-spurvik-timestamp`). Verify it with `verifyHitlWebhook` from `spurvik` and resume the LangGraph thread with `new Command({ resume: envelope.approval })`.
 
-See [`docs/hitl-approval-mapping.md`](./hitl-approval-mapping.md#3-langgraph-spurviksdklanggraph--spurvikinterrupt-resolvelanggraphinterrupts-and-webhook-resume) for the complete non-blocking webhook receiver code.
+See [LangGraph interrupt and webhook resume](./hitl-approval-mapping.md#3-langgraph-interrupt-and-webhook-resume) for the non-blocking webhook receiver.
 
 ### Emergency halt and release (`engageKillSwitch` / `releaseKillSwitch`)
 

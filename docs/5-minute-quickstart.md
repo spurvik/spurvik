@@ -17,6 +17,7 @@ Node.js 20 or later.
 
 ```bash
 npm install openai spurvik@1.0.3
+npm pkg set type=module
 ```
 
 Import the SDK as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
@@ -125,7 +126,7 @@ Built-in copy for 24 EU languages, including Polish `locale="pl"`, is in `packag
 
 ## Log retention
 
-Retention periods are (planned). This repository does not apply them. Purging audit rows older than a project's period is a step the Spurvik operator runs on the hosted control plane. That purge is (planned). It is not something you run from this tree.
+The purge function exists. The Spurvik operator runs it by hand on the hosted control plane. Nothing schedules it. Retention periods are (planned).
 
 ## Where next
 

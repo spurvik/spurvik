@@ -1,6 +1,6 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** Describes `plugins/spurvik` (`1.0.2`, MIT) on `spurvik` `main` (`8e16fad`, including PR #6, PR #8, PR #9, PR #16, PR #19, PR #20, PR #21, PR #22, and PR #23). The commands may change. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** Describes `plugins/spurvik` (`1.0.2`, MIT). The commands may change. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
@@ -49,7 +49,7 @@ The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`na
 | --- | --- |
 | `/spurvik:check` | Searches the workspace and writes a report table (`File:Line` \| `Art. 50`, `Art. 12 for high-risk AI systems`, or `Art. 14 for high-risk AI systems` \| what was found \| the change that matches `/spurvik:wrap`). |
 | `/spurvik:wrap` | Adds `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, `withSpurvikLangGraph`, or `AIDisclosureLabel` to the project or to the file you pass as an argument, shows the diff, and runs the project's typecheck if it has one. |
-| `/spurvik:engineering-summary` *(renamed from `/spurvik:dpo-pack` in PR #6)* | Scans the repository and writes `SPURVIK-ENGINEERING-SUMMARY.md`, an engineering summary for your DPO or counsel. |
+| `/spurvik:engineering-summary` | Scans the repository and writes `SPURVIK-ENGINEERING-SUMMARY.md`, an engineering summary for your DPO or counsel. |
 
 ## `/spurvik:check`
 
@@ -79,7 +79,7 @@ Claude adds the setup the repository actually exports to your project, or to the
 
 ## `/spurvik:engineering-summary` *(formerly `/spurvik:dpo-pack`)*
 
-> **Command rename note:** `/spurvik:dpo-pack` was renamed to **`/spurvik:engineering-summary`** in PR #6 (`commands/engineering-summary.md` replaced `commands/dpo-pack.md`). Run `/spurvik:engineering-summary` to generate the summary file.
+Run `/spurvik:engineering-summary` to generate the summary file. The command file is `plugins/spurvik/commands/engineering-summary.md`.
 
 Claude writes (or updates) `SPURVIK-ENGINEERING-SUMMARY.md` in your repository: an engineering summary for your DPO or counsel. It lists only what your code and the repository README describe:
 

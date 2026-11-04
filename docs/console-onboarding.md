@@ -51,7 +51,7 @@ Retention periods are (planned). This repository does not apply them.
 
 Business is the plan between Team and Enterprise. These rules are (planned). For a project recorded as `high_annex3`, the planned floor is six months. Spurvik does not check another law an owner might record. That is a product rule. It is not a finding that the project meets Articles 19 or 26(6).
 
-Purging a prefix of audit rows older than the project's period, and writing a signed checkpoint of the last purged hash, is a step the Spurvik operator runs on the hosted control plane. That purge is (planned). This repository does not include it, and it is not something you run from this tree. A purge is not erasure of the project.
+The purge function exists. The Spurvik operator runs it by hand on the hosted control plane. Nothing schedules it. Retention periods are (planned). A purge is not erasure of the project.
 
 ## Webhooks
 

@@ -1,6 +1,6 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Spurvik EU AI Act SDK (1.0.3) & MCP control plane (1.0.2, MIT).** Written for `spurvik` main at commit `e599000` (25 Oct 2026). B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
 
@@ -58,10 +58,10 @@ No. Every invite, acceptance, role change, removal, and invite revocation is app
 
 Monthly quotas (`MONTHLY_EVENT_QUOTA`, per project per UTC calendar month) count **only newly inserted `audit_logs` rows with `record_kind = 'model_call'`** based on the server ingestion timestamp (`created_at`, not the client `timestamp`):
 
-- **Free / Developer:** `10,000` `model_call` events / UTC month (30-day default retention)
-- **Pro:** `250,000` `model_call` events / UTC month (90-day default retention; planned price €19/mo or €190/yr, excl. VAT)
-- **Team / Business:** `2,000,000` `model_call` events / UTC month (90-day default retention on Team, 365-day on Business; planned Team price €79/mo or €790/yr, excl. VAT)
-- **Enterprise:** Custom per-project cap (`0..2,000,000,000`) or `unlimited` (`null`), configurable by an `owner` under **Monthly events** (planned price from €499/mo, excl. VAT)
+- **Free:** `10,000` `model_call` events / UTC month (30-day retention, planned)
+- **Pro:** `250,000` `model_call` events / UTC month (90-day retention, planned; price €19/mo or €190/yr, excl. VAT)
+- **Team:** `2,000,000` `model_call` events / UTC month (90-day retention, planned; price €79/mo or €790/yr, excl. VAT)
+- **Enterprise:** a per-project period. Unset Enterprise projects keep 365 days until an owner sets one (planned). Custom per-project event caps are set by an owner.
 
 *(B2B subscription pricing, excl. VAT (ekskl. moms), B2B only.)*
 
@@ -75,7 +75,23 @@ When an `owner` saves an `https://` endpoint URL under **HITL webhook** on `/das
 2. **`oversight.changed`** (all plans): `{ type: "oversight.changed", deliveryId, projectId, epoch, state }`
 3. **`telemetry.ingested`** (`team`, `business`, and `enterprise` plans when **Telemetry export** `siemExportEnabled` is enabled): `{ type: "telemetry.ingested", deliveryId, projectId, inserted, duplicates, eventIds }` (counts and `eventId`s only, never prompt or output text)
 
-Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (`HMAC-SHA256(secret, "${timestamp}.${rawBody}")`), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check signatures with `verifyWebhookSignature` from `spurvik` or `verifyHitlWebhook` from `spurvik`.
+Every request carries `x-spurvik-timestamp` (Unix seconds) and `x-spurvik-signature: v1=<hex>` (HMAC-SHA-256 of `` `${timestamp}.${body}` ``), plus `x-spurvik-signature-256: t=<timestamp>,v1=<hex>` on `telemetry.ingested`. Check a `hitl.decision` body with `verifyHitlWebhook` from `spurvik`. For any other body:
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+const secret = "example-webhook-secret";
+const body = "{}";
+const timestamp = String(Math.floor(Date.now() / 1000));
+const signature =
+  "v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+const expected =
+  "v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+const matches =
+  signature.length === expected.length &&
+  timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+console.log(matches);
+```
 
 ### 8. Why do `state.reason` and `state.previousReason` differ between a release response/webhook and a later `GET /api/v1/oversight`?
 
