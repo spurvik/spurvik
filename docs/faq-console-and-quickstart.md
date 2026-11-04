@@ -1,8 +1,8 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Spurvik SDK (`spurvik@1.0.3`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.6`) and MCP server (`spurvik-mcp-server@1.0.2`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`.*
 
 ## Signup, Sandbox, and Keys
 
@@ -28,7 +28,7 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 ### 3. This repository does not include a server you start with a package script
 
-The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.3` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.6` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 

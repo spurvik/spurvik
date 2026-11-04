@@ -1,8 +1,8 @@
 # FAQ — Human-Oversight Queue Mapping & Claude Code Plugin
 
-> Applies to `spurvik@1.0.3`. Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
+> Applies to `spurvik@1.0.6`. Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`.*
 
 ---
 
@@ -50,7 +50,7 @@ See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 ## 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, and `spurvik-mcp-server@1.0.2`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik

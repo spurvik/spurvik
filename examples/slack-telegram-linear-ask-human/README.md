@@ -13,16 +13,17 @@ This folder imports `createMultiChannelApprovalRouter` and `verifyChannelApprova
 | `createMultiChannelApprovalRouter({ signingSecret, channels, fetchImpl? })` | Sends one request to every configured channel. `requestApproval` returns `{ links, receipts }`. |
 | `createSignedApprovalLinks(request, signingSecret, issuedAtUnix?)` | Builds the HMAC digest and the approve and reject URLs. The router calls this. |
 | `verifyChannelApprovalToken({ gateId, actionHmac, decision, issuedAtUnix, signature, signingSecret, maxAgeSeconds?, nowUnixSeconds? })` | Checks the HMAC signature on Spurvik's approval-link token. Returns `true` or `false`. |
+| `verifySignedChannelCallback(params)` | Checks the HMAC signature on Spurvik's approval-link token and returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` or `false`. |
 | `buildChannelOutboundRequest` | Builds the HTTP request for one channel. |
 | `dispatchHumanApprovalChannel` | Posts that request. |
 
-`verifySignedChannelCallback` is not exported. The router method `verifyCallback` calls `verifyChannelApprovalToken` with the router signing secret. It is not a separate package export.
+`verifySignedChannelCallback` is exported from `spurvik` and `spurvik/channels` starting in `1.0.5`. The router method `verifyCallback` calls `verifyChannelApprovalToken` with the router signing secret.
 
-Channel objects use `type` (`"slack"`, `"telegram"`, `"linear"`). The approval request uses `gateId`, `actionName`, `summary`, optional `context`, and optional `callbackBaseUrl`. `callbackBaseUrl` is a field on the request, not on the router. Decision strings are `approved` and `rejected`.
+Channel objects use `type` (`"slack"`, `"telegram"`, `"linear"`). The approval request uses `gateId`, `actionName`, `summary`, optional `context`, and required `callbackBaseUrl`. `callbackBaseUrl` is a field on the request, not on the router. Decision strings are `approved` and `rejected`.
 
-1.0.4's email channel inserts the request summary into HTML without escaping; a fix is planned for 1.0.5.
+From `1.0.5`, the email channel escapes HTML in the request summary and context fields, and approval links include a `nonce` query parameter.
 
-`npm test` typechecks and runs against the installed `spurvik` package. Channel helpers ship in `spurvik@1.0.4` (`spurvik` and `spurvik/channels`). This folder depends on `spurvik` `^1.0.4`.
+`npm test` typechecks and runs against the installed `spurvik` package. Channel helpers ship in `spurvik@1.0.6` (`spurvik` and `spurvik/channels`). This folder depends on `spurvik` `^1.0.6`.
 
 The channel `gateId` and the queue row id from `requireHumanApproval` are different values. Nothing in the SDK writes the callback decision onto that row.
 
@@ -36,7 +37,7 @@ Node.js 20 or newer. From this folder:
 npm install
 ```
 
-`package.json` depends on `spurvik` `^1.0.4`.
+`package.json` depends on `spurvik` `^1.0.6`.
 
 ## Environment
 

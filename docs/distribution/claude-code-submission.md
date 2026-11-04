@@ -5,7 +5,7 @@
 Each item must be done before any submission is opened:
 
 1. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The server stays local stdio only, private 1.0.2, with no hosted endpoint. No package is published. Other items below are still open before any directory submission.
-2. The owner has approved publishing the npm packages. The published names are `spurvik`, `spurvik-sdk` (`1.0.3`), and `spurvik-mcp-server` (`1.0.2`).
+2. The owner has approved publishing the npm packages. The published names are `spurvik`, `spurvik-sdk` (`1.0.6`), and `spurvik-mcp-server` (`1.0.2`).
 3. The owner has approved making the repo reachable to installers, through a public repo or a public mirror. The public repository is https://github.com/spurvik/spurvik. The plugin tree is https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
 4. The site manifest is served and resolves.
 5. QA has passed the plugin.
@@ -178,7 +178,7 @@ Smithery and Glama drafts should name the same HTTP URL and the local stdio pack
 
 ## 7. EyeTea Solutions ApS Release-Day Submission Runbook
 
-Do this in order, and only when the owner decides to open the directory submissions. The public repository is https://github.com/spurvik/spurvik. The published packages are already `spurvik@1.0.3`, `spurvik-sdk@1.0.3`, and `spurvik-mcp-server@1.0.2`.
+Do this in order, and only when the owner decides to open the directory submissions. The public repository is https://github.com/spurvik/spurvik. The published packages are already `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, and `spurvik-mcp-server@1.0.2`.
 
 1. Install those packages with npm. This repository has no root package script for a workspace build.
 2. Check the plugin files under `plugins/spurvik` before any directory submission.

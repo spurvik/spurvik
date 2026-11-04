@@ -191,7 +191,7 @@ async function main(): Promise<void> {
   assert.equal(typeof spurvik.createMultiChannelApprovalRouter, "function");
   assert.equal(typeof spurvik.createSignedApprovalLinks, "function");
   assert.equal(typeof spurvik.verifyChannelApprovalToken, "function");
-  assert.equal("verifySignedChannelCallback" in spurvik, false);
+  assert.equal(typeof spurvik.verifySignedChannelCallback, "function");
 
   const approved = await run("approved");
   assert.equal(approved.result.continue, true);
@@ -218,11 +218,27 @@ async function main(): Promise<void> {
   assert.ok(linear.body.includes("team_test"));
 
   const { approveUrl, rejectUrl } = slackActionUrls(slack.body);
-  const issuedAtUnix = Number(new URL(approveUrl).searchParams.get("ts"));
+  const approveParsed = new URL(approveUrl);
+  const rejectParsed = new URL(rejectUrl);
+  const issuedAtUnix = Number(approveParsed.searchParams.get("ts"));
+  const dispatchedNonce = approveParsed.searchParams.get("nonce") ?? undefined;
   assert.equal(Number.isInteger(issuedAtUnix), true);
+  assert.equal(typeof dispatchedNonce, "string");
+  assert.equal(rejectParsed.searchParams.get("nonce"), dispatchedNonce);
+  assert.equal(
+    verifyChannelApprovalToken({
+      gateId: "gate_smoke",
+      actionHmac: approved.result.actionHmac,
+      decision: "approved",
+      issuedAtUnix,
+      nonce: dispatchedNonce,
+      signature: approveParsed.searchParams.get("sig") ?? "",
+      signingSecret: SIGNING_SECRET,
+      nowUnixSeconds: issuedAtUnix,
+    }),
+    true,
+  );
   const links = createSignedApprovalLinks(REQUEST, SIGNING_SECRET, issuedAtUnix);
-  assert.equal(links.approveUrl, approveUrl);
-  assert.equal(links.rejectUrl, rejectUrl);
   assert.equal(links.actionHmac, approved.result.actionHmac);
   assert.equal(
     verifyChannelApprovalToken({
@@ -230,6 +246,7 @@ async function main(): Promise<void> {
       actionHmac: links.actionHmac,
       decision: "approved",
       issuedAtUnix: links.issuedAtUnix,
+      nonce: links.nonce,
       signature: links.approveToken,
       signingSecret: SIGNING_SECRET,
       nowUnixSeconds: links.issuedAtUnix,
@@ -242,6 +259,7 @@ async function main(): Promise<void> {
       actionHmac: links.actionHmac,
       decision: "rejected",
       issuedAtUnix: links.issuedAtUnix,
+      nonce: links.nonce,
       signature: links.approveToken,
       signingSecret: SIGNING_SECRET,
       nowUnixSeconds: links.issuedAtUnix,
@@ -255,6 +273,7 @@ async function main(): Promise<void> {
       actionHmac: links.actionHmac,
       decision: "approved",
       issuedAtUnix: links.issuedAtUnix,
+      nonce: links.nonce,
       signature: flippedSignature,
       signingSecret: SIGNING_SECRET,
       nowUnixSeconds: links.issuedAtUnix,
@@ -267,6 +286,7 @@ async function main(): Promise<void> {
       actionHmac: links.actionHmac,
       decision: "approved",
       issuedAtUnix: links.issuedAtUnix,
+      nonce: links.nonce,
       signature: links.approveToken,
       signingSecret: SIGNING_SECRET,
       maxAgeSeconds: 60,

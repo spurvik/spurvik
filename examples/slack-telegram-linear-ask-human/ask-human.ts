@@ -29,6 +29,7 @@ export interface SignedCallbackQuery {
   actionHmac: string;
   decision: "approved" | "rejected";
   issuedAtUnix: number;
+  nonce?: string;
   signature: string;
 }
 
@@ -91,6 +92,7 @@ export function readSignedCallback(target: string | URL): SignedCallbackQuery | 
   const actionHmac = url.searchParams.get("hmac");
   const decision = url.searchParams.get("decision");
   const ts = url.searchParams.get("ts");
+  const nonce = url.searchParams.get("nonce") ?? undefined;
   const signature = url.searchParams.get("sig");
   if (!gateId || !actionHmac || !signature || !ts) return null;
   if (decision !== "approved" && decision !== "rejected") return null;
@@ -100,6 +102,7 @@ export function readSignedCallback(target: string | URL): SignedCallbackQuery | 
     actionHmac,
     decision,
     issuedAtUnix: Number(ts),
+    ...(nonce ? { nonce } : {}),
     signature,
   };
 }
@@ -116,6 +119,7 @@ export function checkSignedCallback(
     actionHmac: query.actionHmac,
     decision: query.decision,
     issuedAtUnix: query.issuedAtUnix,
+    ...(query.nonce ? { nonce: query.nonce } : {}),
     signature: query.signature,
     ...(options?.nowUnixSeconds !== undefined ? { nowUnixSeconds: options.nowUnixSeconds } : {}),
     ...(options?.maxAgeSeconds !== undefined ? { maxAgeSeconds: options.maxAgeSeconds } : {}),
