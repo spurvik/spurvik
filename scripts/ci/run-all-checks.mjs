@@ -23,6 +23,11 @@ runStep("Docs & Runnable Examples Version Sync Gate", process.execPath, [
   "scripts/ci/verify-docs-version-sync.mjs",
 ]);
 
+runStep("Distribution Surfaces & Exports Parity Gate", process.execPath, [
+  "--test",
+  "scripts/ci/verify-distribution-surfaces.mjs",
+]);
+
 runStep("n8n & Make.com Workflow Validation", process.execPath, [
   "examples/n8n-make-import/validate-workflows.mjs",
 ]);
