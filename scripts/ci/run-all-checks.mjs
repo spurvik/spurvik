@@ -32,6 +32,11 @@ runStep("GitHub Actions MCP Unwrapped-Call Scanner Smoke Test", process.execPath
   "examples/github-actions-ci-check/smoke.test.mjs",
 ]);
 
+runStep("LangGraph, Mastra & OpenAI Agents Adapters Smoke Test", process.execPath, [
+  "--test",
+  "examples/langgraph-mastra-openai-agents/smoke.test.mjs",
+]);
+
 runStep("n8n Community Node Build & Execution Tests", "npm", ["test"], join(root, "packages/n8n-nodes-spurvik"));
 
 console.log("\n=== [CI] All repository checks passed ===");
