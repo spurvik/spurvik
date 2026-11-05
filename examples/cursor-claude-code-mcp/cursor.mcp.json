@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "spurvik": {
+      "command": "npx",
+      "args": ["-y", "spurvik-mcp-server@1.0.2", "--root", "${workspaceFolder}"]
+    }
+  }
+}

@@ -6,6 +6,21 @@
   "author": "EyeTea Solutions ApS",
   "license": "MIT",
   "homepage": "https://spurvik.com",
+  "keywords": [
+    "eu-ai-act",
+    "ai-agents",
+    "human-in-the-loop",
+    "article-50",
+    "article-12",
+    "article-14",
+    "hmac-sha256",
+    "langgraph",
+    "vercel-ai-sdk",
+    "openai-agents",
+    "mastra",
+    "mcp",
+    "spurvik"
+  ],
   "engines": {
     "node": ">=20"
   },

@@ -6,6 +6,16 @@
   "type": "module",
   "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, and marking-hook notes.",
   "license": "MIT",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "eu-ai-act",
+    "cursor",
+    "claude-code",
+    "vscode",
+    "spurvik"
+  ],
   "repository": {
     "type": "git",
     "directory": "packages/mcp"
