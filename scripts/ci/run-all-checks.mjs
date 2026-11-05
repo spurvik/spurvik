@@ -18,6 +18,11 @@ runStep("MCP & Claude Plugin Manifest Verification", process.execPath, [
   "scripts/ci/plugin-manifest.test.mjs",
 ]);
 
+runStep("Docs & Runnable Examples Version Sync Gate", process.execPath, [
+  "--test",
+  "scripts/ci/verify-docs-version-sync.mjs",
+]);
+
 runStep("n8n & Make.com Workflow Validation", process.execPath, [
   "examples/n8n-make-import/validate-workflows.mjs",
 ]);
