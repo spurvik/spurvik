@@ -1,10 +1,10 @@
-# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.2`
+# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.3`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.6`, and the `n8n-nodes-spurvik@1.0.2` npm tarball). This is not legal advice.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.6`, and `n8n-nodes-spurvik@1.0.3` in this repository). This is not legal advice.
 
 ## 1. Approval router (`spurvik@1.0.6`)
 
-`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.6` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping / Article 14 human oversight.
+`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.6` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping and Article 14 human oversight for high-risk AI systems.
 
 ### Callback URL & Nonce Verification
 
@@ -71,11 +71,11 @@ const tokenOk =
 
 Provenance records in `spurvik@1.0.6` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
-## 2. `n8n-nodes-spurvik@1.0.2`
+## 2. `n8n-nodes-spurvik@1.0.3`
 
-`npm view n8n-nodes-spurvik versions dist-tags` lists `0.0.0-stage`, `1.0.0`, `1.0.1`, and `1.0.2`, with `latest` at `1.0.2`.
+This repository's package is `n8n-nodes-spurvik@1.0.3`. Before this release, `npm view n8n-nodes-spurvik versions dist-tags` listed `0.0.0-stage`, `1.0.0`, `1.0.1`, and `1.0.2`, with `latest` at `1.0.2`.
 
-The `n8n-nodes-spurvik@1.0.2` tarball contains:
+The `n8n-nodes-spurvik@1.0.3` tarball contains:
 - `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` (exports `SpurvikEuAiActGuard` with `description` and `execute()`)
 - `dist/nodes/SpurvikEuAiActGuard/spurvik.svg`
 - `dist/credentials/SpurvikApi.credentials.js` (exports `SpurvikApi`)
@@ -83,7 +83,7 @@ The `n8n-nodes-spurvik@1.0.2` tarball contains:
 - `dist/index.js`
 - `make-com-blueprint.json`
 
-`package.json` sets `n8n.nodes` to `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]` and `n8n.credentials` to `["dist/credentials/SpurvikApi.credentials.js"]`. Loaded in `n8n 2.46.4`, the native Community Node registers cleanly and exposes three operations (`art50_disclosure`, `art12_hmac_log`, `art14_ask_human`) designed to support Article 50(1) transparency notices, Article 12 record-keeping, and Article 14 human oversight. By default `passThroughFields` is blank, so incoming prompt fields are not copied onto the node output unless explicitly listed in `passThroughFields`.
+`package.json` sets `n8n.nodes` to `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]` and `n8n.credentials` to `["dist/credentials/SpurvikApi.credentials.js"]`. The 1.0.2 package loaded in `n8n 2.46.4`. The node exposes three operations (`art50_disclosure`, `art12_hmac_log`, `art14_ask_human`) designed to support Article 50(1) transparency notices, and Article 12 record-keeping and Article 14 human oversight for high-risk AI systems. By default `passThroughFields` is blank. A listed entry equal to `inputField` (trimmed, any letter case) is not copied.
 
 Files in this repository:
 

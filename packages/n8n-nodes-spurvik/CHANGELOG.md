@@ -1,3 +1,7 @@
+## n8n-nodes-spurvik 1.0.3
+
+- Fixed: a passThroughFields entry equal to inputField no longer copies the input value to the output (affected 1.0.0–1.0.2).
+
 ## n8n-nodes-spurvik 1.0.2
 
 The published 1.0.1 class lived in `dist/index.js`, so n8n looked for an export named `index` and failed to load the package. 1.0.2 ships `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`.
