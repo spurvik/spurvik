@@ -2,9 +2,11 @@
 
 Run these commands from a clean checkout of the merge commit. `spurvik` and `spurvik-sdk` are the same SDK build under two names. `spurvik-sdk` does not depend on `spurvik`. Do not pass `--provenance`.
 
-Publish order: `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`).
+When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). This release publishes only `n8n-nodes-spurvik@1.0.3`. Skip `spurvik@1.0.6` and `spurvik-sdk@1.0.6`. They are already published. A clean pack of those two differs from the registry in metadata only. Never republish an existing version.
 
-Do not `npm install` `spurvik@1.0.6` or `spurvik-sdk@1.0.6` from the registry until after `npm publish`. That install fails with `ETARGET` while the version is unpublished. Smoke-test from the local `.tgz` files.
+The n8n `outputField` check compares field names, not values.
+
+Smoke-test from the local `.tgz` files. `spurvik@1.0.6` and `spurvik-sdk@1.0.6` are already on the registry. Do not install `n8n-nodes-spurvik@1.0.3` from the registry until after this release is published. That install fails with `ETARGET` while the version is unpublished.
 
 `packages/sdk/package.json` has no `file:` dependency. The SDK build links `packages/core` into `node_modules` for that build only. That link is not part of the published package.
 
@@ -17,25 +19,26 @@ REPO=$(git rev-parse --show-toplevel)
 cd "$REPO" || exit 1
 # Hard stop before any pack. On 4 Nov 2026 spurvik@1.0.6 was packed from a dirty tree,
 # so its registry gitHead points at a commit whose package.json still said 1.0.5.
-if [[ -n "$(git status --porcelain)" ]]; then
+# Tracked changes and untracked files. Ignored build output is not listed.
+if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
   echo "Stop: git status --porcelain is not empty. Refusing to pack from a dirty tree." >&2
-  git status --porcelain >&2
+  git status --porcelain --untracked-files=all >&2
   exit 1
 fi
 
 # 1. Build from the lockfiles. core is bundled and is not published.
 (
-  cd "$REPO"/packages/core
+  cd "$REPO"/packages/core || exit 1
   npm ci
   npm run build
 )
 (
-  cd "$REPO"/packages/react
+  cd "$REPO"/packages/react || exit 1
   npm ci
   npm run build
 )
 (
-  cd "$REPO"/packages/sdk
+  cd "$REPO"/packages/sdk || exit 1
   npm ci
   npm run build
 )
@@ -43,21 +46,21 @@ fi
 # 2. Pack local tarballs. Dry-run from the package directories.
 mkdir -p /tmp/spurvik-release
 (
-  cd "$REPO"/packages/sdk
+  cd "$REPO"/packages/sdk || exit 1
   npm pack --pack-destination /tmp/spurvik-release
   npm publish --dry-run
 )
 (
-  cd "$REPO"
+  cd "$REPO" || exit 1
   node scripts/stage-spurvik-package.mjs
-  cd "$REPO"/packages/spurvik
+  cd "$REPO"/packages/spurvik || exit 1
   npm pack --pack-destination /tmp/spurvik-release
   npm publish --dry-run
 )
 
 # 3. Build the n8n package against the local spurvik-sdk tarball, then pack and dry-run.
 (
-  cd "$REPO"/packages/n8n-nodes-spurvik
+  cd "$REPO"/packages/n8n-nodes-spurvik || exit 1
   npm install --no-save --no-package-lock --legacy-peer-deps /tmp/spurvik-release/spurvik-sdk-1.0.6.tgz
   npm install --no-save --no-package-lock --legacy-peer-deps typescript@5.9.3 n8n-workflow@2.46.4 @types/node@22.20.5
   npm run build
@@ -70,21 +73,21 @@ mkdir -p /tmp/spurvik-release
 rm -rf /tmp/spurvik-release /tmp/spurvik-smoke
 mkdir -p /tmp/spurvik-release /tmp/spurvik-smoke
 (
-  cd "$REPO"/packages/sdk
+  cd "$REPO"/packages/sdk || exit 1
   npm pack --pack-destination /tmp/spurvik-release
 )
 (
-  cd "$REPO"
+  cd "$REPO" || exit 1
   node scripts/stage-spurvik-package.mjs
-  cd "$REPO"/packages/spurvik
+  cd "$REPO"/packages/spurvik || exit 1
   npm pack --pack-destination /tmp/spurvik-release
 )
 (
-  cd "$REPO"/packages/n8n-nodes-spurvik
+  cd "$REPO"/packages/n8n-nodes-spurvik || exit 1
   npm pack --pack-destination /tmp/spurvik-release
 )
 (
-  cd /tmp/spurvik-smoke
+  cd /tmp/spurvik-smoke || exit 1
   npm init -y
   npm install --legacy-peer-deps \
     /tmp/spurvik-release/spurvik-1.0.6.tgz \
@@ -116,9 +119,10 @@ set -euo pipefail
 : "${QA_SHA1_N8N_NODES_SPURVIK:?Set QA_SHA1_N8N_NODES_SPURVIK to the sha1 QA recorded for the approved head}"
 (
   cd "$(git rev-parse --show-toplevel)" || exit 1
-  if [[ -n "$(git status --porcelain)" ]]; then
+  # Tracked changes and untracked files. Ignored build output is not listed.
+  if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
     echo "Stop: git status --porcelain is not empty. Refusing to pack from a dirty tree." >&2
-    git status --porcelain >&2
+    git status --porcelain --untracked-files=all >&2
     exit 1
   fi
   head="$(git rev-parse HEAD)"
@@ -160,70 +164,36 @@ set -euo pipefail
 )
 ```
 
-Publish stays a separate block. It publishes the tarballs step 5 already packed. It does not pack again. No --provenance.
+Publish stays a separate block, one block per package. It publishes the tarball step 5 already packed. It does not pack again. No --provenance.
 
-`spurvik@1.0.6` and `spurvik-sdk@1.0.6` have no code change in the 1.0.3 n8n release. Skip a name whose version is already on the registry. This release's new publish is `n8n-nodes-spurvik@1.0.3`.
+This release publishes only `n8n-nodes-spurvik@1.0.3`. Skip `spurvik@1.0.6` and `spurvik-sdk@1.0.6`. They are already published. A clean pack of those two differs from the registry in metadata only. Never republish an existing version.
 
 ```bash
-# 6. Publish the exact packed tarball, in order, only when the owner decides. No --provenance.
+# 6. Publish only n8n-nodes-spurvik@1.0.3, only when the owner decides. No --provenance.
+# spurvik-sdk@1.0.6 — SKIP. Already published. Never republish an existing version.
 (
   cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
-  npm publish ./spurvik-sdk-1.0.6.tgz
+  echo "Skip spurvik-sdk@1.0.6. Already published. A clean pack differs from the registry in metadata only. Never republish an existing version."
 )
+# spurvik@1.0.6 — SKIP. Already published. Never republish an existing version.
 (
   cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
-  npm publish ./spurvik-1.0.6.tgz
+  echo "Skip spurvik@1.0.6. Already published. A clean pack differs from the registry in metadata only. Never republish an existing version."
 )
+# n8n-nodes-spurvik@1.0.3 — the only publish for this release.
 (
   cd "$(git rev-parse --show-toplevel)"/packages/n8n-nodes-spurvik || exit 1
   npm publish ./n8n-nodes-spurvik-1.0.3.tgz
 )
 ```
 
-After that publish, the registry `dist.shasum` must equal the packed sha1, and `npm view <pkg>@<ver> gitHead` must equal `QA_SHA`. Then a registry install check is valid.
-
-Run the gitHead check for each version you published from `QA_SHA`. `spurvik@1.0.6` and `spurvik-sdk@1.0.6` were packed on 4 Nov 2026 from a dirty tree, so their registry `gitHead` points at a commit whose `package.json` still said `1.0.5`. That old `gitHead` will not equal this release's `QA_SHA`. Skip those two gitHead lines unless you published that version from `QA_SHA`. This release's new publish is `n8n-nodes-spurvik@1.0.3`, and its `gitHead` must equal `QA_SHA`.
+After that publish, `npm view n8n-nodes-spurvik@1.0.3 dist.shasum` must equal the packed sha1, and `npm view n8n-nodes-spurvik@1.0.3 gitHead` must equal `QA_SHA`. Do not run that check for `spurvik@1.0.6` or `spurvik-sdk@1.0.6`. Those versions are not republished. Their registry `gitHead` is from the 4 Nov 2026 dirty-tree pack, whose `package.json` still said `1.0.5`. Then a registry install check is valid.
 
 ```bash
-# 7. Post-publish check. dist.shasum must equal the packed sha1.
-#    gitHead must equal QA_SHA for each version published from that commit.
+# 7. Post-publish check for the only package this release publishes.
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit}"
-(
-  cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
-  packed="$(shasum -a 1 ./spurvik-sdk-1.0.6.tgz | awk '{print $1}')"
-  remote="$(npm view spurvik-sdk@1.0.6 dist.shasum)"
-  if [[ "$remote" != "$packed" ]]; then
-    echo "Stop: npm view spurvik-sdk@1.0.6 dist.shasum is $remote, packed sha1 is $packed." >&2
-    exit 1
-  fi
-  # Set PUBLISHED_FROM_QA_SHA_SPURVIK_SDK=1 only when this version was published from QA_SHA.
-  if [[ "${PUBLISHED_FROM_QA_SHA_SPURVIK_SDK:-}" == "1" ]]; then
-    git_head="$(npm view spurvik-sdk@1.0.6 gitHead)"
-    if [[ "$git_head" != "$QA_SHA" ]]; then
-      echo "Stop: npm view spurvik-sdk@1.0.6 gitHead is $git_head, QA_SHA is $QA_SHA." >&2
-      exit 1
-    fi
-  fi
-)
-(
-  cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
-  packed="$(shasum -a 1 ./spurvik-1.0.6.tgz | awk '{print $1}')"
-  remote="$(npm view spurvik@1.0.6 dist.shasum)"
-  if [[ "$remote" != "$packed" ]]; then
-    echo "Stop: npm view spurvik@1.0.6 dist.shasum is $remote, packed sha1 is $packed." >&2
-    exit 1
-  fi
-  # Set PUBLISHED_FROM_QA_SHA_SPURVIK=1 only when this version was published from QA_SHA.
-  if [[ "${PUBLISHED_FROM_QA_SHA_SPURVIK:-}" == "1" ]]; then
-    git_head="$(npm view spurvik@1.0.6 gitHead)"
-    if [[ "$git_head" != "$QA_SHA" ]]; then
-      echo "Stop: npm view spurvik@1.0.6 gitHead is $git_head, QA_SHA is $QA_SHA." >&2
-      exit 1
-    fi
-  fi
-)
 (
   cd "$(git rev-parse --show-toplevel)"/packages/n8n-nodes-spurvik || exit 1
   packed="$(shasum -a 1 ./n8n-nodes-spurvik-1.0.3.tgz | awk '{print $1}')"
@@ -246,7 +216,7 @@ set -euo pipefail
 (
   rm -rf /tmp/spurvik-registry-check
   mkdir -p /tmp/spurvik-registry-check
-  cd /tmp/spurvik-registry-check
+  cd /tmp/spurvik-registry-check || exit 1
   npm init -y
   npm install spurvik@1.0.6 spurvik-sdk@1.0.6 n8n-nodes-spurvik@1.0.3
 )
