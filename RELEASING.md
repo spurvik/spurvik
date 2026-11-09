@@ -43,28 +43,39 @@ fi
   npm run build
 )
 
-# 2. Pack local tarballs. Dry-run from the package directories.
+# 2. Pack local tarballs. Stage spurvik before any publish dry-run.
+#    prepublishOnly checks packages/sdk/dist, packages/spurvik/dist, and the n8n dist.
 mkdir -p /tmp/spurvik-release
 (
   cd "$REPO"/packages/sdk || exit 1
   npm pack --pack-destination /tmp/spurvik-release
-  npm publish --dry-run
 )
 (
   cd "$REPO" || exit 1
   node scripts/stage-spurvik-package.mjs
   cd "$REPO"/packages/spurvik || exit 1
   npm pack --pack-destination /tmp/spurvik-release
-  npm publish --dry-run
 )
 
-# 3. Build the n8n package against the local spurvik-sdk tarball, then pack and dry-run.
+# 3. Build the n8n package against the local spurvik-sdk tarball, then pack.
+#    Dry-run only after all three dists exist.
 (
   cd "$REPO"/packages/n8n-nodes-spurvik || exit 1
   npm install --no-save --no-package-lock --legacy-peer-deps /tmp/spurvik-release/spurvik-sdk-1.0.6.tgz
   npm install --no-save --no-package-lock --legacy-peer-deps typescript@5.9.3 n8n-workflow@2.46.4 @types/node@22.20.5
   npm run build
   npm pack --pack-destination /tmp/spurvik-release
+)
+(
+  cd "$REPO"/packages/sdk || exit 1
+  npm publish --dry-run
+)
+(
+  cd "$REPO"/packages/spurvik || exit 1
+  npm publish --dry-run
+)
+(
+  cd "$REPO"/packages/n8n-nodes-spurvik || exit 1
   npm publish --dry-run
 )
 
