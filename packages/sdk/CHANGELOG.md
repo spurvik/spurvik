@@ -1,5 +1,20 @@
 # spurvik-sdk
 
+## 1.0.7 — unreleased
+
+Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build) once released. An `overridden` human decision now means do not continue, the same as `rejected`.
+
+### Breaking
+
+- `requireHumanApproval` now throws `SpurvikHitlRejectedError` when the decision is overridden, as it does when rejected. Read `error.record.status` (`"overridden"` or `"rejected"`). Continue only when it returns status `approved`.
+- `SpurvikHitlRejectedError.message` says `was overridden` for an overridden decision and `was rejected` for a rejected one.
+
+### Fixed
+
+- `spurvik/langgraph`: `spurvikInterrupt` and `resolveLangGraphInterrupts` set `approved: true` only for status `approved`. In 1.0.6 an overridden decision returned `approved: true`. An overridden decision now returns `approved: false` with status `overridden` (or throws with `throwOnReject`). A resume value that says `approved: true` with any status other than `approved` is settled to `approved: false`.
+- `spurvik/openai-agents`: `resolveAgentInterruptions` calls `state.approve` only for status `approved`. In 1.0.6 an overridden decision called `state.approve`. It now calls `state.reject(item, { message: "The decision was overridden." })`. A rejected decision still calls `state.reject(item)`.
+- Tests: new `client.test.ts`, `langgraph.test.ts`, and `openai-agents.test.ts` cover approved, rejected, and overridden.
+
 ## 1.0.5 — 2026-11-04
 
 Fixes to the `spurvik/channels` functions shipped in 1.0.4. Published as `spurvik@1.0.5` and `spurvik-sdk@1.0.5` (same build). No exports were removed.

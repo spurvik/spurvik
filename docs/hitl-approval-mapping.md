@@ -15,7 +15,7 @@ Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`fini
 | Step | Shipped `spurvik` / `spurvik` API | Control-Plane Endpoint | Notes |
 |---|---|---|---|
 | **AI SDK finish-reason & approval deduplication** | `extractFinishReason`, `isInterruptedFinishReason`, `dedupeToolApprovalResponses` (`spurvik/ai`) | `POST /api/v1/telemetry` | Reads string or `{ unified, raw }` finish reasons (`unified` wins), records `"interrupted"` on streams that close without a finish chunk, and keeps the first approval response per `toolCallId` / `approvalId` / `id`. |
-| **OpenAI Agents `needsApproval` & `RunState` resolver** | `createSpurvikNeedsApproval`, `resolveAgentInterruptions` (`spurvik/openai-agents`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Checks halt state before returning `true` (or `when` predicate), deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve(item)` or `state.reject(item)`. |
+| **OpenAI Agents `needsApproval` & `RunState` resolver** | `createSpurvikNeedsApproval`, `resolveAgentInterruptions` (`spurvik/openai-agents`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Checks halt state before returning `true` (or `when` predicate), deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve(item)` only for `approved`, or `state.reject(item)` for `overridden` or `rejected`. |
 | **LangGraph graph wrapper & interrupt resolver** | `withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts` (`spurvik/langgraph`) | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Marks `finishReason: "interrupted"` when `state.__interrupt__` is non-empty, deduplicates interrupt IDs (`skippedDuplicateIds`), and returns `command: { resume }` ready for `new Command(...)`. |
 | **Request approval & wait** *(in-process poll)* | `spurvik.requireHumanApproval(actionName, payload, options?)` | `POST /api/v1/hitl` then `GET /api/v1/hitl/:id` | Summarises `payload` into `spurvik.payload_summary.v1` (key names + keyed HMAC fingerprint, never raw values) and polls until status leaves `"pending"` / `"pending_confirmation"` or throws `SpurvikHitlTimeoutError(approvalId)`. |
 | **Open pending approval without blocking** *(for checkpointed pause/resume)* | `POST /api/v1/hitl` with a `spurvik.payload_summary.v1` string you build | `POST /api/v1/hitl` | Post the summary string yourself. The response is a pending row (`HitlRecordWire`) so a graph can checkpoint and exit. |
@@ -94,7 +94,7 @@ if (isInterruptedFinishReason(finishReason) || approvalRequests.length > 0) {
       req.toolCall.toolName,
       req.toolCall.input,
     );
-    const approved = decision.status === "approved" || decision.status === "overridden";
+    const approved = decision.status === "approved"; // overridden means do not continue
     rawResponses.push({
       toolCallId: req.toolCall.toolCallId,
       approvalId: decision.id,
@@ -115,7 +115,7 @@ await spurvik.flush();
 
 ## 2. OpenAI Agents SDK (`createSpurvikNeedsApproval` & `resolveAgentInterruptions`)
 
-Wrap your `ModelProvider` with `withSpurvikModelProvider` (or a single `Model` with `withSpurvikModel`) from `spurvik/openai-agents`. Use `createSpurvikNeedsApproval(config, { actionName })` on side-effecting tools (which runs the halt check before returning `true` or your `when` predicate). When `runner.run(agent, input)` pauses with `paused.interruptions`, call `resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (or `modelProvider.resolveInterruptions(paused.interruptions, { state: paused.state })`) to deduplicate tool-call IDs, wait on `/api/v1/hitl`, and automatically call `state.approve(item)` or `state.reject(item)`:
+Wrap your `ModelProvider` with `withSpurvikModelProvider` (or a single `Model` with `withSpurvikModel`) from `spurvik/openai-agents`. Use `createSpurvikNeedsApproval(config, { actionName })` on side-effecting tools (which runs the halt check before returning `true` or your `when` predicate). When `runner.run(agent, input)` pauses with `paused.interruptions`, call `resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (or `modelProvider.resolveInterruptions(paused.interruptions, { state: paused.state })`) to deduplicate tool-call IDs, wait on `/api/v1/hitl`, and call `state.approve(item)` only for `approved`, or `state.reject(item)` for `overridden` or `rejected`:
 
 ```ts
 import { Agent, Runner, tool, type ModelProvider } from "@openai/agents";
@@ -261,8 +261,8 @@ export async function refundNode(state: { orderId: string; amountCents: number }
     payloadSummary: pending.payloadSummary,
   });
 
-  if (decision.status !== "approved" && decision.status !== "overridden") {
-    throw new Error(`Refund ${pending.id} rejected by reviewer.`);
+  if (decision.status !== "approved") {
+    throw new Error(`Refund ${pending.id} not approved (${decision.status}).`);
   }
   return { refundStatus: "executed", approvalId: decision.id };
 }

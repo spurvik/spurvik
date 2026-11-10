@@ -13,7 +13,7 @@ The public sandbox cockpit is at https://console.spurvik.com/sandbox. See [sandb
 ## Install
 
 ```bash
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 ```
 
 ```bash

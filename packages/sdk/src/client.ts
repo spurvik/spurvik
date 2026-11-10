@@ -170,7 +170,10 @@ export class SpurvikClient {
   }
 
   /**
-   * supports human-oversight work (Article 14 applies to high-risk AI systems)
+   * supports human-oversight work (Article 14 applies to high-risk AI systems).
+   * requireHumanApproval throws on 'rejected' and 'overridden'; continue only when it returns status 'approved'.
+   * @throws {SpurvikHitlRejectedError} When the decision is rejected or overridden. Read `error.record.status`.
+   * @throws {SpurvikHitlTimeoutError} When the wait ends before a decision.
    */
   async requireHumanApproval(
     actionName: string,
@@ -190,7 +193,7 @@ export class SpurvikClient {
         throw new SpurvikHitlTimeoutError(created.id);
       }
       const current = await this.transport.get<HitlRecordWire>(`/api/v1/hitl/${created.id}`);
-      if (current.status === "rejected") throw new SpurvikHitlRejectedError(current);
+      if (current.status === "rejected" || current.status === "overridden") throw new SpurvikHitlRejectedError(current);
       if (current.status !== "pending" && current.status !== "pending_confirmation") return current;
       if (Date.now() >= deadline) break;
       await waitForPoll(this.config.sleep, interval, options?.signal);

@@ -64,10 +64,11 @@ export class SpurvikHitlTimeoutError extends SpurvikError {
   }
 }
 
-/** A human reviewer rejected the queued action. The record is the queue row. */
+/** A human reviewer rejected or overrode the queued action. Read `record.status`. */
 export class SpurvikHitlRejectedError extends SpurvikError {
   constructor(readonly record: HitlRecordWire) {
-    super(`Human approval for "${record.actionName}" was rejected.`);
+    const outcome = record.status === "overridden" ? "overridden" : "rejected";
+    super(`Human approval for "${record.actionName}" was ${outcome}.`);
     this.name = "SpurvikHitlRejectedError";
   }
 }

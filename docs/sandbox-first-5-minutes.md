@@ -86,7 +86,7 @@ Look at **Card 2 (`Human Gate`, top-right, pill `Art. 14`)**, or click `Human Ga
    - Click **`Kill Switch`** (`gate-kill-btn`) to transition the status pill to **`Halted`** (rose) and append a `hitl.decision` block.
    - Click **`Reset`** (`gate-reset-btn`) at any time to return the gate status to **`1 Pending`**.
 3. **How `Human Gate` maps to production SDK & API calls:**
-   - **Per-action approval (`Approve` / `Block Agent`):** In `spurvik`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` records a `pending` row (or `pending_confirmation` when two-person confirmation is enabled) via `POST /api/v1/hitl`. A human reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_` token.
+   - **Per-action approval (`Approve` / `Block Agent`):** In `spurvik`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` records a `pending` row (or `pending_confirmation` when two-person confirmation is enabled) via `POST /api/v1/hitl`. A human reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_` token. From 1.0.7, `requireHumanApproval` throws `SpurvikHitlRejectedError` on `rejected` and `overridden`; continue only when it returns status `approved`.
    - **Project or action stop (`Kill Switch` / `Reset`):** Calling `await ai._spurvik.engageKillSwitch({ reason, actionName })` or `await ai._spurvik.releaseKillSwitch({ reason, actionName })` (or clicking **Engage stop** / **Release stop** in the console) toggles the stop checked before every `high_annex3` call (`PROCEED` vs. `HALT`, throwing `SpurvikHaltedError` when active).
    - **Scope of the audit record:** The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
@@ -163,7 +163,7 @@ curl -sS -X POST https://console.spurvik.com/api/mcp \
 
 When you are ready to mint a real `spurvik_live_...` project key and ingest signed receipts:
 
-- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** and install with `npm install openai spurvik@1.0.6`. For an invited organisation, set `baseUrl` to `https://console.spurvik.com`.
+- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** and install with `npm install openai spurvik@1.0.7`. For an invited organisation, set `baseUrl` to `https://console.spurvik.com`.
 - Read the **[Console Onboarding Guide](./console-onboarding.md)** for organisation invites (`spurvik_invite_...`), monthly quotas, SIEM webhooks, and `<AIDisclosureLabel />` props.
 - Check **[2x2 Sandbox & Environment FAQ](./faq-sandbox-2x2.md)** for answers to common developer questions.
 

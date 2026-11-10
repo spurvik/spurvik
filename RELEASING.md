@@ -119,7 +119,7 @@ After that publish, a registry install check is valid.
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check
   npm init -y
-  npm install spurvik@1.0.6 spurvik-sdk@1.0.6 n8n-nodes-spurvik@1.0.2
+  npm install spurvik@1.0.7 spurvik-sdk@1.0.7 n8n-nodes-spurvik@1.0.2
 )
 ```
 

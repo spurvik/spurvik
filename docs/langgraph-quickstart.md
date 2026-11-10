@@ -24,7 +24,7 @@ In about 5 minutes, this guide walks through connecting a LangGraph (`@langchain
 Install the live MIT packages first:
 
 ```bash
-npm install @langchain/langgraph spurvik@1.0.6 spurvik-sdk@1.0.6
+npm install @langchain/langgraph spurvik@1.0.7 spurvik-sdk@1.0.7
 ```
 
 Set your project credentials in the environment (the SDK never reads `process.env` implicitly; pass each field in `SpurvikConfig`):
@@ -288,14 +288,14 @@ export async function issueRefundNode(
   if (!decision.approved) {
     return {
       status: "halted_by_reviewer" as const,
-      hitlStatus: decision.status, // "rejected" | "expired"
+      hitlStatus: decision.status, // "rejected" | "overridden"
       approvalId: decision.resume.approvalId,
     };
   }
 
   return {
     status: "executed" as const,
-    hitlStatus: decision.status, // "approved" | "overridden"
+    hitlStatus: decision.status, // "approved" only
     approvalId: decision.resume.approvalId,
   };
 }

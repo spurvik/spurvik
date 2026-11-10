@@ -192,7 +192,8 @@ export function createSpurvikNeedsApproval(
 /**
  * Map Agents `RunResult.interruptions` onto the human-oversight queue.
  * The first interruption for each `callId` is sent. Later copies are listed in `skippedDuplicateCallIds`.
- * Approved and overridden rows call `state.approve`. A rejected row calls `state.reject`.
+ * Only an approved row calls `state.approve`. An overridden or rejected row calls `state.reject`.
+ * Overridden means do not continue. That reject call includes a message that the decision was overridden.
  */
 export async function resolveAgentInterruptions<TInterruption extends AgentApprovalInterruptionLike>(
   interruptions: readonly TInterruption[],
@@ -220,7 +221,7 @@ export async function resolveAgentInterruptions<TInterruption extends AgentAppro
         pollIntervalMs: options?.pollIntervalMs,
         signal: options?.signal,
       });
-      if (approval.status === "approved" || approval.status === "overridden") {
+      if (approval.status === "approved") {
         options?.state?.approve(item);
         decisions.push({
           callId,
@@ -243,7 +244,11 @@ export async function resolveAgentInterruptions<TInterruption extends AgentAppro
       });
     } catch (error) {
       if (!(error instanceof SpurvikHitlRejectedError)) throw error;
-      options?.state?.reject(item);
+      if (error.record.status === "overridden") {
+        options?.state?.reject(item, { message: "The decision was overridden." });
+      } else {
+        options?.state?.reject(item);
+      }
       decisions.push({
         callId,
         actionName,

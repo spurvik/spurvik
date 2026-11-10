@@ -146,7 +146,7 @@ After a matching callback whose decision is `approved`, `runRoutedAskHuman` call
 | --- | --- | --- |
 | `approved` | Returns the row. | `continue` is true. The action may proceed. |
 | `rejected` | Throws `SpurvikHitlRejectedError`. A matching reject link returns before the queue call. | `continue` is false. |
-| `overridden` | Returns the row. It does not throw. In spurvik 1.0.4, `resolveAgentInterruptions` and `spurvikInterrupt` treat `overridden` as approved (`status === "approved" \|\| status === "overridden"`). | `continue` is false. This example checks that `status` is `approved` before continuing. |
+| `overridden` | From spurvik 1.0.7, throws `SpurvikHitlRejectedError` with `record.status` `overridden`, and `resolveAgentInterruptions` / `spurvikInterrupt` treat it as do not continue. Up to 1.0.6 it returned the row without throwing, and those two helpers treated it as approved. | `continue` is false. This example checks that `status` is `approved` before continuing. |
 | timeout | The row stays `pending` or `pending_confirmation` until `hitl.timeoutMs`, then the SDK throws `SpurvikHitlTimeoutError`. | `continue` is false. |
 
 `npm start` uses the SDK default wait of 120000 milliseconds. The smoke test uses a short wait against the stub.
