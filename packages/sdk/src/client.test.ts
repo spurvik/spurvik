@@ -94,3 +94,16 @@ describe("requireHumanApproval", () => {
     expect((error as SpurvikHitlRejectedError).message).not.toContain("was rejected");
   });
 });
+
+describe("SpurvikHitlRejectedError message", () => {
+  it("names an unexpected status instead of saying rejected", () => {
+    const error = new SpurvikHitlRejectedError({ ...record("pending"), status: "expired" as unknown as HitlStatus });
+    expect(error.message).toBe('Human approval for "send_notice" was not approved (status "expired").');
+    expect(error.message).not.toContain("was rejected");
+  });
+
+  it("keeps the rejected and overridden wording", () => {
+    expect(new SpurvikHitlRejectedError(record("rejected")).message).toBe('Human approval for "send_notice" was rejected.');
+    expect(new SpurvikHitlRejectedError(record("overridden")).message).toBe('Human approval for "send_notice" was overridden.');
+  });
+});

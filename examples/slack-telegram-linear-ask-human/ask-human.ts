@@ -228,8 +228,8 @@ function stopped(
  * then read the human-oversight queue.
  * Continue only when the callback decision is "approved", the signature matches,
  * and the queue status is "approved".
- * In spurvik 1.0.4, resolveAgentInterruptions and spurvikInterrupt also continue
- * when the status is "overridden". This function does not.
+ * From spurvik 1.0.7, requireHumanApproval throws SpurvikHitlRejectedError on
+ * "rejected" and "overridden". This function reports which one through `status`.
  */
 export async function runRoutedAskHuman(input: RunRoutedAskHumanInput): Promise<AskHumanResult> {
   const env = slackTelegramLinearEnv(input.env);
@@ -279,7 +279,12 @@ export async function runRoutedAskHuman(input: RunRoutedAskHumanInput): Promise<
     throw new Error(`Queue status "${record.status}" does not let the action continue.`);
   } catch (error) {
     if (error instanceof SpurvikHitlTimeoutError) return stopped(base, "timeout");
-    if (error instanceof SpurvikHitlRejectedError) return stopped(base, "rejected", error.record);
+    if (error instanceof SpurvikHitlRejectedError) {
+      if (error.record.status === "overridden") {
+        return { ...base, continue: false, status: "overridden", record: error.record };
+      }
+      return stopped(base, "rejected", error.record);
+    }
     throw error;
   }
 }

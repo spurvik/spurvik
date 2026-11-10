@@ -125,6 +125,21 @@ describe("spurvikInterrupt overridden means do not continue", () => {
   });
 });
 
+describe("spurvikInterrupt unexpected status", () => {
+  it("throwOnReject names the unexpected status in the message", async () => {
+    const error = await spurvikInterrupt(
+      { actionName: "send_notice" },
+      clientFor("unknown_status" as unknown as HitlStatus),
+      { throwOnReject: true },
+    ).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(SpurvikHitlRejectedError);
+    expect((error as SpurvikHitlRejectedError).message).toContain('was not approved (status "unknown_status")');
+  });
+});
+
 describe("resolveLangGraphInterrupts overridden", () => {
   it("allApproved is false and the resume value says approved false", async () => {
     const result = await resolveLangGraphInterrupts([{ id: "i1", value: { actionName: "send_notice" } }], clientFor("overridden"));
