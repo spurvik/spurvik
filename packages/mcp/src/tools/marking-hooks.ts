@@ -60,7 +60,7 @@ export function markingHooksText(surface: string = "both"): string {
         "  },",
         "}",
       ].join("\n"),
-      "@spurvik/c2pa implements a MediaMarkingHook for PNG and JPEG. This server does not call it.",
+      "packages/c2pa in this repository implements a MediaMarkingHook for PNG and JPEG. It is not published to npm. This server does not call it.",
     );
   }
   parts.push(

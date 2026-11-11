@@ -6,13 +6,13 @@
     "url": "https://spurvik.com"
   },
   "metadata": {
-    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.6) & MCP control plane (1.0.2, MIT)."
+    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.7) & MCP control plane (1.0.3, MIT)."
   },
   "plugins": [
     {
       "name": "spurvik",
       "source": "./plugins/spurvik",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "description": "Commands and a skill covering withSpurvik for OpenAI, Anthropic, and Google GenAI clients, spurvikMiddleware for the Vercel AI SDK, withSpurvikMastra for Mastra, withSpurvikModelProvider for OpenAI Agents, and withSpurvikLangGraph for LangGraph. Designed to support Art. 50 notices and, for high-risk AI systems, Art. 12 record-keeping and Art. 14 human oversight.",
       "author": {
         "name": "EyeTea Solutions ApS",
@@ -23,7 +23,15 @@
       "repository": "https://github.com/spurvik/spurvik",
       "license": "MIT",
       "category": "security",
-      "keywords": ["eu-ai-act", "article-50", "article-12", "article-14", "hmac", "ai-governance", "spurvik"]
+      "keywords": [
+        "eu-ai-act",
+        "article-50",
+        "article-12",
+        "article-14",
+        "hmac",
+        "ai-governance",
+        "spurvik"
+      ]
     }
   ]
 }

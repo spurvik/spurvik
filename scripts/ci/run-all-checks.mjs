@@ -18,6 +18,11 @@ runStep("MCP & Claude Plugin Manifest Verification", process.execPath, [
   "scripts/ci/plugin-manifest.test.mjs",
 ]);
 
+runStep("Setup snippet imports resolve against published spurvik exports", process.execPath, [
+  "--test",
+  "scripts/ci/setup-snippet-exports.test.mjs",
+]);
+
 runStep("Docs & Runnable Examples Version Sync Gate", process.execPath, [
   "--test",
   "scripts/ci/verify-docs-version-sync.mjs",

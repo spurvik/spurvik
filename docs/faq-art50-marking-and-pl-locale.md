@@ -1,10 +1,10 @@
 # FAQ — Article 50(2) marking, Polish `locale="pl"` copy, and LangGraph (`spurvik/langgraph`)
 
-> **Applies to:** published `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, and `spurvik-mcp-server@1.0.2` at https://github.com/spurvik/spurvik.
+> **Applies to:** published `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, and `spurvik-mcp-server@1.0.3` at https://github.com/spurvik/spurvik.
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Spurvik does not mark content itself. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. The oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events. B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. This is not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.*
 
 ---
 

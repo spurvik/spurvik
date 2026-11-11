@@ -15,8 +15,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       spurvik-sdk:
-        specifier: file:../sdk
-        version: file:../sdk(ai@7.0.148(zod@3.25.76))
+        specifier: ^1.0.7
+        version: 1.0.7(ai@7.0.148(zod@3.25.76))
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -1152,8 +1152,8 @@ packages:
     resolution: {integrity: sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==}
     engines: {node: '>= 12'}
 
-  spurvik-sdk@file:../sdk:
-    resolution: {directory: ../sdk, type: directory}
+  spurvik-sdk@1.0.7:
+    resolution: {integrity: sha512-ih4Gz1h2/y5n8aWwURClvj+b7skvpKFcX0FTjboxsehPBQD40euR6Muaujo/LvutdxoZ3Md0CqJILOFJWgTjfw==}
     engines: {node: '>=20'}
     peerDependencies:
       '@langchain/langgraph': ^1.0.0
@@ -2393,7 +2393,7 @@ snapshots:
 
   source-map@0.7.6: {}
 
-  spurvik-sdk@file:../sdk(ai@7.0.148(zod@3.25.76)):
+  spurvik-sdk@1.0.7(ai@7.0.148(zod@3.25.76)):
     dependencies:
       '@ai-sdk/provider': 4.0.37
     optionalDependencies:

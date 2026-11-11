@@ -2,5 +2,8 @@ node_modules/
 packages/core/dist/
 packages/react/dist/
 packages/sdk/dist/
+packages/mcp/dist/
 packages/spurvik/dist/
 *.tgz
+
+packages/mcp/.release/

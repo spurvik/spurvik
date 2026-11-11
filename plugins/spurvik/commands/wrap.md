@@ -6,7 +6,7 @@ description: Wrap OpenAI, Anthropic, and Google GenAI clients with withSpurvik, 
 
 Inspect the current project, or the file in `$ARGUMENTS`, and add the Spurvik setup that this repository actually exports. Leave unrelated code unchanged. Show the diff. Run the project's typecheck when it has one.
 
-Pass every secret in from the environment. `@spurvik/sdk` throws `SpurvikConfigError` when `apiKey` is missing or is not a `spurvik_live_` project key, when `signingSecret` is missing or shorter than 16 characters, and when the default keyed fingerprint mode has no `contentHash.secret`. `baseUrl` is required when `NODE_ENV` is production. Development and tests may omit it and use `http://127.0.0.1:43123`. The SDK does not fill these fields from the environment.
+Pass every secret in from the environment. `spurvik` throws `SpurvikConfigError` when `apiKey` is missing or is not a `spurvik_live_` project key, when `signingSecret` is missing or shorter than 16 characters, and when the default keyed fingerprint mode has no `contentHash.secret`. `baseUrl` is required when `NODE_ENV` is production. Development and tests may omit it and use `http://127.0.0.1:43123`. The SDK does not fill these fields from the environment.
 
 `riskTier` is your classification as provider or deployer. Spurvik does not classify the use case. `article50Disclosure` defaults to false. Set it to true only when you state that an Art. 50(1) interaction notice is shown. The flag is configuration. It is not a finding that the notice was shown or that it is sufficient.
 
@@ -24,7 +24,7 @@ import {
   verifyProvenanceSignature,
   withSpurvik,
   type SpurvikConfig,
-} from "@spurvik/sdk";
+} from "spurvik";
 
 const config = {
   apiKey: process.env.SPURVIK_API_KEY!,
@@ -54,12 +54,12 @@ The telemetry body carries fingerprints, model version, temperature, and latency
 
 ## Vercel AI SDK
 
-`spurvikMiddleware` and `flush()` are exported from `@spurvik/sdk/ai`. Pass the middleware to `wrapLanguageModel`. Install `ai` at `^7.0.0` in the app. Create one middleware at module scope.
+`spurvikMiddleware` and `flush()` are exported from `spurvik/ai`. Pass the middleware to `wrapLanguageModel`. Install `ai` at `^7.0.0` in the app. Create one middleware at module scope.
 
 ```ts
 import { generateText, streamText, wrapLanguageModel } from "ai";
-import { provenanceFromMetadata, spurvikMiddleware } from "@spurvik/sdk/ai";
-import type { SpurvikConfig } from "@spurvik/sdk";
+import { provenanceFromMetadata, spurvikMiddleware } from "spurvik/ai";
+import type { SpurvikConfig } from "spurvik";
 
 declare const yourLanguageModel: Parameters<typeof wrapLanguageModel>[0]["model"];
 
@@ -90,7 +90,7 @@ The middleware records the call and stores the HMAC receipt on `providerMetadata
 `extractFinishReason` reads a string or an `{ unified, raw }` finish reason (`unified` wins). `isInterruptedFinishReason` is true when that value is `"interrupted"`. A generate or stream finish chunk passes that reason through to the receipt. A stream that closes without a finish chunk is recorded as `"interrupted"`. `finishReason` and `interrupted` sit beside the signed record and are omitted from `Object.keys` and `JSON.stringify`, so the HMAC still covers the same fields. `dedupeToolApprovalResponses` keeps the first approval response for each `toolCallId`, `approvalId`, or `id`.
 
 ```ts
-import { dedupeToolApprovalResponses, extractFinishReason, isInterruptedFinishReason } from "@spurvik/sdk/ai";
+import { dedupeToolApprovalResponses, extractFinishReason, isInterruptedFinishReason } from "spurvik/ai";
 
 const finishReason = extractFinishReason({ unified: "interrupted", raw: "incomplete" });
 const interrupted = isInterruptedFinishReason(finishReason);
@@ -103,17 +103,17 @@ const approvals = dedupeToolApprovalResponses([
 
 ## Mastra
 
-`withSpurvikMastra` and `provenanceFromMetadata` are exported from `@spurvik/sdk/mastra`. Pass the function `withSpurvikMastra` returns as the Mastra agent's `model`. It accepts an AI SDK language model or a resolver function. A model-router string is rejected. Read the receipt with `provenanceFromMetadata`. Call `flush()` on the returned object when a serverless isolate can freeze before the process ends. The same `SpurvikConfig` fields apply. The helper does not mark content.
+`withSpurvikMastra` and `provenanceFromMetadata` are exported from `spurvik/mastra`. Pass the function `withSpurvikMastra` returns as the Mastra agent's `model`. It accepts an AI SDK language model or a resolver function. A model-router string is rejected. Read the receipt with `provenanceFromMetadata`. Call `flush()` on the returned object when a serverless isolate can freeze before the process ends. The same `SpurvikConfig` fields apply. The helper does not mark content.
 
 ## OpenAI Agents
 
-`withSpurvikModel`, `withSpurvikModelProvider`, and `provenanceFromAgentsResponse` are exported from `@spurvik/sdk/openai-agents`. `withSpurvikModel` wraps one Agents SDK `Model`. `withSpurvikModelProvider` wraps a `ModelProvider` and wraps each model `getModel` returns. Read the receipt with `provenanceFromAgentsResponse`. `provenanceOf` from `@spurvik/sdk` reads an Agents stream. The wrapper does not mark content.
+`withSpurvikModel`, `withSpurvikModelProvider`, and `provenanceFromAgentsResponse` are exported from `spurvik/openai-agents`. `withSpurvikModel` wraps one Agents SDK `Model`. `withSpurvikModelProvider` wraps a `ModelProvider` and wraps each model `getModel` returns. Read the receipt with `provenanceFromAgentsResponse`. `provenanceOf` from `spurvik` reads an Agents stream. The wrapper does not mark content.
 
 `createSpurvikNeedsApproval` returns a `needsApproval` function. It checks the halt state, then returns true, or the result of `when` when you pass one. `resolveAgentInterruptions` sends each unique tool call to the human-oversight queue. Only an approved decision calls `state.approve`. An overridden or rejected decision calls `state.reject`; overridden means do not continue. The same helpers are on the wrapped model and provider as `resolveInterruptions`.
 
 ```ts
-import type { SpurvikConfig } from "@spurvik/sdk";
-import { createSpurvikNeedsApproval, resolveAgentInterruptions } from "@spurvik/sdk/openai-agents";
+import type { SpurvikConfig } from "spurvik";
+import { createSpurvikNeedsApproval, resolveAgentInterruptions } from "spurvik/openai-agents";
 
 declare const config: SpurvikConfig;
 
@@ -134,11 +134,11 @@ const resolved = await resolveAgentInterruptions(
 
 ## LangGraph
 
-`withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, and `provenanceFromLangGraphState` are exported from `@spurvik/sdk/langgraph`. Pass a compiled graph. The module does not import `@langchain/langgraph`. `invoke` and `stream` record an HMAC receipt and run the halt check when enforcement is on. A returned state with a non-empty `__interrupt__` array is stored with finish reason `"interrupted"`. `spurvikInterrupt` sends one action to the human-oversight queue. `resolveLangGraphInterrupts` keeps the first interrupt for each id. One interrupt returns `{ resume }` for that decision. Several return `{ resume: resumeById }`.
+`withSpurvikLangGraph`, `spurvikInterrupt`, `resolveLangGraphInterrupts`, and `provenanceFromLangGraphState` are exported from `spurvik/langgraph`. Pass a compiled graph. The module does not import `@langchain/langgraph`. `invoke` and `stream` record an HMAC receipt and run the halt check when enforcement is on. A returned state with a non-empty `__interrupt__` array is stored with finish reason `"interrupted"`. `spurvikInterrupt` sends one action to the human-oversight queue. `resolveLangGraphInterrupts` keeps the first interrupt for each id. One interrupt returns `{ resume }` for that decision. Several return `{ resume: resumeById }`.
 
 ```ts
-import { provenanceOf, verifyProvenanceSignature, type SpurvikConfig } from "@spurvik/sdk";
-import { resolveLangGraphInterrupts, spurvikInterrupt, withSpurvikLangGraph } from "@spurvik/sdk/langgraph";
+import { provenanceOf, verifyProvenanceSignature, type SpurvikConfig } from "spurvik";
+import { resolveLangGraphInterrupts, spurvikInterrupt, withSpurvikLangGraph } from "spurvik/langgraph";
 
 declare const compiled: {
   invoke: (
@@ -175,7 +175,7 @@ These options are for a use you have classified as `high_annex3`. Art. 14 human 
 
 ```ts
 import OpenAI from "openai";
-import { withSpurvik, type SpurvikConfig } from "@spurvik/sdk";
+import { withSpurvik, type SpurvikConfig } from "spurvik";
 
 const client = new OpenAI();
 const ai = withSpurvik(client, {
@@ -198,7 +198,7 @@ await ai._spurvik.releaseKillSwitch({ reason: "release this action", actionName:
 
 ## Art. 50 notice in React
 
-This repository does not ship a disclosure script and does not document a script URL. Use `@spurvik/react`:
+This repository does not ship a disclosure script and does not document a script URL. Use `spurvik/react`:
 
 ```tsx
 import { AIDisclosureLabel } from "spurvik/react";
@@ -210,12 +210,12 @@ The words are in the page without a click. The label does not write browser stor
 
 ## Optional marking hook you supply
 
-Leave this unset unless you are plugging in your own hook. `signed-trailer` embeds the provenance record in text. That is an application-level binding, not a finding under Art. 50(2). `createC2paImageHook` from `@spurvik/c2pa` embeds a C2PA manifest in a PNG or JPEG when you pass a certificate and key. `c2paMaterialFromEnv` reads `SPURVIK_C2PA_CERT_PEM` and `SPURVIK_C2PA_KEY_PEM` and returns null when either is missing.
+Leave this unset unless you are plugging in your own hook. `signed-trailer` embeds the provenance record in text. That is an application-level binding, not a finding under Art. 50(2). `createC2paImageHook` in `packages/c2pa` in this repository embeds a C2PA manifest in a PNG or JPEG when you pass a certificate and key. That helper is not published to npm. `c2paMaterialFromEnv` reads `SPURVIK_C2PA_CERT_PEM` and `SPURVIK_C2PA_KEY_PEM` and returns null when either is missing.
 
 ```ts
-import { createC2paImageHook, c2paMaterialFromEnv } from "@spurvik/c2pa";
+// Copy createC2paImageHook and c2paMaterialFromEnv from packages/c2pa in this repository (not published to npm).
 import OpenAI from "openai";
-import { withSpurvik, type SpurvikConfig } from "@spurvik/sdk";
+import { withSpurvik, type SpurvikConfig } from "spurvik";
 
 const client = new OpenAI();
 const material = c2paMaterialFromEnv();

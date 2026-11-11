@@ -17,7 +17,7 @@ import {
 
 function liveExport(value: unknown, name: string): string {
   if (typeof value !== "function") {
-    throw new Error(`Missing @spurvik/sdk export ${name}.`);
+    throw new Error(`Missing spurvik export ${name}.`);
   }
   return name;
 }

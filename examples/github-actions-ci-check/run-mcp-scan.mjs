@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 
 /**
- * Runs `spurvik_find_unwrapped_calls` via the local stdio MCP server (`spurvik-mcp-server@1.0.2`
+ * Runs `spurvik_find_unwrapped_calls` via the local stdio MCP server (`spurvik-mcp-server@1.0.3`
  * or `plugins/spurvik/bin/spurvik-mcp.mjs`), emits GitHub Actions annotations for each finding,
  * and exits with code 1 when unwrapped AI calls are found (unless `--warn-only` is passed).
  */
@@ -17,7 +17,7 @@ export async function runMcpUnwrappedScan({
   const resolvedRoot = path.resolve(rootDir);
   const args = serverBin
     ? [serverBin, "--root", resolvedRoot]
-    : ["--yes", "spurvik-mcp-server@1.0.2", "--root", resolvedRoot];
+    : ["--yes", "spurvik-mcp-server@1.0.3", "--root", resolvedRoot];
   const cmd = serverBin ? process.execPath : "npx";
 
   const child = spawn(cmd, args, {
@@ -82,7 +82,7 @@ export async function runMcpUnwrappedScan({
       params: {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "spurvik-ci-check", version: "1.0.6" },
+        clientInfo: { name: "spurvik-ci-check", version: "1.0.3" },
       },
     });
     await waitForId(1);

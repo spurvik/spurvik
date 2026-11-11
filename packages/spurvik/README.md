@@ -2,7 +2,7 @@
 
 Runtime client for provenance records, telemetry, a live human-oversight queue, and the halt cache.
 
-The public MIT release is `spurvik@1.0.6` and `spurvik-sdk@1.0.6` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
+The public MIT release is `spurvik@1.0.7` and `spurvik-sdk@1.0.7` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
 
 `withSpurvik` is the provider wrapper. An older name of that function was removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
 

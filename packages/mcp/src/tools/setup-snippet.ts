@@ -96,10 +96,13 @@ function nodeShutdown(expr: string): string {
 });`;
 }
 
+/** Published spurvik / spurvik-sdk version interpolated into snippets. Keep in sync with packages/sdk. */
+export const SNIPPET_SDK_VERSION = "1.0.7";
+
 function header(): string {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
-    "// Unscoped npm packages: spurvik@1.0.6 and spurvik-sdk@1.0.6 (MIT). Inside this monorepo, spurvik-sdk is version 1.0.6 (workspace:*).",
+    `// Unscoped npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION} (MIT, same build).`,
   ].join("\n");
 }
 
@@ -116,8 +119,8 @@ function mastraSource(runtime: Runtime): string {
   const imports = [
     'import type { LanguageModelV4 } from "@ai-sdk/provider";',
     'import { Agent } from "@mastra/core/agent";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromMetadata}, ${withSpurvikMastra} } from "@spurvik/sdk/mastra";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromMetadata}, ${withSpurvikMastra} } from "spurvik/mastra";`,
     runtimeImport(runtime),
   ].filter((line) => line.length > 0);
   const parts = [
@@ -161,8 +164,8 @@ function agentsSource(runtime: Runtime): string {
   const serverless = runtime !== "node";
   const imports = [
     'import { Agent, Runner, type ModelProvider } from "@openai/agents";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromAgentsResponse}, ${withSpurvikModelProvider} } from "@spurvik/sdk/openai-agents";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromAgentsResponse}, ${withSpurvikModelProvider} } from "spurvik/openai-agents";`,
     runtimeImport(runtime),
   ].filter((line) => line.length > 0);
   const parts = [
@@ -211,8 +214,8 @@ function langgraphSource(runtime: Runtime): string {
   const serverless = runtime !== "node";
   const imports = [
     'import { Command, type CompiledStateGraph } from "@langchain/langgraph";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromLangGraphState}, ${resolveLangGraphInterrupts}, ${spurvikInterrupt}, ${withSpurvikLangGraph} } from "@spurvik/sdk/langgraph";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromLangGraphState}, ${resolveLangGraphInterrupts}, ${spurvikInterrupt}, ${withSpurvikLangGraph} } from "spurvik/langgraph";`,
     runtimeImport(runtime),
   ].filter((line) => line.length > 0);
   const parts = [
@@ -298,7 +301,7 @@ function providerSource(framework: "openai" | "anthropic" | "google-genai", runt
   const client = clients[framework];
   const imports = [
     client.importLine,
-    `import { ${provenanceOf}, ${withSpurvik} } from "@spurvik/sdk";`,
+    `import { ${provenanceOf}, ${withSpurvik} } from "spurvik";`,
     runtimeImport(runtime),
   ].filter((line) => line.length > 0);
   const parts = [
@@ -335,7 +338,7 @@ function middlewareSource(runtime: Runtime): string {
   const { provenanceFromMetadata, spurvikMiddleware } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
-    `import { ${provenanceFromMetadata}, ${spurvikMiddleware} } from "@spurvik/sdk/ai";`,
+    `import { ${provenanceFromMetadata}, ${spurvikMiddleware} } from "spurvik/ai";`,
     'import { gateway, generateText, wrapLanguageModel } from "ai";',
     runtimeImport(runtime),
   ].filter((line) => line.length > 0);

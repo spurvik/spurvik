@@ -1,8 +1,8 @@
 # spurvik-sdk
 
-## 1.0.7 — unreleased
+## 1.0.7 — 2026-11-11
 
-Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build) once released. An `overridden` human decision now means do not continue, the same as `rejected`.
+Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build). An `overridden` human decision now means do not continue, the same as `rejected`.
 
 ### Breaking
 

@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.2, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.3, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -7255,7 +7255,7 @@ var require_dist = __commonJS({
   }
 });
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js
 var buffer_node_IYFDRLWF_exports = {};
 __export(buffer_node_IYFDRLWF_exports, {
   FileTelemetryBuffer: () => FileTelemetryBuffer,
@@ -7287,7 +7287,7 @@ function readCursor(file) {
 }
 var FileTelemetryBuffer;
 var init_buffer_node_IYFDRLWF = __esm({
-  "packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js"() {
+  "packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js"() {
     FileTelemetryBuffer = class {
       instanceId;
       nextSeq;
@@ -13505,7 +13505,7 @@ var READ_ONLY_ANNOTATIONS = {
   openWorldHint: false
 };
 var SETUP_TITLE = "Spurvik setup snippet";
-var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph. Provider clients are wrapped with withSpurvik. The Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel. The Mastra snippet calls withSpurvikMastra. The OpenAI Agents snippet calls withSpurvikModelProvider. The LangGraph snippet calls withSpurvikLangGraph and spurvikInterrupt. The snippet is built from the installed @spurvik/sdk exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
+var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph. Provider clients are wrapped with withSpurvik. The Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel. The Mastra snippet calls withSpurvikMastra. The OpenAI Agents snippet calls withSpurvikModelProvider. The LangGraph snippet calls withSpurvikLangGraph and spurvikInterrupt. The snippet is built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
 var FRAMEWORK_FIELD = "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
 var RUNTIME_FIELD = "Where the process runs: node, next, vercel, or supabase-edge. This chooses the flush call.";
 var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
@@ -23114,7 +23114,7 @@ function markingHooksText(surface = "both") {
         "  },",
         "}"
       ].join("\n"),
-      "@spurvik/c2pa implements a MediaMarkingHook for PNG and JPEG. This server does not call it."
+      "packages/c2pa in this repository implements a MediaMarkingHook for PNG and JPEG. It is not published to npm. This server does not call it."
     );
   }
   parts.push(
@@ -23125,7 +23125,7 @@ function markingHooksText(surface = "both") {
 `;
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
 var SpurvikError = class extends Error {
   constructor(message) {
     super(message);
@@ -23190,10 +23190,10 @@ var SpurvikHitlRejectedError = class extends SpurvikError {
   record;
 };
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-455UYSGD.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-455UYSGD.js
 var MAX_LINK_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-II5RYOQ5.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-II5RYOQ5.js
 import { request as httpRequest } from "http";
 import { request as httpsRequest } from "https";
 function canonicalJson2(value) {
@@ -25537,7 +25537,7 @@ function waitForPoll(sleep, ms, signal) {
   });
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-YL42MSWQ.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-YL42MSWQ.js
 var RECEIPT_KEY = "spurvik";
 function extractFinishReason(value) {
   if (typeof value === "string" && value.trim().length > 0) return value.trim();
@@ -25799,7 +25799,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
 async function wrapMastraModel(model, middleware) {
   const { wrapLanguageModel } = await import("ai");
   return wrapLanguageModel({ model, middleware });
@@ -25839,7 +25839,7 @@ function withSpurvikMastra(model, config2) {
   };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/openai-agents.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/openai-agents.js
 var RECEIPT_KEY2 = "spurvik";
 function withSpurvikModel(model, config2, options) {
   return new WrappedAgentsModel(model, new SpurvikClient(config2), options?.modelId);
@@ -26270,7 +26270,7 @@ function deferred2() {
   return { promise, resolve, reject };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
 var SKIPPED_MESSAGE_KINDS = /* @__PURE__ */ new Set(["tool", "function", "function_call_result"]);
 function withSpurvikLangGraph(graph, config2, options) {
   const client = new SpurvikClient(config2);
@@ -26693,7 +26693,7 @@ function deferred3() {
 // packages/mcp/src/sdk-exports.ts
 function liveExport(value, name) {
   if (typeof value !== "function") {
-    throw new Error(`Missing @spurvik/sdk export ${name}.`);
+    throw new Error(`Missing spurvik export ${name}.`);
   }
   return name;
 }
@@ -26792,10 +26792,11 @@ function nodeShutdown(expr) {
   void boundedFlush(${expr}).finally(() => process.exit(0));
 });`;
 }
+var SNIPPET_SDK_VERSION = "1.0.7";
 function header() {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
-    "// Unscoped npm packages: spurvik@1.0.6 and spurvik-sdk@1.0.6 (MIT). Inside this monorepo, spurvik-sdk is version 1.0.6 (workspace:*)."
+    `// Unscoped npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION} (MIT, same build).`
   ].join("\n");
 }
 function holderFlush(runtime, call) {
@@ -26810,8 +26811,8 @@ function mastraSource(runtime) {
   const imports = [
     'import type { LanguageModelV4 } from "@ai-sdk/provider";',
     'import { Agent } from "@mastra/core/agent";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromMetadata2}, ${withSpurvikMastra2} } from "@spurvik/sdk/mastra";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromMetadata2}, ${withSpurvikMastra2} } from "spurvik/mastra";`,
     runtimeImport(runtime)
   ].filter((line) => line.length > 0);
   const parts = [
@@ -26855,8 +26856,8 @@ function agentsSource(runtime) {
   const serverless = runtime !== "node";
   const imports = [
     'import { Agent, Runner, type ModelProvider } from "@openai/agents";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromAgentsResponse2}, ${withSpurvikModelProvider2} } from "@spurvik/sdk/openai-agents";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromAgentsResponse2}, ${withSpurvikModelProvider2} } from "spurvik/openai-agents";`,
     runtimeImport(runtime)
   ].filter((line) => line.length > 0);
   const parts = [
@@ -26905,8 +26906,8 @@ function langgraphSource(runtime) {
   const serverless = runtime !== "node";
   const imports = [
     'import { Command, type CompiledStateGraph } from "@langchain/langgraph";',
-    'import { verifyProvenanceSignature } from "@spurvik/core";',
-    `import { ${provenanceFromLangGraphState2}, ${resolveLangGraphInterrupts2}, ${spurvikInterrupt2}, ${withSpurvikLangGraph2} } from "@spurvik/sdk/langgraph";`,
+    'import { verifyProvenanceSignature } from "spurvik";',
+    `import { ${provenanceFromLangGraphState2}, ${resolveLangGraphInterrupts2}, ${spurvikInterrupt2}, ${withSpurvikLangGraph2} } from "spurvik/langgraph";`,
     runtimeImport(runtime)
   ].filter((line) => line.length > 0);
   const parts = [
@@ -26992,7 +26993,7 @@ function providerSource(framework, runtime) {
   const client = clients[framework];
   const imports = [
     client.importLine,
-    `import { ${provenanceOf2}, ${withSpurvik2} } from "@spurvik/sdk";`,
+    `import { ${provenanceOf2}, ${withSpurvik2} } from "spurvik";`,
     runtimeImport(runtime)
   ].filter((line) => line.length > 0);
   const parts = [
@@ -27029,7 +27030,7 @@ function middlewareSource(runtime) {
   const { provenanceFromMetadata: provenanceFromMetadata2, spurvikMiddleware: spurvikMiddleware2 } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
-    `import { ${provenanceFromMetadata2}, ${spurvikMiddleware2} } from "@spurvik/sdk/ai";`,
+    `import { ${provenanceFromMetadata2}, ${spurvikMiddleware2} } from "spurvik/ai";`,
     'import { gateway, generateText, wrapLanguageModel } from "ai";',
     runtimeImport(runtime)
   ].filter((line) => line.length > 0);
@@ -27123,9 +27124,9 @@ function serverVersion() {
     const parsed = JSON.parse(raw);
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "1.0.2";
+    return "1.0.3";
   }
-  return "1.0.2";
+  return "1.0.3";
 }
 function createServer(workspaceRoot) {
   const server = new McpServer(
