@@ -119,21 +119,27 @@ Stop and check step 4 output first. The ESM and CJS import checks must print not
 # The tree must be clean, and git rev-parse HEAD must equal QA_SHA.
 # Then pack each package and compare the tarball sha1 to the sha1 QA recorded for that head.
 # Stop if they differ. Do not run npm publish in this block.
-# QA_SHA, QA_SHA1_SPURVIK_SDK, QA_SHA1_SPURVIK, and QA_NODE_VERSION are to be filled in
-# at the QA gate for this release (1.0.7). Do not reuse values from an earlier release.
+# QA_SHA, QA_SHA1_SPURVIK_SDK, QA_SHA1_SPURVIK, QA_NODE_VERSION, and QA_NPM_VERSION are to be
+# filled in at the QA gate for this release (1.0.7). Do not reuse values from an earlier release.
 # shasum -a 1 <tgz> and `npm pack --json` field .shasum are the same sha1.
 # The .tgz sha1 depends on the Node build that runs npm pack, because the gzip bytes come
 # from Node's zlib. For n8n-nodes-spurvik@1.0.3, QA packed 4d054d1a on Node 24 and the
 # publish packed dccdb9e6 on Node 26.0.0. The uncompressed tar was the same in both.
-# So pack on the same Node version QA used (QA_NODE_VERSION, for example v24.22.1).
+# So pack on the same Node version and the same npm version QA used
+# (QA_NODE_VERSION, for example v24.22.1, and QA_NPM_VERSION, for example 10.9.9).
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
 : "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
 : "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
 : "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
 if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
   echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION. The .tgz sha1 will not match." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION. The .tgz sha1 will not match." >&2
   exit 1
 fi
 (
@@ -181,12 +187,27 @@ This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-node
 ```bash
 # 6. Publish spurvik-sdk@1.0.7, then spurvik@1.0.7, only when the owner decides. No --provenance.
 # spurvik-sdk@1.0.7 first. spurvik is the same build under a second name.
+# Recheck the sha1 of the exact .tgz immediately before publish. Stop on mismatch.
 (
+  set -euo pipefail
   cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
+  : "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+  actual="$(shasum -a 1 ./spurvik-sdk-1.0.7.tgz | awk '{print $1}')"
+  if [[ "$actual" != "$QA_SHA1_SPURVIK_SDK" ]]; then
+    echo "Stop: spurvik-sdk-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK_SDK)." >&2
+    exit 1
+  fi
   npm publish ./spurvik-sdk-1.0.7.tgz
 )
 (
+  set -euo pipefail
   cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
+  : "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+  actual="$(shasum -a 1 ./spurvik-1.0.7.tgz | awk '{print $1}')"
+  if [[ "$actual" != "$QA_SHA1_SPURVIK" ]]; then
+    echo "Stop: spurvik-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK)." >&2
+    exit 1
+  fi
   npm publish ./spurvik-1.0.7.tgz
 )
 # n8n-nodes-spurvik@1.0.3 — SKIP. Already published. Never republish an existing version.
