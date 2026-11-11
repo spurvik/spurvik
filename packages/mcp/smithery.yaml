@@ -1,9 +1,10 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 # Repository: https://github.com/spurvik/spurvik (MIT)
-# Packages: spurvik@1.0.6, spurvik-sdk@1.0.6, spurvik-mcp-server@1.0.2
+# Packages: spurvik@1.0.7, spurvik-sdk@1.0.7, spurvik-mcp-server@1.0.3
 # Docs: https://spurvik.com/docs
 # Interactive Sandbox: https://console.spurvik.com/sandbox?scan=https://your-app.com
 # Remote Streamable HTTP MCP: https://console.spurvik.com/api/mcp (protocolVersion: "2025-06-18")
+# Listing metadata only. Starts the published npm bin, not a repo-relative build path.
 
 startCommand:
   type: stdio
@@ -17,16 +18,20 @@ startCommand:
         default: "."
       spurvikApiKey:
         type: string
-        description: "Optional Spurvik API key (spurvik_live_...) for project-linked EU (fra1) control-plane calls. Not required for the 4 read-only tools."
+        description: "Optional Spurvik API key (spurvik_live_...) for project-linked control-plane calls. Not required for the 4 read-only tools."
       spurvikHmacSecret:
         type: string
         description: "Optional server-side HMAC-SHA256 secret (>= 16 characters) for local receipt signature inspection."
   commandFunction:
     |-
     (config) => ({
-      command: "node",
+      command: "npm",
       args: [
-        "packages/mcp/dist/index.js",
+        "exec",
+        "--yes",
+        "--package=spurvik-mcp-server@1.0.3",
+        "--",
+        "spurvik-mcp-server",
         "--root",
         config.workspaceRoot || "."
       ],

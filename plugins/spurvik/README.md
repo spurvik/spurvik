@@ -54,7 +54,7 @@ import { AIDisclosureLabel } from "spurvik/react";
 
 ## MCP server
 
-This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `packages/mcp (published as spurvik-mcp-server)` from this repository, version 1.0.2, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
+This plugin configures one MCP server, and that server is local stdio only. There is no hosted endpoint. The package is `packages/mcp (published as spurvik-mcp-server)` from this repository, version 1.0.3, private, and not published. Claude Code loads `.mcp.json` at the plugin root ([plugin components](https://code.claude.com/docs/en/plugins/components)). Do not install the server from a package registry.
 
 The command is `node`. The first argument is `bin/spurvik-mcp.mjs`, written as `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`. That file is the local stdio server in one file, including the `packages/core (build from source)` and `spurvik` code it runs. It does not load `../../packages`. The next arguments are `--root` and `${CLAUDE_PROJECT_DIR}`, the project Claude Code has open. If you start the same file without `--root`, set `SPURVIK_MCP_ROOT` to that directory. `--root` wins when both are set.
 

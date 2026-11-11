@@ -1,6 +1,6 @@
 # Spurvik for startups and SMEs: a plain-language guide
 
-> Applies to `spurvik@1.0.6` and `spurvik-mcp-server@1.0.2`.
+> Applies to `spurvik@1.0.6` and `spurvik-mcp-server@1.0.3`.
 
 This guide is for founders, small product teams and SMEs that build with AI models and do not have a Data Protection Officer or an in-house legal team. It explains what Spurvik does, what it does not do, how to get set up on day one, and what to hand to your advisor.
 
@@ -8,7 +8,7 @@ Spurvik is made by EyeTea Solutions ApS (CVR 37093378), Trekantområdet, Denmark
 
 > **Not legal advice.** Nothing in this guide tells you what the EU AI Act, the GDPR or any other law asks of your company. Spurvik is a technical tool designed to support your work on those questions. This guide describes what the software does; it does not assess your system. For what applies to you, ask your own legal counsel.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`.* Dates and code behaviour may change.
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.* Dates and code behaviour may change.
 
 ## What Spurvik does
 
@@ -50,7 +50,7 @@ If you set `marking: { text: "signed-trailer" }`, the SDK appends the signed pro
 
 Plan for half a day with one developer. The [quickstart](quickstart.md) has every command.
 
-> **Public MIT release.** `npm install openai spurvik@1.0.7` and `npm i -D spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+> **Public MIT release.** `npm install openai spurvik@1.0.7` and `npm i -D spurvik-mcp-server@1.0.3`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 | # | Task | Who | Time |
 | --- | --- | --- | --- |
@@ -132,7 +132,7 @@ No. In the default `keyed` mode, prompts and outputs are turned into keyed HMAC 
 Your AI calls keep working, except with `riskTier: "high_annex3"`, where they stop on purpose before anything is sent to your model provider. In short scripts the telemetry event is lost. Your `onTelemetryError` handler is told, and the script still exits normally. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well. See [troubleshooting.md](troubleshooting.md#telemetry-and-the-control-plane).
 
 **Can I install it from npm?**
-Yes. Install `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, and `spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are unsupported.
+Yes. Install `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, and `spurvik-mcp-server@1.0.3`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are unsupported.
 
 **Where do events go?**
 The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends telemetry only to the `baseUrl` you set. For an invited organisation, that address is `https://console.spurvik.com`. This tree does not claim that data stays in the EU.

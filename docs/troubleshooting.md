@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> Applies to `spurvik@1.0.6` and `spurvik-mcp-server@1.0.2`. `spurvik@1.0.6` sets `"engines": { "node": ">=20" }`.
+> Applies to `spurvik@1.0.7` and `spurvik-mcp-server@1.0.3`. `spurvik@1.0.7` sets `"engines": { "node": ">=20" }`.
 
 Quick links:
 
@@ -31,14 +31,14 @@ npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not fo
 npm install openai spurvik@1.0.7
 ```
 
-The local stdio MCP server is `spurvik-mcp-server@1.0.2`:
+The local stdio MCP server is `spurvik-mcp-server@1.0.3`:
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.2
+npm i -D spurvik-mcp-server@1.0.3
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
-`--root` is required in 1.0.2. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK.
+`--root` is required in 1.0.3. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK.
 
 ---
 

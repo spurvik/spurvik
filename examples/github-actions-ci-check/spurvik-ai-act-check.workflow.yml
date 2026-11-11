@@ -13,5 +13,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.2)
+      - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.3)
         run: node examples/github-actions-ci-check/run-mcp-scan.mjs --root . --dir src

@@ -1,6 +1,6 @@
 # GitHub Actions CI Check (`spurvik_find_unwrapped_calls`)
 
-> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`, MIT).
+> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`, MIT).
 
 Run the local stdio MCP scanner (`spurvik_find_unwrapped_calls`) inside GitHub Actions on every Pull Request to flag unwrapped OpenAI, Anthropic, Google GenAI, Vercel AI SDK (`generateText` / `streamText`), Mastra, OpenAI Agents, or LangGraph (`StateGraph` / `interrupt()`) calls before merge.
 

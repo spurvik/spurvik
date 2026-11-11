@@ -1,6 +1,6 @@
 # Console onboarding
 
-> Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.6`, `spurvik-sdk@1.0.6`, `spurvik-mcp-server@1.0.2`.
+> Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.
 >
 > Not legal advice. This guide describes the hosted console and the packages in this repository. It does not assess your system.
 
@@ -17,11 +17,11 @@ npm install openai spurvik@1.0.7
 ```
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.2
+npm i -D spurvik-mcp-server@1.0.3
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
-`--root` is required in `spurvik-mcp-server@1.0.2`. Import the SDK as `spurvik`, and the label as `spurvik/react`.
+`--root` is required in `spurvik-mcp-server@1.0.3`. Import the SDK as `spurvik`, and the label as `spurvik/react`.
 
 ## Keys
 
