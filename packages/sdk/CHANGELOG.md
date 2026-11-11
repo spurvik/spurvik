@@ -23,7 +23,7 @@ Fixes to the `spurvik/channels` functions shipped in 1.0.4. Published as `spurvi
 - The email HTML escapes the action title, summary, gate ID and links. In 1.0.4 the summary was inserted as raw HTML.
 - Linear and Monday.com GraphQL replies that carry an `errors` array throw, even with HTTP 200. In 1.0.4 they were reported as sent.
 - `verifyChannelApprovalToken` returns `false` when the signature is not a string (for example a missing `sig` query parameter). In 1.0.4 it threw a `TypeError`.
-- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. The default validity stays 24 hours (86400 seconds). `maxAgeSeconds: 900` is a 15-minute window. A non-finite, NaN, or non-positive `maxAgeSeconds` uses the 24-hour default. Values above 7 days are capped at 7 days.
+- `verifyChannelApprovalToken` rejects tokens issued more than 5 minutes in the future. The default validity stays 24 hours (86400 seconds). `maxAgeSeconds: 900` is a 15-minute window. `maxAgeSeconds: 0` throws `SpurvikConfigError` ("must be greater than 0"; omit the option to keep the 86400 second default). A non-finite, NaN, or negative `maxAgeSeconds` (for example `-1`) still uses the 24-hour default. Values above 7 days are capped at 7 days.
 - Monday.com: the dispatch reads the created item id. The item carries the gate ID in its name. It does not carry the Approve / Block links.
 - `callbackBaseUrl` is required. The SDK does not default to the console HITL create route, which accepts POST, not GET link clicks.
 - New links include a nonce. A 1.0.4 token has no nonce and still verifies when the nonce is omitted. A link can be reused until it expires. The receiver must record the nonce and refuse a repeat.

@@ -186,6 +186,65 @@ describe("SpurvikEuAiActGuard.execute", () => {
     }
   });
 
+  const passThroughCases = [
+    { label: "exact match", inputField: "myPrompt", passThroughFields: "myPrompt,ticketId", copiedKey: "myPrompt" },
+    { label: "different case", inputField: "myPrompt", passThroughFields: "MyPrompt,ticketId", copiedKey: "MyPrompt" },
+    {
+      label: "surrounding whitespace",
+      inputField: "myPrompt",
+      passThroughFields: " MyPrompt ",
+      copiedKey: "MyPrompt",
+    },
+    {
+      label: "inputField surrounding whitespace",
+      inputField: " myPrompt ",
+      passThroughFields: "MyPrompt,ticketId",
+      copiedKey: "MyPrompt",
+    },
+  ];
+
+  for (const operation of ["art50_disclosure", "art12_hmac_log"]) {
+    for (const spec of passThroughCases) {
+      it(`B-PT1: ${operation} skips passThroughFields on ${spec.label}`, async () => {
+        const item = {
+          myPrompt: PROMPT,
+          outputText: "Invoice updated.",
+          ticketId: "T-42",
+        };
+        if (spec.copiedKey !== "myPrompt") item[spec.copiedKey] = PROMPT;
+        if (spec.inputField !== "myPrompt") item[spec.inputField] = PROMPT;
+        const params = {
+          operation,
+          systemName: "Support bot",
+          inputField: spec.inputField,
+          passThroughFields: spec.passThroughFields,
+        };
+        if (operation === "art50_disclosure") {
+          params.outputField = "outputText";
+          params.noticeText = "You are interacting with an AI system.";
+        }
+        const context = ctx(params, { signingSecret: SECRET }, [{ json: item }]);
+        const [out] = await node.execute.call(context);
+        const body = JSON.stringify(out);
+        assert.equal(body.split(PROMPT).length - 1, 0);
+        assert.equal(Object.prototype.hasOwnProperty.call(out[0].json, "myPrompt"), false);
+        assert.equal(Object.prototype.hasOwnProperty.call(out[0].json, "MyPrompt"), false);
+        if (spec.passThroughFields.includes("ticketId")) {
+          assert.equal(out[0].json.ticketId, "T-42");
+        } else {
+          assert.equal(Object.prototype.hasOwnProperty.call(out[0].json, "ticketId"), false);
+        }
+        if (operation === "art12_hmac_log") {
+          const hashed = spec.inputField === "myPrompt" ? PROMPT : item[spec.inputField];
+          const expected = createHmac("sha256", SECRET)
+            .update(`spurvik:workflow:input:v1|${hashed}`, "utf8")
+            .digest("hex");
+          assert.equal(out[0].json.spurvik.art12Record.inputHmac, expected);
+        }
+      });
+    }
+  }
+
   it("says Monday.com creates an item only", () => {
     const channel = SpurvikN8nNodeDescription.properties.find((property) => property.name === "channel");
     const monday = channel.options.find((option) => option.value === "monday");

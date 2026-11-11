@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-spurvik",
-  "version": "1.0.2",
-  "description": "Designed to support Article 50 interaction notices, Article 12 HMAC-SHA256 record-keeping, and Article 14 human approval requests for n8n. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana.",
+  "version": "1.0.3",
+  "description": "Designed to support Article 50 interaction notices, and Article 12 HMAC-SHA256 record-keeping and Article 14 human approval requests for high-risk AI systems, for n8n. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana.",
   "author": "EyeTea Solutions ApS",
   "license": "MIT",
   "repository": {
