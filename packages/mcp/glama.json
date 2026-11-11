@@ -4,7 +4,7 @@
     "spurvik"
   ],
   "name": "spurvik-mcp-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "MIT",
   "homepage": "https://spurvik.com/docs",
   "repository": "https://github.com/spurvik/spurvik",
@@ -15,8 +15,8 @@
     "protocolVersion": "2025-06-18"
   },
   "npm": {
-    "mcpServer": "spurvik-mcp-server@1.0.3",
-    "sdk": "spurvik@1.0.7",
-    "sdkAlias": "spurvik-sdk@1.0.7"
+    "mcpServer": "spurvik-mcp-server@1.0.4",
+    "sdk": "spurvik@1.0.8",
+    "sdkAlias": "spurvik-sdk@1.0.8"
   }
 }

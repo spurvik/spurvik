@@ -2,7 +2,7 @@
 
 ## 1.0.8 — unreleased
 
-This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (the same build) are published. Package versions in this repository stay at 1.0.7 until that publish. Date the heading at publish.
+This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (the same build) are published. Date the heading at publish.
 
 ### Changed
 

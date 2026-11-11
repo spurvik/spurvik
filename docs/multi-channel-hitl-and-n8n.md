@@ -1,14 +1,14 @@
 # 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.3`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.7`, and `n8n-nodes-spurvik@1.0.3` in this repository). This is not legal advice.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.8`, and `n8n-nodes-spurvik@1.0.3` in this repository). This is not legal advice.
 
-## 1. Approval router (`spurvik@1.0.7`)
+## 1. Approval router (`spurvik@1.0.8`)
 
-`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.7` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping and Article 14 human oversight for high-risk AI systems.
+`createMultiChannelApprovalRouter` sends one pre-flight `ask_human()` request to each channel you pass. `spurvik@1.0.8` accepts Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana. This router is designed to support Article 12 record-keeping and Article 14 human oversight for high-risk AI systems.
 
 ### Callback URL & Nonce Verification
 
-In `spurvik@1.0.7` (and `1.0.5+`), `callbackBaseUrl` is required on the approval request (`callbackBaseUrl: string` in `dist/channels.d.ts`), and `createSignedApprovalLinks` generates a random 16-byte hex `nonce` per link and mixes it into the HMAC-SHA256 signature. Pass your own GET callback endpoint (or `https://console.spurvik.com/api/v1/hitl/callback`) and verify the token with `verifyChannelApprovalToken` (passing `nonce`) or `verifySignedChannelCallback`:
+In `spurvik@1.0.8` (and `1.0.5+`), `callbackBaseUrl` is required on the approval request (`callbackBaseUrl: string` in `dist/channels.d.ts`), and `createSignedApprovalLinks` generates a random 16-byte hex `nonce` per link and mixes it into the HMAC-SHA256 signature. Pass your own GET callback endpoint (or `https://console.spurvik.com/api/v1/hitl/callback`) and verify the token with `verifyChannelApprovalToken` (passing `nonce`) or `verifySignedChannelCallback`:
 
 ```ts
 import {
@@ -69,7 +69,7 @@ const tokenOk =
 
 ### Input fingerprint
 
-Provenance records in `spurvik@1.0.7` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
+Provenance records in `spurvik@1.0.8` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
 ## 2. `n8n-nodes-spurvik@1.0.3`
 

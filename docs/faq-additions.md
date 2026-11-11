@@ -1,8 +1,8 @@
 # FAQ additions
 
-> Answers describe `spurvik@1.0.7` and the hosted console. Not legal advice.
+> Answers describe `spurvik@1.0.8` and the hosted console. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
 
 ## Pricing
 
@@ -27,11 +27,11 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ### Can I install the SDK from npm?
 
-Yes. The public MIT packages are `spurvik@1.0.7` and `spurvik-sdk@1.0.7`, and the local stdio MCP server is `spurvik-mcp-server@1.0.3`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, use the published `spurvik@1.0.7` (including `spurvik/react`). See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.8` and `spurvik-sdk@1.0.8`, and the local stdio MCP server is `spurvik-mcp-server@1.0.4`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, use the published `spurvik@1.0.8` (including `spurvik/react`). See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
-The public npm release is `spurvik@1.0.7` and `spurvik-sdk@1.0.7`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
+The public npm release is `spurvik@1.0.8` and `spurvik-sdk@1.0.8`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
 ### Is there a hosted Spurvik service or dashboard?
 
 The SDK has no hosted address built in: your code passes `baseUrl` explicitly. For an invited organisation, that address is `https://console.spurvik.com`. The sandbox is at [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox). See the [Console Onboarding Guide](console-onboarding.md). The hosted console is a hosted service. Its source is not in this repository.
@@ -40,8 +40,8 @@ The SDK has no hosted address built in: your code passes `baseUrl` explicitly. F
 
 Yes, in two forms:
 
-- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.3` (MIT). The workspace package `packages/mcp` stays at `1.0.3` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
-- **Published stdio server:** `npm i -D spurvik-mcp-server@1.0.3`, then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required in 1.0.3. The hosted console may also expose `/api/mcp`. That service's source is not in this repository.
+- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.4` (MIT). The workspace package `packages/mcp` stays at `1.0.4` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
+- **Published stdio server:** `npm i -D spurvik-mcp-server@1.0.4`, then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required since 1.0.3. The hosted console may also expose `/api/mcp`. That service's source is not in this repository.
 
 ## Marking and Article 50
 
@@ -89,7 +89,7 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 ### 3. This repository does not include a server you start with a package script
 
-The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.7` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.8` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
@@ -193,7 +193,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 
 ### 15. This repository does not include those start or purge scripts
 
-Install with `npm install openai spurvik@1.0.7`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
+Install with `npm install openai spurvik@1.0.8`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 
@@ -239,7 +239,7 @@ See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 ### 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, and `spurvik-mcp-server@1.0.3`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik
@@ -255,7 +255,7 @@ git clone https://github.com/spurvik/spurvik.git spurvik
    claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.3"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.4"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
 
 ---
 

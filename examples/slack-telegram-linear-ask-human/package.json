@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "spurvik": "^1.0.7"
+    "spurvik": "^1.0.8"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

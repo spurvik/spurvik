@@ -1,8 +1,21 @@
 # spurvik-mcp-server
 
-## 1.0.3 — unreleased
+## 1.0.4 — unreleased
 
-Published as `spurvik-mcp-server@1.0.3` once released. From spurvik-mcp-server@1.0.3, an `overridden` human decision is treated as not approved, via `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (the same build). The bundled SDK in `spurvik-mcp-server@1.0.2` still treated an overridden decision as approved.
+This heading stays "unreleased" until `spurvik-mcp-server@1.0.4` is published. Date the heading at publish.
+
+### Added
+
+- Direct CLI subcommands on the `spurvik-mcp` / `spurvik-mcp-server` bin: `check` (scan a workspace for unwrapped AI calls; `--ci` exits 1 when findings exist; `--json` prints a machine-readable report), `snippet`, and `marking-hooks`. `--version` prints the package version.
+
+### Changed
+
+- The published zero-dependency bundle is rebuilt from this repository's `spurvik@1.0.8` / `spurvik-sdk@1.0.8` sources (the same build). Setup snippets pin those versions via `SNIPPET_SDK_VERSION`.
+- Listing manifests (`server.json`, `smithery.yaml`, `glama.json`) and the Claude plugin manifests pin `spurvik-mcp-server@1.0.4` and `spurvik@1.0.8`.
+
+## 1.0.3 — 2026-11-11
+
+Published as `spurvik-mcp-server@1.0.3`. From spurvik-mcp-server@1.0.3, an `overridden` human decision is treated as not approved, via `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (the same build). The bundled SDK in `spurvik-mcp-server@1.0.2` still treated an overridden decision as approved.
 
 The package.json on the published tarball includes `mcpName` set to `io.github.spurvik/spurvik-mcp-server`, which is the `name` in `server.json`. The MCP Registry uses that field to check npm package ownership.
 

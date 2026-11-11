@@ -5,7 +5,7 @@ import {
 } from "spurvik";
 
 /**
- * In spurvik@1.0.7 (and 1.0.5+), callbackBaseUrl is required on requestApproval() and
+ * In spurvik@1.0.8 (and 1.0.5+), callbackBaseUrl is required on requestApproval() and
  * createSignedApprovalLinks() includes a random 16-byte hex nonce in the
  * signed URL query string (?gateId=...&decision=...&hmac=...&ts=...&nonce=...&sig=...).
  * Pass nonce to verifyChannelApprovalToken (or use verifySignedChannelCallback)

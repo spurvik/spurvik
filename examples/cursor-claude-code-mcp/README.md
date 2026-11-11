@@ -1,6 +1,6 @@
-# Cursor, Claude Code, VS Code & Windsurf MCP Starter (`spurvik-mcp-server@1.0.3`)
+# Cursor, Claude Code, VS Code & Windsurf MCP Starter (`spurvik-mcp-server@1.0.4`)
 
-Drop-in Model Context Protocol (`MCP`) configurations and smoke test for [`spurvik-mcp-server@1.0.3`](https://www.npmjs.com/package/spurvik-mcp-server) and [`spurvik@1.0.7`](https://www.npmjs.com/package/spurvik) (MIT).
+Drop-in Model Context Protocol (`MCP`) configurations and smoke test for [`spurvik-mcp-server@1.0.4`](https://www.npmjs.com/package/spurvik-mcp-server) and [`spurvik@1.0.8`](https://www.npmjs.com/package/spurvik) (MIT).
 
 All four MCP tools run **100% locally over stdio** (`readOnlyHint: true`, zero network calls, `.env` files skipped automatically).
 
@@ -17,7 +17,7 @@ Copy [`cursor.mcp.json`](./cursor.mcp.json) to `.cursor/mcp.json` in your projec
   "mcpServers": {
     "spurvik": {
       "command": "npx",
-      "args": ["-y", "spurvik-mcp-server@1.0.3", "--root", "${workspaceFolder}"]
+      "args": ["-y", "spurvik-mcp-server@1.0.4", "--root", "${workspaceFolder}"]
     }
   }
 }
@@ -28,7 +28,7 @@ Copy [`cursor.mcp.json`](./cursor.mcp.json) to `.cursor/mcp.json` in your projec
 Copy [`claude-code.mcp.json`](./claude-code.mcp.json) to `.mcp.json` in your repository root, or register via CLI:
 
 ```bash
-claude mcp add spurvik -- npx -y spurvik-mcp-server@1.0.3 --root .
+claude mcp add spurvik -- npx -y spurvik-mcp-server@1.0.4 --root .
 ```
 
 ### VS Code / GitHub Copilot (`.vscode/mcp.json`)
@@ -41,7 +41,7 @@ Copy [`vscode.mcp.json`](./vscode.mcp.json) to `.vscode/mcp.json`:
     "spurvik": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "spurvik-mcp-server@1.0.3", "--root", "${workspaceFolder}"]
+      "args": ["-y", "spurvik-mcp-server@1.0.4", "--root", "${workspaceFolder}"]
     }
   }
 }

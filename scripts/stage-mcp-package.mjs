@@ -208,7 +208,7 @@ spurvik-mcp --root <project>
 
 On \`initialize\`, the server reports \`serverInfo.version\` \`${version}\`. It speaks MCP protocol \`2025-06-18\`, and \`2024-11-05\` when the client requests \`2024-11-05\`. \`@modelcontextprotocol/sdk\` 1.32.1 is bundled. Third-party licence text is in \`dist/THIRD-PARTY-NOTICES.txt\`.
 
-From spurvik-mcp-server@1.0.3, the bundled SDK matches \`spurvik@1.0.7\`: an \`overridden\` human decision is treated as not approved. Continue only when the status is \`approved\`.
+From spurvik-mcp-server@1.0.4, the bundled SDK matches \`spurvik@1.0.8\`: an \`overridden\` human decision is treated as not approved. Continue only when the status is \`approved\`.
 
 Tools: \`spurvik_setup_snippet\`, \`spurvik_find_unwrapped_calls\`, \`spurvik_explain_receipt\`, and \`spurvik_marking_hooks\`. Setup snippets cover OpenAI, Anthropic, Google GenAI, the Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph. The tools are read-only and do not call the network.
 

@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.3, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.4, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -26792,7 +26792,7 @@ function nodeShutdown(expr) {
   void boundedFlush(${expr}).finally(() => process.exit(0));
 });`;
 }
-var SNIPPET_SDK_VERSION = "1.0.7";
+var SNIPPET_SDK_VERSION = "1.0.8";
 function header() {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
@@ -27124,9 +27124,9 @@ function serverVersion() {
     const parsed = JSON.parse(raw);
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "1.0.3";
+    return "1.0.4";
   }
-  return "1.0.3";
+  return "1.0.4";
 }
 function createServer(workspaceRoot) {
   const server = new McpServer(

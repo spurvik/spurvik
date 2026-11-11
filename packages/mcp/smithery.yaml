@@ -1,6 +1,6 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 # Repository: https://github.com/spurvik/spurvik (MIT)
-# Packages: spurvik@1.0.7, spurvik-sdk@1.0.7, spurvik-mcp-server@1.0.3
+# Packages: spurvik@1.0.8, spurvik-sdk@1.0.8, spurvik-mcp-server@1.0.4
 # Docs: https://spurvik.com/docs
 # Interactive Sandbox: https://console.spurvik.com/sandbox?scan=https://your-app.com
 # Remote Streamable HTTP MCP: https://console.spurvik.com/api/mcp (protocolVersion: "2025-06-18")
@@ -29,7 +29,7 @@ startCommand:
       args: [
         "exec",
         "--yes",
-        "--package=spurvik-mcp-server@1.0.3",
+        "--package=spurvik-mcp-server@1.0.4",
         "--",
         "spurvik-mcp-server",
         "--root",

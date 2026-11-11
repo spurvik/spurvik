@@ -1,12 +1,12 @@
 # packages/mcp
 
-Local stdio MCP server for Cursor, VS Code, and other MCP clients. Build this directory from source. It is `"private": true` at version **1.0.3**. The published npm package is `spurvik-mcp-server@1.0.3` (MIT), from https://github.com/spurvik/spurvik.
+Local stdio MCP server for Cursor, VS Code, and other MCP clients. Build this directory from source. It is `"private": true` at version **1.0.4**. The published npm package is `spurvik-mcp-server@1.0.4` (MIT), from https://github.com/spurvik/spurvik.
 
 It depends on `spurvik-sdk@^1.0.7` from the npm registry, on `packages/core` in this repository, and on `@modelcontextprotocol/sdk` 1.32.1. The tools are read-only. They do not call the Spurvik API or any other network.
 
 The SDK logs an AI call and attaches an HMAC receipt. Marking hooks are the caller's. Spurvik does not mark content and does not classify a use case. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
 
-The lockfile installs `spurvik-sdk@^1.0.7` from the npm registry. Then rebuild the plugin bundle with `node packages/mcp/scripts/bundle-plugin.mjs`. From spurvik-mcp-server@1.0.3, the bundled SDK matches `spurvik@1.0.7`: an `overridden` decision is not approved. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved.
+The lockfile installs `spurvik-sdk@^1.0.7` from the npm registry. Then rebuild the plugin bundle with `node packages/mcp/scripts/bundle-plugin.mjs`. From spurvik-mcp-server@1.0.4, the bundled SDK matches `spurvik@1.0.8`: an `overridden` decision is not approved. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved.
 
 Build from the repo root:
 
@@ -42,7 +42,7 @@ Explain how to plug your own Article 50(2) marking into marking.text or marking.
 
 ## Claude Code plugin
 
-`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `packages/mcp` 1.0.3 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
+`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `packages/mcp` 1.0.4 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same four read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
 
 ## Cursor
 
