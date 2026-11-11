@@ -26,6 +26,12 @@ function isPromptFieldName(name: string): boolean {
   return PROMPT_FIELD_NAMES.has(name.trim().toLowerCase());
 }
 
+/** Name check only. Trimmed, case-insensitive. Does not read the field value. */
+function skipPassThroughField(field: string, inputField: string): boolean {
+  const key = field.trim().toLowerCase();
+  return BLOCKED_PASSTHROUGH.has(key) || key === inputField.trim().toLowerCase();
+}
+
 export const SpurvikN8nNodeDescription: INodeTypeDescription = {
   displayName: "Spurvik AI Act Guard",
   name: "spurvikEuAiActGuard",
@@ -55,12 +61,13 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         {
           name: "Record an HMAC-SHA256 digest",
           value: "art12_hmac_log",
-          description: "Designed to support Article 12 record-keeping. The field value is not returned.",
+          description:
+            "Designed to support Article 12 record-keeping for high-risk AI systems. The field value is not returned (including when listed in passThroughFields).",
         },
         {
           name: "Send an ask_human() approval request",
           value: "art14_ask_human",
-          description: "Designed to support Article 14 human oversight.",
+          description: "Designed to support Article 14 human oversight for high-risk AI systems.",
         },
       ],
     },
@@ -78,7 +85,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       default: "promptText",
       displayOptions: { show: { operation: ["art50_disclosure", "art12_hmac_log"] } },
       description:
-        "Name of the incoming JSON field that holds the prompt. Shown for the notice and the digest. The digest is HMAC-SHA256 of spurvik:workflow:input:v1| plus this field. The notice throws if outputField equals this name. The field value is not returned.",
+        "Name of the incoming JSON field that holds the prompt. Shown for the notice and the digest. The digest is HMAC-SHA256 of spurvik:workflow:input:v1| plus this field. The notice throws if outputField equals this name. The field value is not returned (including when listed in passThroughFields).",
     },
     {
       displayName: "Output Field",
@@ -87,7 +94,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       default: "outputText",
       displayOptions: { show: { operation: ["art50_disclosure"] } },
       description:
-        "The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names are never copied. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
+        "The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.",
     },
     {
       displayName: "Notice Text",
@@ -179,7 +186,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "",
       description:
-        "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, and input are never copied, in any letter case.",
+        "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
   ],
 };
@@ -354,7 +361,7 @@ export class SpurvikEuAiActGuard implements INodeType {
       const json: IDataObject = { spurvik: result as unknown as IDataObject };
       const passThrough = String(this.getNodeParameter("passThroughFields", i, ""));
       for (const field of passThrough.split(",").map((part) => part.trim()).filter(Boolean)) {
-        if (BLOCKED_PASSTHROUGH.has(field.toLowerCase())) continue;
+        if (skipPassThroughField(field, inputField)) continue;
         if (Object.prototype.hasOwnProperty.call(item, field)) json[field] = item[field];
       }
       returnData.push({ json });
