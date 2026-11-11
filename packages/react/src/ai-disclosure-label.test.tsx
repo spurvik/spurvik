@@ -4,13 +4,18 @@ import { createElement, act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { AIArticle50Section3Notice, AIDisclosureLabel, AiDisclosure } from "./index.js";
+import {
+  AIArticle50Section3Notice,
+  AIDisclosureLabel,
+  AiDisclosure,
+  type AIDisclosureLabelProps,
+} from "./index.js";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const ATTRIBUTION_HREF = "https://spurvik.com";
 const ATTRIBUTION_TEXT = "Art. 50 · Spurvik";
-const ATTRIBUTION_ARIA_LABEL = "About this AI disclosure label, by Spurvik (opens in a new tab)";
+const ATTRIBUTION_ARIA_LABEL = "Art. 50 · Spurvik (opens in a new tab)";
 
 const BASELINE = {
   default:
@@ -69,69 +74,60 @@ function assertAttributionLink(html: string, disclosureText: string) {
   }
 }
 
-describe("AIDisclosureLabel attribution={false} matches pre-change markup", () => {
-  test("default props", () => {
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false }))).toBe(BASELINE.default);
+function expectUnchanged(props: Omit<AIDisclosureLabelProps, "attribution">, baseline: string) {
+  const omitted = markup(createElement(AIDisclosureLabel, props));
+  const explicit = markup(createElement(AIDisclosureLabel, { ...props, attribution: false }));
+  expect(omitted).toBe(baseline);
+  expect(explicit).toBe(baseline);
+  expect(omitted).toBe(explicit);
+  expect(omitted).not.toContain("<a ");
+  expect(omitted).not.toContain("<style");
+}
+
+describe("AIDisclosureLabel with no attribution prop matches pre-change markup", () => {
+  test("default props, and explicit attribution={false} is the same", () => {
+    expectUnchanged({}, BASELINE.default);
   });
 
   test("presentation=inline", () => {
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, presentation: "inline" }))).toBe(
-      BASELINE.interaction_inline,
-    );
+    expectUnchanged({ presentation: "inline" }, BASELINE.interaction_inline);
   });
 
   test("notice=generated block and inline", () => {
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, notice: "generated" }))).toBe(
-      BASELINE.generated_block,
-    );
-    expect(
-      markup(createElement(AIDisclosureLabel, { attribution: false, notice: "generated", presentation: "inline" })),
-    ).toBe(BASELINE.generated_inline);
+    expectUnchanged({ notice: "generated" }, BASELINE.generated_block);
+    expectUnchanged({ notice: "generated", presentation: "inline" }, BASELINE.generated_inline);
   });
 
   test("other notices, systemName, locale, brand, className, and colors", () => {
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, notice: "deepfake" }))).toBe(BASELINE.deepfake);
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, notice: "public-interest" }))).toBe(
-      BASELINE.publicInterest,
+    expectUnchanged({ notice: "deepfake" }, BASELINE.deepfake);
+    expectUnchanged({ notice: "public-interest" }, BASELINE.publicInterest);
+    expectUnchanged({ notice: "emotion-biometric" }, BASELINE.emotion);
+    expectUnchanged({ systemName: "Support Assistant" }, BASELINE.systemName);
+    expectUnchanged({ locale: "de" }, BASELINE.localeDe);
+    expectUnchanged({ brandName: "Acme", systemName: "Bot" }, BASELINE.brandName);
+    expectUnchanged({ className: "x" }, BASELINE.className);
+    expectUnchanged(
+      { textColor: "#111", backgroundColor: "#eee", accentColor: "#00f", borderColor: "#ccc" },
+      BASELINE.colors,
     );
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, notice: "emotion-biometric" }))).toBe(
-      BASELINE.emotion,
-    );
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, systemName: "Support Assistant" }))).toBe(
-      BASELINE.systemName,
-    );
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, locale: "de" }))).toBe(BASELINE.localeDe);
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, brandName: "Acme", systemName: "Bot" }))).toBe(
-      BASELINE.brandName,
-    );
-    expect(markup(createElement(AIDisclosureLabel, { attribution: false, className: "x" }))).toBe(BASELINE.className);
-    expect(
-      markup(
-        createElement(AIDisclosureLabel, {
-          attribution: false,
-          textColor: "#111",
-          backgroundColor: "#eee",
-          accentColor: "#00f",
-          borderColor: "#ccc",
-        }),
-      ),
-    ).toBe(BASELINE.colors);
   });
 
-  test("AIArticle50Section3Notice attribution={false}", () => {
-    expect(markup(createElement(AIArticle50Section3Notice, { attribution: false }))).toBe(BASELINE.article50);
+  test("AIArticle50Section3Notice omits the link unless attribution is true", () => {
+    const omitted = markup(createElement(AIArticle50Section3Notice, {}));
+    const explicit = markup(createElement(AIArticle50Section3Notice, { attribution: false }));
+    expect(omitted).toBe(BASELINE.article50);
+    expect(explicit).toBe(BASELINE.article50);
+    expect(omitted).toBe(explicit);
   });
 });
 
-describe("AIDisclosureLabel default attribution link", () => {
-  test("default render includes the link after unchanged disclosure text", () => {
-    const html = markup(createElement(AIDisclosureLabel));
-    const explicit = markup(createElement(AIDisclosureLabel, { attribution: true }));
-    expect(html).toBe(explicit);
+describe("AIDisclosureLabel attribution={true}", () => {
+  test("renders the link after unchanged disclosure text and no style tag", () => {
+    const html = markup(createElement(AIDisclosureLabel, { attribution: true }));
     expect(html).not.toBe(BASELINE.default);
+    expect(html).not.toContain("<style");
     assertAttributionLink(html, "You are interacting with an AI system.");
     const prefix = BASELINE.default.replace("</span></aside>", "");
-    // disclosure block is a byte-identical prefix of the previous markup; the link is appended after it
     expect(html.startsWith(prefix.slice(0, prefix.lastIndexOf("</span>")))).toBe(true);
     expect(html.indexOf("You are interacting with an AI system.")).toBe(
       BASELINE.default.indexOf("You are interacting with an AI system."),
@@ -139,10 +135,10 @@ describe("AIDisclosureLabel default attribution link", () => {
   });
 
   test("inline presentation still shows the disclosure text first, then the link", () => {
-    const html = markup(createElement(AIDisclosureLabel, { presentation: "inline" }));
+    const html = markup(createElement(AIDisclosureLabel, { attribution: true, presentation: "inline" }));
     assertAttributionLink(html, "You are interacting with an AI system.");
     expect(html).toContain("You are interacting with an AI system.");
-    // the human-readable note stays visually hidden; the attribution link does not
+    expect(html).not.toContain("<style");
     const hiddenNoteAt = html.indexOf('id="_R_0_" style="position:absolute');
     const linkAt = html.indexOf("<a ");
     expect(hiddenNoteAt).toBeGreaterThanOrEqual(0);
@@ -151,8 +147,9 @@ describe("AIDisclosureLabel default attribution link", () => {
   });
 
   test("generated notice keeps the headline and detail before the link", () => {
-    const html = markup(createElement(AIDisclosureLabel, { notice: "generated" }));
+    const html = markup(createElement(AIDisclosureLabel, { attribution: true, notice: "generated" }));
     assertAttributionLink(html, "AI-generated");
+    expect(html).not.toContain("<style");
     const detailAt = html.indexOf("This content was generated by an AI system.");
     expect(detailAt).toBeGreaterThan(0);
     expect(detailAt).toBeLessThan(html.indexOf("<a "));
@@ -199,11 +196,10 @@ describe("AIDisclosureLabel makes no fetch or cookie access for attribution", ()
     });
   }
 
-  test("default, attribution true, and attribution false do not call fetch or touch document.cookie", () => {
+  test("no prop, attribution true, and attribution false do not call fetch or touch document.cookie", () => {
     mount(createElement(AIDisclosureLabel));
     expect(host?.textContent).toContain("You are interacting with an AI system.");
-    expect(host?.querySelector("a")?.getAttribute("href")).toBe(ATTRIBUTION_HREF);
-    expect(host?.querySelector("a")?.textContent).toBe(ATTRIBUTION_TEXT);
+    expect(host?.querySelector("a")).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(cookieGet).not.toHaveBeenCalled();
     expect(cookieSet).not.toHaveBeenCalled();
@@ -211,6 +207,9 @@ describe("AIDisclosureLabel makes no fetch or cookie access for attribution", ()
     act(() => {
       root!.render(createElement(AIDisclosureLabel, { attribution: true }));
     });
+    expect(host?.querySelector("a")?.getAttribute("href")).toBe(ATTRIBUTION_HREF);
+    expect(host?.querySelector("a")?.textContent).toBe(ATTRIBUTION_TEXT);
+    expect(host?.querySelector("a")?.getAttribute("aria-label")).toBe(ATTRIBUTION_ARIA_LABEL);
     expect(fetchSpy).not.toHaveBeenCalled();
     expect(cookieGet).not.toHaveBeenCalled();
     expect(cookieSet).not.toHaveBeenCalled();
@@ -227,9 +226,17 @@ describe("AIDisclosureLabel makes no fetch or cookie access for attribution", ()
 });
 
 describe("wrapper components", () => {
-  test("AiDisclosure picks up the default attribution link", () => {
-    const html = markup(createElement(AiDisclosure, { systemName: "Bot" }));
-    expect(html).not.toBe(BASELINE.aiDisclosure);
-    assertAttributionLink(html, "Bot. You are interacting with an AI system.");
+  test("AiDisclosure forwards attribution and leaves it off by default", () => {
+    const omitted = markup(createElement(AiDisclosure, { systemName: "Bot" }));
+    const explicit = markup(createElement(AiDisclosure, { systemName: "Bot", attribution: false }));
+    expect(omitted).toBe(BASELINE.aiDisclosure);
+    expect(explicit).toBe(BASELINE.aiDisclosure);
+    expect(omitted).toBe(explicit);
+    expect(omitted).not.toContain("<a ");
+
+    const shown = markup(createElement(AiDisclosure, { systemName: "Bot", attribution: true }));
+    expect(shown).not.toBe(BASELINE.aiDisclosure);
+    expect(shown).not.toContain("<style");
+    assertAttributionLink(shown, "Bot. You are interacting with an AI system.");
   });
 });

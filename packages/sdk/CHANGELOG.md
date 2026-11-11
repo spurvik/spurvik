@@ -6,7 +6,7 @@ This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (t
 
 ### Changed
 
-- `spurvik/react` `<AIDisclosureLabel />` now renders a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text, by default (`attribution`, default `true`). The disclosure text stays first in the DOM and reading order. The link has no query parameters, does no tracking, and makes no network calls. Set `attribution={false}` to keep the previous markup. Removing the link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms. The SDK does not check the plan. This is a visible default change for existing Free-plan users who render the label without passing `attribution={false}`.
+- `spurvik/react` `<AIDisclosureLabel />` accepts an optional `attribution` prop, off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first in the DOM and reading order. The link has no query parameters, does no tracking, and makes no network calls. Omitting the prop leaves the markup unchanged.
 
 ## 1.0.7 — 2026-11-11
 

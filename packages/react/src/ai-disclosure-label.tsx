@@ -37,13 +37,10 @@ export interface AIDisclosureLabelProps {
    */
   beacon?: Omit<DisclosureBeaconOptions, "noticeKind">;
   /**
-   * When true (the default), render a small "Art. 50 · Spurvik" link to
+   * Off by default. Pass `true` to render a small "Art. 50 · Spurvik" link to
    * https://spurvik.com after the disclosure text. The disclosure text stays
    * first in the DOM and reading order. The link has no query parameters, and
    * the component does not set cookies or make a network call for it.
-   * Set `false` to omit the link and keep the previous markup. Removing the
-   * link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms.
-   * This component does not check the plan; the console handles that.
    */
   attribution?: boolean;
 }
@@ -75,7 +72,7 @@ export function AIDisclosureLabel({
   borderColor,
   brandName,
   beacon,
-  attribution = true,
+  attribution = false,
 }: AIDisclosureLabelProps) {
   const copy = disclosureCopy(locale);
   const ref = useRef<HTMLElement>(null);
@@ -148,19 +145,16 @@ export function AIDisclosureLabel({
           </span>
         )}
         {attribution ? (
-          <>
-            <style>{ATTRIBUTION_FOCUS_CSS}</style>
-            <a
-              href={ATTRIBUTION_HREF}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={ATTRIBUTION_ARIA_LABEL}
-              data-spurvik-attribution=""
-              style={attributionLinkStyle}
-            >
-              {ATTRIBUTION_TEXT}
-            </a>
-          </>
+          <a
+            href={ATTRIBUTION_HREF}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={ATTRIBUTION_ARIA_LABEL}
+            data-spurvik-attribution=""
+            style={attributionLinkStyle}
+          >
+            {ATTRIBUTION_TEXT}
+          </a>
         ) : null}
       </span>
     </aside>
@@ -257,10 +251,7 @@ const visuallyHidden: CSSProperties = {
 
 const ATTRIBUTION_HREF = "https://spurvik.com";
 const ATTRIBUTION_TEXT = "Art. 50 · Spurvik";
-const ATTRIBUTION_ARIA_LABEL = "About this AI disclosure label, by Spurvik (opens in a new tab)";
-
-const ATTRIBUTION_FOCUS_CSS =
-  "a[data-spurvik-attribution]:focus-visible{outline:2px solid currentColor;outline-offset:2px}";
+const ATTRIBUTION_ARIA_LABEL = "Art. 50 · Spurvik (opens in a new tab)";
 
 const attributionLinkStyle: CSSProperties = {
   alignSelf: "flex-start",

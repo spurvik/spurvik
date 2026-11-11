@@ -218,6 +218,6 @@ The same build is published as `spurvik` and `spurvik-sdk`. `spurvik/react` is t
 
 ## Disclosure labels
 
-Import `<AIDisclosureLabel />` from `spurvik/react` (or `spurvik-sdk/react`). By default it renders a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text (`attribution`, default `true`). The disclosure text stays first in the DOM and reading order. The link has no query parameters and does not set cookies or make a network call. Pass `attribution={false}` to omit the link and keep the previous markup. Removing the link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms. The SDK does not check the plan; the console handles that. This default is a visible change for existing Free-plan users who render the label without passing `attribution={false}`.
+Import `<AIDisclosureLabel />` from `spurvik/react` (or `spurvik-sdk/react`). `attribution` is off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first in the DOM and reading order. The link has no query parameters and does not set cookies or make a network call.
 
 `AIDisclosureLabel` does not write browser storage or call the disclosure endpoint unless `beacon.consent` is true.

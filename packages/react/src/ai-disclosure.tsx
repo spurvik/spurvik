@@ -13,12 +13,23 @@ export interface AiDisclosureProps {
   className?: string;
   locale?: string;
   onShown?: (info: { systemName: string; jurisdiction: string }) => void;
+  /**
+   * Off by default. Pass `true` to show the "Art. 50 · Spurvik" link.
+   */
+  attribution?: boolean;
 }
 
-export function AiDisclosure({ systemName, purpose, jurisdiction = "EU", className, locale = "en" }: AiDisclosureProps) {
+export function AiDisclosure({
+  systemName,
+  purpose,
+  jurisdiction = "EU",
+  className,
+  locale = "en",
+  attribution = false,
+}: AiDisclosureProps) {
   return (
     <div className={className}>
-      <AIDisclosureLabel notice="interaction" locale={locale} systemName={systemName} />
+      <AIDisclosureLabel notice="interaction" locale={locale} systemName={systemName} attribution={attribution} />
       {purpose ? (
         <p style={{ margin: "8px 0 0", font: "14px/1.5 ui-sans-serif, system-ui, sans-serif", color: "#3f3f3f" }}>
           {purpose}
