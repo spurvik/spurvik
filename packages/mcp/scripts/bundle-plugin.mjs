@@ -11,6 +11,10 @@ const repoRoot = join(packageRoot, "..", "..");
 const committed = join(repoRoot, "plugins/spurvik/bin/spurvik-mcp.mjs");
 const noticesPath = join(repoRoot, "plugins/spurvik/THIRD-PARTY-NOTICES.txt");
 const check = process.argv.includes("--check");
+const packageVersion = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")).version;
+if (typeof packageVersion !== "string" || !packageVersion) {
+  throw new Error("packages/mcp/package.json is missing version.");
+}
 
 const require = createRequire(join(packageRoot, "package.json"));
 const esbuild = require("esbuild");
@@ -145,7 +149,7 @@ const result = await esbuild.build({
   metafile: true,
   logLevel: "warning",
   banner: {
-    js: "/* Local stdio server for the Spurvik Claude Code plugin (1.0.2, MIT). */\n",
+    js: `/* Local stdio server for the Spurvik Claude Code plugin (${packageVersion}, MIT). */\n`,
   },
   plugins: [
     {

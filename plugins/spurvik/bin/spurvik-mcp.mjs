@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.2, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.3, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -7255,7 +7255,7 @@ var require_dist = __commonJS({
   }
 });
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js
 var buffer_node_IYFDRLWF_exports = {};
 __export(buffer_node_IYFDRLWF_exports, {
   FileTelemetryBuffer: () => FileTelemetryBuffer,
@@ -7287,7 +7287,7 @@ function readCursor(file) {
 }
 var FileTelemetryBuffer;
 var init_buffer_node_IYFDRLWF = __esm({
-  "packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js"() {
+  "packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js"() {
     FileTelemetryBuffer = class {
       instanceId;
       nextSeq;
@@ -23125,7 +23125,7 @@ function markingHooksText(surface = "both") {
 `;
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
 var SpurvikError = class extends Error {
   constructor(message) {
     super(message);
@@ -23190,10 +23190,10 @@ var SpurvikHitlRejectedError = class extends SpurvikError {
   record;
 };
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-455UYSGD.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-455UYSGD.js
 var MAX_LINK_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-II5RYOQ5.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-II5RYOQ5.js
 import { request as httpRequest } from "http";
 import { request as httpsRequest } from "https";
 function canonicalJson2(value) {
@@ -25537,7 +25537,7 @@ function waitForPoll(sleep, ms, signal) {
   });
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-YL42MSWQ.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-YL42MSWQ.js
 var RECEIPT_KEY = "spurvik";
 function extractFinishReason(value) {
   if (typeof value === "string" && value.trim().length > 0) return value.trim();
@@ -25799,7 +25799,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
 async function wrapMastraModel(model, middleware) {
   const { wrapLanguageModel } = await import("ai");
   return wrapLanguageModel({ model, middleware });
@@ -25839,7 +25839,7 @@ function withSpurvikMastra(model, config2) {
   };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/openai-agents.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/openai-agents.js
 var RECEIPT_KEY2 = "spurvik";
 function withSpurvikModel(model, config2, options) {
   return new WrappedAgentsModel(model, new SpurvikClient(config2), options?.modelId);
@@ -26270,7 +26270,7 @@ function deferred2() {
   return { promise, resolve, reject };
 }
 
-// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
 var SKIPPED_MESSAGE_KINDS = /* @__PURE__ */ new Set(["tool", "function", "function_call_result"]);
 function withSpurvikLangGraph(graph, config2, options) {
   const client = new SpurvikClient(config2);
@@ -27123,9 +27123,9 @@ function serverVersion() {
     const parsed = JSON.parse(raw);
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "1.0.2";
+    return "1.0.3";
   }
-  return "1.0.2";
+  return "1.0.3";
 }
 function createServer(workspaceRoot) {
   const server = new McpServer(

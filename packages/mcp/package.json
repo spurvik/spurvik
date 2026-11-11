@@ -1,6 +1,7 @@
 {
   "name": "@spurvik/mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
+  "mcpName": "io.github.spurvik/spurvik-mcp-server",
   "author": "EyeTea Solutions ApS",
   "private": true,
   "type": "module",
@@ -51,7 +52,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "@spurvik/core": "workspace:*",
-    "spurvik-sdk": "file:../sdk",
+    "spurvik-sdk": "^1.0.7",
     "zod": "^3.25.76"
   },
   "devDependencies": {
