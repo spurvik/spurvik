@@ -9,7 +9,7 @@
 No. The public 2x2 cockpit at `https://console.spurvik.com/sandbox` (and `https://console.spurvik.com/`, hosted in EU `fra1`) sets **zero cookies before sign-in** and runs all sandbox interactions in browser state:
 
 - **`Stack Scanner` (`Paste App URL...` + `Scan`):** Parses the hostname locally in your browser (`new URL(...)`), updates the active domain pill in the top bar (capped at `28` characters), and selects the matching preset (`Lovable SaaS`, `Stripe Refund Agent`, or `AI Support Bot`) if the hostname contains `lovable`, `stripe`, or `support`. It never crawls or sends an HTTP request to the URL you enter.
-- **`Fire Test AI Call` and `Human Gate` buttons (`Approve (€450)`, `Block Agent`, `Kill Switch`):** Prepend simulated hash-chain blocks (`#1043`, `#1044`, …) in browser memory so you can inspect how `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` link together without an API key or invite code.
+- **`Fire Test AI Call` and `Human Gate` buttons (`Approve (€450)`, `Block Agent`, `Kill Switch`):** Prepend simulated hash-chain blocks (`#1043`, `#1044`, …) in browser memory so you can inspect how `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` link together without an API key.
 
 ### 2. How do the `Human Gate (Art. 14)` controls (`Approve (€450)`, `Block Agent`, `Kill Switch`, `Reset`) in the sandbox map to SDK and API calls in production?
 
@@ -30,7 +30,7 @@ Card 1 (`Badge Studio · Art. 50`) gives you three copy-paste bridges into your 
 2. **Connect the hosted Streamable HTTP MCP server (`https://console.spurvik.com/api/mcp`):**
    - Click **`Copy MCP URL`** (or **`Copy Lovable/Replit Prompt`**) to connect your agent or IDE to `https://console.spurvik.com/api/mcp`. It exposes four read-only, zero-auth tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`.
    - Over HTTP, `spurvik_find_unwrapped_calls` scans inline `code` or `files` payloads (up to `128 KB`) because it cannot read your local disk; to scan a local directory, run the stdio `spurvik-mcp-server` server or `/spurvik:check`.
-3. **Mint a `spurvik_live_...` key:** Follow the [5-Minute Quickstart](./5-minute-quickstart.md). For an invited organisation, create the key in the hosted console and set `baseUrl` to `https://console.spurvik.com`.
+3. **Mint a `spurvik_live_...` key:** Follow the [5-Minute Quickstart](./5-minute-quickstart.md). For a hosted console workspace, create the key in the hosted console and set `baseUrl` to `https://console.spurvik.com`.
 
 ### 4. What does the Readiness Ring (`40% Free` → `70%` → `100% Pro €19/mo`) in the top bar calculate?
 
@@ -43,7 +43,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 
 ### 5. This repository does not include those start or purge scripts
 
-Install with `npm install openai spurvik@1.0.8`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
+Install with `npm install openai spurvik@1.0.8`. For a hosted console workspace, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 

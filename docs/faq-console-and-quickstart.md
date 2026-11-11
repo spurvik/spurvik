@@ -6,14 +6,14 @@
 
 ## Signup, Sandbox, and Keys
 
-### 1. Can I try the console without an invite code, and why does `/signup` say "No organisation and no project yet"?
+### 1. Can I try the console without an invite code, and how does `/signup` work?
 
-Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) (EU `fra1`) to inspect the interactive Hash-Chain Diagram, Oversight Gate Diagram, and Obligations Radar with no login or invite code.
+Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) (EU `fra1`) to inspect the interactive Hash-Chain Diagram, Oversight Gate Diagram, and Obligations Radar with no login.
 
-On `https://console.spurvik.com/signup`, account creation is gated by `SPURVIK_INVITE_CODE` and creates a console login (`users` row and `spurvik_session` cookie) only — it does not create an organisation or starter project. You get an organisation, project, and `spurvik_live_` key in one of two ways:
+On [console.spurvik.com/signup](https://console.spurvik.com/signup), self-serve signup is open (no invite code required) and creates a Free workspace and starter project so an owner can mint a `spurvik_live_` key right away. You can also join an existing workspace or manage keys in two ways:
 
-1. **Hosted console (`/invites`):** An existing organisation `owner` or `admin` invites you from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`. Once you are an `owner` of an organisation, create a project on `/dashboard/projects` and mint a `spurvik_live_` key on the project page.
-2. **Hosted console:** An organisation owner creates the project and the `spurvik_live_` key in the hosted console. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md). This repository does not include a seed script.
+1. **Team invites (`/invites`):** An existing organisation `owner` or `admin` invites teammates from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`.
+2. **Hosted console keys:** An organisation owner creates projects and `spurvik_live_` keys in the hosted console (`Free €0/mo · Pro €19/mo · Team €79/mo`, excl. VAT · B2B only). See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md). This repository does not include a seed script.
 
 ### 2. What is the difference between `spurvik_live_`, `spurvik_pub_`, `spurvik_reviewer_`, and `spurvik_invite_` tokens?
 
@@ -28,7 +28,7 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 ### 3. This repository does not include a server you start with a package script
 
-The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.8` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.8` and set `baseUrl` to `https://console.spurvik.com` for a hosted console workspace.
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 

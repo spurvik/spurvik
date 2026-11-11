@@ -37,7 +37,7 @@ export SPURVIK_BASE_URL="https://console.spurvik.com"
 export SPURVIK_REVIEWER_TOKEN="spurvik_reviewer_<your_reviewer_token>"
 ```
 
-For an invited organisation, `SPURVIK_BASE_URL` is `https://console.spurvik.com`. Halt and release calls need `reviewerToken`. Those calls halt the real project.
+For a hosted console workspace, `SPURVIK_BASE_URL` is `https://console.spurvik.com`. Halt and release calls need `reviewerToken`. Those calls halt the real project.
 
 ---
 

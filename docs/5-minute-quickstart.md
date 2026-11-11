@@ -7,7 +7,7 @@
 | Path | Who it is for | What you use |
 | --- | --- | --- |
 | Public sandbox | Anyone looking at the browser cockpit before setting up keys | https://console.spurvik.com/sandbox. See [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md). |
-| Hosted console | An invited organisation | https://console.spurvik.com. `baseUrl` for that organisation is `https://console.spurvik.com`. |
+| Hosted console | Self-serve workspace (Free €0/mo · Pro €19/mo · Team €79/mo, excl. VAT · B2B only) | https://console.spurvik.com/signup (`baseUrl`: `https://console.spurvik.com`). |
 
 The hosted console is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 
@@ -39,7 +39,7 @@ export SPURVIK_BASE_URL="https://console.spurvik.com"
 export SPURVIK_REVIEWER_TOKEN="spurvik_reviewer_<your-reviewer-token>"
 ```
 
-For an invited organisation, `SPURVIK_BASE_URL` is `https://console.spurvik.com`. In production the SDK throws if `baseUrl` is omitted. Development and tests still default to `http://127.0.0.1:43123`. The SDK does not read these variables by itself.
+For a hosted console workspace, `SPURVIK_BASE_URL` is `https://console.spurvik.com`. In production the SDK throws if `baseUrl` is omitted. Development and tests still default to `http://127.0.0.1:43123`. The SDK does not read these variables by itself.
 
 ## Wrap a call and check the record
 

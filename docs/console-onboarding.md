@@ -6,7 +6,7 @@
 
 The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 
-`baseUrl` is where SDK telemetry and the halt stream go. For an invited organisation, that address is `https://console.spurvik.com`.
+`baseUrl` is where SDK telemetry and the halt stream go. For a hosted console workspace, that address is `https://console.spurvik.com`.
 
 The public sandbox cockpit is at https://console.spurvik.com/sandbox. See [sandbox-first-5-minutes.md](sandbox-first-5-minutes.md).
 

@@ -18,7 +18,7 @@ Using Spurvik does not, on its own, mean your system meets the Act. `riskTier` i
 | --- | --- |
 | Node.js 20 or later | `spurvik@1.0.8` sets `"engines": { "node": ">=20" }`. |
 | An OpenAI API key | Or use the mock server in [Optional: try it without an OpenAI key](#optional-try-it-without-an-openai-key). |
-| A project key | For an invited organisation, create it in the hosted console at https://console.spurvik.com. |
+| A project key | For a hosted console workspace, create it in the hosted console at https://console.spurvik.com. |
 
 ## Step 1: Install the published packages
 
@@ -32,7 +32,7 @@ npm install openai spurvik@1.0.8
 
 ## Step 2: Where `baseUrl` points
 
-`baseUrl` is where SDK telemetry and the halt stream go. For an invited organisation, that address is `https://console.spurvik.com`. In production the SDK throws if `baseUrl` is omitted. Development and tests still default to `http://127.0.0.1:43123`.
+`baseUrl` is where SDK telemetry and the halt stream go. For a hosted console workspace, that address is `https://console.spurvik.com`. In production the SDK throws if `baseUrl` is omitted. Development and tests still default to `http://127.0.0.1:43123`.
 
 The project API key has the form `spurvik_live_` plus at least 32 base64url characters. It is sent as a Bearer token. `SPURVIK_SIGNING_SECRET` and `SPURVIK_CONTENT_HASH_SECRET` stay in the caller and are never sent. The SDK reads none of these variables by itself; your code passes them in.
 
@@ -67,7 +67,7 @@ export SPURVIK_BASE_URL="https://console.spurvik.com"
 export OPENAI_API_KEY="sk-your-openai-key"
 ```
 
-For an invited organisation, `SPURVIK_BASE_URL` is `https://console.spurvik.com`.
+For a hosted console workspace, `SPURVIK_BASE_URL` is `https://console.spurvik.com`.
 
 | Variable | What it is | Sent to `baseUrl`? |
 | --- | --- | --- |

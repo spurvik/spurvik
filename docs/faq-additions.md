@@ -34,7 +34,7 @@ Yes. The public MIT packages are `spurvik@1.0.8` and `spurvik-sdk@1.0.8`, and th
 The public npm release is `spurvik@1.0.8` and `spurvik-sdk@1.0.8`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
 ### Is there a hosted Spurvik service or dashboard?
 
-The SDK has no hosted address built in: your code passes `baseUrl` explicitly. For an invited organisation, that address is `https://console.spurvik.com`. The sandbox is at [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox). See the [Console Onboarding Guide](console-onboarding.md). The hosted console is a hosted service. Its source is not in this repository.
+The SDK has no hosted address built in: your code passes `baseUrl` explicitly. For a hosted console workspace, that address is `https://console.spurvik.com`. The sandbox is at [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox). See the [Console Onboarding Guide](console-onboarding.md). The hosted console is a hosted service. Its source is not in this repository.
 
 ### Is there an MCP server?
 
@@ -67,14 +67,14 @@ No. Spurvik is software designed to support parts of your own work under the Act
 
 ## Console Onboarding and 5-Minute Quickstart
 
-### 1. Can I try the console without an invite code, and why does `/signup` say "No organisation and no project yet"?
+### 1. Can I try the console without an invite code, and how does `/signup` work?
 
-Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) (EU `fra1`) to inspect the interactive Hash-Chain Diagram, Oversight Gate Diagram, and Obligations Radar with no login or invite code.
+Yes — open [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) (EU `fra1`) to inspect the interactive Hash-Chain Diagram, Oversight Gate Diagram, and Obligations Radar with no login.
 
-On `https://console.spurvik.com/signup`, account creation is gated by `SPURVIK_INVITE_CODE` and creates a console login (`users` row and `spurvik_session` cookie) only — it does not create an organisation or starter project. You get an organisation, project, and `spurvik_live_` key in one of two ways:
+On [console.spurvik.com/signup](https://console.spurvik.com/signup), self-serve signup is open (no invite code required) and creates a Free workspace and starter project so an owner can mint a `spurvik_live_` key right away. You can also join an existing workspace or manage keys in two ways:
 
-1. **Hosted console (`/invites`):** An existing organisation `owner` or `admin` invites you from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`. Once you are an `owner` of an organisation, create a project on `/dashboard/projects` and mint a `spurvik_live_` key on the project page.
-2. **Hosted console:** An organisation owner creates the project and the `spurvik_live_` key in the hosted console. See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md). This repository does not include a seed script.
+1. **Team invites (`/invites`):** An existing organisation `owner` or `admin` invites teammates from `/dashboard/projects/<projectId>` (**Team -> Invite a member**) and shares a one-time `spurvik_invite_...` token to claim at `https://console.spurvik.com/invites`.
+2. **Hosted console keys:** An organisation owner creates projects and `spurvik_live_` keys in the hosted console (`Free €0/mo · Pro €19/mo · Team €79/mo`, excl. VAT · B2B only). See the [5-minute quickstart](5-minute-quickstart.md) and [Console Onboarding Guide](console-onboarding.md). This repository does not include a seed script.
 
 ### 2. What is the difference between `spurvik_live_`, `spurvik_pub_`, `spurvik_reviewer_`, and `spurvik_invite_` tokens?
 
@@ -89,7 +89,7 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 ### 3. This repository does not include a server you start with a package script
 
-The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.8` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.8` and set `baseUrl` to `https://console.spurvik.com` for a hosted console workspace.
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
@@ -159,7 +159,7 @@ Even if you pass the `beacon` prop, `sendDisclosureBeacon` checks `beacon.consen
 No. The public 2x2 cockpit at `https://console.spurvik.com/sandbox` (and `https://console.spurvik.com/`, hosted in EU `fra1`) sets **zero cookies before sign-in** and runs all sandbox interactions in browser state:
 
 - **`Stack Scanner` (`Paste App URL...` + `Scan`):** Parses the hostname locally in your browser (`new URL(...)`), updates the active domain pill in the top bar (capped at `28` characters), and selects the matching preset (`Lovable SaaS`, `Stripe Refund Agent`, or `AI Support Bot`) if the hostname contains `lovable`, `stripe`, or `support`. It never crawls or sends an HTTP request to the URL you enter.
-- **`Fire Test AI Call` and `Human Gate` buttons (`Approve (€450)`, `Block Agent`, `Kill Switch`):** Prepend simulated hash-chain blocks (`#1043`, `#1044`, …) in browser memory so you can inspect how `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` link together without an API key or invite code. See [First 5 Minutes in `console.spurvik.com/sandbox`](./sandbox-first-5-minutes.md).
+- **`Fire Test AI Call` and `Human Gate` buttons (`Approve (€450)`, `Block Agent`, `Kill Switch`):** Prepend simulated hash-chain blocks (`#1043`, `#1044`, …) in browser memory so you can inspect how `raw_prompt: 0B`, `prev_hash`, `record_hash`, and `hmac` link together without an API key. See [First 5 Minutes in `console.spurvik.com/sandbox`](./sandbox-first-5-minutes.md).
 
 ### 12. How do the `Human Gate (Art. 14)` controls (`Approve (€450)`, `Block Agent`, `Kill Switch`, `Reset`) in the sandbox map to SDK and API calls in production?
 
@@ -180,7 +180,7 @@ Card 1 (`Badge Studio · Art. 50`) gives you three copy-paste bridges into your 
 2. **Connect the hosted Streamable HTTP MCP server (`https://console.spurvik.com/api/mcp`):**
    - Click **`Copy MCP URL`** (or **`Copy Lovable/Replit Prompt`**) to connect your agent or IDE to `https://console.spurvik.com/api/mcp`. It exposes four read-only, zero-auth tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`.
    - Over HTTP, `spurvik_find_unwrapped_calls` scans inline `code` or `files` payloads (up to `128 KB`) because it cannot read your local disk; to scan a local directory, run the stdio `spurvik-mcp-server` server or `/spurvik:check`.
-3. **Mint a `spurvik_live_...` key:** Follow the [5-Minute Quickstart](./5-minute-quickstart.md). For an invited organisation, create the key in the hosted console and set `baseUrl` to `https://console.spurvik.com`.
+3. **Mint a `spurvik_live_...` key:** Follow the [5-Minute Quickstart](./5-minute-quickstart.md). For a hosted console workspace, create the key in the hosted console and set `baseUrl` to `https://console.spurvik.com`.
 
 ### 14. What does the Readiness Ring (`40% Free` → `70%` → `100% Pro €19/mo`) in the top bar calculate?
 
@@ -193,7 +193,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 
 ### 15. This repository does not include those start or purge scripts
 
-Install with `npm install openai spurvik@1.0.8`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
+Install with `npm install openai spurvik@1.0.8`. For a hosted console workspace, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 

@@ -20,7 +20,7 @@ Separately, and **for high-risk AI systems only**, Spurvik is designed to suppor
 You wrap your existing OpenAI, Anthropic or Gemini client with `withSpurvik()`. For every call, Spurvik creates a *provenance record*: when the call happened, which model answered, fingerprints of the prompt and the answer, and a signature. In the default mode the fingerprints are keyed HMAC-SHA-256 values made with a signing secret that stays on your side. The record does not contain the prompt or answer text. Later you can check that a record's signed fields still match its signature. Anyone who holds your signing secret can make a matching signature, so limit who holds it.
 
 **2. It sends events to the hosted console.**
-The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends an event for each call (fingerprints, model and timing details, no text) to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. The hosted console keeps the events in a hash-chained log. A hash chain shows whether stored events changed after they were written. It does not stop whoever controls the database from rebuilding the chain. The console also has a human-review queue and a stop switch, designed to support human-oversight work for high-risk systems.
+The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends an event for each call (fingerprints, model and timing details, no text) to `baseUrl`. For a hosted console workspace, that address is `https://console.spurvik.com`. The hosted console keeps the events in a hash-chained log. A hash chain shows whether stored events changed after they were written. It does not stop whoever controls the database from rebuilding the chain. The console also has a human-review queue and a stop switch, designed to support human-oversight work for high-risk systems.
 
 **3. It offers disclosure hooks.**
 - A React label (`spurvik/react`) that shows users they are dealing with an AI system, in all 24 EU languages. Whether its wording and placement are clear enough for your users is your decision.
@@ -55,7 +55,7 @@ Plan for half a day with one developer. The [quickstart](quickstart.md) has ever
 | # | Task | Who | Time |
 | --- | --- | --- | --- |
 | 1 | Install `spurvik@1.0.8` and `spurvik-sdk@1.0.8` from npm. ([quickstart step 1](quickstart.md#step-1-install-the-published-packages)) | Developer | 15 min |
-| 2 | For an invited organisation, copy the `spurvik_live_` key from the hosted console at https://console.spurvik.com. Set `baseUrl` to that address. ([quickstart](quickstart.md)) | Developer | 20 min |
+| 2 | For a hosted console workspace, copy the `spurvik_live_` key from the hosted console at https://console.spurvik.com. Set `baseUrl` to that address. ([quickstart](quickstart.md)) | Developer | 20 min |
 | 3 | Create two secrets (signing and fingerprint) and store them in your password manager or secret manager. Decide who holds them. | Founder + developer | 10 min |
 | 4 | Wrap one AI call, run it, and check the record's signature. ([steps 5–6](quickstart.md#step-5-wrap-a-call-and-save-the-provenance-record)) | Developer | 30 min |
 | 5 | If your interface shows an AI notice, set `article50Disclosure: true` and log notices with `recordDisclosure()` (below). | Developer | 20 min |
@@ -109,7 +109,7 @@ Your advisor (lawyer, external DPO service or AI Act consultant) will want facts
 4. **What users see:** screenshots of any AI notice or label, and whether `article50Disclosure` is `true`.
 5. **What Spurvik records:** a sample provenance record (`record.json` from the quickstart), and your `contentHash.mode`. Explain that in `keyed` mode it holds keyed fingerprints, not text.
 6. **Who holds the secrets** and where they are stored. Anyone you give the fingerprint secret to (for example a contractor, or Spurvik support under a data processing agreement) can also match fingerprints.
-7. **Where events go.** For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Spurvik runs that console. This tree does not claim that data stays in the EU. Retention periods are (planned).
+7. **Where events go.** For a hosted console workspace, `baseUrl` is `https://console.spurvik.com`. Spurvik runs that console. This tree does not claim that data stays in the EU. Retention periods are (planned).
 8. **Marking:** what, if anything, marks your AI output, what the records show (`markingApplied`, `upstreamMarking`), and whether you switched on the optional text trailer. Include this sentence: *Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.*
 9. **Known limits:** the "What Spurvik does not do" list above, and what happens when `baseUrl` is unreachable, in [quickstart.md](quickstart.md#if-baseurl-is-unreachable).
 10. **Your questions:** for example "Do we need a DPO?", "Which transparency duties apply to us?", "How long should we keep logs?"
@@ -126,7 +126,7 @@ No. Spurvik is designed to support Article 50(1) transparency work and, for high
 By default, Spurvik adds nothing to your content. It records what your own marking step or your model provider did. You can switch on an optional text trailer that adds the signed record to text output (see item 5 under "What Spurvik does"). Its provenance record supports, but does not replace, Article 50(2) machine-readable marking.
 
 **Does Spurvik store our users' prompts?**
-No. In the default `keyed` mode, prompts and outputs are turned into keyed HMAC fingerprints inside your own process, and only the fingerprints are sent to `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. Treat these fingerprints as **pseudonymised personal data, not anonymous data** (GDPR Article 4(5) and Recital 26) whenever the prompt or output relates to a person: whoever holds your fingerprint secret can check whether a given text matches. Keep that secret in your own secret manager and decide who may hold it. Do not use the unkeyed `on` mode for prompts that may contain personal data, because unkeyed fingerprints of short or predictable text can be matched by anyone. Whether a recipient without the key holds personal data depends on its means of re-identification (CJEU, C-413/23 P, *EDPS v SRB*, 4 September 2025). Ask your counsel how this affects your privacy notice and records of processing.
+No. In the default `keyed` mode, prompts and outputs are turned into keyed HMAC fingerprints inside your own process, and only the fingerprints are sent to `baseUrl`. For a hosted console workspace, that address is `https://console.spurvik.com`. Treat these fingerprints as **pseudonymised personal data, not anonymous data** (GDPR Article 4(5) and Recital 26) whenever the prompt or output relates to a person: whoever holds your fingerprint secret can check whether a given text matches. Keep that secret in your own secret manager and decide who may hold it. Do not use the unkeyed `on` mode for prompts that may contain personal data, because unkeyed fingerprints of short or predictable text can be matched by anyone. Whether a recipient without the key holds personal data depends on its means of re-identification (CJEU, C-413/23 P, *EDPS v SRB*, 4 September 2025). Ask your counsel how this affects your privacy notice and records of processing.
 
 **What happens if the control plane is down?**
 Your AI calls keep working, except with `riskTier: "high_annex3"`, where they stop on purpose before anything is sent to your model provider. In short scripts the telemetry event is lost. Your `onTelemetryError` handler is told, and the script still exits normally. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well. See [troubleshooting.md](troubleshooting.md#telemetry-and-the-control-plane).
@@ -135,7 +135,7 @@ Your AI calls keep working, except with `riskTier: "high_annex3"`, where they st
 Yes. Install `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are unsupported.
 
 **Where do events go?**
-The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends telemetry only to the `baseUrl` you set. For an invited organisation, that address is `https://console.spurvik.com`. This tree does not claim that data stays in the EU.
+The SDK and MCP server run in your own stack. Spurvik runs the console as a hosted service. The SDK sends telemetry only to the `baseUrl` you set. For a hosted console workspace, that address is `https://console.spurvik.com`. This tree does not claim that data stays in the EU.
 
 **Who do I contact?**
 hello@spurvik.com
