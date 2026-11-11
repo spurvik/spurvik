@@ -1,6 +1,6 @@
 # First 5 Minutes in `console.spurvik.com/sandbox` (2x2 Interactive Cockpit)
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 `https://console.spurvik.com/sandbox` (and `https://console.spurvik.com/`) renders the interactive 2x2 Obsidian Harbor cockpit. It is hosted in the EU (`fra1`), requires **no login or invite code**, sets **zero cookies before sign-in**, and fits in a single `1440×900` viewport without scrolling.
 
@@ -163,7 +163,7 @@ curl -sS -X POST https://console.spurvik.com/api/mcp \
 
 When you are ready to mint a real `spurvik_live_...` project key and ingest signed receipts:
 
-- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** and install with `npm install openai spurvik@1.0.7`. For an invited organisation, set `baseUrl` to `https://console.spurvik.com`.
+- Follow the **[5-Minute Quickstart](./5-minute-quickstart.md)** and install with `npm install openai spurvik@1.0.8`. For an invited organisation, set `baseUrl` to `https://console.spurvik.com`.
 - Read the **[Console Onboarding Guide](./console-onboarding.md)** for organisation invites (`spurvik_invite_...`), monthly quotas, SIEM webhooks, and `<AIDisclosureLabel />` props.
 - Check **[2x2 Sandbox & Environment FAQ](./faq-sandbox-2x2.md)** for answers to common developer questions.
 

@@ -19,7 +19,7 @@ function runMcp(args, cwd = root) {
 test("spurvik-mcp CLI supports --version, --help, snippet, and marking-hooks", () => {
   const ver = runMcp(["--version"]);
   assert.equal(ver.status, 0);
-  assert.equal(ver.stdout.trim(), "1.0.3");
+  assert.equal(ver.stdout.trim(), "1.0.4");
 
   const help = runMcp(["--help"]);
   assert.equal(help.status, 0);

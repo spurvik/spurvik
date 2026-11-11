@@ -4,7 +4,7 @@
 >
 > **Licence.** `packages/sdk` (published as `spurvik` and `spurvik-sdk`), `@spurvik/core`, `@spurvik/react`, and `@spurvik/mcp` are licensed under the MIT License and are provided without warranty. `packages/c2pa` (`@spurvik/c2pa`) is in this repository with `"private": true` and `"license": "MIT"`, and it is not published on npm. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
 
 This guide takes you from nothing to a signed provenance record for one OpenAI call, and shows you how to check that record later.
 
@@ -16,14 +16,14 @@ Using Spurvik does not, on its own, mean your system meets the Act. `riskTier` i
 
 | You need | Notes |
 | --- | --- |
-| Node.js 20 or later | `spurvik@1.0.7` sets `"engines": { "node": ">=20" }`. |
+| Node.js 20 or later | `spurvik@1.0.8` sets `"engines": { "node": ">=20" }`. |
 | An OpenAI API key | Or use the mock server in [Optional: try it without an OpenAI key](#optional-try-it-without-an-openai-key). |
 | A project key | For an invited organisation, create it in the hosted console at https://console.spurvik.com. |
 
 ## Step 1: Install the published packages
 
 ```bash
-npm install openai spurvik@1.0.7
+npm install openai spurvik@1.0.8
 ```
 
 `spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
@@ -43,7 +43,7 @@ mkdir my-ai-app
 cd my-ai-app
 npm init -y
 npm pkg set type=module
-npm install openai spurvik@1.0.7
+npm install openai spurvik@1.0.8
 ```
 
 `npm pkg set type=module` matters. The examples use `import` and top-level `await`. Run a `.ts` snippet with `npx tsx file.ts` from this folder.
@@ -51,11 +51,11 @@ npm install openai spurvik@1.0.7
 The local stdio MCP server, from the app folder:
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.3
+npm i -D spurvik-mcp-server@1.0.4
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
-`--root` is required in `spurvik-mcp-server@1.0.3`.
+`--root` is required since 1.0.3.
 
 ## Step 4: Set your environment variables
 

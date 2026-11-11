@@ -1,11 +1,11 @@
-# LangGraph, Mastra, and OpenAI Agents Adapter Examples (`spurvik@1.0.7`)
+# LangGraph, Mastra, and OpenAI Agents Adapter Examples (`spurvik@1.0.8`)
 
-> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.7`, `spurvik-sdk@1.0.7`). This is technical infrastructure designed to support Article 12 record-keeping, Article 14 human oversight, and Article 50(1) transparency notices — not legal advice.
+> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.8`, `spurvik-sdk@1.0.8`). This is technical infrastructure designed to support Article 12 record-keeping, Article 14 human oversight, and Article 50(1) transparency notices — not legal advice.
 
 ## Install
 
 ```bash
-npm install spurvik@1.0.7
+npm install spurvik@1.0.8
 ```
 
 ---

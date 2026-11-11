@@ -82,7 +82,7 @@ function isSpurvikSpecifier(spec) {
   return spec === "spurvik" || spec.startsWith("spurvik/");
 }
 
-test("spurvik_setup_snippet imports resolve against published spurvik@1.0.7 exports", async (t) => {
+test("spurvik_setup_snippet imports resolve against published spurvik@1.0.8 exports", async (t) => {
   const source = readFileSync(snippetSource, "utf8");
   const frameworks = parseExportedStringArray(source, "FRAMEWORKS");
   const runtimes = parseExportedStringArray(source, "RUNTIMES");

@@ -1,6 +1,6 @@
 # FAQ: 2x2 Sandbox Cockpit (`console.spurvik.com/sandbox`) and `@next/env` Shell Precedence
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 ---
 
@@ -43,7 +43,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 
 ### 5. This repository does not include those start or purge scripts
 
-Install with `npm install openai spurvik@1.0.7`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
+Install with `npm install openai spurvik@1.0.8`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 
