@@ -1,8 +1,8 @@
-# Releasing spurvik, spurvik-sdk, and n8n-nodes-spurvik
+# Releasing spurvik, spurvik-sdk, n8n-nodes-spurvik, and spurvik-mcp-server
 
 Run these commands from a clean detached checkout of QA_SHA. `spurvik` and `spurvik-sdk` are the same SDK build under two names. `spurvik-sdk` does not depend on `spurvik`. Do not pass `--provenance`.
 
-When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version.
+When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). `spurvik` does not depend on `spurvik-sdk`; they are the same build under two names. This document's SDK steps describe the already-published `spurvik-sdk@1.0.7` and `spurvik@1.0.7` release. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version. For `spurvik-mcp-server@1.0.3`, use the MCP section at the end.
 
 The n8n `outputField` check compares field names, not values.
 
@@ -117,23 +117,34 @@ Stop and check step 4 output first. The ESM and CJS import checks must print not
 # 5. Mandatory before any npm publish. No --provenance.
 # Hard stop before packing. Paste the QA-passed commit into QA_SHA.
 # The tree must be clean, and git rev-parse HEAD must equal QA_SHA.
-# Then pack each package and compare the tarball sha1 to the sha1 QA recorded for that head.
-# Stop if they differ. Do not run npm publish in this block.
-# QA_SHA, QA_SHA1_SPURVIK_SDK, QA_SHA1_SPURVIK, QA_NODE_VERSION, and QA_NPM_VERSION are to be
-# filled in at the QA gate for this release (1.0.7). Do not reuse values from an earlier release.
-# shasum -a 1 <tgz> and `npm pack --json` field .shasum are the same sha1.
+# Then pack each package and compare hashes to the values QA recorded for that head.
+# Stop if the uncompressed tar sha1 differs. Do not run npm publish in this block.
+# QA_SHA, QA_SHA1_SPURVIK_SDK, QA_SHA1_SPURVIK, QA_SHA1_SPURVIK_SDK_TAR, QA_SHA1_SPURVIK_TAR,
+# QA_NODE_VERSION, and QA_NPM_VERSION are to be filled in at the QA gate for a release.
+# Do not reuse values from an earlier release.
+# shasum -a 1 <tgz> and `npm pack --json` field .shasum are the same sha1 of the .tgz bytes.
 # The .tgz sha1 depends on the Node build that runs npm pack, because the gzip bytes come
-# from Node's zlib. For n8n-nodes-spurvik@1.0.3, QA packed 4d054d1a on Node 24 and the
-# publish packed dccdb9e6 on Node 26.0.0. The uncompressed tar was the same in both.
-# So pack on the same Node version and the same npm version QA used
-# (QA_NODE_VERSION, for example v24.22.1, and QA_NPM_VERSION, for example 11.21.1).
+# from Node's zlib. The uncompressed tar sha1 (`gzip -dc x.tgz | shasum -a 1`) does not.
+# For n8n-nodes-spurvik@1.0.3, QA packed 4d054d1a on Node 24 and the publish packed
+# dccdb9e6 on Node 26.0.0. For spurvik-sdk@1.0.7 / spurvik@1.0.7, QA packed
+# 696e4813 / b6fbd931 on Node v24.22.1 / npm 11.21.1, and the registry has
+# 5af01df2 / 4abc7028 (_nodeVersion 26.0.0, _npmVersion 11.12.1). In both cases
+# the uncompressed tar was the same (1.0.7: sdk 2a6893f6033b1fcfe90c4f04ca86fd56ab0ecdf0,
+# spurvik 28f2e0eedc16066b7b92d4480061316bbdea7005). So pack on the same Node
+# version and the same npm version QA used (QA_NODE_VERSION, for example v24.22.1,
+# and QA_NPM_VERSION, for example 11.21.1), and treat the uncompressed tar sha1 as
+# the content gate that must match even when the gzip bytes differ.
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
 : "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
 : "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_SDK_TAR:?Set QA_SHA1_SPURVIK_SDK_TAR to the uncompressed tar sha1 (gzip -dc spurvik-sdk-1.0.7.tgz | shasum -a 1) QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_TAR:?Set QA_SHA1_SPURVIK_TAR to the uncompressed tar sha1 (gzip -dc spurvik-1.0.7.tgz | shasum -a 1) QA records at the QA gate for this release}"
 : "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
 : "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
 if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
   echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION. The .tgz sha1 will not match." >&2
   exit 1
@@ -160,10 +171,14 @@ fi
 (
   cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
   npm pack
-  actual="$(shasum -a 1 ./spurvik-sdk-1.0.7.tgz | awk '{print $1}')"
-  if [[ "$actual" != "$QA_SHA1_SPURVIK_SDK" ]]; then
-    echo "Stop: spurvik-sdk-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK_SDK)." >&2
+  actual_tgz="$(tgz_sha1 ./spurvik-sdk-1.0.7.tgz)"
+  actual_tar="$(tar_sha1 ./spurvik-sdk-1.0.7.tgz)"
+  if [[ "$actual_tar" != "$QA_SHA1_SPURVIK_SDK_TAR" ]]; then
+    echo "Stop: spurvik-sdk-1.0.7.tgz uncompressed tar sha1 $actual_tar does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK_SDK_TAR)." >&2
     exit 1
+  fi
+  if [[ "$actual_tgz" != "$QA_SHA1_SPURVIK_SDK" ]]; then
+    echo "Note: spurvik-sdk-1.0.7.tgz sha1 $actual_tgz does not match the tgz sha1 QA recorded ($QA_SHA1_SPURVIK_SDK). The uncompressed tar sha1 matches, so the content is the same and the gzip bytes differ." >&2
   fi
 )
 (
@@ -171,43 +186,82 @@ fi
   node scripts/stage-spurvik-package.mjs
   cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
   npm pack
-  actual="$(shasum -a 1 ./spurvik-1.0.7.tgz | awk '{print $1}')"
-  if [[ "$actual" != "$QA_SHA1_SPURVIK" ]]; then
-    echo "Stop: spurvik-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK)." >&2
+  actual_tgz="$(tgz_sha1 ./spurvik-1.0.7.tgz)"
+  actual_tar="$(tar_sha1 ./spurvik-1.0.7.tgz)"
+  if [[ "$actual_tar" != "$QA_SHA1_SPURVIK_TAR" ]]; then
+    echo "Stop: spurvik-1.0.7.tgz uncompressed tar sha1 $actual_tar does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK_TAR)." >&2
     exit 1
+  fi
+  if [[ "$actual_tgz" != "$QA_SHA1_SPURVIK" ]]; then
+    echo "Note: spurvik-1.0.7.tgz sha1 $actual_tgz does not match the tgz sha1 QA recorded ($QA_SHA1_SPURVIK). The uncompressed tar sha1 matches, so the content is the same and the gzip bytes differ." >&2
   fi
 )
 )
 ```
 
-Step 6 is one subshell. It publishes the tarball step 5 already packed. It does not pack again. No --provenance. `spurvik-sdk` runs first, then `spurvik`. If the `spurvik-sdk` sha1 check fails, the subshell stops and the `spurvik` publish does not run.
+Step 6 is one subshell. It publishes the tarball step 5 already packed. It does not pack again. No --provenance. `spurvik-sdk` runs first, then `spurvik`. Check both packages' uncompressed tar sha1s (and compare the tgz sha1s) at the top, before the first publish, and recheck HEAD, Node, and npm. If the `spurvik-sdk` check fails, the subshell stops and the `spurvik` publish does not run.
 
-This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version.
+This release published `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version.
 
 ```bash
 # 6. Publish spurvik-sdk@1.0.7, then spurvik@1.0.7, only when the owner decides. No --provenance.
-# One subshell. spurvik-sdk@1.0.7 first, then spurvik@1.0.7. They are the same build under two names.
-# Recheck the sha1 of the exact .tgz immediately before each publish. A mismatch stops the subshell.
+# One subshell. Recheck HEAD, Node, and npm. Check both packages' sha1s before the first publish.
+# spurvik-sdk@1.0.7 first, then spurvik@1.0.7. They are the same build under two names.
+# The uncompressed tar sha1 is the content gate. A mismatch stops the subshell.
 (
 set -euo pipefail
+: "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_SDK_TAR:?Set QA_SHA1_SPURVIK_SDK_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_TAR:?Set QA_SHA1_SPURVIK_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
+if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
+  echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION." >&2
+  exit 1
+fi
 (
-  cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
-  : "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
-  actual="$(shasum -a 1 ./spurvik-sdk-1.0.7.tgz | awk '{print $1}')"
-  if [[ "$actual" != "$QA_SHA1_SPURVIK_SDK" ]]; then
-    echo "Stop: spurvik-sdk-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK_SDK)." >&2
+  cd "$(git rev-parse --show-toplevel)" || exit 1
+  if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+    echo "Stop: git status --porcelain is not empty. Refusing to publish from a dirty tree." >&2
+    git status --porcelain --untracked-files=all >&2
     exit 1
   fi
+  head="$(git rev-parse HEAD)"
+  if [[ "$head" != "$QA_SHA" ]]; then
+    echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
+    exit 1
+  fi
+)
+sdk_tgz="$(git rev-parse --show-toplevel)/packages/sdk/spurvik-sdk-1.0.7.tgz"
+spurvik_tgz="$(git rev-parse --show-toplevel)/packages/spurvik/spurvik-1.0.7.tgz"
+if [[ "$(tar_sha1 "$sdk_tgz")" != "$QA_SHA1_SPURVIK_SDK_TAR" ]]; then
+  echo "Stop: spurvik-sdk-1.0.7.tgz uncompressed tar sha1 $(tar_sha1 "$sdk_tgz") does not match $QA_SHA1_SPURVIK_SDK_TAR." >&2
+  exit 1
+fi
+if [[ "$(tar_sha1 "$spurvik_tgz")" != "$QA_SHA1_SPURVIK_TAR" ]]; then
+  echo "Stop: spurvik-1.0.7.tgz uncompressed tar sha1 $(tar_sha1 "$spurvik_tgz") does not match $QA_SHA1_SPURVIK_TAR." >&2
+  exit 1
+fi
+if [[ "$(tgz_sha1 "$sdk_tgz")" != "$QA_SHA1_SPURVIK_SDK" ]]; then
+  echo "Note: spurvik-sdk-1.0.7.tgz sha1 $(tgz_sha1 "$sdk_tgz") does not match the tgz sha1 QA recorded ($QA_SHA1_SPURVIK_SDK). The uncompressed tar sha1 matches." >&2
+fi
+if [[ "$(tgz_sha1 "$spurvik_tgz")" != "$QA_SHA1_SPURVIK" ]]; then
+  echo "Note: spurvik-1.0.7.tgz sha1 $(tgz_sha1 "$spurvik_tgz") does not match the tgz sha1 QA recorded ($QA_SHA1_SPURVIK). The uncompressed tar sha1 matches." >&2
+fi
+(
+  cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
   npm publish ./spurvik-sdk-1.0.7.tgz
 )
 (
   cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
-  : "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
-  actual="$(shasum -a 1 ./spurvik-1.0.7.tgz | awk '{print $1}')"
-  if [[ "$actual" != "$QA_SHA1_SPURVIK" ]]; then
-    echo "Stop: spurvik-1.0.7.tgz sha1 $actual does not match the sha1 QA recorded for the approved head ($QA_SHA1_SPURVIK)." >&2
-    exit 1
-  fi
   npm publish ./spurvik-1.0.7.tgz
 )
 # n8n-nodes-spurvik@1.0.3 — SKIP. Already published. Never republish an existing version.
@@ -218,24 +272,65 @@ set -euo pipefail
 )
 ```
 
-After those publishes, `npm view <name>@1.0.7 dist.shasum` must equal the packed sha1 for `spurvik-sdk` and `spurvik`. A tarball publish (`npm publish ./x.tgz`) sends no `gitHead`, so `npm view <name>@1.0.7 gitHead` prints nothing. `n8n-nodes-spurvik@1.0.3` shows this: it was published from a tarball and has no `gitHead`. The commit link is QA_SHA plus the matching sha1 from step 5. Do not run this check for `n8n-nodes-spurvik@1.0.3`. It is not republished. Then a registry install check is valid.
+After those publishes, download each published tarball and compare its uncompressed tar sha1 to the QA value (`QA_SHA1_*_TAR`). `npm view <name>@1.0.7 dist.shasum` is the sha1 of the gzip bytes; it may differ from the packed or QA tgz sha1 when the publisher's zlib output differs, even when the tar content is the same. Do not treat a dist.shasum mismatch alone as a content mismatch. A tarball publish (`npm publish ./x.tgz`) sends no `gitHead`, so `npm view <name>@1.0.7 gitHead` prints nothing. `n8n-nodes-spurvik@1.0.3` shows this: it was published from a tarball and has no `gitHead`. The commit link is QA_SHA plus the matching uncompressed tar sha1 from step 5. Do not run this check for `n8n-nodes-spurvik@1.0.3`. It is not republished. Then a registry install check is valid.
 
 ```bash
 # 7. Post-publish check for the two packages this release publishes.
+# Recheck HEAD, Node, and npm. The content gate is the uncompressed tar sha1.
 (
 set -euo pipefail
-check() {
-  local dir="$1" name="$2"
-  cd "$(git rev-parse --show-toplevel)"/packages/"$dir" || exit 1
-  packed="$(shasum -a 1 ./"$name"-1.0.7.tgz | awk '{print $1}')"
-  remote="$(npm view "$name"@1.0.7 dist.shasum)"
-  if [[ "$remote" != "$packed" ]]; then
-    echo "Stop: npm view $name@1.0.7 dist.shasum is $remote, packed sha1 is $packed." >&2
+: "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_SDK_TAR:?Set QA_SHA1_SPURVIK_SDK_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_SPURVIK_TAR:?Set QA_SHA1_SPURVIK_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
+if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
+  echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION." >&2
+  exit 1
+fi
+(
+  cd "$(git rev-parse --show-toplevel)" || exit 1
+  head="$(git rev-parse HEAD)"
+  if [[ "$head" != "$QA_SHA" ]]; then
+    echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
     exit 1
   fi
+)
+check() {
+  local dir="$1" name="$2" qa_tgz="$3" qa_tar="$4"
+  local repo packed remote_shasum work downloaded remote_tar packed_tar
+  repo="$(git rev-parse --show-toplevel)"
+  packed="$repo/packages/$dir/$name-1.0.7.tgz"
+  packed_tar="$(tar_sha1 "$packed")"
+  if [[ "$packed_tar" != "$qa_tar" ]]; then
+    echo "Stop: local $name-1.0.7.tgz uncompressed tar sha1 $packed_tar does not match $qa_tar." >&2
+    exit 1
+  fi
+  remote_shasum="$(npm view "$name"@1.0.7 dist.shasum)"
+  work="$(mktemp -d)"
+  (cd "$work" && npm pack "$name@1.0.7" >/dev/null)
+  downloaded="$work/$name-1.0.7.tgz"
+  remote_tar="$(tar_sha1 "$downloaded")"
+  if [[ "$remote_tar" != "$qa_tar" ]]; then
+    echo "Stop: published $name@1.0.7 uncompressed tar sha1 $remote_tar does not match the sha1 QA recorded ($qa_tar)." >&2
+    rm -rf "$work"
+    exit 1
+  fi
+  if [[ "$remote_shasum" != "$qa_tgz" && "$remote_shasum" != "$(tgz_sha1 "$packed")" ]]; then
+    echo "Note: npm view $name@1.0.7 dist.shasum is $remote_shasum; QA tgz sha1 is $qa_tgz; packed tgz sha1 is $(tgz_sha1 "$packed"). The uncompressed tar sha1 matches $qa_tar, so the content is the same and the gzip bytes differ." >&2
+  fi
+  rm -rf "$work"
 }
-(check sdk spurvik-sdk)
-(check spurvik spurvik)
+(check sdk spurvik-sdk "$QA_SHA1_SPURVIK_SDK" "$QA_SHA1_SPURVIK_SDK_TAR")
+(check spurvik spurvik "$QA_SHA1_SPURVIK" "$QA_SHA1_SPURVIK_TAR")
 )
 ```
 
@@ -252,4 +347,227 @@ check() {
 
 Hosted console features are invite-only during early access. These commands do not publish the console.
 
-The plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is not in the `spurvik` or `spurvik-sdk` tarball. Build `packages/sdk` before `pnpm install` in `packages/mcp`. That install copies `spurvik-sdk` from `file:../sdk`, including `dist`. An install that runs before the SDK build does not pick up the 1.0.7 decision logic. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved. An MCP release must ship the rebuilt bundle from this tree, not that published package.
+## Releasing spurvik-mcp-server@1.0.3
+
+`packages/mcp` stays `"private": true` under the workspace name `@spurvik/mcp`. The published npm package is `spurvik-mcp-server`. Do not run `npm publish` from `packages/mcp`. Stage a public package with `node scripts/stage-mcp-package.mjs`, then pack and publish that staged tarball. The staged `package.json` sets `name` to `spurvik-mcp-server` and `mcpName` to `io.github.spurvik/spurvik-mcp-server`, which must match `name` in `server.json`. The MCP Registry uses `mcpName` to check npm package ownership.
+
+The workspace package depends on `spurvik-sdk@^1.0.7` from the npm registry (and on `packages/core` in this repository). From spurvik-mcp-server@1.0.3, the bundled SDK matches `spurvik@1.0.7`: an `overridden` decision is not approved. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved. The plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is rebuilt from this tree and is not inside the `spurvik` or `spurvik-sdk` tarball.
+
+Run these commands from a clean detached checkout of QA_SHA. Do not pass `--provenance`. Never republish an existing version. `spurvik` does not depend on `spurvik-sdk`.
+
+The same gates as the SDK steps apply: clean tree, `HEAD` equals `QA_SHA`, Node and npm match the QA-recorded versions, and the uncompressed tar sha1 must match the value QA recorded. The .tgz sha1 is also recorded; a gzip-only difference is a note, not a content mismatch.
+
+```bash
+# MCP 1–4. Build, rebuild the plugin bundle, stage the public package, pack, and smoke-test.
+# Do not publish in this block.
+(
+set -euo pipefail
+REPO=$(git rev-parse --show-toplevel)
+cd "$REPO" || exit 1
+if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+  echo "Stop: git status --porcelain is not empty. Refusing to pack from a dirty tree." >&2
+  git status --porcelain --untracked-files=all >&2
+  exit 1
+fi
+(
+  cd "$REPO"/packages/core || exit 1
+  npm ci
+  npm run build
+)
+(
+  cd "$REPO"/packages/mcp || exit 1
+  pnpm install --frozen-lockfile
+  pnpm build
+  node scripts/bundle-plugin.mjs --check
+)
+(
+  cd "$REPO" || exit 1
+  node scripts/stage-mcp-package.mjs
+)
+mkdir -p /tmp/spurvik-mcp-release /tmp/spurvik-mcp-smoke
+rm -rf /tmp/spurvik-mcp-release /tmp/spurvik-mcp-smoke
+mkdir -p /tmp/spurvik-mcp-release /tmp/spurvik-mcp-smoke
+(
+  cd "$REPO"/packages/mcp/.release || exit 1
+  npm pack --pack-destination /tmp/spurvik-mcp-release
+)
+(
+  cd /tmp/spurvik-mcp-smoke || exit 1
+  npm init -y
+  npm install /tmp/spurvik-mcp-release/spurvik-mcp-server-1.0.3.tgz
+  test -x node_modules/.bin/spurvik-mcp-server
+  test -x node_modules/.bin/spurvik-mcp
+)
+)
+```
+
+Stop and check that block first. The smoke install must exit 0 before you publish.
+
+```bash
+# MCP 5. Mandatory before any npm publish. No --provenance.
+# Hard stop before packing. Paste the QA-passed commit into QA_SHA.
+# The tree must be clean, and git rev-parse HEAD must equal QA_SHA.
+# Pack the staged public package and compare hashes to the values QA recorded.
+# The uncompressed tar sha1 is the content gate. Do not run npm publish in this block.
+# QA_SHA, QA_SHA1_MCP, QA_SHA1_MCP_TAR, QA_NODE_VERSION, and QA_NPM_VERSION are to be
+# filled in at the QA gate for the 1.0.3 MCP release. Do not reuse values from an earlier release.
+(
+set -euo pipefail
+: "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.3.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 (gzip -dc spurvik-mcp-server-1.0.3.tgz | shasum -a 1) QA records at the QA gate for this release}"
+: "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
+if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
+  echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION. The .tgz sha1 will not match." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION. The .tgz sha1 will not match." >&2
+  exit 1
+fi
+REPO=$(git rev-parse --show-toplevel)
+(
+  cd "$REPO" || exit 1
+  if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+    echo "Stop: git status --porcelain is not empty. Refusing to pack from a dirty tree." >&2
+    git status --porcelain --untracked-files=all >&2
+    exit 1
+  fi
+  head="$(git rev-parse HEAD)"
+  if [[ "$head" != "$QA_SHA" ]]; then
+    echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
+    exit 1
+  fi
+)
+(
+  cd "$REPO"/packages/mcp || exit 1
+  pnpm build
+)
+(
+  cd "$REPO" || exit 1
+  node scripts/stage-mcp-package.mjs
+  cd "$REPO"/packages/mcp/.release || exit 1
+  npm pack
+  actual_tgz="$(tgz_sha1 ./spurvik-mcp-server-1.0.3.tgz)"
+  actual_tar="$(tar_sha1 ./spurvik-mcp-server-1.0.3.tgz)"
+  if [[ "$actual_tar" != "$QA_SHA1_MCP_TAR" ]]; then
+    echo "Stop: spurvik-mcp-server-1.0.3.tgz uncompressed tar sha1 $actual_tar does not match the sha1 QA recorded for the approved head ($QA_SHA1_MCP_TAR)." >&2
+    exit 1
+  fi
+  if [[ "$actual_tgz" != "$QA_SHA1_MCP" ]]; then
+    echo "Note: spurvik-mcp-server-1.0.3.tgz sha1 $actual_tgz does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches, so the content is the same and the gzip bytes differ." >&2
+  fi
+)
+)
+```
+
+```bash
+# MCP 6. Publish spurvik-mcp-server@1.0.3, only when the owner decides. No --provenance.
+# One subshell. Recheck HEAD, Node, and npm. Recheck the sha1s before the publish.
+# It does not pack again. A content mismatch stops the subshell.
+(
+set -euo pipefail
+: "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.3.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
+if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
+  echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION." >&2
+  exit 1
+fi
+REPO=$(git rev-parse --show-toplevel)
+(
+  cd "$REPO" || exit 1
+  if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+    echo "Stop: git status --porcelain is not empty. Refusing to publish from a dirty tree." >&2
+    git status --porcelain --untracked-files=all >&2
+    exit 1
+  fi
+  head="$(git rev-parse HEAD)"
+  if [[ "$head" != "$QA_SHA" ]]; then
+    echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
+    exit 1
+  fi
+)
+tgz="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.3.tgz"
+if [[ "$(tar_sha1 "$tgz")" != "$QA_SHA1_MCP_TAR" ]]; then
+  echo "Stop: spurvik-mcp-server-1.0.3.tgz uncompressed tar sha1 $(tar_sha1 "$tgz") does not match $QA_SHA1_MCP_TAR." >&2
+  exit 1
+fi
+if [[ "$(tgz_sha1 "$tgz")" != "$QA_SHA1_MCP" ]]; then
+  echo "Note: spurvik-mcp-server-1.0.3.tgz sha1 $(tgz_sha1 "$tgz") does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches." >&2
+fi
+(
+  cd "$REPO"/packages/mcp/.release || exit 1
+  npm publish ./spurvik-mcp-server-1.0.3.tgz
+)
+)
+```
+
+```bash
+# MCP 7. Post-publish check. Recheck HEAD, Node, and npm. The content gate is the uncompressed tar sha1.
+(
+set -euo pipefail
+: "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.3.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
+: "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
+: "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
+tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
+tar_sha1() { gzip -dc "$1" | shasum -a 1 | awk '{print $1}'; }
+if [[ "$(node -v)" != "$QA_NODE_VERSION" ]]; then
+  echo "Stop: node -v is $(node -v), QA packed with $QA_NODE_VERSION." >&2
+  exit 1
+fi
+if [[ "$(npm -v)" != "$QA_NPM_VERSION" ]]; then
+  echo "Stop: npm -v is $(npm -v), QA packed with $QA_NPM_VERSION." >&2
+  exit 1
+fi
+REPO=$(git rev-parse --show-toplevel)
+head="$(cd "$REPO" && git rev-parse HEAD)"
+if [[ "$head" != "$QA_SHA" ]]; then
+  echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
+  exit 1
+fi
+packed="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.3.tgz"
+packed_tar="$(tar_sha1 "$packed")"
+if [[ "$packed_tar" != "$QA_SHA1_MCP_TAR" ]]; then
+  echo "Stop: local spurvik-mcp-server-1.0.3.tgz uncompressed tar sha1 $packed_tar does not match $QA_SHA1_MCP_TAR." >&2
+  exit 1
+fi
+remote_shasum="$(npm view spurvik-mcp-server@1.0.3 dist.shasum)"
+work="$(mktemp -d)"
+(cd "$work" && npm pack spurvik-mcp-server@1.0.3 >/dev/null)
+remote_tar="$(tar_sha1 "$work/spurvik-mcp-server-1.0.3.tgz")"
+if [[ "$remote_tar" != "$QA_SHA1_MCP_TAR" ]]; then
+  echo "Stop: published spurvik-mcp-server@1.0.3 uncompressed tar sha1 $remote_tar does not match the sha1 QA recorded ($QA_SHA1_MCP_TAR)." >&2
+  rm -rf "$work"
+  exit 1
+fi
+if [[ "$remote_shasum" != "$QA_SHA1_MCP" && "$remote_shasum" != "$(tgz_sha1 "$packed")" ]]; then
+  echo "Note: npm view spurvik-mcp-server@1.0.3 dist.shasum is $remote_shasum; QA tgz sha1 is $QA_SHA1_MCP; packed tgz sha1 is $(tgz_sha1 "$packed"). The uncompressed tar sha1 matches $QA_SHA1_MCP_TAR, so the content is the same and the gzip bytes differ." >&2
+fi
+rm -rf "$work"
+)
+```
+
+```bash
+# MCP 8. Registry install check. Run only after spurvik-mcp-server@1.0.3 is on the registry.
+(
+  rm -rf /tmp/spurvik-mcp-registry-check
+  mkdir -p /tmp/spurvik-mcp-registry-check
+  cd /tmp/spurvik-mcp-registry-check || exit 1
+  npm init -y
+  npm install spurvik-mcp-server@1.0.3
+)
+```
