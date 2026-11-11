@@ -124,6 +124,8 @@ export function AssistantHeader() {
 
 Built-in copy for 24 EU languages, including Polish `locale="pl"`, is in `packages/react/src/locales.ts`.
 
+`attribution` is off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The SDK makes no network call for the link.
+
 ## Log retention
 
 The purge function exists. The Spurvik operator runs it by hand on the hosted control plane. Nothing schedules it. Retention periods are (planned).

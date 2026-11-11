@@ -108,6 +108,8 @@ export function AssistantHeader({ analyticsConsent }: { analyticsConsent: boolea
 
 Pass `spurvik_pub_…`, not the live key. Omit `beacon`, or omit `consent`, and the label sends nothing.
 
+`attribution` is off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first and visible.
+
 Built-in Polish copy is in `packages/react/src/locales.ts` (`interaction`: "Korzystasz z systemu AI."). To change one string at runtime:
 
 ```tsx

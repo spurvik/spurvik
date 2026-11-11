@@ -264,6 +264,7 @@ export function DisclosureExample() {
         presentation="inline" // pill; "block" is the default
         locale="de" // all 24 EU languages, or registerDisclosureLocale
         euIcon // optional Commission icon; always paired with visible text
+        // attribution is off by default; pass attribution to show an "Art. 50 · Spurvik" link
         beacon={{ endpoint: "https://your-endpoint.example/beacon", apiKey: process.env.NEXT_PUBLIC_SPURVIK_PUB_KEY! }}
       />
       <AIDisclosureDetails riskTier="limited_art50" modelSummary="gpt-4o" provenance={{ signature: "unchecked" }} />
@@ -275,6 +276,8 @@ export function DisclosureExample() {
 Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
 
 The label text is in the page without a click. The dialog is supplementary. A beacon fires once per session after `IntersectionObserver` reports the label on screen. Pass `spurvik_pub_…`, not the live key. The EU icons (basic, AI-generated, AI-modified) are the Commission’s optional marks for Article 50(4). Using one does not by itself meet Article 50.
+
+`attribution` is off by default. Pass `attribution={true}` on `<AIDisclosureLabel />` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first and visible. The link has no query parameters and does not set cookies or make a network call.
 
 `/labels` renders the variants, including `AIArticle50Section3Notice` for Article 50(3). The console is at `/login`.
 

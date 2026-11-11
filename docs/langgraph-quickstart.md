@@ -228,6 +228,8 @@ export function LangGraphAssistantCard(props: {
 }
 ```
 
+`attribution` is off by default. Pass `attribution={true}` on `<AIDisclosureLabel />` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text.
+
 ### Polish (`locale="pl"`) disclosure copy in `spurvik/react`
 
 `spurvik/react` ships built-in copy for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). The built-in Polish (`locale="pl"`) strings in that file are:

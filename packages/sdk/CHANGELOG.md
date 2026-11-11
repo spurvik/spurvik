@@ -1,5 +1,13 @@
 # spurvik-sdk
 
+## 1.0.8 — unreleased
+
+This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (the same build) are published. Package versions in this repository stay at 1.0.7 until that publish. Date the heading at publish.
+
+### Changed
+
+- `spurvik/react` `<AIDisclosureLabel />` accepts an optional `attribution` prop, off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first in the DOM and reading order. The link has no query parameters, does no tracking, and makes no network calls. Omitting the prop leaves the markup unchanged.
+
 ## 1.0.7 — 2026-11-11
 
 Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build). An `overridden` human decision now means do not continue, the same as `rejected`.

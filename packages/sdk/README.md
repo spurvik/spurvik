@@ -215,3 +215,9 @@ From 1.0.5, `callbackBaseUrl` is required. Pass a URL that accepts GET clicks. T
 The published `spurvik` and `spurvik-sdk` packages do not read `SPURVIK_*` or `AEGIS_*` environment variables at runtime. Pass `apiKey`, `signingSecret`, `contentHash.secret`, and `baseUrl` in code. These reads exist only in this repository: `vendorTelemetryMode()` in `packages/core/src/telemetry-policy.ts` reads `SPURVIK_TELEMETRY`, then `AEGIS_TELEMETRY`, and the published packages do not call it. `packages/c2pa/src/index.ts` reads `SPURVIK_C2PA_CERT_PEM` then `AEGIS_C2PA_CERT_PEM`, and `SPURVIK_C2PA_KEY_PEM` then `AEGIS_C2PA_KEY_PEM`. That directory is build-from-source and is not in the published tarball. `packages/sdk/src/telemetry-exit.child.ts` is a repository test script and reads only `SPURVIK_BASE_URL`. `packages/sdk/tsup.config.ts` reads `SPURVIK_SDK_DIST` during the repository build. `packages/mcp` reads `SPURVIK_MCP_ROOT` and `SPURVIK_SIGNING_SECRET`. Those reads are not in `spurvik` or `spurvik-sdk`.
 
 The same build is published as `spurvik` and `spurvik-sdk`. `spurvik/react` is the disclosure-label entry. Neither package depends on the other.
+
+## Disclosure labels
+
+Import `<AIDisclosureLabel />` from `spurvik/react` (or `spurvik-sdk/react`). `attribution` is off by default. Pass `attribution={true}` to show a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text. The disclosure text stays first in the DOM and reading order. The link has no query parameters and does not set cookies or make a network call.
+
+`AIDisclosureLabel` does not write browser storage or call the disclosure endpoint unless `beacon.consent` is true.
