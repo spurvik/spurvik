@@ -33,9 +33,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
@@ -187,9 +187,9 @@ var require_code = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
@@ -332,9 +332,9 @@ var require_scope = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
@@ -1052,9 +1052,9 @@ var require_codegen = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkStrictMode = exports.getErrorPath = exports.Type = exports.useFunc = exports.setEvaluated = exports.evaluatedPropsToName = exports.mergeEvaluated = exports.eachItem = exports.unescapeJsonPointer = exports.escapeJsonPointer = exports.escapeFragment = exports.unescapeFragment = exports.schemaRefOrVal = exports.schemaHasRulesButRef = exports.schemaHasRules = exports.checkUnknownRules = exports.alwaysValidSchema = exports.toHash = void 0;
@@ -1219,9 +1219,9 @@ var require_util = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -1258,9 +1258,9 @@ var require_names = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
 var require_errors = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
@@ -1380,9 +1380,9 @@ var require_errors = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.boolOrEmptySchema = exports.topBoolOrEmptySchema = void 0;
@@ -1431,9 +1431,9 @@ var require_boolSchema = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getRules = exports.isJSONType = void 0;
@@ -1462,9 +1462,9 @@ var require_rules = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
@@ -1485,9 +1485,9 @@ var require_applicability = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.reportTypeError = exports.checkDataTypes = exports.checkDataType = exports.coerceAndCheckDataType = exports.getJSONTypes = exports.getSchemaTypes = exports.DataType = void 0;
@@ -1669,9 +1669,9 @@ var require_dataType = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assignDefaults = void 0;
@@ -1706,9 +1706,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateUnion = exports.validateArray = exports.usePattern = exports.callValidateCode = exports.schemaProperties = exports.allSchemaProperties = exports.noPropertyInData = exports.propertyInData = exports.isOwnProperty = exports.hasPropFunc = exports.reportMissingProp = exports.checkMissingProp = exports.checkReportMissingProp = void 0;
@@ -1839,9 +1839,9 @@ var require_code2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateKeywordUsage = exports.validSchemaType = exports.funcKeywordCode = exports.macroKeywordCode = void 0;
@@ -1957,9 +1957,9 @@ var require_keyword = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendSubschemaMode = exports.extendSubschemaData = exports.getSubschema = void 0;
@@ -2040,9 +2040,9 @@ var require_subschema = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
+// packages/mcp/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS({
-  "node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports, module) {
     "use strict";
     module.exports = function equal(a, b) {
       if (a === b) return true;
@@ -2075,9 +2075,9 @@ var require_fast_deep_equal = __commonJS({
   }
 });
 
-// node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
+// packages/mcp/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS({
-  "node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports, module) {
     "use strict";
     var traverse = module.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
@@ -2163,9 +2163,9 @@ var require_json_schema_traverse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getSchemaRefs = exports.resolveUrl = exports.normalizeId = exports._getFullPath = exports.getFullPath = exports.inlineRef = void 0;
@@ -2319,9 +2319,9 @@ var require_resolve = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getData = exports.KeywordCxt = exports.validateFunctionCode = void 0;
@@ -2827,9 +2827,9 @@ var require_validate = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ValidationError = class extends Error {
@@ -2843,9 +2843,9 @@ var require_validation_error = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var resolve_1 = require_resolve();
@@ -2860,9 +2860,9 @@ var require_ref_error = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveSchema = exports.getCompilingSchema = exports.resolveRef = exports.compileSchema = exports.SchemaEnv = void 0;
@@ -3084,9 +3084,9 @@ var require_compile = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports, module) {
     module.exports = {
       $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
       description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
@@ -3103,9 +3103,9 @@ var require_data = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/utils.js
+// packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/utils.js
 var require_utils = __commonJS({
-  "node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/utils.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/utils.js"(exports, module) {
     "use strict";
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -3637,9 +3637,9 @@ var require_utils = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/schemes.js
+// packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS({
-  "node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/schemes.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/schemes.js"(exports, module) {
     "use strict";
     var { isUUID } = require_utils();
     var URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
@@ -3848,9 +3848,9 @@ var require_schemes = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/index.js
+// packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS({
-  "node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/index.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/index.js"(exports, module) {
     "use strict";
     var { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -4278,9 +4278,9 @@ var require_fast_uri = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var uri = require_fast_uri();
@@ -4289,9 +4289,9 @@ var require_uri = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
 var require_core = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
@@ -4900,9 +4900,9 @@ var require_core = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var def = {
@@ -4915,9 +4915,9 @@ var require_id = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.callRef = exports.getValidate = void 0;
@@ -5037,9 +5037,9 @@ var require_ref = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var id_1 = require_id();
@@ -5058,9 +5058,9 @@ var require_core2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5090,9 +5090,9 @@ var require_limitNumber = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5118,9 +5118,9 @@ var require_multipleOf = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function ucs2length(str) {
@@ -5144,9 +5144,9 @@ var require_ucs2length = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5176,9 +5176,9 @@ var require_limitLength = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5213,9 +5213,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5242,9 +5242,9 @@ var require_limitProperties = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -5324,9 +5324,9 @@ var require_required = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5353,9 +5353,9 @@ var require_limitItems = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
@@ -5364,9 +5364,9 @@ var require_equal = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var dataType_1 = require_dataType();
@@ -5431,9 +5431,9 @@ var require_uniqueItems = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5460,9 +5460,9 @@ var require_const = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5509,9 +5509,9 @@ var require_enum = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
@@ -5547,9 +5547,9 @@ var require_validation = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateAdditionalItems = void 0;
@@ -5600,9 +5600,9 @@ var require_additionalItems = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateTuple = void 0;
@@ -5657,9 +5657,9 @@ var require_items = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var items_1 = require_items();
@@ -5674,9 +5674,9 @@ var require_prefixItems = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5709,9 +5709,9 @@ var require_items2020 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5803,9 +5803,9 @@ var require_contains = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
@@ -5897,9 +5897,9 @@ var require_dependencies = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -5940,9 +5940,9 @@ var require_propertyNames = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -6046,9 +6046,9 @@ var require_additionalProperties = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var validate_1 = require_validate();
@@ -6104,9 +6104,9 @@ var require_properties = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -6178,9 +6178,9 @@ var require_patternProperties = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -6209,9 +6209,9 @@ var require_not = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -6226,9 +6226,9 @@ var require_anyOf = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6284,9 +6284,9 @@ var require_oneOf = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -6311,9 +6311,9 @@ var require_allOf = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6380,9 +6380,9 @@ var require_if = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
@@ -6398,9 +6398,9 @@ var require_thenElse = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
@@ -6446,9 +6446,9 @@ var require_applicator = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6536,9 +6536,9 @@ var require_format = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format();
@@ -6547,9 +6547,9 @@ var require_format2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.contentVocabulary = exports.metadataVocabulary = void 0;
@@ -6570,9 +6570,9 @@ var require_metadata = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var core_1 = require_core2();
@@ -6592,9 +6592,9 @@ var require_draft7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DiscrError = void 0;
@@ -6606,9 +6606,9 @@ var require_types = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -6711,9 +6711,9 @@ var require_discriminator = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports, module) {
     module.exports = {
       $schema: "http://json-schema.org/draft-07/schema#",
       $id: "http://json-schema.org/draft-07/schema#",
@@ -6868,9 +6868,9 @@ var require_json_schema_draft_07 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
+// packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS({
-  "node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
@@ -6938,9 +6938,9 @@ var require_ajv = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
+// packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS({
-  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
@@ -7141,9 +7141,9 @@ var require_formats = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
+// packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS({
-  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports) {
+  "packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatLimitDefinition = void 0;
@@ -7213,9 +7213,9 @@ var require_limit = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
+// packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
 var require_dist = __commonJS({
-  "node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports, module) {
+  "packages/mcp/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var formats_1 = require_formats();
@@ -7255,17 +7255,17 @@ var require_dist = __commonJS({
   }
 });
 
-// packages/sdk/src/buffer-node.ts
-var buffer_node_exports = {};
-__export(buffer_node_exports, {
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js
+var buffer_node_IYFDRLWF_exports = {};
+__export(buffer_node_IYFDRLWF_exports, {
   FileTelemetryBuffer: () => FileTelemetryBuffer,
   fileTelemetryDirectory: () => fileTelemetryDirectory,
   openFileTelemetryBuffer: () => openFileTelemetryBuffer
 });
-import { createHash } from "node:crypto";
-import { mkdirSync, openSync, writeSync, fsyncSync, closeSync, existsSync as existsSync2, readFileSync as readFileSync2, writeFileSync, renameSync } from "node:fs";
-import { tmpdir as tmpdir2 } from "node:os";
-import { join } from "node:path";
+import { createHash } from "crypto";
+import { mkdirSync, openSync, writeSync, fsyncSync, closeSync, existsSync as existsSync2, readFileSync as readFileSync2, writeFileSync, renameSync } from "fs";
+import { tmpdir as tmpdir2 } from "os";
+import { join } from "path";
 function fileTelemetryDirectory(apiKey) {
   const id = createHash("sha256").update(apiKey).digest("hex").slice(0, 24);
   const next = join(tmpdir2(), "spurvik-telemetry", id);
@@ -7286,9 +7286,8 @@ function readCursor(file) {
   return created;
 }
 var FileTelemetryBuffer;
-var init_buffer_node = __esm({
-  "packages/sdk/src/buffer-node.ts"() {
-    "use strict";
+var init_buffer_node_IYFDRLWF = __esm({
+  "packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/buffer-node-IYFDRLWF.js"() {
     FileTelemetryBuffer = class {
       instanceId;
       nextSeq;
@@ -7355,10 +7354,10 @@ import { realpathSync as realpathSync3 } from "node:fs";
 import path3 from "node:path";
 import { fileURLToPath as fileURLToPath2, pathToFileURL } from "node:url";
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 import process2 from "node:process";
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER = Object.freeze({
   status: "aborted"
 });
@@ -7417,7 +7416,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -7938,7 +7937,7 @@ var Class = class {
   }
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -8013,7 +8012,7 @@ function formatError(error2, _mapper) {
   return fieldErrors;
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -8065,7 +8064,7 @@ var _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][^\s-]{8,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
@@ -8123,7 +8122,7 @@ var _null = /null/i;
 var lowercase = /^[^A-Z]*$/;
 var uppercase = /^[^a-z]*$/;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -8508,7 +8507,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -8544,14 +8543,14 @@ var Doc = class {
   }
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 0,
   patch: 0
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -9789,7 +9788,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
 var parsedType = (data) => {
   const t = typeof data;
   switch (t) {
@@ -9907,7 +9906,7 @@ function en_default() {
   };
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
 var $ZodRegistry = class {
   constructor() {
     this._map = /* @__PURE__ */ new Map();
@@ -9955,7 +9954,7 @@ function registry() {
 }
 var globalRegistry = /* @__PURE__ */ registry();
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
 function _string(Class2, params) {
   return new Class2({
     type: "string",
@@ -10394,7 +10393,7 @@ function _refine(Class2, fn, _params) {
   return schema;
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
 var JSONSchemaGenerator = class {
   constructor(params) {
     this.counter = 0;
@@ -11161,7 +11160,7 @@ function isTransforming(_schema, _ctx) {
   throw new Error(`Unknown schema type: ${def.type}`);
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -11202,7 +11201,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -11236,13 +11235,13 @@ var ZodRealError = $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync2 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
 var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   $ZodType.init(inst, def);
   inst.def = def;
@@ -11853,10 +11852,10 @@ function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -13387,7 +13386,7 @@ var UrlElicitationRequiredError = class extends McpError {
   }
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 var STDIO_DEFAULT_MAX_BUFFER_SIZE = 10 * 1024 * 1024;
 var ReadBuffer = class {
   constructor(options) {
@@ -13424,7 +13423,7 @@ function serializeMessage(message) {
   return JSON.stringify(message) + "\n";
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var StdioServerTransport = class {
   constructor(_stdin = process2.stdin, _stdout = process2.stdout, options) {
     this._stdin = _stdin;
@@ -13855,7 +13854,7 @@ import { readFileSync as readFileSync3 } from "node:fs";
 import { dirname, join as join2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
 var external_exports = {};
 __export(external_exports, {
   BRAND: () => BRAND,
@@ -13967,7 +13966,7 @@ __export(external_exports, {
   void: () => voidType
 });
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -14101,7 +14100,7 @@ var getParsedType2 = (data) => {
   }
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -14219,7 +14218,7 @@ ZodError2.create = (issues) => {
   return error2;
 };
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue2, _ctx) => {
   let message;
   switch (issue2.code) {
@@ -14322,7 +14321,7 @@ var errorMap = (issue2, _ctx) => {
 };
 var en_default2 = errorMap;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default2;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -14331,7 +14330,7 @@ function getErrorMap() {
   return overrideErrorMap;
 }
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path4, errorMaps, issueData } = params;
   const fullPath = [...path4, ...issueData.path || []];
@@ -14441,14 +14440,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
   errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
 })(errorUtil || (errorUtil = {}));
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path4, key) {
     this._cachedPath = [];
@@ -17896,7 +17895,7 @@ var coerce = {
 };
 var NEVER2 = INVALID;
 
-// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
+// packages/mcp/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
 var ZodMiniType = /* @__PURE__ */ $constructor("ZodMiniType", (inst, def) => {
   if (!inst._zod)
     throw new Error("Uninitialized schema in ZodMiniType.");
@@ -17942,7 +17941,7 @@ function object2(shape, params) {
   return new ZodMiniObject(def);
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -18102,12 +18101,12 @@ function getLiteralValue(schema) {
   return void 0;
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = /* @__PURE__ */ Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
@@ -18141,7 +18140,7 @@ var getDefaultOptions = (options) => typeof options === "string" ? {
   ...options
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
   const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
@@ -18162,7 +18161,7 @@ var getRefs = (options) => {
   };
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage, refs) {
   if (!refs?.errorMessages)
     return;
@@ -18178,7 +18177,7 @@ function setResponseValueAndErrors(res, key, value, errorMessage, refs) {
   addErrorMessage(res, key, errorMessage, refs);
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
 var getRelativePath = (pathA, pathB) => {
   let i = 0;
   for (; i < pathA.length && i < pathB.length; i++) {
@@ -18188,7 +18187,7 @@ var getRelativePath = (pathA, pathB) => {
   return [(pathA.length - i).toString(), ...pathB.slice(i)].join("/");
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
 function parseAnyDef(refs) {
   if (refs.target !== "openAi") {
     return {};
@@ -18204,7 +18203,7 @@ function parseAnyDef(refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
 function parseArrayDef(def, refs) {
   const res = {
     type: "array"
@@ -18228,7 +18227,7 @@ function parseArrayDef(def, refs) {
   return res;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
@@ -18274,24 +18273,24 @@ function parseBigintDef(def, refs) {
   return res;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
     type: "boolean"
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
 function parseBrandedDef(_def, refs) {
   return parseDef(_def.type._def, refs);
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
 var parseCatchDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
 function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
@@ -18350,7 +18349,7 @@ var integerDateParser = (def, refs) => {
   return res;
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
@@ -18358,12 +18357,12 @@ function parseDefaultDef(_def, refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
   return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : parseAnyDef(refs);
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
@@ -18371,7 +18370,7 @@ function parseEnumDef(def) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
   if ("type" in type && type.type === "string")
     return false;
@@ -18413,7 +18412,7 @@ function parseIntersectionDef(def, refs) {
   } : void 0;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType2 = typeof def.value;
   if (parsedType2 !== "bigint" && parsedType2 !== "number" && parsedType2 !== "boolean" && parsedType2 !== "string") {
@@ -18433,7 +18432,7 @@ function parseLiteralDef(def, refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var emojiRegex2 = void 0;
 var zodPatterns = {
   /**
@@ -18758,7 +18757,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   return pattern;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
     console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
@@ -18810,7 +18809,7 @@ function parseRecordDef(def, refs) {
   return schema;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
 function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
@@ -18835,7 +18834,7 @@ function parseMapDef(def, refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
 function parseNativeEnumDef(def) {
   const object3 = def.values;
   const actualKeys = Object.keys(def.values).filter((key) => {
@@ -18849,7 +18848,7 @@ function parseNativeEnumDef(def) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef(refs) {
   return refs.target === "openAi" ? void 0 : {
     not: parseAnyDef({
@@ -18859,7 +18858,7 @@ function parseNeverDef(refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
   return refs.target === "openApi3" ? {
     enum: ["null"],
@@ -18869,7 +18868,7 @@ function parseNullDef(refs) {
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
 var primitiveMappings = {
   ZodString: "string",
   ZodNumber: "number",
@@ -18937,7 +18936,7 @@ var asAnyOf = (def, refs) => {
   return anyOf.length ? { anyOf } : void 0;
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
   if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
@@ -18969,7 +18968,7 @@ function parseNullableDef(def, refs) {
   return base && { anyOf: [base, { type: "null" }] };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
     type: "number"
@@ -19018,7 +19017,7 @@ function parseNumberDef(def, refs) {
   return res;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
 function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
@@ -19088,7 +19087,7 @@ function safeIsOptional(schema) {
   }
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
 var parseOptionalDef = (def, refs) => {
   if (refs.currentPath.toString() === refs.propertyPath?.toString()) {
     return parseDef(def.innerType._def, refs);
@@ -19107,7 +19106,7 @@ var parseOptionalDef = (def, refs) => {
   } : parseAnyDef(refs);
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
 var parsePipelineDef = (def, refs) => {
   if (refs.pipeStrategy === "input") {
     return parseDef(def.in._def, refs);
@@ -19127,12 +19126,12 @@ var parsePipelineDef = (def, refs) => {
   };
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
 function parsePromiseDef(def, refs) {
   return parseDef(def.type._def, refs);
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
@@ -19152,7 +19151,7 @@ function parseSetDef(def, refs) {
   return schema;
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
 function parseTupleDef(def, refs) {
   if (def.rest) {
     return {
@@ -19180,24 +19179,24 @@ function parseTupleDef(def, refs) {
   }
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef(refs) {
   return {
     not: parseAnyDef(refs)
   };
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
 function parseUnknownDef(refs) {
   return parseAnyDef(refs);
 }
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
 var parseReadonlyDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
 var selectParser = (def, typeName, refs) => {
   switch (typeName) {
     case ZodFirstPartyTypeKind.ZodString:
@@ -19273,7 +19272,7 @@ var selectParser = (def, typeName, refs) => {
   }
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
@@ -19329,7 +19328,7 @@ var addMeta = (def, refs, jsonSchema) => {
   return jsonSchema;
 };
 
-// node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
+// packages/mcp/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
   let definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
@@ -19391,7 +19390,7 @@ var zodToJsonSchema = (schema, options) => {
   return combined;
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function mapMiniTarget(t) {
   if (!t)
     return "draft-7";
@@ -19433,7 +19432,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 6e4;
 var Protocol = class {
   constructor(_options) {
@@ -20410,7 +20409,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist(), 1);
 function createDefaultAjvInstance() {
@@ -20478,7 +20477,7 @@ var AjvJsonSchemaValidator = class {
   }
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 var ExperimentalServerTasks = class {
   constructor(_server) {
     this._server = _server;
@@ -20691,7 +20690,7 @@ var ExperimentalServerTasks = class {
   }
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -20726,7 +20725,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 var Server = class extends Protocol {
   /**
    * Initializes this server with the given name and version information.
@@ -21097,7 +21096,7 @@ var Server = class extends Protocol {
   }
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
 var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
@@ -21111,7 +21110,7 @@ var McpZodTypeKind;
   McpZodTypeKind2["Completable"] = "McpCompletable";
 })(McpZodTypeKind || (McpZodTypeKind = {}));
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
 var TOOL_NAME_REGEX = /^[A-Za-z0-9._-]{1,128}$/;
 function validateToolName(name) {
   const warnings = [];
@@ -21169,7 +21168,7 @@ function validateAndWarnToolName(name) {
   return result.isValid;
 }
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
 var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
@@ -21184,7 +21183,7 @@ var ExperimentalMcpServerTasks = class {
   }
 };
 
-// node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_@cfworker+json-schema@4.1.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+// packages/mcp/node_modules/.pnpm/@modelcontextprotocol+sdk@1.32.1_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
 function toolInputElementCount(value, max) {
   let count = 0;
   const stack = [value];
@@ -22042,10 +22041,6 @@ function toHex(buffer) {
   }
   return hex;
 }
-async function sha256Hex(value) {
-  const digest = await crypto.subtle.digest("SHA-256", textEncoder.encode(value));
-  return toHex(digest);
-}
 async function hmacSha256Hex(secret, value) {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -22067,313 +22062,15 @@ function timingSafeEqualString(left, right) {
   }
   return diff === 0;
 }
-async function fingerprintContent(mode, value, secret) {
-  if (mode === "on") return sha256Hex(value);
-  if (!secret) {
-    throw new Error("Keyed content fingerprints require a client-held secret or salt.");
-  }
-  return hmacSha256Hex(secret, value);
-}
-
-// packages/core/src/api-key.ts
-var REVIEWER_HEADER = "x-spurvik-reviewer";
-var API_KEY_PATTERN = /^(?:spurvik_live_|aegis_live_)[A-Za-z0-9_-]{32,}$/;
-var REVIEWER_TOKEN_PATTERN = /^(?:spurvik_reviewer_|aegis_reviewer_)[A-Za-z0-9_-]{32,}$/;
-function isProjectApiKey(value) {
-  return API_KEY_PATTERN.test(value);
-}
-function isReviewerToken(value) {
-  return REVIEWER_TOKEN_PATTERN.test(value);
-}
-
-// packages/core/src/upstream-support.ts
-var UPSTREAM_SUPPORT = [
-  {
-    provider: "openai",
-    modality: "text",
-    models: [],
-    sourceUrl: "https://openai.com/index/eu-text-provenance/",
-    sourceReadOn: "2026-10-17",
-    note: "Opt-in for an API project or organization, and off by default. The public chat object has no per-request marking parameter and no model-id list. A model id alone stays unknown."
-  },
-  {
-    provider: "openai",
-    modality: "image",
-    models: [],
-    sourceUrl: "https://developers.openai.com/api/docs/guides/content-provenance",
-    sourceReadOn: "2026-10-17",
-    note: "OpenAI states that API images include C2PA Content Credentials and SynthID. The chat completion object does not carry the file, and no model-id list is published here."
-  },
-  {
-    provider: "anthropic",
-    modality: "text",
-    models: [],
-    sourceUrl: "https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content",
-    sourceReadOn: "2026-10-17",
-    note: "The help-center table read on this date does not show a text mark for Opus 4.5, 4.6, 4.7, Sonnet 4.5, 4.6, Haiku 4.5, or Mythos 5. Models it does not name stay unknown. Cloud-partner routes are not this table."
-  },
-  {
-    provider: "google",
-    modality: "text",
-    models: [],
-    sourceUrl: "https://deepmind.google/models/synthid/",
-    sourceReadOn: "2026-10-17",
-    note: "SynthID text is described for the Gemini app and web experience. A Gemini API response flag for a text mark is not documented."
-  },
-  {
-    provider: "mistral",
-    modality: "text",
-    models: [],
-    sourceUrl: "https://docs.mistral.ai/API",
-    sourceReadOn: "2026-10-17",
-    note: "The published Chat Completions reference does not document a marking parameter, a marking field, or a model-id list."
-  },
-  {
-    provider: "open_weight",
-    modality: "text",
-    models: [],
-    sourceUrl: "https://ai.google.dev/responsible/docs/safeguards/synthid",
-    sourceReadOn: "2026-10-17",
-    note: "An open-weight model applies a mark only when the operator configures one. A typical chat response does not expose that configuration."
-  }
-];
-function isCloudPartnerRoute(route) {
-  return /bedrock|vertex|foundry|azure/i.test(route);
-}
-function classifyUpstreamRoute(route) {
-  const value = route.toLowerCase();
-  if (value.includes("bedrock")) return "bedrock";
-  if (value.includes("vertex")) return "vertex";
-  if (value.includes("foundry")) return "foundry";
-  if (value.includes("azure")) return "azure";
-  return "direct";
-}
-function supportInference(provider, model, modality, entries = UPSTREAM_SUPPORT) {
-  const normalized = model.trim().toLowerCase();
-  if (!normalized || normalized === "unknown") return false;
-  return entries.some(
-    (entry) => entry.provider === provider && entry.modality === modality && entry.models.some((id) => id.toLowerCase() === normalized)
-  );
-}
-
-// packages/core/src/upstream-marking.ts
-var UPSTREAM_MARKING_KIND = "upstream_marking_evidence";
-var MARKING_KEYS = /* @__PURE__ */ new Set([
-  "watermark",
-  "watermarked",
-  "watermarking",
-  "watermarking_config",
-  "text_watermark",
-  "content_credentials",
-  "content_provenance",
-  "c2pa",
-  "synthid",
-  "provenance"
-]);
-var HEADER_HINT = /watermark|provenance|c2pa|synthid|content-credential/;
-var AFFIRMATIVE = /* @__PURE__ */ new Set(["true", "applied", "present", "enabled", "detected", "on", "1"]);
-var NEGATIVE = /* @__PURE__ */ new Set(["false", "absent", "disabled", "not_applied", "off", "0", "none"]);
-var CONFIG_OBJECTS = /* @__PURE__ */ new Set(["generationconfig", "extra_body", "metadata", "response", "data"]);
-function observeUpstreamMarking(input) {
-  const requested = collectSignals(input.request, "request");
-  const returned = [
-    ...collectSignals(input.response, "response"),
-    ...collectHeaders(input.response)
-  ].slice(0, 16);
-  const model = input.model && input.model.trim() ? input.model.slice(0, 200) : "unknown";
-  const route = input.route ?? "";
-  const upstreamStatus = classifyUpstreamMarking({
-    provider: input.provider,
-    model,
-    modality: input.modality,
-    route,
-    requested,
-    returned
-  });
-  return {
-    eventId: "",
-    timestamp: "",
-    provider: input.provider,
-    model,
-    modality: input.modality,
-    upstreamApplied: appliedFromStatus(upstreamStatus),
-    upstreamStatus,
-    evidenceTrailerAttached: false,
-    localApplied: input.localApplied,
-    routeKind: classifyUpstreamRoute(route),
-    markingSource: evidenceSource(requested, returned),
-    requested,
-    returned
-  };
-}
-function classifyUpstreamMarking(input, support = void 0) {
-  if (!input.provider || input.provider === "unknown" || !input.model || input.model === "unknown") {
-    if (affirmative(input.returned)) return "provider_confirmed";
-    return "unknown";
-  }
-  if (affirmative(input.returned)) return "provider_confirmed";
-  if (input.returned.length > 0 && input.returned.every((signal) => negative(signal))) return "not_requested";
-  if (affirmative(input.requested)) return "requested";
-  if (input.requested.length > 0 && input.requested.every((signal) => negative(signal))) return "not_requested";
-  if (isCloudPartnerRoute(input.route)) return "unknown";
-  if (supportInference(input.provider, input.model, input.modality, support)) return "inferred";
-  return "unknown";
-}
-function appliedFromStatus(status) {
-  if (status === "provider_confirmed") return "applied";
-  if (status === "not_requested") return "not_applied";
-  return "unknown";
-}
-async function signUpstreamMarkingEvidence(fields, secret) {
-  if (!secret) throw new Error("An evidence signing secret is required.");
-  const signedPayload = canonicalJson({ kind: UPSTREAM_MARKING_KIND, ...fields });
-  const signature = await hmacSha256Hex(secret, signedPayload);
-  return { ...fields, signature, signedPayload };
-}
-function evidenceSource(requested, returned) {
-  const affirmed = returned.find((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
-  const chosen = affirmed ?? (returned.length > 0 && returned.every((signal) => NEGATIVE.has(signal.value.trim().toLowerCase())) ? returned[0] : void 0);
-  if (chosen) return chosen.source === "header" ? "header" : "response";
-  if (requested.length > 0) return "request";
-  return "none";
-}
-function affirmative(signals) {
-  return signals.some((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
-}
-function negative(signal) {
-  return NEGATIVE.has(signal.value.trim().toLowerCase());
-}
-function collectSignals(node, source) {
-  const found = [];
-  walk(node, source, 0, found);
-  return found.slice(0, 16);
-}
-function walk(node, source, depth, found) {
-  if (depth > 2 || found.length >= 16 || !isRecord(node)) return;
-  for (const [key, value] of Object.entries(node)) {
-    const lower = key.toLowerCase();
-    if (MARKING_KEYS.has(lower)) {
-      const rendered = renderValue(value);
-      if (rendered) found.push({ source, name: lower.slice(0, 64), value: rendered });
-      continue;
-    }
-    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord(value)) {
-      walk(value, source, depth + 1, found);
-    }
-  }
-}
-function collectHeaders(response) {
-  const found = [];
-  const bags = [];
-  if (isRecord(response)) {
-    bags.push(response.headers);
-    if (isRecord(response.response)) bags.push(response.response.headers);
-  }
-  for (const bag of bags) readHeaderBag(bag, found);
-  return found;
-}
-function readHeaderBag(bag, found) {
-  if (!bag || found.length >= 16) return;
-  if (typeof Headers !== "undefined" && bag instanceof Headers) {
-    bag.forEach((value, key) => pushHeader(key, value, found));
-    return;
-  }
-  if (!isRecord(bag)) return;
-  for (const [key, value] of Object.entries(bag)) {
-    if (typeof value === "string") pushHeader(key, value, found);
-  }
-}
-function pushHeader(key, value, found) {
-  if (found.length >= 16) return;
-  const name = key.toLowerCase();
-  if (!HEADER_HINT.test(name)) return;
-  const rendered = renderValue(value);
-  if (!rendered) return;
-  found.push({ source: "header", name: name.slice(0, 64), value: rendered });
-}
-function renderValue(value) {
-  if (typeof value === "boolean") return value ? "true" : "false";
-  if (typeof value === "number" && Number.isFinite(value)) return String(value).slice(0, 80);
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (!trimmed || trimmed.length > 80) return null;
-    if (/\s/.test(trimmed) && trimmed.length > 40) return null;
-    return trimmed;
-  }
-  if (isRecord(value)) {
-    const compact = canonicalJson(value);
-    if (compact.length <= 80) return compact;
-  }
-  return null;
-}
-function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-// packages/core/src/payload-summary.ts
-var PAYLOAD_SUMMARY_SCHEMA = "spurvik.payload_summary.v1";
-var KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
-var FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/;
-var MAX_CHARS = 500;
-var MAX_KEYS = 32;
-function buildPayloadSummary(input) {
-  const keys = input.keys.filter((key) => KEY_PATTERN.test(key)).slice(0, MAX_KEYS);
-  const contentFingerprint = input.contentFingerprint && FINGERPRINT_PATTERN.test(input.contentFingerprint) ? input.contentFingerprint : null;
-  let kept = keys;
-  let serialized = render(kept, contentFingerprint);
-  while (serialized.length > MAX_CHARS && kept.length > 0) {
-    kept = kept.slice(0, -1);
-    serialized = render(kept, contentFingerprint);
-  }
-  return serialized;
-}
-function render(keys, contentFingerprint) {
-  const document = {
-    schema: PAYLOAD_SUMMARY_SCHEMA,
-    keys,
-    contentFingerprint
-  };
-  return canonicalJson(document);
-}
 
 // packages/core/src/provenance.ts
 var PROVENANCE_KIND = "provenance_record";
 var SIGNATURE_ALG = "HMAC-SHA-256";
 var PROVENANCE_VERSION = 2;
-async function signProvenance(fields, signingSecret) {
-  if (!signingSecret) {
-    throw new Error("A client-held signing secret is required.");
-  }
-  const signedFields = completeSignedFields(fields);
-  const signature = await hmacSha256Hex(signingSecret, canonicalJson(signedFields));
-  return {
-    ...signedFields,
-    signature,
-    signatureAlg: SIGNATURE_ALG
-  };
-}
 async function verifyProvenanceSignature(record2, signingSecret) {
   if (record2.kind !== PROVENANCE_KIND || record2.signatureAlg !== SIGNATURE_ALG) return false;
   const expected = await hmacSha256Hex(signingSecret, canonicalJson(signedMaterial(record2)));
   return timingSafeEqualString(expected, record2.signature);
-}
-function completeSignedFields(fields) {
-  return {
-    kind: fields.kind,
-    eventId: fields.eventId,
-    timestamp: fields.timestamp,
-    modelId: fields.modelId,
-    modelProvider: fields.modelProvider,
-    contentHashMode: fields.contentHashMode,
-    inputHash: fields.inputHash,
-    outputHash: fields.outputHash,
-    article50Disclosure: fields.article50Disclosure,
-    markingHookId: fields.markingHookId,
-    provenanceVersion: PROVENANCE_VERSION,
-    markingApplied: fields.markingApplied ?? false,
-    evidenceTrailerAttached: fields.evidenceTrailerAttached ?? false,
-    upstreamMarking: fields.upstreamMarking ?? "unknown"
-  };
 }
 function signedMaterial(record2) {
   const base = {
@@ -22400,34 +22097,6 @@ function signedMaterial(record2) {
 
 // packages/core/src/marking.ts
 var SIGNED_TEXT_TRAILER_ID = "signed-text-trailer";
-function isWatermarkHook(hookId) {
-  return hookId === "watermark" || hookId.startsWith("watermark:");
-}
-var TRAILER_PREFIX = "\n\n[[[spurvik-provenance-record:";
-var TRAILER_SUFFIX = "]]]";
-function createSignedTextTrailerHook() {
-  return {
-    id: SIGNED_TEXT_TRAILER_ID,
-    mark(text2, provenance) {
-      const encoded = base64UrlEncode(JSON.stringify(provenance));
-      return `${text2}${TRAILER_PREFIX}${encoded}${TRAILER_SUFFIX}`;
-    }
-  };
-}
-function mediaMarkWasApplied(original, result) {
-  if (!result.manifestEmbedded) return false;
-  if (original.byteLength !== result.bytes.byteLength) return true;
-  for (let index = 0; index < original.byteLength; index += 1) {
-    if (original[index] !== result.bytes[index]) return true;
-  }
-  return false;
-}
-function base64UrlEncode(value) {
-  const bytes = new TextEncoder().encode(value);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-}
 
 // packages/mcp/src/tools/explain-receipt.ts
 var MAX_RECEIPT_CHARS = 1e6;
@@ -22514,7 +22183,7 @@ function fieldCopy(name) {
       return "Field on the pasted JSON.";
   }
 }
-function isRecord2(value) {
+function isRecord(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function rejectShortSigningInput(secret) {
@@ -22569,16 +22238,16 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   } catch {
     throw new Error(RECEIPT_NOT_JSON);
   }
-  if (!isRecord2(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
   let markedOutput;
   let body = parsed;
   let readFromWrapper = false;
-  if (isRecord2(parsed.record)) {
+  if (isRecord(parsed.record)) {
     body = parsed.record;
     readFromWrapper = true;
     if (typeof parsed.markedOutput === "string") markedOutput = parsed.markedOutput;
   }
-  if (!isRecord2(body)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord(body)) throw new Error(RECEIPT_NOT_OBJECT);
   const lines = ["HMAC provenance receipt", ""];
   if (readFromWrapper) {
     lines.push(
@@ -23456,7 +23125,7 @@ function markingHooksText(surface = "both") {
 `;
 }
 
-// packages/sdk/src/errors.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
 var SpurvikError = class extends Error {
   constructor(message) {
     super(message);
@@ -23512,17 +23181,383 @@ var SpurvikHitlTimeoutError = class extends SpurvikError {
 };
 var SpurvikHitlRejectedError = class extends SpurvikError {
   constructor(record2) {
-    super(`Human approval for "${record2.actionName}" was rejected.`);
+    const status = String(record2.status);
+    const outcome = status === "overridden" || status === "rejected" ? `was ${status}` : `was not approved (status "${status}")`;
+    super(`Human approval for "${record2.actionName}" ${outcome}.`);
     this.record = record2;
     this.name = "SpurvikHitlRejectedError";
   }
   record;
 };
 
-// packages/sdk/src/config.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-455UYSGD.js
+var MAX_LINK_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-II5RYOQ5.js
+import { request as httpRequest } from "http";
+import { request as httpsRequest } from "https";
+function canonicalJson2(value) {
+  return JSON.stringify(canonicalize2(value));
+}
+function canonicalize2(value) {
+  if (value === void 0) return void 0;
+  if (value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((item) => canonicalize2(item));
+  const entries = Object.entries(value).filter(([, entry]) => entry !== void 0).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0);
+  const sorted = {};
+  for (const [key, entry] of entries) {
+    sorted[key] = canonicalize2(entry);
+  }
+  return sorted;
+}
+var textEncoder2 = new TextEncoder();
+function toHex2(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let hex = "";
+  for (const byte of bytes) {
+    hex += byte.toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+async function sha256Hex2(value) {
+  const digest = await crypto.subtle.digest("SHA-256", textEncoder2.encode(value));
+  return toHex2(digest);
+}
+async function hmacSha256Hex2(secret, value) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    textEncoder2.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, textEncoder2.encode(value));
+  return toHex2(signature);
+}
+async function fingerprintContent2(mode, value, secret) {
+  if (mode === "on") return sha256Hex2(value);
+  if (!secret) {
+    throw new Error("Keyed content fingerprints require a client-held secret or salt.");
+  }
+  return hmacSha256Hex2(secret, value);
+}
+var SIGNATURE_ALG2 = "HMAC-SHA-256";
+var PROVENANCE_VERSION2 = 2;
+async function signProvenance2(fields, signingSecret) {
+  if (!signingSecret) {
+    throw new Error("A client-held signing secret is required.");
+  }
+  const signedFields = completeSignedFields(fields);
+  const signature = await hmacSha256Hex2(signingSecret, canonicalJson2(signedFields));
+  return {
+    ...signedFields,
+    signature,
+    signatureAlg: SIGNATURE_ALG2
+  };
+}
+function completeSignedFields(fields) {
+  return {
+    kind: fields.kind,
+    eventId: fields.eventId,
+    timestamp: fields.timestamp,
+    modelId: fields.modelId,
+    modelProvider: fields.modelProvider,
+    contentHashMode: fields.contentHashMode,
+    inputHash: fields.inputHash,
+    outputHash: fields.outputHash,
+    article50Disclosure: fields.article50Disclosure,
+    markingHookId: fields.markingHookId,
+    provenanceVersion: PROVENANCE_VERSION2,
+    markingApplied: fields.markingApplied ?? false,
+    evidenceTrailerAttached: fields.evidenceTrailerAttached ?? false,
+    upstreamMarking: fields.upstreamMarking ?? "unknown"
+  };
+}
+var SIGNED_TEXT_TRAILER_ID2 = "signed-text-trailer";
+function isWatermarkHook2(hookId) {
+  return hookId === "watermark" || hookId.startsWith("watermark:");
+}
+var TRAILER_PREFIX = "\n\n[[[spurvik-provenance-record:";
+var TRAILER_SUFFIX = "]]]";
+function createSignedTextTrailerHook2() {
+  return {
+    id: SIGNED_TEXT_TRAILER_ID2,
+    mark(text2, provenance) {
+      const encoded = base64UrlEncode(JSON.stringify(provenance));
+      return `${text2}${TRAILER_PREFIX}${encoded}${TRAILER_SUFFIX}`;
+    }
+  };
+}
+function mediaMarkWasApplied2(original, result) {
+  if (!result.manifestEmbedded) return false;
+  if (original.byteLength !== result.bytes.byteLength) return true;
+  for (let index = 0; index < original.byteLength; index += 1) {
+    if (original[index] !== result.bytes[index]) return true;
+  }
+  return false;
+}
+function base64UrlEncode(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+var REVIEWER_HEADER2 = "x-spurvik-reviewer";
+var API_KEY_PATTERN = /^(?:spurvik_live_|aegis_live_)[A-Za-z0-9_-]{32,}$/;
+var REVIEWER_TOKEN_PATTERN = /^(?:spurvik_reviewer_|aegis_reviewer_)[A-Za-z0-9_-]{32,}$/;
+function isProjectApiKey2(value) {
+  return API_KEY_PATTERN.test(value);
+}
+function isReviewerToken2(value) {
+  return REVIEWER_TOKEN_PATTERN.test(value);
+}
+var UPSTREAM_SUPPORT2 = [
+  {
+    provider: "openai",
+    modality: "text",
+    models: [],
+    sourceUrl: "https://openai.com/index/eu-text-provenance/",
+    sourceReadOn: "2026-10-17",
+    note: "Opt-in for an API project or organization, and off by default. The public chat object has no per-request marking parameter and no model-id list. A model id alone stays unknown."
+  },
+  {
+    provider: "openai",
+    modality: "image",
+    models: [],
+    sourceUrl: "https://developers.openai.com/api/docs/guides/content-provenance",
+    sourceReadOn: "2026-10-17",
+    note: "OpenAI states that API images include C2PA Content Credentials and SynthID. The chat completion object does not carry the file, and no model-id list is published here."
+  },
+  {
+    provider: "anthropic",
+    modality: "text",
+    models: [],
+    sourceUrl: "https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content",
+    sourceReadOn: "2026-10-17",
+    note: "The help-center table read on this date does not show a text mark for Opus 4.5, 4.6, 4.7, Sonnet 4.5, 4.6, Haiku 4.5, or Mythos 5. Models it does not name stay unknown. Cloud-partner routes are not this table."
+  },
+  {
+    provider: "google",
+    modality: "text",
+    models: [],
+    sourceUrl: "https://deepmind.google/models/synthid/",
+    sourceReadOn: "2026-10-17",
+    note: "SynthID text is described for the Gemini app and web experience. A Gemini API response flag for a text mark is not documented."
+  },
+  {
+    provider: "mistral",
+    modality: "text",
+    models: [],
+    sourceUrl: "https://docs.mistral.ai/API",
+    sourceReadOn: "2026-10-17",
+    note: "The published Chat Completions reference does not document a marking parameter, a marking field, or a model-id list."
+  },
+  {
+    provider: "open_weight",
+    modality: "text",
+    models: [],
+    sourceUrl: "https://ai.google.dev/responsible/docs/safeguards/synthid",
+    sourceReadOn: "2026-10-17",
+    note: "An open-weight model applies a mark only when the operator configures one. A typical chat response does not expose that configuration."
+  }
+];
+function isCloudPartnerRoute2(route) {
+  return /bedrock|vertex|foundry|azure/i.test(route);
+}
+function classifyUpstreamRoute2(route) {
+  const value = route.toLowerCase();
+  if (value.includes("bedrock")) return "bedrock";
+  if (value.includes("vertex")) return "vertex";
+  if (value.includes("foundry")) return "foundry";
+  if (value.includes("azure")) return "azure";
+  return "direct";
+}
+function supportInference2(provider, model, modality, entries = UPSTREAM_SUPPORT2) {
+  const normalized = model.trim().toLowerCase();
+  if (!normalized || normalized === "unknown") return false;
+  return entries.some(
+    (entry) => entry.provider === provider && entry.modality === modality && entry.models.some((id) => id.toLowerCase() === normalized)
+  );
+}
+var UPSTREAM_MARKING_KIND2 = "upstream_marking_evidence";
+var MARKING_KEYS = /* @__PURE__ */ new Set([
+  "watermark",
+  "watermarked",
+  "watermarking",
+  "watermarking_config",
+  "text_watermark",
+  "content_credentials",
+  "content_provenance",
+  "c2pa",
+  "synthid",
+  "provenance"
+]);
+var HEADER_HINT = /watermark|provenance|c2pa|synthid|content-credential/;
+var AFFIRMATIVE = /* @__PURE__ */ new Set(["true", "applied", "present", "enabled", "detected", "on", "1"]);
+var NEGATIVE = /* @__PURE__ */ new Set(["false", "absent", "disabled", "not_applied", "off", "0", "none"]);
+var CONFIG_OBJECTS = /* @__PURE__ */ new Set(["generationconfig", "extra_body", "metadata", "response", "data"]);
+function observeUpstreamMarking2(input) {
+  const requested = collectSignals(input.request, "request");
+  const returned = [
+    ...collectSignals(input.response, "response"),
+    ...collectHeaders(input.response)
+  ].slice(0, 16);
+  const model = input.model && input.model.trim() ? input.model.slice(0, 200) : "unknown";
+  const route = input.route ?? "";
+  const upstreamStatus = classifyUpstreamMarking2({
+    provider: input.provider,
+    model,
+    modality: input.modality,
+    route,
+    requested,
+    returned
+  });
+  return {
+    eventId: "",
+    timestamp: "",
+    provider: input.provider,
+    model,
+    modality: input.modality,
+    upstreamApplied: appliedFromStatus2(upstreamStatus),
+    upstreamStatus,
+    evidenceTrailerAttached: false,
+    localApplied: input.localApplied,
+    routeKind: classifyUpstreamRoute2(route),
+    markingSource: evidenceSource(requested, returned),
+    requested,
+    returned
+  };
+}
+function classifyUpstreamMarking2(input, support = void 0) {
+  if (!input.provider || input.provider === "unknown" || !input.model || input.model === "unknown") {
+    if (affirmative(input.returned)) return "provider_confirmed";
+    return "unknown";
+  }
+  if (affirmative(input.returned)) return "provider_confirmed";
+  if (input.returned.length > 0 && input.returned.every((signal) => negative(signal))) return "not_requested";
+  if (affirmative(input.requested)) return "requested";
+  if (input.requested.length > 0 && input.requested.every((signal) => negative(signal))) return "not_requested";
+  if (isCloudPartnerRoute2(input.route)) return "unknown";
+  if (supportInference2(input.provider, input.model, input.modality, support)) return "inferred";
+  return "unknown";
+}
+function appliedFromStatus2(status) {
+  if (status === "provider_confirmed") return "applied";
+  if (status === "not_requested") return "not_applied";
+  return "unknown";
+}
+async function signUpstreamMarkingEvidence2(fields, secret) {
+  if (!secret) throw new Error("An evidence signing secret is required.");
+  const signedPayload = canonicalJson2({ kind: UPSTREAM_MARKING_KIND2, ...fields });
+  const signature = await hmacSha256Hex2(secret, signedPayload);
+  return { ...fields, signature, signedPayload };
+}
+function evidenceSource(requested, returned) {
+  const affirmed = returned.find((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
+  const chosen = affirmed ?? (returned.length > 0 && returned.every((signal) => NEGATIVE.has(signal.value.trim().toLowerCase())) ? returned[0] : void 0);
+  if (chosen) return chosen.source === "header" ? "header" : "response";
+  if (requested.length > 0) return "request";
+  return "none";
+}
+function affirmative(signals) {
+  return signals.some((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
+}
+function negative(signal) {
+  return NEGATIVE.has(signal.value.trim().toLowerCase());
+}
+function collectSignals(node, source) {
+  const found = [];
+  walk(node, source, 0, found);
+  return found.slice(0, 16);
+}
+function walk(node, source, depth, found) {
+  if (depth > 2 || found.length >= 16 || !isRecord2(node)) return;
+  for (const [key, value] of Object.entries(node)) {
+    const lower = key.toLowerCase();
+    if (MARKING_KEYS.has(lower)) {
+      const rendered = renderValue(value);
+      if (rendered) found.push({ source, name: lower.slice(0, 64), value: rendered });
+      continue;
+    }
+    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord2(value)) {
+      walk(value, source, depth + 1, found);
+    }
+  }
+}
+function collectHeaders(response) {
+  const found = [];
+  const bags = [];
+  if (isRecord2(response)) {
+    bags.push(response.headers);
+    if (isRecord2(response.response)) bags.push(response.response.headers);
+  }
+  for (const bag of bags) readHeaderBag(bag, found);
+  return found;
+}
+function readHeaderBag(bag, found) {
+  if (!bag || found.length >= 16) return;
+  if (typeof Headers !== "undefined" && bag instanceof Headers) {
+    bag.forEach((value, key) => pushHeader(key, value, found));
+    return;
+  }
+  if (!isRecord2(bag)) return;
+  for (const [key, value] of Object.entries(bag)) {
+    if (typeof value === "string") pushHeader(key, value, found);
+  }
+}
+function pushHeader(key, value, found) {
+  if (found.length >= 16) return;
+  const name = key.toLowerCase();
+  if (!HEADER_HINT.test(name)) return;
+  const rendered = renderValue(value);
+  if (!rendered) return;
+  found.push({ source: "header", name: name.slice(0, 64), value: rendered });
+}
+function renderValue(value) {
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "number" && Number.isFinite(value)) return String(value).slice(0, 80);
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.length > 80) return null;
+    if (/\s/.test(trimmed) && trimmed.length > 40) return null;
+    return trimmed;
+  }
+  if (isRecord2(value)) {
+    const compact = canonicalJson2(value);
+    if (compact.length <= 80) return compact;
+  }
+  return null;
+}
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+var PAYLOAD_SUMMARY_SCHEMA2 = "spurvik.payload_summary.v1";
+var KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
+var FINGERPRINT_PATTERN = /^[0-9a-f]{64}$/;
+var MAX_CHARS = 500;
+var MAX_KEYS = 32;
+function buildPayloadSummary2(input) {
+  const keys = input.keys.filter((key) => KEY_PATTERN.test(key)).slice(0, MAX_KEYS);
+  const contentFingerprint = input.contentFingerprint && FINGERPRINT_PATTERN.test(input.contentFingerprint) ? input.contentFingerprint : null;
+  let kept = keys;
+  let serialized = render(kept, contentFingerprint);
+  while (serialized.length > MAX_CHARS && kept.length > 0) {
+    kept = kept.slice(0, -1);
+    serialized = render(kept, contentFingerprint);
+  }
+  return serialized;
+}
+function render(keys, contentFingerprint) {
+  const document = {
+    schema: PAYLOAD_SUMMARY_SCHEMA2,
+    keys,
+    contentFingerprint
+  };
+  return canonicalJson2(document);
+}
 var MAX_TIMEOUT_MS = 12e4;
 function textHookFromSetting(textSetting) {
-  if (textSetting === "signed-trailer") return createSignedTextTrailerHook();
+  if (textSetting === "signed-trailer") return createSignedTextTrailerHook2();
   if (typeof textSetting === "function") {
     const caller = textSetting;
     return {
@@ -23547,13 +23582,13 @@ function timeoutMs(name, value, fallback) {
   return value;
 }
 function resolveConfig(config2) {
-  if (!isProjectApiKey(config2.apiKey)) {
+  if (!isProjectApiKey2(config2.apiKey)) {
     throw new SpurvikConfigError("apiKey must be a spurvik_live_ project key.");
   }
   if (!config2.signingSecret || config2.signingSecret.length < 16) {
     throw new SpurvikConfigError("signingSecret must be a client-held secret of at least 16 characters.");
   }
-  if (config2.reviewerToken && !isReviewerToken(config2.reviewerToken)) {
+  if (config2.reviewerToken && !isReviewerToken2(config2.reviewerToken)) {
     throw new SpurvikConfigError("reviewerToken must be a spurvik_reviewer_ token.");
   }
   const contentHashMode = config2.contentHash?.mode ?? "keyed";
@@ -23613,8 +23648,6 @@ function resolveConfig(config2) {
     onTelemetryError: config2.onTelemetryError
   };
 }
-
-// packages/sdk/src/extract.ts
 function isAsyncIterable(value) {
   return typeof value === "object" && value !== null && typeof value[Symbol.asyncIterator] === "function";
 }
@@ -23644,7 +23677,7 @@ function modalityFromPath(path4) {
   return "text";
 }
 function requestRecord(args) {
-  return args.find((arg) => isRecord3(arg)) ?? null;
+  return args.find((arg) => isRecord22(arg)) ?? null;
 }
 function shouldIntercept(path4) {
   const method = path4[path4.length - 1];
@@ -23666,18 +23699,18 @@ function isProviderStreamMethod(path4) {
   return method === "generateContentStream" || method === "sendMessageStream" || method === "stream";
 }
 function withOwnerDefaults(owner, request) {
-  if (!isRecord3(owner)) return request;
+  if (!isRecord22(owner)) return request;
   let model = request.model;
   let temperature = request.temperature;
   if (!model && typeof owner.model === "string") model = owner.model;
-  if (temperature === null && isRecord3(owner.config) && typeof owner.config.temperature === "number") {
+  if (temperature === null && isRecord22(owner.config) && typeof owner.config.temperature === "number") {
     temperature = owner.config.temperature;
   }
   if (model === request.model && temperature === request.temperature) return request;
   return { ...request, model, temperature };
 }
 function readRequest(args) {
-  const body = args.find((arg) => isRecord3(arg));
+  const body = args.find((arg) => isRecord22(arg));
   if (!body) return { prompt: null, model: null, temperature: null, stream: false };
   return {
     prompt: extractPrompt(body),
@@ -23687,7 +23720,7 @@ function readRequest(args) {
   };
 }
 function extractOutput(value) {
-  if (!isRecord3(value)) return null;
+  if (!isRecord22(value)) return null;
   const fromChoices = textFromChoices(value.choices, "message");
   if (fromChoices !== null) return fromChoices;
   if (typeof value.output_text === "string") return value.output_text;
@@ -23707,7 +23740,7 @@ function extractOutput(value) {
   if (Array.isArray(output)) {
     const parts = [];
     for (const item of output) {
-      if (!isRecord3(item)) continue;
+      if (!isRecord22(item)) continue;
       const block = textFromBlocks(item.content);
       if (block) parts.push(block);
     }
@@ -23716,11 +23749,11 @@ function extractOutput(value) {
   return null;
 }
 function extractDelta(chunk) {
-  if (!isRecord3(chunk)) return "";
+  if (!isRecord22(chunk)) return "";
   const type = typeof chunk.type === "string" ? chunk.type : "";
   if (type === "response.output_text.delta" && typeof chunk.delta === "string") return chunk.delta;
   if (type === "content_block_delta") {
-    if (!isRecord3(chunk.delta) || typeof chunk.delta.text !== "string") return "";
+    if (!isRecord22(chunk.delta) || typeof chunk.delta.text !== "string") return "";
     if (chunk.delta.type === "thinking_delta" || chunk.delta.type === "input_json_delta") return "";
     return chunk.delta.text;
   }
@@ -23728,15 +23761,15 @@ function extractDelta(chunk) {
   if (Array.isArray(chunk.choices)) return textFromChoices(chunk.choices, "delta") ?? "";
   if (Array.isArray(chunk.candidates)) return textFromCandidates(chunk.candidates) ?? "";
   if (typeof chunk.delta === "string") return chunk.delta;
-  if (isRecord3(chunk.delta) && typeof chunk.delta.text === "string") return chunk.delta.text;
+  if (isRecord22(chunk.delta) && typeof chunk.delta.text === "string") return chunk.delta.text;
   if (typeof chunk.text === "string") return chunk.text;
   return "";
 }
 function modelFromResponse(value) {
-  if (!isRecord3(value)) return null;
+  if (!isRecord22(value)) return null;
   if (typeof value.model === "string") return value.model;
   if (typeof value.modelVersion === "string") return value.modelVersion;
-  if (isRecord3(value.response) && typeof value.response.model === "string") return value.response.model;
+  if (isRecord22(value.response) && typeof value.response.model === "string") return value.response.model;
   return null;
 }
 function extractPrompt(body) {
@@ -23758,7 +23791,7 @@ function textFromMessages(value) {
   if (!Array.isArray(value)) return null;
   const parts = [];
   for (const message of value) {
-    if (!isRecord3(message)) continue;
+    if (!isRecord22(message)) continue;
     const text2 = textValue(message.content);
     if (text2) parts.push(text2);
   }
@@ -23773,7 +23806,7 @@ function textFromContents(value) {
       parts.push(item);
       continue;
     }
-    if (!isRecord3(item)) continue;
+    if (!isRecord22(item)) continue;
     const direct = textValue(item.text) ?? textValue(item.content);
     if (direct) {
       parts.push(direct);
@@ -23781,7 +23814,7 @@ function textFromContents(value) {
     }
     if (Array.isArray(item.parts)) {
       for (const part of item.parts) {
-        if (isRecord3(part) && typeof part.text === "string") parts.push(part.text);
+        if (isRecord22(part) && typeof part.text === "string") parts.push(part.text);
       }
     }
   }
@@ -23791,9 +23824,9 @@ function textFromChoices(choices, field) {
   if (!Array.isArray(choices)) return null;
   const parts = [];
   for (const choice of choices) {
-    if (!isRecord3(choice)) continue;
+    if (!isRecord22(choice)) continue;
     const holder = choice[field];
-    if (!isRecord3(holder)) continue;
+    if (!isRecord22(holder)) continue;
     if (typeof holder.content === "string") parts.push(holder.content);
     else if (holder.content === null && field === "message") parts.push("");
   }
@@ -23805,7 +23838,7 @@ function textFromBlocks(value) {
   const parts = [];
   for (const block of value) {
     if (typeof block === "string") parts.push(block);
-    else if (isRecord3(block) && typeof block.text === "string") parts.push(block.text);
+    else if (isRecord22(block) && typeof block.text === "string") parts.push(block.text);
   }
   return parts.length > 0 ? parts.join("") : null;
 }
@@ -23813,11 +23846,11 @@ function textFromCandidates(candidates) {
   if (!Array.isArray(candidates)) return null;
   const parts = [];
   for (const candidate of candidates) {
-    if (!isRecord3(candidate) || !isRecord3(candidate.content)) continue;
+    if (!isRecord22(candidate) || !isRecord22(candidate.content)) continue;
     const blocks = candidate.content.parts;
     if (!Array.isArray(blocks)) continue;
     for (const block of blocks) {
-      if (isRecord3(block) && typeof block.text === "string") parts.push(block.text);
+      if (isRecord22(block) && typeof block.text === "string") parts.push(block.text);
     }
   }
   return parts.length > 0 ? parts.join("") : null;
@@ -23828,33 +23861,33 @@ function textValue(value) {
   const parts = [];
   for (const item of value) {
     if (typeof item === "string") parts.push(item);
-    else if (isRecord3(item) && typeof item.text === "string") parts.push(item.text);
+    else if (isRecord22(item) && typeof item.text === "string") parts.push(item.text);
   }
   return parts.length > 0 ? parts.join("\n") : null;
 }
 function readTemperature(body) {
   if (typeof body.temperature === "number") return body.temperature;
-  if (isRecord3(body.config) && typeof body.config.temperature === "number") return body.config.temperature;
-  if (isRecord3(body.generationConfig) && typeof body.generationConfig.temperature === "number") {
+  if (isRecord22(body.config) && typeof body.config.temperature === "number") return body.config.temperature;
+  if (isRecord22(body.generationConfig) && typeof body.generationConfig.temperature === "number") {
     return body.generationConfig.temperature;
   }
   return null;
 }
-function isRecord3(value) {
+function isRecord22(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function applyMarkedText(result, marked) {
-  if (!isRecord3(result)) return;
+  if (!isRecord22(result)) return;
   if (Array.isArray(result.choices)) {
     const choice = result.choices[0];
-    if (isRecord3(choice) && isRecord3(choice.message) && typeof choice.message.content === "string") {
+    if (isRecord22(choice) && isRecord22(choice.message) && typeof choice.message.content === "string") {
       choice.message.content = marked;
       return;
     }
   }
   if (Array.isArray(result.content)) {
     const block = result.content[0];
-    if (isRecord3(block) && typeof block.text === "string") {
+    if (isRecord22(block) && typeof block.text === "string") {
       block.text = marked;
       return;
     }
@@ -23865,12 +23898,6 @@ function applyMarkedText(result, marked) {
   }
   if (typeof result.text === "string") result.text = marked;
 }
-
-// packages/sdk/src/oversight.ts
-import { request as httpRequest } from "node:http";
-import { request as httpsRequest } from "node:https";
-
-// packages/sdk/src/runtime.ts
 function nodeProcess() {
   const candidate = globalThis.process;
   if (!candidate || typeof candidate.on !== "function") return void 0;
@@ -23881,8 +23908,6 @@ function unrefTimer(timer) {
   const unref = timer.unref;
   if (typeof unref === "function") unref.call(timer);
 }
-
-// packages/sdk/src/oversight.ts
 var OversightCache = class {
   constructor(transport, config2) {
     this.transport = transport;
@@ -24176,8 +24201,6 @@ function unrefClientRequest(req) {
     if (typeof socket.unref === "function") socket.unref();
   });
 }
-
-// packages/sdk/src/proxy.ts
 function wrapClient(client, spurvik) {
   return wrapValue(client, spurvik, [], true);
 }
@@ -24745,8 +24768,6 @@ function wrapSession(value, spurvik, path4) {
 function isEventSource(value) {
   return typeof value.on === "function";
 }
-
-// packages/sdk/src/telemetry.ts
 function isPromise(value) {
   return typeof value?.then === "function";
 }
@@ -25061,8 +25082,6 @@ function flushTimeoutError() {
 function isTimeoutError(error2) {
   return error2 instanceof DOMException && error2.name === "TimeoutError";
 }
-
-// packages/sdk/src/transport.ts
 var ControlPlaneClient = class {
   constructor(config2) {
     this.config = config2;
@@ -25082,7 +25101,7 @@ var ControlPlaneClient = class {
       headers: {
         authorization: `Bearer ${this.config.apiKey}`,
         accept: "application/json",
-        ...options?.reviewer && this.config.reviewerToken ? { [REVIEWER_HEADER]: this.config.reviewerToken } : {},
+        ...options?.reviewer && this.config.reviewerToken ? { [REVIEWER_HEADER2]: this.config.reviewerToken } : {},
         ...body === void 0 ? {} : { "content-type": "application/json" }
       },
       ...body === void 0 ? {} : { body: JSON.stringify(body) }
@@ -25101,8 +25120,6 @@ var ControlPlaneClient = class {
     return payload.data;
   }
 };
-
-// packages/sdk/src/client.ts
 var HALT_REASON_WHEN_BLANK = "Halted via SDK (no reason given)";
 var RELEASE_REASON_WHEN_BLANK = "Released via SDK (no reason given)";
 function reasonForOversight(reason, fallback) {
@@ -25131,7 +25148,7 @@ var SpurvikClient = class {
       strict: this.config.telemetry.strict,
       ...this.config.telemetry.strict && !durable && nodeProcess() ? {
         openDurable: async () => {
-          const { openFileTelemetryBuffer: openFileTelemetryBuffer2 } = await Promise.resolve().then(() => (init_buffer_node(), buffer_node_exports));
+          const { openFileTelemetryBuffer: openFileTelemetryBuffer2 } = await Promise.resolve().then(() => (init_buffer_node_IYFDRLWF(), buffer_node_IYFDRLWF_exports));
           return openFileTelemetryBuffer2(this.config.apiKey);
         }
       } : {},
@@ -25165,7 +25182,10 @@ var SpurvikClient = class {
     this.oversight.invalidate();
   }
   /**
-   * supports human-oversight work (Article 14 applies to high-risk AI systems)
+   * supports human-oversight work (Article 14 applies to high-risk AI systems).
+   * requireHumanApproval throws on 'rejected' and 'overridden'; continue only when it returns status 'approved'.
+   * @throws {SpurvikHitlRejectedError} When the decision is rejected or overridden. Read `error.record.status`.
+   * @throws {SpurvikHitlTimeoutError} When the wait ends before a decision.
    */
   async requireHumanApproval(actionName, payload, options) {
     await this.oversight.assertNotHalted(actionName);
@@ -25181,7 +25201,7 @@ var SpurvikClient = class {
         throw new SpurvikHitlTimeoutError(created.id);
       }
       const current = await this.transport.get(`/api/v1/hitl/${created.id}`);
-      if (current.status === "rejected") throw new SpurvikHitlRejectedError(current);
+      if (current.status === "rejected" || current.status === "overridden") throw new SpurvikHitlRejectedError(current);
       if (current.status !== "pending" && current.status !== "pending_confirmation") return current;
       if (Date.now() >= deadline) break;
       await waitForPoll(this.config.sleep, interval, options?.signal);
@@ -25283,7 +25303,7 @@ var SpurvikClient = class {
     const markingHookId = hook?.id ?? null;
     const modelId = input.modelVersion ?? "unknown";
     const provider = resolveProvider(input.path, modelId === "unknown" ? null : modelId);
-    const observed = observeUpstreamMarking({
+    const observed = observeUpstreamMarking2({
       provider,
       model: modelId,
       modality: modalityFromPath(input.path),
@@ -25292,7 +25312,7 @@ var SpurvikClient = class {
       localApplied: false,
       route: this.config.upstreamRoute ?? input.path.join(".")
     });
-    const watermark = hook ? isWatermarkHook(hook.id) : false;
+    const watermark = hook ? isWatermarkHook2(hook.id) : false;
     let markedOutput;
     let watermarkApplied = false;
     if (hook && watermark && input.output !== null) {
@@ -25342,7 +25362,7 @@ var SpurvikClient = class {
         writable: true
       });
     }
-    const evidence = await signUpstreamMarkingEvidence(
+    const evidence = await signUpstreamMarkingEvidence2(
       {
         ...observed,
         eventId: signed.eventId,
@@ -25390,7 +25410,7 @@ var SpurvikClient = class {
       mediaType: input.mediaType,
       provenance: preview
     });
-    const markingApplied = mediaMarkWasApplied(input.bytes, result);
+    const markingApplied = mediaMarkWasApplied2(input.bytes, result);
     const provenance = await this.signCall({
       modelId: input.modelVersion ?? "unknown",
       provider: "unknown",
@@ -25415,7 +25435,7 @@ var SpurvikClient = class {
     return { result, provenance };
   }
   signCall(input) {
-    return signProvenance(
+    return signProvenance2(
       {
         kind: "provenance_record",
         eventId: crypto.randomUUID(),
@@ -25454,7 +25474,7 @@ var SpurvikClient = class {
   }
   async fingerprint(value) {
     if (this.config.contentHashMode === "off" || value === null) return null;
-    return fingerprintContent(this.config.contentHashMode, value, this.config.contentHashSecret);
+    return fingerprintContent2(this.config.contentHashMode, value, this.config.contentHashSecret);
   }
   /**
    * Field names only, plus a fingerprint. Do not put personal data in a key.
@@ -25462,8 +25482,8 @@ var SpurvikClient = class {
    */
   async summarizePayload(payload) {
     const keys = payload && typeof payload === "object" && !Array.isArray(payload) ? Object.keys(payload) : [];
-    const contentFingerprint = this.config.contentHashMode === "off" ? null : await fingerprintContent(this.config.contentHashMode, canonicalJson(payload), this.config.contentHashSecret);
-    return buildPayloadSummary({ keys, contentFingerprint });
+    const contentFingerprint = this.config.contentHashMode === "off" ? null : await fingerprintContent2(this.config.contentHashMode, canonicalJson2(payload), this.config.contentHashSecret);
+    return buildPayloadSummary2({ keys, contentFingerprint });
   }
 };
 function withSpurvik(aiClient, config2) {
@@ -25517,7 +25537,7 @@ function waitForPoll(sleep, ms, signal) {
   });
 }
 
-// packages/sdk/src/ai.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-YL42MSWQ.js
 var RECEIPT_KEY = "spurvik";
 function extractFinishReason(value) {
   if (typeof value === "string" && value.trim().length > 0) return value.trim();
@@ -25779,7 +25799,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-// packages/sdk/src/mastra.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
 async function wrapMastraModel(model, middleware) {
   const { wrapLanguageModel } = await import("ai");
   return wrapLanguageModel({ model, middleware });
@@ -25819,7 +25839,7 @@ function withSpurvikMastra(model, config2) {
   };
 }
 
-// packages/sdk/src/openai-agents.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/openai-agents.js
 var RECEIPT_KEY2 = "spurvik";
 function withSpurvikModel(model, config2, options) {
   return new WrappedAgentsModel(model, new SpurvikClient(config2), options?.modelId);
@@ -25869,7 +25889,7 @@ async function resolveAgentInterruptions(interruptions, configOrClient, options)
         pollIntervalMs: options?.pollIntervalMs,
         signal: options?.signal
       });
-      if (approval.status === "approved" || approval.status === "overridden") {
+      if (approval.status === "approved") {
         options?.state?.approve(item);
         decisions.push({
           callId,
@@ -25892,7 +25912,11 @@ async function resolveAgentInterruptions(interruptions, configOrClient, options)
       });
     } catch (error2) {
       if (!(error2 instanceof SpurvikHitlRejectedError)) throw error2;
-      options?.state?.reject(item);
+      if (error2.record.status === "overridden") {
+        options?.state?.reject(item, { message: "The decision was overridden." });
+      } else {
+        options?.state?.reject(item);
+      }
       decisions.push({
         callId,
         actionName,
@@ -26246,7 +26270,7 @@ function deferred2() {
   return { promise, resolve, reject };
 }
 
-// packages/sdk/src/langgraph.ts
+// packages/mcp/node_modules/.pnpm/spurvik-sdk@file+..+sdk_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
 var SKIPPED_MESSAGE_KINDS = /* @__PURE__ */ new Set(["tool", "function", "function_call_result"]);
 function withSpurvikLangGraph(graph, config2, options) {
   const client = new SpurvikClient(config2);
@@ -26343,10 +26367,22 @@ async function spurvikInterrupt(request, configOrClient, options) {
       pollIntervalMs: options?.pollIntervalMs,
       signal: options?.signal
     });
-    const approved = approval.status === "approved" || approval.status === "overridden";
-    const resume = resumeValue(approved, approval.status, approval, actionName, request.callId ?? null);
+    if (approval.status !== "approved") {
+      if (options?.throwOnReject === true) throw new SpurvikHitlRejectedError(approval);
+      const stopped = resumeValue(false, approval.status, approval, actionName, request.callId ?? null);
+      return {
+        approved: false,
+        status: approval.status,
+        actionName,
+        callId: request.callId ?? null,
+        approval,
+        resume: stopped,
+        command: { resume: stopped }
+      };
+    }
+    const resume = resumeValue(true, approval.status, approval, actionName, request.callId ?? null);
     return {
-      approved,
+      approved: true,
       status: approval.status,
       actionName,
       callId: request.callId ?? null,
@@ -26357,10 +26393,11 @@ async function spurvikInterrupt(request, configOrClient, options) {
   } catch (error2) {
     if (!(error2 instanceof SpurvikHitlRejectedError)) throw error2;
     if (options?.throwOnReject === true) throw error2;
-    const resume = resumeValue(false, "rejected", error2.record, actionName, request.callId ?? null);
+    const status = error2.record.status === "overridden" ? "overridden" : "rejected";
+    const resume = resumeValue(false, status, error2.record, actionName, request.callId ?? null);
     return {
       approved: false,
-      status: "rejected",
+      status,
       actionName,
       callId: request.callId ?? null,
       approval: error2.record,
@@ -26591,9 +26628,10 @@ function asResumeValue(value) {
   if (typeof record2.approved !== "boolean") return void 0;
   if (typeof record2.status !== "string" || record2.status.length === 0) return void 0;
   if (typeof record2.approvalId !== "string" || record2.approvalId.length === 0) return void 0;
+  const status = record2.status;
   return {
-    approved: record2.approved,
-    status: record2.status,
+    approved: record2.approved === true && status === "approved",
+    status,
     approvalId: record2.approvalId,
     ...record2.actionName ? { actionName: record2.actionName } : {},
     ...record2.callId !== void 0 ? { callId: record2.callId } : {},
@@ -26601,14 +26639,16 @@ function asResumeValue(value) {
   };
 }
 function decisionFromResume(actionName, callId, resume) {
+  const approved = resume.approved === true && resume.status === "approved";
+  const settled = approved === resume.approved ? resume : { ...resume, approved };
   return {
-    approved: resume.approved,
+    approved,
     status: resume.status,
     actionName: resume.actionName ?? actionName,
     callId,
     ...resume.approval ? { approval: resume.approval } : {},
-    resume,
-    command: { resume }
+    resume: settled,
+    command: { resume: settled }
   };
 }
 function resumeValue(approved, status, approval, actionName, callId) {

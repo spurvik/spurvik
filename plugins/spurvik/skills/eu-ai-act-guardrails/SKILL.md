@@ -41,7 +41,7 @@ Do not claim the SDK marks content. Set `marking` only when you plug in your own
 For a use classified as `high_annex3`:
 
 - `enforceHaltOnInference` defaults to on. `oversight.cacheMs` and `oversight.pushInvalidation` are the halt-cache options.
-- Call `requireHumanApproval(actionName, payload)` before a tool that moves money, changes permissions, deletes data, or sends an external message. The stored summary keeps field names and an optional fingerprint, not the values.
+- Call `requireHumanApproval(actionName, payload)` before a tool that moves money, changes permissions, deletes data, or sends an external message. The stored summary keeps field names and an optional fingerprint, not the values. It throws on `rejected` and `overridden`; continue only when it returns status `approved`.
 - `engageKillSwitch({ reason: "stop" })` and `releaseKillSwitch({ reason: "release the stop" })` need `reviewerToken`. If the release reason is missing or blank, the SDK sends "Released via SDK (no reason given)" before the request. A blank halt reason is sent as "Halted via SDK (no reason given)".
 
 These methods are designed to support Art. 12 record-keeping and Art. 14 human oversight for high-risk AI systems. They are not a complete Art. 14 system. There is no currency threshold on `SpurvikConfig`.

@@ -3,3 +3,4 @@ packages/core/dist/
 packages/react/dist/
 packages/sdk/dist/
 packages/spurvik/dist/
+*.tgz

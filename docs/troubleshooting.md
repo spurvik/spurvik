@@ -28,7 +28,7 @@ npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not fo
 **Fix:**
 
 ```bash
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 ```
 
 The local stdio MCP server is `spurvik-mcp-server@1.0.2`:

@@ -16,7 +16,7 @@ The hosted console is a hosted service. Its source is not in this repository and
 Node.js 20 or later.
 
 ```bash
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 npm pkg set type=module
 ```
 
@@ -75,7 +75,7 @@ await ai._spurvik.shutdown();
 
 Warning: `engageKillSwitch` halts the real project at `baseUrl`. Do not run this against a project you need to keep serving until you mean to stop it.
 
-Run a `.ts` snippet with `npx tsx file.ts` from the app folder after `npm install openai spurvik@1.0.6`.
+Run a `.ts` snippet with `npx tsx file.ts` from the app folder after `npm install openai spurvik@1.0.7`.
 
 ```ts
 import OpenAI from "openai";

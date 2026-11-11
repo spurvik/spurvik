@@ -109,7 +109,7 @@ const approvals = dedupeToolApprovalResponses([
 
 `withSpurvikModel`, `withSpurvikModelProvider`, and `provenanceFromAgentsResponse` are exported from `@spurvik/sdk/openai-agents`. `withSpurvikModel` wraps one Agents SDK `Model`. `withSpurvikModelProvider` wraps a `ModelProvider` and wraps each model `getModel` returns. Read the receipt with `provenanceFromAgentsResponse`. `provenanceOf` from `@spurvik/sdk` reads an Agents stream. The wrapper does not mark content.
 
-`createSpurvikNeedsApproval` returns a `needsApproval` function. It checks the halt state, then returns true, or the result of `when` when you pass one. `resolveAgentInterruptions` sends each unique tool call to the human-oversight queue. An approved or overridden decision calls `state.approve`. A rejected decision calls `state.reject`. The same helpers are on the wrapped model and provider as `resolveInterruptions`.
+`createSpurvikNeedsApproval` returns a `needsApproval` function. It checks the halt state, then returns true, or the result of `when` when you pass one. `resolveAgentInterruptions` sends each unique tool call to the human-oversight queue. Only an approved decision calls `state.approve`. An overridden or rejected decision calls `state.reject`; overridden means do not continue. The same helpers are on the wrapped model and provider as `resolveInterruptions`.
 
 ```ts
 import type { SpurvikConfig } from "@spurvik/sdk";

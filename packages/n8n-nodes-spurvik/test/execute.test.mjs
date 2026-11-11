@@ -250,4 +250,25 @@ describe("SpurvikEuAiActGuard.execute", () => {
     const monday = channel.options.find((option) => option.value === "monday");
     assert.match(monday.description, /does not send Approve or Block links/);
   });
+
+  it("masks the signing secret and every channel credential in the n8n UI", () => {
+    const properties = new SpurvikApi().properties;
+    const expected = [
+      "signingSecret",
+      "slackWebhookUrl",
+      "telegramBotToken",
+      "resendApiKey",
+      "discordWebhookUrl",
+      "teamsWebhookUrl",
+      "linearApiKey",
+      "jiraApiToken",
+      "mondayApiToken",
+      "asanaAccessToken",
+    ];
+    assert.deepEqual(properties.map((property) => property.name), expected);
+    for (const property of properties) {
+      assert.equal(property.type, "string", property.name);
+      assert.equal(property.typeOptions?.password, true, `${property.name} must set typeOptions.password`);
+    }
+  });
 });

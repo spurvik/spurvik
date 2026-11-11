@@ -37,7 +37,7 @@ Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.m
 (a) npm:
 
 ```bash
-npm install spurvik@1.0.6 spurvik-sdk@1.0.6
+npm install spurvik@1.0.7 spurvik-sdk@1.0.7
 ```
 
 `spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, `spurvik/channels`, and `spurvik/react`.
@@ -53,7 +53,7 @@ In your app (an ES module project, because the example uses top-level `await`):
 
 ```bash
 npm pkg set type=module
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 ```
 
 **Wrap a call and check the record:**
@@ -173,7 +173,7 @@ The human-review queue is built into this control plane. The oversight page and 
 
 Article 14 requires more than an approve/reject gate for high-risk systems, including the ability to override the system and to interrupt it.
 
-- `requireHumanApproval(actionName, payload)` creates a pending row and polls `/api/v1/hitl/:id` until the status leaves `pending` and `pending_confirmation`, or the wait ends.
+- `requireHumanApproval(actionName, payload)` creates a pending row and polls `/api/v1/hitl/:id` until the status leaves `pending` and `pending_confirmation`, or the wait ends. From 1.0.7, `requireHumanApproval` throws `SpurvikHitlRejectedError` on `rejected` and `overridden`; continue only when it returns status `approved`.
 - `submitHumanDecision(id, { status, reason })` records an API decision. `decisionSource` is `api`. The console sets `console`. Approve, reject, and override each require a reason. The reason stays on the decision row and is not an input to the record hash.
 - A final decision, and the first half of a two-person confirmation, appends a `human_decision` hash-chain row. That row stores the approval id, the status, and the source. Rows sealed before this field omit it, so their hashes still match.
 - `overrideHumanDecision(id, { reason })` records a human reversal. The caller is `reviewerToken`, not a free-text id.

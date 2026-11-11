@@ -199,7 +199,8 @@ export function withSpurvikLangGraph<TInput = Record<string, unknown>, TOutput =
 /**
  * Pause a graph node on the human-oversight queue.
  * When `request.interrupt` returns a resume value that already has `approved`, `status`, and `approvalId`, that value is used.
- * A rejection returns a `command` ready for `new Command(decision.command)` unless `throwOnReject` is set.
+ * A rejection or an overridden decision returns a `command` ready for `new Command(decision.command)` unless `throwOnReject` is set.
+ * Only `approved` sets `approved`. Overridden means do not continue.
  */
 export async function spurvikInterrupt(
   request: SpurvikLangGraphInterruptRequest,
@@ -225,10 +226,22 @@ export async function spurvikInterrupt(
       pollIntervalMs: options?.pollIntervalMs,
       signal: options?.signal,
     });
-    const approved = approval.status === "approved" || approval.status === "overridden";
-    const resume = resumeValue(approved, approval.status, approval, actionName, request.callId ?? null);
+    if (approval.status !== "approved") {
+      if (options?.throwOnReject === true) throw new SpurvikHitlRejectedError(approval);
+      const stopped = resumeValue(false, approval.status, approval, actionName, request.callId ?? null);
+      return {
+        approved: false,
+        status: approval.status,
+        actionName,
+        callId: request.callId ?? null,
+        approval,
+        resume: stopped,
+        command: { resume: stopped },
+      };
+    }
+    const resume = resumeValue(true, approval.status, approval, actionName, request.callId ?? null);
     return {
-      approved,
+      approved: true,
       status: approval.status,
       actionName,
       callId: request.callId ?? null,
@@ -239,10 +252,11 @@ export async function spurvikInterrupt(
   } catch (error) {
     if (!(error instanceof SpurvikHitlRejectedError)) throw error;
     if (options?.throwOnReject === true) throw error;
-    const resume = resumeValue(false, "rejected", error.record, actionName, request.callId ?? null);
+    const status: HitlStatus = error.record.status === "overridden" ? "overridden" : "rejected";
+    const resume = resumeValue(false, status, error.record, actionName, request.callId ?? null);
     return {
       approved: false,
-      status: "rejected",
+      status,
       actionName,
       callId: request.callId ?? null,
       approval: error.record,
@@ -518,9 +532,10 @@ function asResumeValue(value: unknown): SpurvikLangGraphResumeValue | undefined 
   if (typeof record.approved !== "boolean") return undefined;
   if (typeof record.status !== "string" || record.status.length === 0) return undefined;
   if (typeof record.approvalId !== "string" || record.approvalId.length === 0) return undefined;
+  const status = record.status as HitlStatus;
   return {
-    approved: record.approved,
-    status: record.status as HitlStatus,
+    approved: record.approved === true && status === "approved",
+    status,
     approvalId: record.approvalId,
     ...(record.actionName ? { actionName: record.actionName } : {}),
     ...(record.callId !== undefined ? { callId: record.callId } : {}),
@@ -533,14 +548,16 @@ function decisionFromResume(
   callId: string | null,
   resume: SpurvikLangGraphResumeValue,
 ): SpurvikLangGraphDecision {
+  const approved = resume.approved === true && resume.status === "approved";
+  const settled = approved === resume.approved ? resume : { ...resume, approved };
   return {
-    approved: resume.approved,
+    approved,
     status: resume.status,
     actionName: resume.actionName ?? actionName,
     callId,
     ...(resume.approval ? { approval: resume.approval } : {}),
-    resume,
-    command: { resume },
+    resume: settled,
+    command: { resume: settled },
   };
 }
 

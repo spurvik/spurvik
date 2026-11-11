@@ -1,6 +1,6 @@
 {
   "name": "spurvik",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "description": "Runtime wrapper designed to support EU AI Act record-keeping, human oversight, and transparency work. It does not by itself mean a system meets the Act.",
   "author": "EyeTea Solutions ApS",

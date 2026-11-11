@@ -23,7 +23,7 @@ Using Spurvik does not, on its own, mean your system meets the Act. `riskTier` i
 ## Step 1: Install the published packages
 
 ```bash
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 ```
 
 `spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
@@ -43,7 +43,7 @@ mkdir my-ai-app
 cd my-ai-app
 npm init -y
 npm pkg set type=module
-npm install openai spurvik@1.0.6
+npm install openai spurvik@1.0.7
 ```
 
 `npm pkg set type=module` matters. The examples use `import` and top-level `await`. Run a `.ts` snippet with `npx tsx file.ts` from this folder.

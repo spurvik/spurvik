@@ -50,7 +50,7 @@ If you set `marking: { text: "signed-trailer" }`, the SDK appends the signed pro
 
 Plan for half a day with one developer. The [quickstart](quickstart.md) has every command.
 
-> **Public MIT release.** `npm install openai spurvik@1.0.6` and `npm i -D spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
+> **Public MIT release.** `npm install openai spurvik@1.0.7` and `npm i -D spurvik-mcp-server@1.0.2`. Source: https://github.com/spurvik/spurvik. Builds previously served at spurvik.com/sdk/latest.tgz are not this SDK, are unsupported and must not be relied on to check records.
 
 | # | Task | Who | Time |
 | --- | --- | --- | --- |

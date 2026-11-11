@@ -197,7 +197,7 @@ await graph.flush();
 
 `dedupeToolApprovalResponses` keeps the first approval response for each `toolCallId`, `approvalId`, or `id`.
 
-`createSpurvikNeedsApproval` returns a `needsApproval` function. It checks the halt state, then returns true, or the `when` predicate when you pass one. `resolveAgentInterruptions` sends each unique `callId` to the human-oversight queue, calls `state.approve` for an approved or overridden row, and `state.reject` for a rejected row.
+`createSpurvikNeedsApproval` returns a `needsApproval` function. It checks the halt state, then returns true, or the `when` predicate when you pass one. `resolveAgentInterruptions` sends each unique `callId` to the human-oversight queue, calls `state.approve` only for an approved row, and `state.reject` for an overridden or rejected row (overridden means do not continue).
 
 ---
 

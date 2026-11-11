@@ -5,7 +5,7 @@
 ## Install
 
 ```bash
-npm install spurvik@1.0.6
+npm install spurvik@1.0.7
 ```
 
 ---

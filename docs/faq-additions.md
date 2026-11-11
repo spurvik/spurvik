@@ -89,7 +89,7 @@ Each prefix is scoped to a specific surface, shown once when created, and stored
 
 ### 3. This repository does not include a server you start with a package script
 
-The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.6` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
+The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Install the SDK with `npm install openai spurvik@1.0.7` and set `baseUrl` to `https://console.spurvik.com` for an invited organisation.
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
@@ -165,7 +165,7 @@ No. The public 2x2 cockpit at `https://console.spurvik.com/sandbox` (and `https:
 
 Card 2 (`Human Gate · Art. 14`) previews two production mechanisms side by side:
 
-- **Per-action human review (`Approve (€450)` and `Block Agent`):** In `spurvik`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` sends `POST /api/v1/hitl`, which creates a `pending` row (or `pending_confirmation` when two-person confirmation is enabled on the project) and polls until a reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_...` token.
+- **Per-action human review (`Approve (€450)` and `Block Agent`):** In `spurvik`, calling `await ai._spurvik.requireHumanApproval(actionName, payload)` sends `POST /api/v1/hitl`, which creates a `pending` row (or `pending_confirmation` when two-person confirmation is enabled on the project) and polls until a reviewer decides in `/dashboard/projects/<projectId>/oversight` or calls `submitHumanDecision(id, { status: "approved" | "rejected" | "overridden", reason })` with a `spurvik_reviewer_...` token. From 1.0.7, `requireHumanApproval` throws `SpurvikHitlRejectedError` on `rejected` and `overridden`; continue only when it returns status `approved`.
 - **Project or action stop (`Kill Switch` and `Reset`):** Calling `await ai._spurvik.engageKillSwitch({ reason, actionName })` or `await ai._spurvik.releaseKillSwitch({ reason, actionName })` (or clicking **Engage stop** / **Release stop** on `/dashboard/projects/<projectId>/oversight`) toggles the stop checked before every `high_annex3` call (`GET /api/v1/oversight` -> `PROCEED` vs. `HALT`, throwing `SpurvikHaltedError` while active).
 - **Audit scope:** Both in the sandbox (`#1043 · hitl.decision`) and in production (`audit_logs` / `oversight_states`), the oversight and audit record shows what happened, when, and who acted. A free-text reason is recorded only with a reviewer's decision or override and with halt and release calls (a blank halt or release reason gets a default text), never with per-call events.
 
@@ -193,7 +193,7 @@ The Readiness Ring (`data-testid="readiness-ring"`) is a live UI indicator of wh
 
 ### 15. This repository does not include those start or purge scripts
 
-Install with `npm install openai spurvik@1.0.6`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
+Install with `npm install openai spurvik@1.0.7`. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules that step. Retention periods are (planned).
 
 ---
 
@@ -204,7 +204,7 @@ Install with `npm install openai spurvik@1.0.6`. For an invited organisation, `b
 `spurvik` provides framework-specific helpers alongside `requireHumanApproval(actionName, payload, options?)` for in-process waits, `submitHumanDecision(approvalId, { status, reason })` / `overrideHumanDecision(approvalId, { reason })` for API-driven reviewer decisions, and `verifyHitlWebhook({ secret, body, signature, timestamp })` for event-driven webhook resumes:
 
 - **Vercel AI SDK (`spurvik/ai`):** Wrap your model with `spurvikMiddleware(config)`. Use `extractFinishReason` and `isInterruptedFinishReason` to check for `"interrupted"` stops (`step.rawFinishReason === "interrupted"` or `step.content` parts with `part.type === "tool-approval-request"`), pass `req.toolCall.toolName` and `req.toolCall.input` to `await spurvikClient.requireHumanApproval(...)`, and deduplicate responses with `dedupeToolApprovalResponses`.
-- **OpenAI Agents SDK (`spurvik/openai-agents`):** Wrap your model or provider with `withSpurvikModel` or `withSpurvikModelProvider` and set `needsApproval: createSpurvikNeedsApproval(config, { actionName })` on side-effect tools. Pass `paused.interruptions` to `await resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (which deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve` or `state.reject`), then resume with `await runner.run(agent, paused.state)`.
+- **OpenAI Agents SDK (`spurvik/openai-agents`):** Wrap your model or provider with `withSpurvikModel` or `withSpurvikModelProvider` and set `needsApproval: createSpurvikNeedsApproval(config, { actionName })` on side-effect tools. Pass `paused.interruptions` to `await resolveAgentInterruptions(paused.interruptions, config, { state: paused.state })` (which deduplicates `callId` items, polls `/api/v1/hitl`, and calls `state.approve` only for `approved`, `state.reject` for `overridden` or `rejected`), then resume with `await runner.run(agent, paused.state)`.
 - **LangGraph (`spurvik/langgraph`):** Wrap your compiled graph with `withSpurvikLangGraph(compiled, config)`. Either call `await spurvikInterrupt({ actionName, callId, payload, interrupt }, config)` inside a node, call `await resolveLangGraphInterrupts(state.__interrupt__, config)` outside the node (which deduplicates interrupt IDs and returns `resolved.command` for `new Command(resolved.command)`), or create a `"pending"` row via `POST /api/v1/hitl` using a `spurvik.payload_summary.v1` string of identifier-shaped key names you build yourself (values are not included), pause the graph checkpoint with `interrupt({ approvalId, actionName, payloadSummary })`, and resume with `new Command({ resume: envelope.approval })` when `verifyHitlWebhook` receives the `hitl.decision` webhook.
 
 See [Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue](hitl-approval-mapping.md) and [LangGraph Quickstart](langgraph-quickstart.md) for copy-paste examples.
