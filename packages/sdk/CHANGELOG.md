@@ -8,7 +8,7 @@ Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build) once released.
 
 - `requireHumanApproval` now throws `SpurvikHitlRejectedError` when the decision is overridden, as it does when rejected. Read `error.record.status` (`"overridden"` or `"rejected"`). Continue only when it returns status `approved`.
 - `SpurvikHitlRejectedError.message` says `was overridden` for an overridden decision and `was rejected` for a rejected one.
-- For any other status that is not `approved`, `SpurvikHitlRejectedError.message` now reads `Human approval for "<actionName>" was not approved (status "<status>").` For example `was not approved (status "expired")`. In 1.0.6 the message said `was rejected` for every status.
+- For any other status that is not `approved`, `SpurvikHitlRejectedError.message` now reads `Human approval for "<actionName>" was not approved (status "<status>").` For example `was not approved (status "pending")`. In 1.0.6 the message said `was rejected` for every status.
 
 ### Fixed
 
