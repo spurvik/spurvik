@@ -52,6 +52,16 @@ runStep("Cursor, Claude Code & VS Code MCP Tools Smoke Test", process.execPath, 
   "examples/cursor-claude-code-mcp/smoke.test.mjs",
 ]);
 
+runStep("MCP CLI Subcommands (check, snippet, marking-hooks, --ci) Gate", process.execPath, [
+  "--test",
+  "scripts/ci/mcp-cli.test.mjs",
+]);
+
+runStep("Cloudflare Workers, Hono & Edge Fetch Handler Smoke Test", process.execPath, [
+  "--test",
+  "examples/cloudflare-workers-hono-edge/smoke.test.mjs",
+]);
+
 runStep("n8n Community Node Build & Execution Tests", "npm", ["test"], join(root, "packages/n8n-nodes-spurvik"));
 
 console.log("\n=== [CI] All repository checks passed ===");

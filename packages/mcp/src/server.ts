@@ -31,7 +31,7 @@ function text(value: string): { content: [{ type: "text"; text: string }] } {
 }
 
 /** Version advertised on initialize. Reads the package next to the built entry, otherwise 1.0.3. */
-function serverVersion(): string {
+export function serverVersion(): string {
   try {
     const here = dirname(fileURLToPath(import.meta.url));
     const raw = readFileSync(join(here, "..", "package.json"), "utf8");
