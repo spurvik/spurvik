@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -181,6 +182,7 @@ mkdirSync(join(staging, "dist"), { recursive: true });
 const indexMeta = await bundle(join(packageRoot, "src/index.ts"), join(staging, "dist/index.js"), {
   banner: "#!/usr/bin/env node\n",
 });
+chmodSync(join(staging, "dist/index.js"), 0o755);
 const toolsMeta = await bundle(join(packageRoot, "src/tools-api.ts"), join(staging, "dist/tools-api.js"));
 
 writeFileSync(join(staging, "dist/THIRD-PARTY-NOTICES.txt"), buildNotices([indexMeta, toolsMeta]));

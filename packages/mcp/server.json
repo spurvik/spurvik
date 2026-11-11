@@ -32,7 +32,7 @@
           "type": "named",
           "name": "--root",
           "description": "Project workspace root directory to scan (must contain package.json, .git, or pnpm-workspace.yaml).",
-          "isRequired": false,
+          "isRequired": true,
           "default": "."
         }
       ],

@@ -18,3 +18,7 @@ The package.json on the published tarball includes `mcpName` set to `io.github.s
 - MCP listing manifests (`server.json`, `smithery.yaml`, `glama.json`) and the Claude plugin manifests pin `spurvik-mcp-server@1.0.3` and `spurvik@1.0.7`.
 - `smithery.yaml` starts the published npm bin (`npm exec --yes --package=spurvik-mcp-server@1.0.3 -- spurvik-mcp-server`) instead of a repo-relative `packages/mcp/dist/index.js` path.
 - `server.json` keeps camelCase package fields only (`registryType`, `registryBaseUrl`, `environmentVariables`).
+- `spurvik_setup_snippet` imports from the published `spurvik` package and its subpath exports (`spurvik/ai`, `spurvik/mastra`, `spurvik/openai-agents`, `spurvik/langgraph`). The 1.0.3 draft had briefly emitted unpublished `@spurvik/sdk` / `@spurvik/core` specifiers (a regression vs 1.0.2).
+- Setup snippets pin `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build), derived from one `SNIPPET_SDK_VERSION` constant.
+- `server.json` marks `--root` as required. The default remains `.`.
+- Staged `dist/index.js` is mode `0755` again (as in 1.0.2).

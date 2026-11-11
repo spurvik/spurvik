@@ -40,6 +40,8 @@ test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) matc
     assert.equal(server.repository.url, "https://github.com/spurvik/spurvik");
     assert.equal(server.packages[0].identifier, "spurvik-mcp-server");
     assert.equal(server.packages[0].version, "1.0.3");
+    assert.equal(server.packages[0].packageArguments[0].name, "--root");
+    assert.equal(server.packages[0].packageArguments[0].isRequired, true);
     assert.equal(server.remotes[0].url, "https://console.spurvik.com/api/mcp");
 
     assert.equal(glama.name, "spurvik-mcp-server");
