@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { tryRunCli } from "./cli.js";
 import { resolveConfiguredRoot } from "./root.js";
 import { createServer } from "./server.js";
 
@@ -16,6 +17,11 @@ function isDirectRun(): boolean {
 }
 
 async function start(): Promise<void> {
+  const cliExitCode = tryRunCli(process.argv);
+  if (cliExitCode !== null) {
+    process.exitCode = cliExitCode;
+    return;
+  }
   const root = resolveConfiguredRoot(process.argv, process.env);
   const server = createServer(root);
   const transport = new StdioServerTransport();
