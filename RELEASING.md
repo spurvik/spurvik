@@ -349,6 +349,9 @@ Hosted console features are invite-only during early access. These commands do n
 
 ## Releasing spurvik-mcp-server@1.0.3
 
+`packages/mcp/CHANGELOG.md` is headed `1.0.3 — unreleased` until this version is published. At publish, replace that heading with `1.0.3 — YYYY-MM-DD` (the publish date). That is the same convention as `packages/sdk/CHANGELOG.md` for 1.0.7, which stayed "unreleased" until the package was published and was then dated 2026-11-11.
+
+
 `packages/mcp` stays `"private": true` under the workspace name `@spurvik/mcp`. The published npm package is `spurvik-mcp-server`. Do not run `npm publish` from `packages/mcp`. Stage a public package with `node scripts/stage-mcp-package.mjs`, then pack and publish that staged tarball. The staged `package.json` sets `name` to `spurvik-mcp-server` and `mcpName` to `io.github.spurvik/spurvik-mcp-server`, which must match `name` in `server.json`. The MCP Registry uses `mcpName` to check npm package ownership.
 
 The workspace package depends on `spurvik-sdk@^1.0.7` from the npm registry (and on `packages/core` in this repository). From spurvik-mcp-server@1.0.3, the bundled SDK matches `spurvik@1.0.7`: an `overridden` decision is not approved. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved. The plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is rebuilt from this tree and is not inside the `spurvik` or `spurvik-sdk` tarball.

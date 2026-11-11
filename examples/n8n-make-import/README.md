@@ -1,6 +1,6 @@
 # n8n and Make.com import guide (`n8n-nodes-spurvik`)
 
-> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.2` is the repo manifest version and npm `latest` (MIT). `0.0.0-stage` is a placeholder.
+> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.3` is the repo manifest version and npm `latest` (MIT). `0.0.0-stage` is a placeholder.
 
 Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.
 
@@ -10,10 +10,10 @@ This folder is an import guide for the files that are actually in `packages/n8n-
 
 | Item | Detail |
 | --- | --- |
-| Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.2`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
+| Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.3`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
 | Runtime | `nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts` exports `class SpurvikEuAiActGuard` and `SpurvikN8nNodeDescription`. `workflow.ts` exports `executeSpurvikWorkflowStep`. `index.ts` re-exports both. |
 | Build output | `npm run build` writes `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which `n8n-nodes-spurvik@1.0.3` ships. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js`. |
-| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.2`). `0.0.0-stage` is a placeholder. |
+| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.3`). `0.0.0-stage` is a placeholder. |
 | Make file already in the package | `packages/n8n-nodes-spurvik/make-com-blueprint.json`. See [Make.com](#makecom) before importing it. |
 
 `SpurvikN8nNodeDescription` fields n8n would read:
@@ -93,8 +93,8 @@ Make.com does not load n8n community nodes. A Make scenario cannot install `n8n-
    - Content type: `application/json`
    - Header `content-type`: `application/json`
    - Body: the Slack shape from `buildChannelOutboundRequest` (`text`, `blocks` with one `section` and one `actions` array). Button URLs in the sample are `https://example.com/hitl?...` placeholders. The real URLs are the `approveUrl` and `rejectUrl` strings from `createSignedApprovalLinks`. Make's HTTP module does not compute those HMAC receipts. The sample body is the shape, with `REPLACE_ME` where the digest and signature would be.
-3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName`, `inputHmac`, and `rawPromptBytes`, and it uses Make's `sha256` on the prompt text. `executeSpurvikWorkflowStep` does not send that request. The create-body `spurvik@1.0.6` sends for `POST /api/v1/hitl` is `actionName` plus `payloadSummary`. The blueprint's `sha256(...)` string is a different digest from `spurvik:workflow:input:v1|...`. Importing that blueprint does not reproduce the helper and does not match that body.
-4. Console rows come from `spurvik@1.0.6` (`SpurvikClient`). This n8n package does not call it. To write those rows from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For an invited organisation the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
+3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName`, `inputHmac`, and `rawPromptBytes`, and it uses Make's `sha256` on the prompt text. `executeSpurvikWorkflowStep` does not send that request. The create-body `spurvik@1.0.7` sends for `POST /api/v1/hitl` is `actionName` plus `payloadSummary`. The blueprint's `sha256(...)` string is a different digest from `spurvik:workflow:input:v1|...`. Importing that blueprint does not reproduce the helper and does not match that body.
+4. Console rows come from `spurvik@1.0.7` (`SpurvikClient`). This n8n package does not call it. To write those rows from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For an invited organisation the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
 
    `POST {{var.SPURVIK_BASE_URL}}/api/v1/telemetry` with:
 

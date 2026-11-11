@@ -241,7 +241,7 @@ declare class Command<TResume = HitlRecordWire> {
 
 // Step A — Inside your LangGraph node before executing a side-effect action:
 export async function refundNode(state: { orderId: string; amountCents: number }) {
-  // spurvik@1.0.6 does not export a payload-summary helper. Send key names, not values.
+  // spurvik@1.0.7 does not export a payload-summary helper. Send key names, not values.
   const payloadSummary = `spurvik.payload_summary.v1:${Object.keys(state).sort().join(",")}`;
 
   const res = await fetch(`${process.env.SPURVIK_BASE_URL}/api/v1/hitl`, {

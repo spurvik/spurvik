@@ -23,7 +23,7 @@ Channel objects use `type` (`"slack"`, `"telegram"`, `"linear"`). The approval r
 
 From `1.0.5`, the email channel escapes HTML in the request summary and context fields, and approval links include a `nonce` query parameter.
 
-`npm test` typechecks and runs against the installed `spurvik` package. Channel helpers ship in `spurvik@1.0.6` (`spurvik` and `spurvik/channels`). This folder depends on `spurvik` `^1.0.6`.
+`npm test` typechecks and runs against the installed `spurvik` package. Channel helpers ship in `spurvik@1.0.7` (`spurvik` and `spurvik/channels`). This folder depends on `spurvik` `^1.0.7`.
 
 The channel `gateId` and the queue row id from `requireHumanApproval` are different values. Nothing in the SDK writes the callback decision onto that row.
 
@@ -37,7 +37,7 @@ Node.js 20 or newer. From this folder:
 npm install
 ```
 
-`package.json` depends on `spurvik` `^1.0.6`.
+`package.json` depends on `spurvik` `^1.0.7`.
 
 ## Environment
 

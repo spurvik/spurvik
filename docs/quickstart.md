@@ -16,7 +16,7 @@ Using Spurvik does not, on its own, mean your system meets the Act. `riskTier` i
 
 | You need | Notes |
 | --- | --- |
-| Node.js 20 or later | `spurvik@1.0.6` sets `"engines": { "node": ">=20" }`. |
+| Node.js 20 or later | `spurvik@1.0.7` sets `"engines": { "node": ">=20" }`. |
 | An OpenAI API key | Or use the mock server in [Optional: try it without an OpenAI key](#optional-try-it-without-an-openai-key). |
 | A project key | For an invited organisation, create it in the hosted console at https://console.spurvik.com. |
 

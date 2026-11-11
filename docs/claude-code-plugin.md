@@ -13,7 +13,7 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- Public MIT packages are live on npm as `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, and `spurvik-mcp-server@1.0.3` (inside the monorepo, `spurvik`, `spurvik/react`, and `spurvik` use published version `1.0.6`; see [5-minute quickstart](5-minute-quickstart.md)).
+- Public MIT packages are live on npm as `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, and `spurvik-mcp-server@1.0.3` (inside the monorepo, use the published `spurvik@1.0.7`, including `spurvik/react`; see [5-minute quickstart](5-minute-quickstart.md)).
 - The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `spurvik-mcp-server` `1.0.3` and published on npm as `spurvik-mcp-server@1.0.3` (MIT)). Its four tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) are read-only and make no network calls. There is no hosted MCP endpoint in this plugin.
 
 ## Install

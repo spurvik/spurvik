@@ -1,6 +1,6 @@
 # FAQ additions
 
-> Answers describe `spurvik@1.0.6` and the hosted console. Not legal advice.
+> Answers describe `spurvik@1.0.7` and the hosted console. Not legal advice.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.*
 
@@ -27,11 +27,11 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ### Can I install the SDK from npm?
 
-Yes. The public MIT packages are `spurvik@1.0.7` and `spurvik-sdk@1.0.7`, and the local stdio MCP server is `spurvik-mcp-server@1.0.3`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, `spurvik`, and `spurvik/react` use published version `1.0.6`. See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.7` and `spurvik-sdk@1.0.7`, and the local stdio MCP server is `spurvik-mcp-server@1.0.3`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, use the published `spurvik@1.0.7` (including `spurvik/react`). See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
-The public npm release is `spurvik@1.0.6` and `spurvik-sdk@1.0.6`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
+The public npm release is `spurvik@1.0.7` and `spurvik-sdk@1.0.7`. Zero-dependency registry starters are at `https://spurvik.com/r/eu-ai-act.json` and `https://console.spurvik.com/r/eu-ai-act.json`.
 ### Is there a hosted Spurvik service or dashboard?
 
 The SDK has no hosted address built in: your code passes `baseUrl` explicitly. For an invited organisation, that address is `https://console.spurvik.com`. The sandbox is at [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox). See the [Console Onboarding Guide](console-onboarding.md). The hosted console is a hosted service. Its source is not in this repository.

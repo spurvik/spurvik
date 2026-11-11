@@ -1,10 +1,10 @@
 # Spurvik for startups and SMEs: a plain-language guide
 
-> Applies to `spurvik@1.0.6` and `spurvik-mcp-server@1.0.3`.
+> Applies to `spurvik@1.0.7` and `spurvik-mcp-server@1.0.3`.
 
 This guide is for founders, small product teams and SMEs that build with AI models and do not have a Data Protection Officer or an in-house legal team. It explains what Spurvik does, what it does not do, how to get set up on day one, and what to hand to your advisor.
 
-Spurvik is made by EyeTea Solutions ApS (CVR 37093378), Trekantområdet, Denmark. The published SDK is `spurvik@1.0.6`.
+Spurvik is made by EyeTea Solutions ApS (CVR 37093378), Trekantområdet, Denmark. The published SDK is `spurvik@1.0.7`.
 
 > **Not legal advice.** Nothing in this guide tells you what the EU AI Act, the GDPR or any other law asks of your company. Spurvik is a technical tool designed to support your work on those questions. This guide describes what the software does; it does not assess your system. For what applies to you, ask your own legal counsel.
 >
@@ -54,7 +54,7 @@ Plan for half a day with one developer. The [quickstart](quickstart.md) has ever
 
 | # | Task | Who | Time |
 | --- | --- | --- | --- |
-| 1 | Install `spurvik@1.0.6` and `spurvik-sdk@1.0.6` from npm. ([quickstart step 1](quickstart.md#step-1-install-the-published-packages)) | Developer | 15 min |
+| 1 | Install `spurvik@1.0.7` and `spurvik-sdk@1.0.7` from npm. ([quickstart step 1](quickstart.md#step-1-install-the-published-packages)) | Developer | 15 min |
 | 2 | For an invited organisation, copy the `spurvik_live_` key from the hosted console at https://console.spurvik.com. Set `baseUrl` to that address. ([quickstart](quickstart.md)) | Developer | 20 min |
 | 3 | Create two secrets (signing and fingerprint) and store them in your password manager or secret manager. Decide who holds them. | Founder + developer | 10 min |
 | 4 | Wrap one AI call, run it, and check the record's signature. ([steps 5–6](quickstart.md#step-5-wrap-a-call-and-save-the-provenance-record)) | Developer | 30 min |

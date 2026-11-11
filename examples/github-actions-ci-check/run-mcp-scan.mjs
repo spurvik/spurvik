@@ -82,7 +82,7 @@ export async function runMcpUnwrappedScan({
       params: {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "spurvik-ci-check", version: "1.0.6" },
+        clientInfo: { name: "spurvik-ci-check", version: "1.0.3" },
       },
     });
     await waitForId(1);

@@ -1,6 +1,6 @@
 # FAQ — Human-Oversight Queue Mapping & Claude Code Plugin
 
-> Applies to `spurvik@1.0.6`. Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
+> Applies to `spurvik@1.0.7`. Not legal advice. For legal questions, contact your counsel or `hello@spurvik.com`.
 >
 > *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.7`, `spurvik-sdk@1.0.7`, `spurvik-mcp-server@1.0.3`.*
 

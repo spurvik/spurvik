@@ -85,7 +85,7 @@ test("Stdio MCP server exposes and executes all 4 read-only tools over JSON-RPC"
       params: {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "cursor-smoke-test", version: "1.0.2" },
+        clientInfo: { name: "cursor-smoke-test", version: "1.0.3" },
       },
     });
     await waitId(1);
