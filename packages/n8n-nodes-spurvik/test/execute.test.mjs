@@ -255,6 +255,7 @@ describe("SpurvikEuAiActGuard.execute", () => {
     const properties = new SpurvikApi().properties;
     const expected = [
       "signingSecret",
+      "consoleApiKey",
       "slackWebhookUrl",
       "telegramBotToken",
       "resendApiKey",
@@ -270,5 +271,123 @@ describe("SpurvikEuAiActGuard.execute", () => {
       assert.equal(property.type, "string", property.name);
       assert.equal(property.typeOptions?.password, true, `${property.name} must set typeOptions.password`);
     }
+  });
+
+  it("syncs art50, art12, and art14 metadata to consoleBaseUrl when consoleApiKey is set and sends 0 prompt bytes", async () => {
+    const liveKey = `${"spurvik"}_live_${"k".repeat(36)}`;
+    const calls = [];
+    const original = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+      const target = String(url);
+      const rawBody = typeof init?.body === "string" ? init.body : "";
+      calls.push({ url: target, headers: init?.headers ?? {}, body: rawBody });
+      if (target.endsWith("/api/v1/disclosure")) {
+        return new Response(JSON.stringify({ data: { sessionId: "n8n_sess_1" } }), { status: 201 });
+      }
+      if (target.endsWith("/api/v1/telemetry")) {
+        return new Response(JSON.stringify({ data: { inserted: 1, duplicates: 0 } }), { status: 200 });
+      }
+      if (target.endsWith("/api/v1/hitl")) {
+        return new Response(JSON.stringify({ data: { id: "hitl_row_1" } }), { status: 201 });
+      }
+      return new Response(JSON.stringify({ ok: true, id: "msg_1" }), { status: 200 });
+    };
+    try {
+      const [art50Out] = await node.execute.call(
+        ctx(
+          {
+            operation: "art50_disclosure",
+            systemName: "Support bot",
+            outputField: "outputText",
+            consoleBaseUrl: "https://console.spurvik.com/",
+          },
+          { signingSecret: SECRET, consoleApiKey: liveKey },
+          [{ json: { promptText: PROMPT, outputText: "Invoice updated." } }],
+        ),
+      );
+      assert.equal(art50Out[0].json.spurvik.consoleSync.endpoint, "/api/v1/disclosure");
+      assert.equal(art50Out[0].json.spurvik.consoleSync.synced, true);
+      assert.equal(art50Out[0].json.spurvik.consoleSync.remoteId, "n8n_sess_1");
+
+      const [art12Out] = await node.execute.call(
+        ctx(
+          {
+            operation: "art12_hmac_log",
+            systemName: "Support bot",
+            inputField: "promptText",
+            consoleBaseUrl: "https://console.spurvik.com",
+          },
+          { signingSecret: SECRET, consoleApiKey: liveKey },
+          [{ json: { promptText: PROMPT } }],
+        ),
+      );
+      assert.equal(art12Out[0].json.spurvik.consoleSync.endpoint, "/api/v1/telemetry");
+      assert.equal(art12Out[0].json.spurvik.consoleSync.synced, true);
+      assert.equal(typeof art12Out[0].json.spurvik.consoleSync.remoteId, "string");
+
+      const [art14Out] = await node.execute.call(
+        ctx(
+          {
+            operation: "art14_ask_human",
+            systemName: "Refund bot",
+            channel: "slack",
+            callbackBaseUrl: "https://approvals.example/hitl/callback",
+            actionName: "stripe.refunds.create",
+            actionSummary: "Refund order 4821",
+            consoleBaseUrl: "https://console.spurvik.com",
+          },
+          {
+            signingSecret: SECRET,
+            consoleApiKey: liveKey,
+            slackWebhookUrl: "https://hooks.slack.test/services/T/B/X",
+          },
+          [{ json: { promptText: PROMPT } }],
+        ),
+      );
+      assert.equal(art14Out[0].json.spurvik.consoleSync.endpoint, "/api/v1/hitl");
+      assert.equal(art14Out[0].json.spurvik.consoleSync.remoteId, "hitl_row_1");
+
+      assert.equal(calls.length, 4);
+      for (const call of calls) {
+        assert.equal(call.body.includes(PROMPT), false);
+        assert.equal(call.body.includes("Invoice updated."), false);
+      }
+      const telemetryPayload = JSON.parse(calls[1].body);
+      assert.equal(telemetryPayload.events[0].contentHashMode, "keyed");
+      assert.equal(telemetryPayload.events[0].inputHash, art12Out[0].json.spurvik.art12Record.inputHmac);
+
+      const hitlPayload = JSON.parse(calls[3].body);
+      const summary = JSON.parse(hitlPayload.payloadSummary);
+      assert.equal(summary.schema, "spurvik.payload_summary.v1");
+      assert.deepEqual(summary.keys, ["channel", "gateId"]);
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
+  it("rejects consoleApiKey with surrounding whitespace or bad prefix", async () => {
+    const liveKey = `${"spurvik"}_live_${"k".repeat(36)}`;
+    await assert.rejects(
+      () =>
+        node.execute.call(
+          ctx(
+            { operation: "art12_hmac_log", systemName: "Bot", inputField: "promptText" },
+            { signingSecret: SECRET, consoleApiKey: ` ${liveKey}` },
+            [{ json: { promptText: PROMPT } }],
+          ),
+        ),
+      /consoleApiKey.*whitespace/,
+    );
+    await assert.rejects(
+      () =>
+        node.execute.call(
+          ctx(
+            { operation: "art12_hmac_log", systemName: "Bot", inputField: "promptText" },
+            { signingSecret: SECRET, consoleApiKey: "invalid_short_key" },
+            [{ json: { promptText: PROMPT } }],
+          ),
+        ),
+      /consoleApiKey/,
+    );
   });
 });

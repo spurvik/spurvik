@@ -20,6 +20,7 @@ const BLOCKED_PASSTHROUGH = new Set([
   "rawprompt",
   "signingsecret",
   "hmacsecret",
+  "consoleapikey",
 ]);
 
 function isPromptFieldName(name: string): boolean {
@@ -181,6 +182,14 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       displayOptions: { show: { operation: ["art14_ask_human"], channel: ["jira"] } },
     },
     {
+      displayName: "Console Base URL",
+      name: "consoleBaseUrl",
+      type: "string",
+      default: "https://console.spurvik.com",
+      description:
+        "Base URL used only when Spurvik Console API Key is set on the spurvikApi credential.",
+    },
+    {
       displayName: "Pass-through Fields",
       name: "passThroughFields",
       type: "string",
@@ -295,6 +304,15 @@ export class SpurvikEuAiActGuard implements INodeType {
       throw new Error("Channel approval secret must be at least 16 characters.");
     }
 
+    const rawConsoleApiKey = credentials?.consoleApiKey;
+    let consoleApiKey: string | undefined;
+    if (typeof rawConsoleApiKey === "string" && rawConsoleApiKey.length > 0) {
+      if (rawConsoleApiKey !== rawConsoleApiKey.trim()) {
+        throw new Error("Spurvik credential consoleApiKey must not have leading or trailing whitespace.");
+      }
+      consoleApiKey = rawConsoleApiKey;
+    }
+
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
     for (let i = 0; i < items.length; i++) {
@@ -302,6 +320,7 @@ export class SpurvikEuAiActGuard implements INodeType {
       const operation = String(this.getNodeParameter("operation", i, "art50_disclosure")) as SpurvikWorkflowOperation;
       const systemName = String(this.getNodeParameter("systemName", i, "AI system"));
       const inputField = String(this.getNodeParameter("inputField", i, "promptText"));
+      const consoleBaseUrl = String(this.getNodeParameter("consoleBaseUrl", i, "https://console.spurvik.com"));
 
       let stepInput: SpurvikWorkflowNodeInput;
       if (operation === "art50_disclosure") {
@@ -356,6 +375,9 @@ export class SpurvikEuAiActGuard implements INodeType {
       } else {
         throw new Error(`Unknown Spurvik operation: ${operation}`);
       }
+
+      stepInput.consoleApiKey = consoleApiKey;
+      stepInput.consoleBaseUrl = consoleBaseUrl;
 
       const result = await executeSpurvikWorkflowStep(stepInput);
       const json: IDataObject = { spurvik: result as unknown as IDataObject };

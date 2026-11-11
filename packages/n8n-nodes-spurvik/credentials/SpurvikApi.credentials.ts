@@ -22,6 +22,13 @@ export class SpurvikApi implements ICredentialType {
       description: "HMAC secret of at least 16 characters, with no leading or trailing whitespace.",
     },
     {
+      displayName: "Spurvik Console API Key",
+      name: "consoleApiKey",
+      ...password,
+      description:
+        "Optional project API key from console.spurvik.com. Leave empty to run locally in process; set to send hashed receipts, disclosure sessions, or human-oversight rows to the hosted console.",
+    },
+    {
       displayName: "Slack Webhook URL",
       name: "slackWebhookUrl",
       ...password,

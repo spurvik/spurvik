@@ -18,13 +18,11 @@ Monday.com only creates a board item. It does not send Approve or Block links.
 
 Slack, Discord, and Teams use a webhook credential. The other channels use an approver target (chat id, email recipient, team id, project key, board id, or project gid) plus the matching token on the `spurvikApi` credential.
 
-`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. The node does not call the Spurvik HTTP API and has no API key or base URL field.
+`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. By default (when `consoleApiKey` is left empty), the node runs locally without calling the Spurvik HTTP API; setting `consoleApiKey` on the `spurvikApi` credential enables optional sync to `consoleBaseUrl` (`https://console.spurvik.com` by default).
 
 ## Credential
 
-`spurvikApi` stores the HMAC signing secret and channel tokens as password fields. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
-
-Hosted console features are invite-only during early access.
+`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
 
 ## Layout
 

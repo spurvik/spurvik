@@ -1,3 +1,8 @@
+## n8n-nodes-spurvik 1.0.4 — 2026-11-11
+
+- Added optional `consoleApiKey` password field on the `spurvikApi` credential and `consoleBaseUrl` node parameter (`https://console.spurvik.com`) to sync hashed receipts (`POST /api/v1/telemetry`), disclosure sessions (`POST /api/v1/disclosure`), and `ask_human()` oversight rows (`POST /api/v1/hitl` with canonical `spurvik.payload_summary.v1`) without transmitting raw prompt text.
+- Bumped `spurvik-sdk` dependency to `^1.0.8`.
+
 ## n8n-nodes-spurvik 1.0.3
 
 - Fixed: a passThroughFields entry equal to inputField no longer copies the input value to the output (affected 1.0.0–1.0.2).

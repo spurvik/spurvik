@@ -25,13 +25,13 @@
         "data": "{\"actionName\":\"{{1.actionName}}\",\"payloadSummary\":\"{{1.payloadSummary}}\"}"
       },
       "metadata": {
-        "note": "Hosted console HITL create route. Invite-only during early access. Body is actionName plus payloadSummary. Bearer token {{var.organization.spurvikApiKey}}. Make's custom-variables page (https://help.make.com/custom-variables) says organization custom variables are only on Pro, Teams, and Enterprise, and that values are plain text, not for secrets. If that plan is unavailable, use a scenario input spurvikApiKey mapped as {{var.input.spurvikApiKey}} (https://help.make.com/use-scenario-inputs does not state a plan requirement). This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload."
+        "note": "Hosted console HITL create route. Body is actionName plus payloadSummary. Bearer token {{var.organization.spurvikApiKey}}. Make's custom-variables page (https://help.make.com/custom-variables) says organization custom variables are only on Pro, Teams, and Enterprise, and that values are plain text, not for secrets. If that plan is unavailable, use a scenario input spurvikApiKey mapped as {{var.input.spurvikApiKey}} (https://help.make.com/use-scenario-inputs does not state a plan requirement). This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload."
       }
     }
   ],
   "metadata": {
     "vendor": "Spurvik (EyeTea Solutions ApS, CVR 37093378)",
-    "hostedConsole": "Hosted console features are invite-only during early access.",
-    "pricingComparison": "Free €0/mo · Pro €19/mo. Invite-only during early access."
+    "hostedConsole": "https://console.spurvik.com",
+    "pricingComparison": "Free €0/mo · Pro €19/mo (excl. VAT · B2B only)."
   }
 }

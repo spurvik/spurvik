@@ -341,7 +341,7 @@ check() {
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check || exit 1
   npm init -y
-  npm install spurvik@1.0.8 spurvik-sdk@1.0.8 n8n-nodes-spurvik@1.0.3
+  npm install spurvik@1.0.8 spurvik-sdk@1.0.8 n8n-nodes-spurvik@1.0.4
 )
 ```
 

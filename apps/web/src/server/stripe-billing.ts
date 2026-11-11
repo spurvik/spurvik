@@ -71,7 +71,8 @@ export function buildStripeCheckoutFormParams(
   params.set("customer_email", activation.workEmail);
   params.set("success_url", `${baseUrl}/sandbox?upgraded=${activation.planTier}&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${baseUrl}/sandbox?upgrade=${activation.planTier}`);
-  params.set("tax_id_collection[enabled]", "true");
+  // Stripe Managed Payments provides its own "I'm purchasing as a business" VAT field;
+  // Stripe docs require omitting tax_id_collection when managed_payments[enabled]=true.
   params.set("managed_payments[enabled]", "true");
   params.set("branding_settings[display_name]", "Spurvik");
   params.set("allow_promotion_codes", "true");

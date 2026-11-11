@@ -1,6 +1,6 @@
-# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.3`
+# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.4`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.8`, and `n8n-nodes-spurvik@1.0.3` in this repository). This is not legal advice.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.8`, and `n8n-nodes-spurvik@1.0.4` in this repository). This is not legal advice.
 
 ## 1. Approval router (`spurvik@1.0.8`)
 
@@ -71,11 +71,11 @@ const tokenOk =
 
 Provenance records in `spurvik@1.0.8` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
-## 2. `n8n-nodes-spurvik@1.0.3`
+## 2. `n8n-nodes-spurvik@1.0.4`
 
-This repository's package is `n8n-nodes-spurvik@1.0.3`. Before this release, `npm view n8n-nodes-spurvik versions dist-tags` listed `0.0.0-stage`, `1.0.0`, `1.0.1`, and `1.0.2`, with `latest` at `1.0.2`.
+This repository's package is `n8n-nodes-spurvik@1.0.4`. `1.0.4` adds optional `consoleApiKey` on the `spurvikApi` credential and `consoleBaseUrl` (`https://console.spurvik.com` by default) to sync hashed telemetry, disclosure sessions, and human-oversight rows to the hosted console without sending prompt text.
 
-The `n8n-nodes-spurvik@1.0.3` tarball contains:
+The `n8n-nodes-spurvik@1.0.4` tarball contains:
 - `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` (exports `SpurvikEuAiActGuard` with `description` and `execute()`)
 - `dist/nodes/SpurvikEuAiActGuard/spurvik.svg`
 - `dist/credentials/SpurvikApi.credentials.js` (exports `SpurvikApi`)
