@@ -83,7 +83,7 @@ OpenAIError: Missing credentials. Please pass an `apiKey`, `workloadIdentity`, `
 
 ## If `baseUrl` is unreachable
 
-This repository does not include a server you start yourself. For an invited organisation, `baseUrl` is `https://console.spurvik.com`. If that address does not answer, the wrapped model call still succeeds except for `high_annex3`, which fails closed. See [quickstart](quickstart.md#if-baseurl-is-unreachable).
+This repository does not include a server you start yourself. For a hosted console workspace, `baseUrl` is `https://console.spurvik.com`. If that address does not answer, the wrapped model call still succeeds except for `high_annex3`, which fails closed. See [quickstart](quickstart.md#if-baseurl-is-unreachable).
 
 Purging audit rows older than a project's period is a step the Spurvik operator runs by hand on the hosted control plane. Nothing in this repository schedules it or runs it. Retention periods are (planned).
 
@@ -130,7 +130,7 @@ SpurvikConfigError: Keyed prompt and output fingerprints require contentHash.sec
 SpurvikConfigError: baseUrl is required when NODE_ENV is production. Point it at the control plane you run.
 ```
 
-**Fix:** Set `baseUrl`. For an invited organisation, that address is `https://console.spurvik.com`. Spurvik runs that console. The SDK and MCP server run in your own stack. Outside production the SDK falls back to `http://127.0.0.1:43123`.
+**Fix:** Set `baseUrl`. For a hosted console workspace, that address is `https://console.spurvik.com`. Spurvik runs that console. The SDK and MCP server run in your own stack. Outside production the SDK falls back to `http://127.0.0.1:43123`.
 
 ### I set `AEGIS_API_KEY` but the SDK still says the key is missing
 

@@ -345,7 +345,7 @@ check() {
 )
 ```
 
-Hosted console features are invite-only during early access. These commands do not publish the console.
+The hosted console at https://console.spurvik.com is deployed separately. These commands do not publish the console.
 
 ## Releasing spurvik-mcp-server@1.0.4
 
