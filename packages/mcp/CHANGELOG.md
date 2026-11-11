@@ -1,8 +1,8 @@
 # spurvik-mcp-server
 
-## 1.0.4 — unreleased
+## 1.0.4 — 2026-11-11
 
-This heading stays "unreleased" until `spurvik-mcp-server@1.0.4` is published. Date the heading at publish.
+Published as `spurvik-mcp-server@1.0.4`.
 
 ### Added
 

@@ -1,8 +1,8 @@
 # spurvik-sdk
 
-## 1.0.8 — unreleased
+## 1.0.8 — 2026-11-11
 
-This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (the same build) are published. Date the heading at publish.
+Published as `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (same build).
 
 ### Changed
 

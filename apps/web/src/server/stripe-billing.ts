@@ -72,6 +72,8 @@ export function buildStripeCheckoutFormParams(
   params.set("success_url", `${baseUrl}/sandbox?upgraded=${activation.planTier}&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${baseUrl}/sandbox?upgrade=${activation.planTier}`);
   params.set("tax_id_collection[enabled]", "true");
+  params.set("managed_payments[enabled]", "true");
+  params.set("branding_settings[display_name]", "Spurvik");
   params.set("allow_promotion_codes", "true");
   params.set("metadata[activation_id]", activation.id);
   params.set("metadata[plan_tier]", activation.planTier);
