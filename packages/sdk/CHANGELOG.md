@@ -1,5 +1,13 @@
 # spurvik-sdk
 
+## 1.0.8 — unreleased
+
+This heading stays "unreleased" until `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (the same build) are published. Package versions in this repository stay at 1.0.7 until that publish. Date the heading at publish.
+
+### Changed
+
+- `spurvik/react` `<AIDisclosureLabel />` now renders a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text, by default (`attribution`, default `true`). The disclosure text stays first in the DOM and reading order. The link has no query parameters, does no tracking, and makes no network calls. Set `attribution={false}` to keep the previous markup. Removing the link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms. The SDK does not check the plan. This is a visible default change for existing Free-plan users who render the label without passing `attribution={false}`.
+
 ## 1.0.7 — 2026-11-11
 
 Published as `spurvik@1.0.7` and `spurvik-sdk@1.0.7` (same build). An `overridden` human decision now means do not continue, the same as `rejected`.

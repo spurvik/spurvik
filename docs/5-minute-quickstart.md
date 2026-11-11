@@ -124,6 +124,8 @@ export function AssistantHeader() {
 
 Built-in copy for 24 EU languages, including Polish `locale="pl"`, is in `packages/react/src/locales.ts`.
 
+By default the label also renders a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text (`attribution`, default `true`). Pass `attribution={false}` to omit it. Removing the link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms. The SDK does not check the plan and makes no network call for the link. This default is a visible change for existing Free-plan users.
+
 ## Log retention
 
 The purge function exists. The Spurvik operator runs it by hand on the hosted control plane. Nothing schedules it. Retention periods are (planned).

@@ -228,6 +228,8 @@ export function LangGraphAssistantCard(props: {
 }
 ```
 
+By default, `<AIDisclosureLabel />` also renders a small "Art. 50 · Spurvik" link to https://spurvik.com after the disclosure text (`attribution`, default `true`). Pass `attribution={false}` to omit it. Removing the link is a Pro (€19/mo) and Team (€79/mo) option under the plan terms. The SDK does not check the plan.
+
 ### Polish (`locale="pl"`) disclosure copy in `spurvik/react`
 
 `spurvik/react` ships built-in copy for all 24 EU languages in `EU_DISCLOSURE_LOCALES` (`packages/react/src/locales.ts`). The built-in Polish (`locale="pl"`) strings in that file are:
