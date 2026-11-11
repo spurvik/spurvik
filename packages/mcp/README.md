@@ -6,6 +6,8 @@ It depends on `packages/sdk` and `packages/core` in this repository, and on `@mo
 
 The SDK logs an AI call and attaches an HMAC receipt. Marking hooks are the caller's. Spurvik does not mark content and does not classify a use case. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
 
+Build `packages/sdk` before `pnpm install` in this directory. The lockfile installs `spurvik-sdk` from `file:../sdk`, and that copy includes `dist`. An install that runs before the SDK build does not pick up the 1.0.7 decision logic. Then rebuild the plugin bundle with `node packages/mcp/scripts/bundle-plugin.mjs`. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved. An MCP release must ship `plugins/spurvik/bin/spurvik-mcp.mjs` from this tree, not that published package.
+
 Build from the repo root:
 
 ```bash

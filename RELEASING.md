@@ -126,7 +126,7 @@ Stop and check step 4 output first. The ESM and CJS import checks must print not
 # from Node's zlib. For n8n-nodes-spurvik@1.0.3, QA packed 4d054d1a on Node 24 and the
 # publish packed dccdb9e6 on Node 26.0.0. The uncompressed tar was the same in both.
 # So pack on the same Node version and the same npm version QA used
-# (QA_NODE_VERSION, for example v24.22.1, and QA_NPM_VERSION, for example 10.9.9).
+# (QA_NODE_VERSION, for example v24.22.1, and QA_NPM_VERSION, for example 11.21.1).
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
@@ -180,16 +180,17 @@ fi
 )
 ```
 
-Publish stays a separate block, one block per package. It publishes the tarball step 5 already packed. It does not pack again. No --provenance.
+Step 6 is one subshell. It publishes the tarball step 5 already packed. It does not pack again. No --provenance. `spurvik-sdk` runs first, then `spurvik`. If the `spurvik-sdk` sha1 check fails, the subshell stops and the `spurvik` publish does not run.
 
 This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version.
 
 ```bash
 # 6. Publish spurvik-sdk@1.0.7, then spurvik@1.0.7, only when the owner decides. No --provenance.
-# spurvik-sdk@1.0.7 first. spurvik is the same build under a second name.
-# Recheck the sha1 of the exact .tgz immediately before publish. Stop on mismatch.
+# One subshell. spurvik-sdk@1.0.7 first, then spurvik@1.0.7. They are the same build under two names.
+# Recheck the sha1 of the exact .tgz immediately before each publish. A mismatch stops the subshell.
 (
-  set -euo pipefail
+set -euo pipefail
+(
   cd "$(git rev-parse --show-toplevel)"/packages/sdk || exit 1
   : "${QA_SHA1_SPURVIK_SDK:?Set QA_SHA1_SPURVIK_SDK to the spurvik-sdk-1.0.7.tgz sha1 QA records at the QA gate for this release}"
   actual="$(shasum -a 1 ./spurvik-sdk-1.0.7.tgz | awk '{print $1}')"
@@ -200,7 +201,6 @@ This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-node
   npm publish ./spurvik-sdk-1.0.7.tgz
 )
 (
-  set -euo pipefail
   cd "$(git rev-parse --show-toplevel)"/packages/spurvik || exit 1
   : "${QA_SHA1_SPURVIK:?Set QA_SHA1_SPURVIK to the spurvik-1.0.7.tgz sha1 QA records at the QA gate for this release}"
   actual="$(shasum -a 1 ./spurvik-1.0.7.tgz | awk '{print $1}')"
@@ -214,6 +214,7 @@ This release publishes `spurvik-sdk@1.0.7`, then `spurvik@1.0.7`. Skip `n8n-node
 (
   cd "$(git rev-parse --show-toplevel)"/packages/n8n-nodes-spurvik || exit 1
   echo "Skip n8n-nodes-spurvik@1.0.3. Already published. Never republish an existing version."
+)
 )
 ```
 
@@ -250,3 +251,5 @@ check() {
 ```
 
 Hosted console features are invite-only during early access. These commands do not publish the console.
+
+The plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is not in the `spurvik` or `spurvik-sdk` tarball. Build `packages/sdk` before `pnpm install` in `packages/mcp`. That install copies `spurvik-sdk` from `file:../sdk`, including `dist`. An install that runs before the SDK build does not pick up the 1.0.7 decision logic. `spurvik-mcp-server@1.0.2` on npm still treats an overridden decision as approved. An MCP release must ship the rebuilt bundle from this tree, not that published package.
