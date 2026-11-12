@@ -35,7 +35,7 @@ test("packages/sdk and packages/spurvik expose identical exports map and version
   }
 });
 
-test("No documentation or example files reference removed APIs (spurvik.wrap, badge.js, 10 EU languages)", () => {
+test("No documentation or example files reference removed APIs or stale invite-only copy", () => {
   const files = [
     join(root, "README.md"),
     join(root, "RELEASING.md"),
@@ -45,8 +45,9 @@ test("No documentation or example files reference removed APIs (spurvik.wrap, ba
 
   const forbiddenPatterns = [
     { pattern: /\bspurvik\.wrap\s*\(/, reason: "Use withSpurvik(...) instead of removed spurvik.wrap(...)" },
-    { pattern: /spurvik\.com\/badge\.js/, reason: "Do not reference non-existent spurvik.com/badge.js; use <AIDisclosureLabel /> (spurvik/react)" },
     { pattern: /\b10 EU languages\b/i, reason: "Spurvik supports all 24 official EU languages" },
+    { pattern: /\binvited organisation\b/i, reason: "Console signup is open self-serve; do not use stale 'invited organisation' copy" },
+    { pattern: /\binvite-only\b/i, reason: "Console signup is open self-serve; do not use stale 'invite-only' copy" },
   ];
 
   for (const file of files) {
