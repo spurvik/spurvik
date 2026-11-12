@@ -9,6 +9,16 @@ Spurvik is a developer control plane that **supports your EU AI Act work**: hash
 
 Regulation (EU) 2024/1689 is the legal instrument. Dates below follow the AI Omnibus timeline and the Commission’s Code of Practice on Transparency of AI-generated Content. Have counsel confirm how they apply to a specific system.
 
+## Live Sandbox, Hosted EU Console & Starter Templates
+
+| Surface | URL | Notes |
+| --- | --- | --- |
+| **Interactive Sandbox & Local Code Check** | [console.spurvik.com/sandbox](https://console.spurvik.com/sandbox) | Zero login, zero cookies — preview `<AIDisclosureLabel />` (24 EU languages), inspect HMAC receipts, and run an offline in-browser stack & snippet check. |
+| **Hosted EU Console (Frankfurt `fra1`)** | [console.spurvik.com/signup](https://console.spurvik.com/signup) | Open self-serve signup: **Free €0/mo** (10k events/mo, 30d retention) · **Pro €19/mo or €190/yr** (250k events/mo, 90d retention, hosted human review queue, DPO `.md` & Annex IV draft exports) · **Team €79/mo** (`excl. VAT · B2B only`). |
+| **Documentation & Framework Guides** | [spurvik.com/docs](https://spurvik.com/docs) | Copy-paste setup for Next.js / Vercel AI SDK, LangGraph, Mastra, OpenAI Agents, Lovable / Replit, Cursor / Claude Code MCP, n8n, and `https://spurvik.com/badge.js`. |
+| **1-Click n8n Starter Workflow** | [spurvik.com/r/n8n-art50-starter.json](https://spurvik.com/r/n8n-art50-starter.json) | Import URL directly in self-hosted n8n (`Import from URL`) with `n8n-nodes-spurvik@1.0.4`. |
+| **1-Click GitHub Actions PR Gate** | [spurvik.com/r/github-action-spurvik-check.yml](https://spurvik.com/r/github-action-spurvik-check.yml) | Drop into `.github/workflows/spurvik-check.yml` to scan PRs offline with `spurvik-mcp check . --ci`. |
+
 ## What this repository contains
 
 Milestones 1–4, scoped to the EU market.
