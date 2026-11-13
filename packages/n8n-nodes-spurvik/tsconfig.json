@@ -15,6 +15,7 @@
   "include": [
     "index.ts",
     "workflow.ts",
+    "scan-domain.ts",
     "nodes/**/*.ts",
     "credentials/**/*.ts"
   ],

@@ -70,6 +70,18 @@
       "typeVersion": 1,
       "position": [280, 200],
       "notes": "ask_human operation. Select the same spurvikApi credential. Monday.com creates an item only and does not send Approve or Block links."
+    },
+    {
+      "parameters": {
+        "operation": "scanDomain",
+        "domainOrUrl": "stepnetwork.dk"
+      },
+      "id": "55555555-5555-4555-8555-555555555555",
+      "name": "Spurvik Scan Live Domain",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 360],
+      "notes": "Scan Live Domain operation. No credential and no API key. Only the hostname is sent to console.spurvik.com. The output does not copy the incoming item."
     }
   ],
   "connections": {
@@ -88,6 +100,11 @@
           },
           {
             "node": "Spurvik Guard ask human",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Scan Live Domain",
             "type": "main",
             "index": 0
           }

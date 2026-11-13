@@ -341,7 +341,7 @@ check() {
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check || exit 1
   npm init -y
-  npm install spurvik@1.0.8 spurvik-sdk@1.0.8 n8n-nodes-spurvik@1.0.4
+  npm install spurvik@1.0.8 spurvik-sdk@1.0.8 n8n-nodes-spurvik@1.0.5
 )
 ```
 
@@ -572,5 +572,28 @@ rm -rf "$work"
   cd /tmp/spurvik-mcp-registry-check || exit 1
   npm init -y
   npm install spurvik-mcp-server@1.0.5
+)
+```
+
+## Releasing n8n-nodes-spurvik@1.0.5
+
+`n8n-nodes-spurvik@1.0.5` adds the zero-key Scan Live Domain operation (`scanDomain`). It still depends on `spurvik-sdk@^1.0.8` from the registry. `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server` are not bumped by this release. Never republish an existing version, and do not pass `--provenance`.
+
+Build, test, and pack from a clean detached worktree of the QA-passed commit with the same script used for the other packages. It runs `npm install --no-package-lock --legacy-peer-deps`, `npm run build`, `npm test`, and `bash scripts/ci/no-default-keys.sh` before `npm pack`, and prints the `.tgz` sha1 and the uncompressed tar sha1:
+
+```bash
+node /Users/nate/Terra/terra-core/scripts/mac-clean-release.mjs --sha "$QA_SHA" --pkg n8n
+# After QA records the uncompressed tar sha1, publish only when the owner decides:
+node /Users/nate/Terra/terra-core/scripts/mac-clean-release.mjs --sha "$QA_SHA" --pkg n8n --expected-tar-sha1 "$QA_SHA1_N8N_TAR" --publish
+```
+
+```bash
+# n8n 1.0.5 registry install check. Run only after n8n-nodes-spurvik@1.0.5 is on the registry.
+(
+  rm -rf /tmp/spurvik-n8n-registry-check
+  mkdir -p /tmp/spurvik-n8n-registry-check
+  cd /tmp/spurvik-n8n-registry-check || exit 1
+  npm init -y
+  npm install n8n-nodes-spurvik@1.0.5
 )
 ```

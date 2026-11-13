@@ -1,6 +1,6 @@
-# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.4`
+# 9-channel `ask_human()` approval router and `n8n-nodes-spurvik@1.0.5`
 
-> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.8`, and `n8n-nodes-spurvik@1.0.4` in this repository). This is not legal advice.
+> Source: https://github.com/spurvik/spurvik (`packages/sdk/src/channels.ts`, published `spurvik@1.0.8`, and `n8n-nodes-spurvik@1.0.5` in this repository). This is not legal advice.
 
 ## 1. Approval router (`spurvik@1.0.8`)
 
@@ -71,19 +71,20 @@ const tokenOk =
 
 Provenance records in `spurvik@1.0.8` carry `inputHash`. `contentHash.mode` defaults to `"keyed"`. In that mode `inputHash` is a keyed HMAC-SHA256 fingerprint of the input, and `contentHash.secret` must be at least 16 characters. Channel dispatch receipts are a separate object: `channel`, `gateId`, `actionHmac`, `httpStatus`, and `externalId`. n8n execution history keeps node inputs and outputs.
 
-## 2. `n8n-nodes-spurvik@1.0.4`
+## 2. `n8n-nodes-spurvik@1.0.5`
 
-This repository's package is `n8n-nodes-spurvik@1.0.4`. `1.0.4` adds optional `consoleApiKey` on the `spurvikApi` credential and `consoleBaseUrl` (`https://console.spurvik.com` by default) to sync hashed telemetry, disclosure sessions, and human-oversight rows to the hosted console without sending prompt text.
+This repository's package is `n8n-nodes-spurvik@1.0.5`. `1.0.5` adds the zero-key Scan Live Domain operation (`scanDomain`): it checks one public site for AI chat widgets and an Art. 50 notice through the console's public scan endpoint, needs no credential or API key, and returns a `badge.js` snippet plus report, sandbox, and upgrade links. `1.0.4` added optional `consoleApiKey` on the `spurvikApi` credential and `consoleBaseUrl` (`https://console.spurvik.com` by default) to sync hashed telemetry, disclosure sessions, and human-oversight rows to the hosted console without sending prompt text.
 
-The `n8n-nodes-spurvik@1.0.4` tarball contains:
+The `n8n-nodes-spurvik@1.0.5` tarball contains:
 - `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` (exports `SpurvikEuAiActGuard` with `description` and `execute()`)
 - `dist/nodes/SpurvikEuAiActGuard/spurvik.svg`
 - `dist/credentials/SpurvikApi.credentials.js` (exports `SpurvikApi`)
 - `dist/workflow.js` (exports `executeSpurvikWorkflowStep` and `SpurvikN8nNodeDescription`)
+- `dist/scan-domain.js` (exports `scanSpurvikDomain` and `normalizeScanDomain`)
 - `dist/index.js`
 - `make-com-blueprint.json`
 
-`package.json` sets `n8n.nodes` to `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]` and `n8n.credentials` to `["dist/credentials/SpurvikApi.credentials.js"]`. The 1.0.2 package loaded in `n8n 2.46.4`. The node exposes three operations (`art50_disclosure`, `art12_hmac_log`, `art14_ask_human`) designed to support Article 50(1) transparency notices, and Article 12 record-keeping and Article 14 human oversight for high-risk AI systems. By default `passThroughFields` is blank. A listed entry equal to `inputField` (trimmed, any letter case) is not copied.
+`package.json` sets `n8n.nodes` to `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]` and `n8n.credentials` to `["dist/credentials/SpurvikApi.credentials.js"]`. The 1.0.2 package loaded in `n8n 2.46.4`. The node exposes three operations (`art50_disclosure`, `art12_hmac_log`, `art14_ask_human`) designed to support Article 50(1) transparency notices, and Article 12 record-keeping and Article 14 human oversight for high-risk AI systems, plus the zero-key `scanDomain` operation. The `spurvikApi` credential stays required for the first three and is hidden for `scanDomain`. By default `passThroughFields` is blank. A listed entry equal to `inputField` (trimmed, any letter case) is not copied.
 
 Files in this repository:
 

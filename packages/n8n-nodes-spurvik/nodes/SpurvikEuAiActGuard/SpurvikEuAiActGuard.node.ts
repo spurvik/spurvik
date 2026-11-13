@@ -6,11 +6,15 @@ import type {
   INodeTypeDescription,
 } from "n8n-workflow";
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
+import { scanSpurvikDomain } from "../../scan-domain";
 import {
   executeSpurvikWorkflowStep,
   type SpurvikWorkflowNodeInput,
   type SpurvikWorkflowOperation,
 } from "../../workflow";
+
+/** Zero-key operation: reads no credential and copies nothing from the incoming item. */
+const SCAN_DOMAIN_OPERATION = "scanDomain";
 
 const PROMPT_FIELD_NAMES = new Set(["prompttext", "prompt", "chatinput", "query", "input"]);
 
@@ -46,7 +50,13 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
   },
   inputs: ["main"],
   outputs: ["main"],
-  credentials: [{ name: "spurvikApi", required: true }],
+  credentials: [
+    {
+      name: "spurvikApi",
+      required: true,
+      displayOptions: { hide: { operation: ["scanDomain"] } },
+    },
+  ],
   properties: [
     {
       displayName: "Operation",
@@ -70,7 +80,24 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           value: "art14_ask_human",
           description: "Designed to support Article 14 human oversight for high-risk AI systems.",
         },
+        {
+          name: "Scan Live Domain (Art. 50 & Client Brief)",
+          value: "scanDomain",
+          description:
+            "Check one public site for AI chat widgets and an Art. 50 notice, and return a badge snippet plus report and upgrade links. Needs no credential or API key.",
+        },
       ],
+    },
+    {
+      displayName: "Domain or URL",
+      name: "domainOrUrl",
+      type: "string",
+      default: "",
+      required: true,
+      placeholder: "stepnetwork.dk",
+      displayOptions: { show: { operation: ["scanDomain"] } },
+      description:
+        "Public domain or http(s) URL of the site to scan, for example stepnetwork.dk. Only the hostname is sent to the console. localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa), single-label hosts, user:password@ and non-default ports are refused.",
     },
     {
       displayName: "AI System Name",
@@ -78,6 +105,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "AI system",
       required: true,
+      displayOptions: { hide: { operation: ["scanDomain"] } },
     },
     {
       displayName: "Input Field",
@@ -187,13 +215,14 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "https://console.spurvik.com",
       description:
-        "Base URL used only when Spurvik Console API Key is set on the spurvikApi credential.",
+        "Spurvik console base URL. Scan Live Domain calls its public scan endpoint without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
     },
     {
       displayName: "Pass-through Fields",
       name: "passThroughFields",
       type: "string",
       default: "",
+      displayOptions: { hide: { operation: ["scanDomain"] } },
       description:
         "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
@@ -290,34 +319,56 @@ export class SpurvikEuAiActGuard implements INodeType {
   description: INodeTypeDescription = SpurvikN8nNodeDescription;
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-    const credentials = (await this.getCredentials("spurvikApi")) as Record<string, unknown>;
-    const signingSecret = credentials?.signingSecret;
-    if (typeof signingSecret !== "string" || signingSecret.length === 0) {
-      throw new Error(
-        "Missing Spurvik credential signingSecret. Set it on the spurvikApi credential. The node does not read environment variables.",
-      );
-    }
-    if (signingSecret !== signingSecret.trim()) {
-      throw new Error("Channel approval secret must not have leading or trailing whitespace.");
-    }
-    if (signingSecret.length < 16) {
-      throw new Error("Channel approval secret must be at least 16 characters.");
-    }
-
-    const rawConsoleApiKey = credentials?.consoleApiKey;
-    let consoleApiKey: string | undefined;
-    if (typeof rawConsoleApiKey === "string" && rawConsoleApiKey.length > 0) {
-      if (rawConsoleApiKey !== rawConsoleApiKey.trim()) {
-        throw new Error("Spurvik credential consoleApiKey must not have leading or trailing whitespace.");
-      }
-      consoleApiKey = rawConsoleApiKey;
-    }
-
     const items = this.getInputData();
+    const operationAt = (index: number): string =>
+      String(this.getNodeParameter("operation", index, "art50_disclosure"));
+    const operations = items.map((_, index) => operationAt(index));
+    // scanDomain never reads the credential, so a node set to it works with no credential at all.
+    const needsCredentials =
+      items.length === 0
+        ? operationAt(0) !== SCAN_DOMAIN_OPERATION
+        : operations.some((operation) => operation !== SCAN_DOMAIN_OPERATION);
+
+    let credentials: Record<string, unknown> = {};
+    let signingSecret = "";
+    let consoleApiKey: string | undefined;
+    if (needsCredentials) {
+      credentials = (await this.getCredentials("spurvikApi")) as Record<string, unknown>;
+      const rawSigningSecret = credentials?.signingSecret;
+      if (typeof rawSigningSecret !== "string" || rawSigningSecret.length === 0) {
+        throw new Error(
+          "Missing Spurvik credential signingSecret. Set it on the spurvikApi credential. The node does not read environment variables.",
+        );
+      }
+      if (rawSigningSecret !== rawSigningSecret.trim()) {
+        throw new Error("Channel approval secret must not have leading or trailing whitespace.");
+      }
+      if (rawSigningSecret.length < 16) {
+        throw new Error("Channel approval secret must be at least 16 characters.");
+      }
+      signingSecret = rawSigningSecret;
+
+      const rawConsoleApiKey = credentials?.consoleApiKey;
+      if (typeof rawConsoleApiKey === "string" && rawConsoleApiKey.length > 0) {
+        if (rawConsoleApiKey !== rawConsoleApiKey.trim()) {
+          throw new Error("Spurvik credential consoleApiKey must not have leading or trailing whitespace.");
+        }
+        consoleApiKey = rawConsoleApiKey;
+      }
+    }
+
     const returnData: INodeExecutionData[] = [];
     for (let i = 0; i < items.length; i++) {
+      if (operations[i] === SCAN_DOMAIN_OPERATION) {
+        const scan = await scanSpurvikDomain({
+          domainOrUrl: this.getNodeParameter("domainOrUrl", i, ""),
+          consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, "https://console.spurvik.com"),
+        });
+        returnData.push({ json: scan as unknown as IDataObject });
+        continue;
+      }
       const item = items[i]?.json ?? {};
-      const operation = String(this.getNodeParameter("operation", i, "art50_disclosure")) as SpurvikWorkflowOperation;
+      const operation = operations[i] as SpurvikWorkflowOperation;
       const systemName = String(this.getNodeParameter("systemName", i, "AI system"));
       const inputField = String(this.getNodeParameter("inputField", i, "promptText"));
       const consoleBaseUrl = String(this.getNodeParameter("consoleBaseUrl", i, "https://console.spurvik.com"));

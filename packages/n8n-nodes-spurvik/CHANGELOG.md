@@ -1,3 +1,12 @@
+## n8n-nodes-spurvik 1.0.5 — 2026-11-13
+
+- Added the **Scan Live Domain (Art. 50 & Client Brief)** operation (`scanDomain`). It needs no credential and no API key: the `spurvikApi` credential is hidden for this operation (`displayOptions.hide`) and is still required for `art50_disclosure`, `art12_hmac_log`, and `art14_ask_human`. The operation never reads the credential and sends no `Authorization` header.
+- New parameter `domainOrUrl` (shown only for `scanDomain`). Accepts a bare domain or an http(s) URL and keeps only the lower-case hostname. localhost and `*.localhost`, IPv4 and IPv6 literals (including decimal, hex, and octal forms), `.local`, `.internal`, `.lan`, `.home.arpa`, single-label hosts, `user@` credentials, non-default ports, and invalid labels are refused with an error before any request.
+- Calls `GET {consoleBaseUrl}/api/v1/sandbox/scan?url=<host>` (8 s timeout, redirects refused). `consoleBaseUrl` must be `https://` (`http://` only for localhost). A timeout, network error, non-2xx answer, invalid JSON, or `ok: false` returns `scanStatus: "offline"` with `reachable: false` instead of failing the workflow. The error and the response body are never copied to the output.
+- Output: `domain`, `reachable`, `detectedWidgets`, `detectedSdks`, `art50NoticeDetected`, `badgeSnippet` (the same `badge.js` tag as the MCP server's scan tool), `reportUrl`, `sandboxUrl`, `agencyCalculatorUrl`, `upgradeUrls` (Pro €19/mo, Team €79/mo, Done-For-You €199 once; signup links prefill `appUrl`), plus `scanStatus`, `reason`, and `markers`. Nothing from the incoming item is copied.
+- `systemName` and `passThroughFields` are hidden for `scanDomain`. The three existing operations, their parameters, and the default (`art50_disclosure`) are unchanged.
+- `index.ts` also exports `scanSpurvikDomain` and `normalizeScanDomain`.
+
 ## n8n-nodes-spurvik 1.0.4 — 2026-11-11
 
 - Added optional `consoleApiKey` password field on the `spurvikApi` credential and `consoleBaseUrl` node parameter (`https://console.spurvik.com`) to sync hashed receipts (`POST /api/v1/telemetry`), disclosure sessions (`POST /api/v1/disclosure`), and `ask_human()` oversight rows (`POST /api/v1/hitl` with canonical `spurvik.payload_summary.v1`) without transmitting raw prompt text.

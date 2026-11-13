@@ -100,6 +100,21 @@ function canonicalize(value) {
   return sorted;
 }
 
+/** n8n displayOptions show/hide check: a value set on the node wins, else the descriptor default. */
+function shownFor(entry, parameters, properties) {
+  const valueOf = (key) => {
+    const dependency = properties.find((property) => property.name === key);
+    return parameters && Object.prototype.hasOwnProperty.call(parameters, key) ? parameters[key] : dependency?.default;
+  };
+  for (const [key, allowed] of Object.entries(entry?.displayOptions?.show ?? {})) {
+    if (!allowed.map(String).includes(String(valueOf(key)))) return false;
+  }
+  for (const [key, hidden] of Object.entries(entry?.displayOptions?.hide ?? {})) {
+    if (hidden.map(String).includes(String(valueOf(key)))) return false;
+  }
+  return true;
+}
+
 function walk(value, visit) {
   visit(value);
   if (!value || typeof value !== "object") return;
@@ -160,7 +175,11 @@ if (description) {
     const credentialSpec = (description.credentials ?? []).find((item) => item.name === "spurvikApi");
     if (!credentialSpec?.required) fail("descriptor is missing required credential spurvikApi");
     const credential = node.credentials?.spurvikApi;
-    if (!credential || typeof credential.id !== "string" || !credential.id || typeof credential.name !== "string" || !credential.name) {
+    const credentialUsed = shownFor(credentialSpec, node.parameters, description.properties);
+    if (!credentialUsed) {
+      // scanDomain needs no credential: the descriptor hides spurvikApi for it.
+      if (credential) fail(`${node.name} references spurvikApi, but operation ${node.parameters?.operation} uses no credential`);
+    } else if (!credential || typeof credential.id !== "string" || !credential.id || typeof credential.name !== "string" || !credential.name) {
       fail(`${node.name} is missing a spurvikApi credential reference`);
     } else {
       const extra = Object.keys(credential).filter((key) => key !== "id" && key !== "name");
@@ -174,6 +193,7 @@ if (description) {
       if (!propertyNames.includes(key)) fail(`${node.name} parameter ${key} is not on the descriptor`);
     }
     for (const property of description.properties) {
+      if (!shownFor(property, node.parameters, description.properties)) continue;
       if (property.required && (node.parameters?.[property.name] === undefined || node.parameters[property.name] === "")) {
         fail(`${node.name} is missing required parameter ${property.name}`);
       }
@@ -181,11 +201,15 @@ if (description) {
     const operation = node.parameters?.operation;
     if (!optionValues.has(operation)) fail(`${node.name} operation ${operation} is not a descriptor option`);
     seenOperations.add(operation);
-    if (typeof node.parameters.systemName !== "string") fail(`${node.name} systemName is not a string`);
+    const systemNameProperty = description.properties.find((property) => property.name === "systemName");
+    if (shownFor(systemNameProperty, node.parameters, description.properties) && typeof node.parameters.systemName !== "string") {
+      fail(`${node.name} systemName is not a string`);
+    }
     const operationFields = {
       art50_disclosure: ["outputField", "inputField"],
       art12_hmac_log: ["inputField"],
       art14_ask_human: ["channel", "callbackBaseUrl", "actionName", "actionSummary"],
+      scanDomain: ["domainOrUrl"],
     };
     for (const name of operationFields[operation] ?? []) {
       if (node.parameters?.[name] === undefined || node.parameters[name] === "") {
