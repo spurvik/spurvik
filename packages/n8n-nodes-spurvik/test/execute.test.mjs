@@ -729,8 +729,16 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       { domainOrUrl: "stepnetwork.dk" },
       {
         timeoutMs: 40,
+        // AbortSignal.timeout uses an unref'd timer. A real hanging fetch keeps the event loop alive
+        // through its socket; this mock holds a ref'd timer instead, or node:test cancels the suite.
         fetchImpl: (_url, init) =>
-          new Promise((_resolve, reject) => init.signal.addEventListener("abort", () => reject(init.signal.reason))),
+          new Promise((_resolve, reject) => {
+            const keepAlive = setTimeout(() => reject(new Error("mock fetch was never aborted")), 10_000);
+            init.signal.addEventListener("abort", () => {
+              clearTimeout(keepAlive);
+              reject(init.signal.reason);
+            });
+          }),
       },
     );
     assert.deepEqual(result, offlineOutput("stepnetwork.dk", "da", "timeout"));
