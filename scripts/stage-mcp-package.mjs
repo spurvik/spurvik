@@ -210,7 +210,9 @@ On \`initialize\`, the server reports \`serverInfo.version\` \`${version}\`. It 
 
 From spurvik-mcp-server@1.0.4, the bundled SDK matches \`spurvik@1.0.8\`: an \`overridden\` human decision is treated as not approved. Continue only when the status is \`approved\`.
 
-Tools: \`spurvik_setup_snippet\`, \`spurvik_find_unwrapped_calls\`, \`spurvik_explain_receipt\`, and \`spurvik_marking_hooks\`. Setup snippets cover OpenAI, Anthropic, Google GenAI, the Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph. The tools are read-only and do not call the network.
+Tools: \`spurvik_setup_snippet\`, \`spurvik_find_unwrapped_calls\`, \`spurvik_explain_receipt\`, \`spurvik_marking_hooks\`, \`spurvik_scan_live_url\`, \`spurvik_classify_ai_act_risk\`, and \`spurvik_generate_art50_badge\`. Setup snippets cover OpenAI, Anthropic, Google GenAI, the Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph. The tools are read-only. Six run locally and do not use the network. \`spurvik_scan_live_url\` sends one public URL to console.spurvik.com (8-second timeout) and returns \`offlineFallback: true\` with the report, sandbox and badge.js links when the service cannot be reached; localhost, private IPs and internal hosts are refused before any request.
+
+\`spurvik_classify_ai_act_risk\` maps a use case to \`prohibited_art5\`, \`high_risk_annex_iii\`, \`limited_transparency_art50\` or \`minimal_risk\` (engineering mapping aid; not legal advice). \`spurvik_generate_art50_badge\` returns a one-line badge.js tag, a Next.js \`<Script>\`, and WordPress, Framer and shadcn/v0 assets in the 24 official EU languages.
 
 Repository: https://github.com/spurvik/spurvik
 Plugin tree: https://github.com/spurvik/spurvik/tree/main/plugins/spurvik

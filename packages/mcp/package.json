@@ -1,11 +1,11 @@
 {
   "name": "@spurvik/mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "mcpName": "io.github.spurvik/spurvik-mcp-server",
   "author": "EyeTea Solutions ApS",
   "private": true,
   "type": "module",
-  "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, and marking-hook notes.",
+  "description": "Local stdio MCP server for Spurvik setup snippets, unwrapped-call scans, HMAC receipt explanations, marking-hook notes, live Art. 50(1) URL scans, EU AI Act risk-tier mapping, and 24-language Art. 50 badges.",
   "license": "MIT",
   "keywords": [
     "mcp",

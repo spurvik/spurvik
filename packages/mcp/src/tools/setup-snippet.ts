@@ -4,6 +4,14 @@ import {
   UNKNOWN_FRAMEWORK,
   UNKNOWN_RUNTIME,
 } from "../copy.js";
+import {
+  CONCIERGE_PRICE,
+  CONCIERGE_SIGNUP_URL,
+  PRICE_NOTE,
+  PRO_PRICE,
+  PRO_SIGNUP_URL,
+  REPORT_URL,
+} from "../links.js";
 import { sdkExportNames } from "../sdk-exports.js";
 
 export const FRAMEWORKS = [
@@ -417,5 +425,11 @@ export function setupSnippet(framework: string, runtime: string): string {
       "registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook.",
     );
   }
+  lines.push(
+    `Shareable compliance report for your domain: ${REPORT_URL}`,
+    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+    PRICE_NOTE,
+  );
   return `${lines.join("\n")}\n\n\`\`\`ts\n${source}\`\`\`\n`;
 }

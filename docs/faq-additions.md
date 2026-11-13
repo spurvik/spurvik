@@ -2,7 +2,7 @@
 
 > Answers describe `spurvik@1.0.8` and the hosted console. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`.*
 
 ## Pricing
 
@@ -27,7 +27,7 @@ No. The console does not change plans. Its settings page says: "This console doe
 
 ### Can I install the SDK from npm?
 
-Yes. The public MIT packages are `spurvik@1.0.8` and `spurvik-sdk@1.0.8`, and the local stdio MCP server is `spurvik-mcp-server@1.0.4`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, use the published `spurvik@1.0.8` (including `spurvik/react`). See the [5-minute quickstart](5-minute-quickstart.md).
+Yes. The public MIT packages are `spurvik@1.0.8` and `spurvik-sdk@1.0.8`, and the local stdio MCP server is `spurvik-mcp-server@1.0.5`. Source is https://github.com/spurvik/spurvik. Inside this monorepo, use the published `spurvik@1.0.8` (including `spurvik/react`). See the [5-minute quickstart](5-minute-quickstart.md).
 
 ### Are there ready-made recipes for Lovable, Replit and v0?
 
@@ -40,8 +40,8 @@ The SDK has no hosted address built in: your code passes `baseUrl` explicitly. F
 
 Yes, in two forms:
 
-- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.4` (MIT). The workspace package `packages/mcp` stays at `1.0.4` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
-- **Published stdio server:** `npm i -D spurvik-mcp-server@1.0.4`, then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required since 1.0.3. The hosted console may also expose `/api/mcp`. That service's source is not in this repository.
+- **Local stdio server:** Published on npm as `spurvik-mcp-server@1.0.5` (MIT). The workspace package `packages/mcp` stays at `1.0.5` in this monorepo and is bundled inside the Claude Code plugin (`.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`). Its four read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`) run locally and do not call any network. `spurvik_explain_receipt` checks the receipt's HMAC locally when you pass `signingSecret` to the tool or set `SPURVIK_SIGNING_SECRET` in the server's environment (a passed secret takes precedence).
+- **Published stdio server:** `npm i -D spurvik-mcp-server@1.0.5`, then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required since 1.0.3. The hosted console may also expose `/api/mcp`. That service's source is not in this repository.
 
 ## Marking and Article 50
 
@@ -239,7 +239,7 @@ See [Spurvik Claude Code Plugin](claude-code-plugin.md) for full details.
 
 ### 20. How do I install the Spurvik Claude Code plugin via `.claude-plugin/marketplace.json` or `--plugin-dir`?
 
-The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
+The public repository is live at https://github.com/spurvik/spurvik (MIT). npm packages are live at `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.5`. Clone `https://github.com/spurvik/spurvik.git` and use either local method:
 
 ```bash
 git clone https://github.com/spurvik/spurvik.git spurvik
@@ -255,7 +255,7 @@ git clone https://github.com/spurvik/spurvik.git spurvik
    claude --plugin-dir /path/to/spurvik/plugins/spurvik
    ```
 
-The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.4"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
+The repository also includes `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.5"`) staged for `https://spurvik.com/.claude-plugin/marketplace.json`. Serve that file when the website catalog should install `plugins/spurvik`. Until it is served, use the local clone above.
 
 ---
 

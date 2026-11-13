@@ -1,8 +1,8 @@
 # LangGraph Quickstart (`spurvik/langgraph`, `spurvik`, and `spurvik/react`)
 
-> LangGraph quickstart for the published packages `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Not legal advice.
+> LangGraph quickstart for the published packages `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.5`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`.*
 
 ---
 

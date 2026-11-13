@@ -1,8 +1,8 @@
 {
   "name": "Spurvik",
   "version": "1.0.8",
-  "description": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.4, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
-  "notice": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.4, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "description": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.5, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.5, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
   "supportedProtocolVersions": [
     "2024-11-05",
@@ -27,12 +27,12 @@
         "spurvik_explain_receipt",
         "spurvik_marking_hooks"
       ],
-      "description": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.4, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+      "description": "Spurvik EU AI Act SDK (1.0.8) & MCP control plane (1.0.5, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
   ],
   "localStdio": {
     "packageName": "spurvik-mcp-server",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "npmPackage": "spurvik-mcp-server",
     "sdkNpmPackages": [
       "spurvik@1.0.8",
@@ -67,7 +67,7 @@
   "packages": {
     "sdk": "spurvik@1.0.8",
     "sdkAlias": "spurvik-sdk@1.0.8",
-    "mcpServer": "spurvik-mcp-server@1.0.4"
+    "mcpServer": "spurvik-mcp-server@1.0.5"
   },
   "autoDiscovery": {
     "mcpRegistry": "https://github.com/spurvik/spurvik/blob/main/server.json",

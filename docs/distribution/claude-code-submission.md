@@ -4,8 +4,8 @@
 
 Each item must be done before any submission is opened:
 
-1. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The server stays local stdio only, private 1.0.4, with no hosted endpoint. No package is published. Other items below are still open before any directory submission.
-2. The owner has approved publishing the npm packages. The published names are `spurvik`, `spurvik-sdk` (`1.0.8`), and `spurvik-mcp-server` (`1.0.4`).
+1. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The server stays local stdio only, private 1.0.5, with no hosted endpoint. No package is published. Other items below are still open before any directory submission.
+2. The owner has approved publishing the npm packages. The published names are `spurvik`, `spurvik-sdk` (`1.0.8`), and `spurvik-mcp-server` (`1.0.5`).
 3. The owner has approved making the repo reachable to installers, through a public repo or a public mirror. The public repository is https://github.com/spurvik/spurvik. The plugin tree is https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
 4. The site manifest is served and resolves.
 5. QA has passed the plugin.
@@ -79,7 +79,7 @@ The repository may stay private during validation only when a connected GitHub a
 - A paid Claude plan and a role that can submit are outside this change.
 - Directory terms are not accepted here.
 - `claude plugin validate --strict ./plugins/spurvik` and `claude plugin validate --strict .` must be re-run on the final release tag before any submission.
-- Preconditions 2 through 5 are open before any directory submission. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The published stdio package is `spurvik-mcp-server@1.0.4`. There is no hosted endpoint in this repository.
+- Preconditions 2 through 5 are open before any directory submission. The MCP server file is inside the plugin directory. A marketplace added from a local clone runs in place. An install from the Claude plugin directory or from a git or GitHub marketplace is copied into Claude's plugin cache, and that copy starts the same file. The published stdio package is `spurvik-mcp-server@1.0.5`. There is no hosted endpoint in this repository.
 
 **Category:** Plugin bundle (submission kind). No topic category is defined on the submit page.
 
@@ -108,13 +108,13 @@ Description: Commands and a skill covering withSpurvik for OpenAI, Anthropic, an
 
 ## Bundled MCP tools and the staged website manifest
 
-The plugin MCP entry is local stdio only, private 1.0.4, with no hosted endpoint. `plugins/spurvik/.mcp.json` starts `node` with `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. `bin/spurvik-mcp.mjs` exposes four read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. They do not call the Spurvik API or any other network.
+The plugin MCP entry is local stdio only, private 1.0.5, with no hosted endpoint. `plugins/spurvik/.mcp.json` starts `node` with `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. `bin/spurvik-mcp.mjs` exposes four read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, and `spurvik_marking_hooks`. They do not call the Spurvik API or any other network.
 
 `docs/distribution/spurvik-com-marketplace.json` is the staged website manifest for `https://spurvik.com/.claude-plugin/marketplace.json`. It is a staged draft. It is not served from this repository. `site/.claude-plugin/marketplace.json` is absent here on purpose.
 
 ## 2. Claude Code Marketplace JSON
 
-`.claude-plugin/marketplace.json` and `docs/distribution/spurvik-com-marketplace.json` are the two marketplace catalogs in this tree. Both name `spurvik@spurvik-marketplace` at `1.0.4` and point at `plugins/spurvik`. The plugin description covers OpenAI, Anthropic, Google GenAI, the Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph. `spurvik_setup_snippet` returns a snippet for those seven frameworks. `spurvik_find_unwrapped_calls` also reports an unwrapped LangGraph `StateGraph` and a bare `interrupt()` when `withSpurvikLangGraph` or `spurvikInterrupt` is missing.
+`.claude-plugin/marketplace.json` and `docs/distribution/spurvik-com-marketplace.json` are the two marketplace catalogs in this tree. Both name `spurvik@spurvik-marketplace` at `1.0.5` and point at `plugins/spurvik`. The plugin description covers OpenAI, Anthropic, Google GenAI, the Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph. `spurvik_setup_snippet` returns a snippet for those seven frameworks. `spurvik_find_unwrapped_calls` also reports an unwrapped LangGraph `StateGraph` and a bare `interrupt()` when `withSpurvikLangGraph` or `spurvikInterrupt` is missing.
 
 **Staged draft.** The website catalog's git source is https://github.com/spurvik/spurvik.git with path `plugins/spurvik` on `main`. Serve that catalog only after the remaining preconditions are done.
 
@@ -156,7 +156,7 @@ Spurvik local stdio MCP server (`bin/spurvik-mcp.mjs`) with `spurvik_setup_snipp
 Two transports exist in the product plan. Only the first is live today, and it is the console route, not the Claude plugin:
 
 1. Streamable HTTP at `https://console.spurvik.com/api/mcp`, discovered from `https://spurvik.com/.well-known/mcp.json`.
-2. Local stdio from `spurvik-mcp-server@1.0.4`, started with `./node_modules/.bin/spurvik-mcp-server --root .` (`--root` is required), or, inside the Claude plugin, `node` and `plugins/spurvik/bin/spurvik-mcp.mjs`. The plugin stays local stdio only.
+2. Local stdio from `spurvik-mcp-server@1.0.5`, started with `./node_modules/.bin/spurvik-mcp-server --root .` (`--root` is required), or, inside the Claude plugin, `node` and `plugins/spurvik/bin/spurvik-mcp.mjs`. The plugin stays local stdio only.
 
 `server.json` draft for the registry (do not publish):
 
@@ -164,7 +164,7 @@ Two transports exist in the product plan. Only the first is live today, and it i
 {
   "name": "com.spurvik/mcp",
   "description": "Spurvik setup snippets, unwrapped-call scan, HMAC receipt explanation, and marking-hook notes. Supports OpenAI, Anthropic, Google GenAI, Vercel AI SDK, Mastra, OpenAI Agents, and LangGraph.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "remotes": [
     {
       "type": "streamable-http",
@@ -174,11 +174,11 @@ Two transports exist in the product plan. Only the first is live today, and it i
 }
 ```
 
-Smithery and Glama drafts should name the same HTTP URL and the local stdio package `spurvik-mcp-server@1.0.4`. The scan tool reports unwrapped LangGraph `StateGraph` and `interrupt()` calls.
+Smithery and Glama drafts should name the same HTTP URL and the local stdio package `spurvik-mcp-server@1.0.5`. The scan tool reports unwrapped LangGraph `StateGraph` and `interrupt()` calls.
 
 ## 7. EyeTea Solutions ApS Release-Day Submission Runbook
 
-Do this in order, and only when the owner decides to open the directory submissions. The public repository is https://github.com/spurvik/spurvik. The published packages are already `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`.
+Do this in order, and only when the owner decides to open the directory submissions. The public repository is https://github.com/spurvik/spurvik. The published packages are already `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.5`.
 
 1. Install those packages with npm. This repository has no root package script for a workspace build.
 2. Check the plugin files under `plugins/spurvik` before any directory submission.

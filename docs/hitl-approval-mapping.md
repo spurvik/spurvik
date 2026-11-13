@@ -1,8 +1,8 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> Describes human-oversight and tool-approval integration for `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.4`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
+> Describes human-oversight and tool-approval integration for `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, and `spurvik-mcp-server@1.0.5`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`.*
 
 Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`finishReason` / `rawFinishReason === "interrupted"` and `tool-approval-request`), **OpenAI Agents SDK** (`needsApproval` and `RunState` interruptions), and **LangGraph** (`interrupt()` and `Command({ resume })`) to Spurvik's human-oversight queue (`hitl_approvals` and `/dashboard/projects/<projectId>/oversight`). For a dedicated LangGraph walkthrough, see [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md).
 

@@ -4,7 +4,7 @@ export const RISK_TIER_SAMPLE_COMMENT =
   "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
 
 export const SERVER_INSTRUCTIONS =
-  "Local read-only tools for the Spurvik SDK. They do not call the Spurvik API or any other network. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content and does not classify a use case.";
+  "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
 
 export const READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
@@ -12,6 +12,9 @@ export const READ_ONLY_ANNOTATIONS = {
   idempotentHint: true,
   openWorldHint: false,
 } as const;
+
+/** Reads one public page through console.spurvik.com, so it is open-world. */
+export const READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, openWorldHint: true } as const;
 
 export const SETUP_TITLE = "Spurvik setup snippet";
 export const SETUP_DESCRIPTION =
@@ -89,3 +92,30 @@ export const MARKING_DESCRIPTION =
   "Explain how to plug your own Article 50(2) marking into marking.text or marking.media. Spurvik does not mark content. withSpurvik and spurvikMiddleware log the call and attach an HMAC receipt. A hook runs only when you supply one. The signed text trailer is an application-level binding you can opt into. It is not, by itself, an Article 50(2) machine-readable mark.";
 export const SURFACE_FIELD = "Which hook to explain: text, media, or both. Defaults to both.";
 export const UNKNOWN_SURFACE = "The surface must be text, media, or both.";
+
+export const SCAN_TITLE = "Scan a live URL for Art. 50(1)";
+export const SCAN_DESCRIPTION =
+  "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl and upgradeUrls. localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
+export const SCAN_URL_FIELD = "Public http(s) URL or bare domain, for example stepnetwork.dk.";
+
+export const CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
+export const CLASSIFY_DESCRIPTION =
+  "Deterministic, zero-network mapping of one AI use case to an EU AI Act tier: prohibited_art5, high_risk_annex_iii, limited_transparency_art50 or minimal_risk. Returns JSON with the matched signals, obligations with dates, recommended Spurvik controls, interactiveClassifierUrl and upgradeUrls. The use-case text is matched against fixed patterns; it is not stored or echoed. Engineering mapping aid; not legal advice and not a decision under Article 6.";
+export const USE_CASE_FIELD = "What the AI system does and for whom, in one or two sentences. Max 4000 characters. Not stored or echoed.";
+export const DOMAIN_FIELD =
+  "Annex III area, or general (default): biometrics, critical_infrastructure, education, employment_hr, essential_services_credit, law_enforcement, migration_border, justice_democracy.";
+export const INTERACTS_FIELD = "People talk to or chat with the system (Art. 50(1)). Inferred from useCase when omitted.";
+export const SYNTHETIC_FIELD = "The system generates audio, images, video or text (Art. 50(2)). Inferred from useCase when omitted.";
+export const DECISIONS_FIELD =
+  "The system decides about, ranks or scores natural persons, or materially influences such decisions. Inferred from useCase when omitted.";
+
+export const BADGE_TITLE = "Generate an Art. 50(1) badge";
+export const BADGE_DESCRIPTION =
+  "Zero-network generator for an EU AI Act Article 50(1) notice in any of the 24 official EU languages: a one-line badge.js <script>, a Next.js <Script>, the WordPress plugin .zip, the Framer component and the shadcn/v0 registry item. Returns JSON. attribution defaults to true (Free) and shows a subtle \"Art. 50 · Spurvik\" link; attribution: false is white-label on Pro (€19/mo) or Done-For-You (€199 once). The language is inferred from a domain-like systemName when locale is omitted. Not legal advice.";
+export const LOCALE_FIELD =
+  "One of the 24 official EU language codes: en, da, de, fr, es, nl, sv, pl, it, pt, fi, cs, bg, el, et, ga, hr, hu, lt, lv, mt, ro, sk, sl.";
+export const POSITION_FIELD = "bottom-right (default), bottom-left or inline.";
+export const THEME_FIELD = "dark (default) or light.";
+export const SYSTEM_NAME_FIELD = "Product or assistant name, or the site domain. Defaults to Support Assistant.";
+export const ATTRIBUTION_FIELD =
+  'Show the "Art. 50 · Spurvik" trust link. Defaults to true. false is white-label (Pro or Done-For-You).';

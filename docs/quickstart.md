@@ -4,7 +4,7 @@
 >
 > **Licence.** `packages/sdk` (published as `spurvik` and `spurvik-sdk`), `@spurvik/core`, `@spurvik/react`, and `@spurvik/mcp` are licensed under the MIT License and are provided without warranty. `packages/c2pa` (`@spurvik/c2pa`) is in this repository with `"private": true` and `"license": "MIT"`, and it is not published on npm. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`.*
 
 This guide takes you from nothing to a signed provenance record for one OpenAI call, and shows you how to check that record later.
 
@@ -51,7 +51,7 @@ npm install openai spurvik@1.0.8
 The local stdio MCP server, from the app folder:
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.4
+npm i -D spurvik-mcp-server@1.0.5
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 

@@ -2,7 +2,7 @@
 
 Run these commands from a clean detached checkout of QA_SHA. `spurvik` and `spurvik-sdk` are the same SDK build under two names. `spurvik-sdk` does not depend on `spurvik`. Do not pass `--provenance`.
 
-When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). `spurvik` does not depend on `spurvik-sdk`; they are the same build under two names. This document's SDK steps describe the `spurvik-sdk@1.0.8` and `spurvik@1.0.8` release. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version. For `spurvik-mcp-server@1.0.4`, use the MCP section at the end.
+When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). `spurvik` does not depend on `spurvik-sdk`; they are the same build under two names. This document's SDK steps describe the `spurvik-sdk@1.0.8` and `spurvik@1.0.8` release. Skip `n8n-nodes-spurvik@1.0.3`. It is already published, and this release does not change it. Never republish an existing version. For `spurvik-mcp-server@1.0.5`, use the MCP section at the end.
 
 The n8n `outputField` check compares field names, not values.
 
@@ -347,9 +347,9 @@ check() {
 
 The hosted console at https://console.spurvik.com is deployed separately. These commands do not publish the console.
 
-## Releasing spurvik-mcp-server@1.0.4
+## Releasing spurvik-mcp-server@1.0.5
 
-`packages/mcp/CHANGELOG.md` is headed `1.0.4 — unreleased` until this version is published. At publish, replace that heading with `1.0.4 — YYYY-MM-DD` (the publish date). That is the same convention as `packages/sdk/CHANGELOG.md` for 1.0.8. The 1.0.3 and 1.0.7 headings stayed "unreleased" until those packages were published and were then dated 2026-11-11.
+`packages/mcp/CHANGELOG.md` is headed `1.0.5 — unreleased` until this version is published. At publish, replace that heading with `1.0.5 — YYYY-MM-DD` (the publish date). That is the same convention as `packages/sdk/CHANGELOG.md` for 1.0.8. The 1.0.3 and 1.0.7 headings stayed "unreleased" until those packages were published and were then dated 2026-11-11.
 
 
 `packages/mcp` stays `"private": true` under the workspace name `@spurvik/mcp`. The published npm package is `spurvik-mcp-server`. Do not run `npm publish` from `packages/mcp`. Stage a public package with `node scripts/stage-mcp-package.mjs`, then pack and publish that staged tarball. The staged `package.json` sets `name` to `spurvik-mcp-server` and `mcpName` to `io.github.spurvik/spurvik-mcp-server`, which must match `name` in `server.json`. The MCP Registry uses `mcpName` to check npm package ownership.
@@ -397,7 +397,7 @@ mkdir -p /tmp/spurvik-mcp-release /tmp/spurvik-mcp-smoke
 (
   cd /tmp/spurvik-mcp-smoke || exit 1
   npm init -y
-  npm install /tmp/spurvik-mcp-release/spurvik-mcp-server-1.0.4.tgz
+  npm install /tmp/spurvik-mcp-release/spurvik-mcp-server-1.0.5.tgz
   test -x node_modules/.bin/spurvik-mcp-server
   test -x node_modules/.bin/spurvik-mcp
 )
@@ -413,12 +413,12 @@ Stop and check that block first. The smoke install must exit 0 before you publis
 # Pack the staged public package and compare hashes to the values QA recorded.
 # The uncompressed tar sha1 is the content gate. Do not run npm publish in this block.
 # QA_SHA, QA_SHA1_MCP, QA_SHA1_MCP_TAR, QA_NODE_VERSION, and QA_NPM_VERSION are to be
-# filled in at the QA gate for the 1.0.4 MCP release. Do not reuse values from an earlier release.
+# filled in at the QA gate for the 1.0.5 MCP release. Do not reuse values from an earlier release.
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
-: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.4.tgz sha1 QA records at the QA gate for this release}"
-: "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 (gzip -dc spurvik-mcp-server-1.0.4.tgz | shasum -a 1) QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.5.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 (gzip -dc spurvik-mcp-server-1.0.5.tgz | shasum -a 1) QA records at the QA gate for this release}"
 : "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
 : "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
 tgz_sha1() { shasum -a 1 "$1" | awk '{print $1}'; }
@@ -454,27 +454,27 @@ REPO=$(git rev-parse --show-toplevel)
   node scripts/stage-mcp-package.mjs
   cd "$REPO"/packages/mcp/.release || exit 1
   npm pack
-  actual_tgz="$(tgz_sha1 ./spurvik-mcp-server-1.0.4.tgz)"
-  actual_tar="$(tar_sha1 ./spurvik-mcp-server-1.0.4.tgz)"
+  actual_tgz="$(tgz_sha1 ./spurvik-mcp-server-1.0.5.tgz)"
+  actual_tar="$(tar_sha1 ./spurvik-mcp-server-1.0.5.tgz)"
   if [[ "$actual_tar" != "$QA_SHA1_MCP_TAR" ]]; then
-    echo "Stop: spurvik-mcp-server-1.0.4.tgz uncompressed tar sha1 $actual_tar does not match the sha1 QA recorded for the approved head ($QA_SHA1_MCP_TAR)." >&2
+    echo "Stop: spurvik-mcp-server-1.0.5.tgz uncompressed tar sha1 $actual_tar does not match the sha1 QA recorded for the approved head ($QA_SHA1_MCP_TAR)." >&2
     exit 1
   fi
   if [[ "$actual_tgz" != "$QA_SHA1_MCP" ]]; then
-    echo "Note: spurvik-mcp-server-1.0.4.tgz sha1 $actual_tgz does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches, so the content is the same and the gzip bytes differ." >&2
+    echo "Note: spurvik-mcp-server-1.0.5.tgz sha1 $actual_tgz does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches, so the content is the same and the gzip bytes differ." >&2
   fi
 )
 )
 ```
 
 ```bash
-# MCP 6. Publish spurvik-mcp-server@1.0.4, only when the owner decides. No --provenance.
+# MCP 6. Publish spurvik-mcp-server@1.0.5, only when the owner decides. No --provenance.
 # One subshell. Recheck HEAD, Node, and npm. Recheck the sha1s before the publish.
 # It does not pack again. A content mismatch stops the subshell.
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
-: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.4.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.5.tgz sha1 QA records at the QA gate for this release}"
 : "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
 : "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
 : "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
@@ -502,17 +502,17 @@ REPO=$(git rev-parse --show-toplevel)
     exit 1
   fi
 )
-tgz="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.4.tgz"
+tgz="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.5.tgz"
 if [[ "$(tar_sha1 "$tgz")" != "$QA_SHA1_MCP_TAR" ]]; then
-  echo "Stop: spurvik-mcp-server-1.0.4.tgz uncompressed tar sha1 $(tar_sha1 "$tgz") does not match $QA_SHA1_MCP_TAR." >&2
+  echo "Stop: spurvik-mcp-server-1.0.5.tgz uncompressed tar sha1 $(tar_sha1 "$tgz") does not match $QA_SHA1_MCP_TAR." >&2
   exit 1
 fi
 if [[ "$(tgz_sha1 "$tgz")" != "$QA_SHA1_MCP" ]]; then
-  echo "Note: spurvik-mcp-server-1.0.4.tgz sha1 $(tgz_sha1 "$tgz") does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches." >&2
+  echo "Note: spurvik-mcp-server-1.0.5.tgz sha1 $(tgz_sha1 "$tgz") does not match the tgz sha1 QA recorded ($QA_SHA1_MCP). The uncompressed tar sha1 matches." >&2
 fi
 (
   cd "$REPO"/packages/mcp/.release || exit 1
-  npm publish ./spurvik-mcp-server-1.0.4.tgz
+  npm publish ./spurvik-mcp-server-1.0.5.tgz
 )
 )
 ```
@@ -522,7 +522,7 @@ fi
 (
 set -euo pipefail
 : "${QA_SHA:?Set QA_SHA to the QA-passed commit, to be filled in at the QA gate for this release}"
-: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.4.tgz sha1 QA records at the QA gate for this release}"
+: "${QA_SHA1_MCP:?Set QA_SHA1_MCP to the spurvik-mcp-server-1.0.5.tgz sha1 QA records at the QA gate for this release}"
 : "${QA_SHA1_MCP_TAR:?Set QA_SHA1_MCP_TAR to the uncompressed tar sha1 QA records at the QA gate for this release}"
 : "${QA_NODE_VERSION:?Set QA_NODE_VERSION to the node -v output QA records at the QA gate for this release}"
 : "${QA_NPM_VERSION:?Set QA_NPM_VERSION to the npm -v output QA records at the QA gate for this release}"
@@ -542,35 +542,35 @@ if [[ "$head" != "$QA_SHA" ]]; then
   echo "Stop: HEAD $head does not equal the QA-passed SHA ($QA_SHA)." >&2
   exit 1
 fi
-packed="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.4.tgz"
+packed="$REPO/packages/mcp/.release/spurvik-mcp-server-1.0.5.tgz"
 packed_tar="$(tar_sha1 "$packed")"
 if [[ "$packed_tar" != "$QA_SHA1_MCP_TAR" ]]; then
-  echo "Stop: local spurvik-mcp-server-1.0.4.tgz uncompressed tar sha1 $packed_tar does not match $QA_SHA1_MCP_TAR." >&2
+  echo "Stop: local spurvik-mcp-server-1.0.5.tgz uncompressed tar sha1 $packed_tar does not match $QA_SHA1_MCP_TAR." >&2
   exit 1
 fi
-remote_shasum="$(npm view spurvik-mcp-server@1.0.4 dist.shasum)"
+remote_shasum="$(npm view spurvik-mcp-server@1.0.5 dist.shasum)"
 work="$(mktemp -d)"
-(cd "$work" && npm pack spurvik-mcp-server@1.0.4 >/dev/null)
-remote_tar="$(tar_sha1 "$work/spurvik-mcp-server-1.0.4.tgz")"
+(cd "$work" && npm pack spurvik-mcp-server@1.0.5 >/dev/null)
+remote_tar="$(tar_sha1 "$work/spurvik-mcp-server-1.0.5.tgz")"
 if [[ "$remote_tar" != "$QA_SHA1_MCP_TAR" ]]; then
-  echo "Stop: published spurvik-mcp-server@1.0.4 uncompressed tar sha1 $remote_tar does not match the sha1 QA recorded ($QA_SHA1_MCP_TAR)." >&2
+  echo "Stop: published spurvik-mcp-server@1.0.5 uncompressed tar sha1 $remote_tar does not match the sha1 QA recorded ($QA_SHA1_MCP_TAR)." >&2
   rm -rf "$work"
   exit 1
 fi
 if [[ "$remote_shasum" != "$QA_SHA1_MCP" && "$remote_shasum" != "$(tgz_sha1 "$packed")" ]]; then
-  echo "Note: npm view spurvik-mcp-server@1.0.4 dist.shasum is $remote_shasum; QA tgz sha1 is $QA_SHA1_MCP; packed tgz sha1 is $(tgz_sha1 "$packed"). The uncompressed tar sha1 matches $QA_SHA1_MCP_TAR, so the content is the same and the gzip bytes differ." >&2
+  echo "Note: npm view spurvik-mcp-server@1.0.5 dist.shasum is $remote_shasum; QA tgz sha1 is $QA_SHA1_MCP; packed tgz sha1 is $(tgz_sha1 "$packed"). The uncompressed tar sha1 matches $QA_SHA1_MCP_TAR, so the content is the same and the gzip bytes differ." >&2
 fi
 rm -rf "$work"
 )
 ```
 
 ```bash
-# MCP 8. Registry install check. Run only after spurvik-mcp-server@1.0.4 is on the registry.
+# MCP 8. Registry install check. Run only after spurvik-mcp-server@1.0.5 is on the registry.
 (
   rm -rf /tmp/spurvik-mcp-registry-check
   mkdir -p /tmp/spurvik-mcp-registry-check
   cd /tmp/spurvik-mcp-registry-check || exit 1
   npm init -y
-  npm install spurvik-mcp-server@1.0.4
+  npm install spurvik-mcp-server@1.0.5
 )
 ```

@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.4, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.5, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -1870,8 +1870,8 @@ var require_keyword = __commonJS({
       var _a;
       const { gen, keyword, schema, parentSchema, $data, it } = cxt;
       checkAsyncKeyword(it, def);
-      const validate = !$data && def.compile ? def.compile.call(it.self, schema, parentSchema, it) : def.validate;
-      const validateRef = useKeyword(gen, keyword, validate);
+      const validate2 = !$data && def.compile ? def.compile.call(it.self, schema, parentSchema, it) : def.validate;
+      const validateRef = useKeyword(gen, keyword, validate2);
       const valid = gen.let("valid");
       cxt.block$data(valid, validateKeyword);
       cxt.ok((_a = def.valid) !== null && _a !== void 0 ? _a : valid);
@@ -2944,28 +2944,28 @@ var require_compile = __commonJS({
         if (this.opts.code.process)
           sourceCode = this.opts.code.process(sourceCode, sch);
         const makeValidate = new Function(`${names_1.default.self}`, `${names_1.default.scope}`, sourceCode);
-        const validate = makeValidate(this, this.scope.get());
-        this.scope.value(validateName, { ref: validate });
-        validate.errors = null;
-        validate.schema = sch.schema;
-        validate.schemaEnv = sch;
+        const validate2 = makeValidate(this, this.scope.get());
+        this.scope.value(validateName, { ref: validate2 });
+        validate2.errors = null;
+        validate2.schema = sch.schema;
+        validate2.schemaEnv = sch;
         if (sch.$async)
-          validate.$async = true;
+          validate2.$async = true;
         if (this.opts.code.source === true) {
-          validate.source = { validateName, validateCode, scopeValues: gen._values };
+          validate2.source = { validateName, validateCode, scopeValues: gen._values };
         }
         if (this.opts.unevaluated) {
           const { props, items } = schemaCxt;
-          validate.evaluated = {
+          validate2.evaluated = {
             props: props instanceof codegen_1.Name ? void 0 : props,
             items: items instanceof codegen_1.Name ? void 0 : items,
             dynamicProps: props instanceof codegen_1.Name,
             dynamicItems: items instanceof codegen_1.Name
           };
-          if (validate.source)
-            validate.source.evaluated = (0, codegen_1.stringify)(validate.evaluated);
+          if (validate2.source)
+            validate2.source.evaluated = (0, codegen_1.stringify)(validate2.evaluated);
         }
-        sch.validate = validate;
+        sch.validate = validate2;
         return sch;
       } catch (e) {
         delete sch.validate;
@@ -6944,8 +6944,8 @@ var require_formats = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
-    function fmtDef(validate, compare) {
-      return { validate, compare };
+    function fmtDef(validate2, compare) {
+      return { validate: validate2, compare };
     }
     exports.fullFormats = {
       // date: http://tools.ietf.org/html/rfc3339#section-5.6
@@ -10445,24 +10445,24 @@ var JSONSchemaGenerator = class {
         const _json = result.schema;
         switch (def.type) {
           case "string": {
-            const json = _json;
-            json.type = "string";
+            const json2 = _json;
+            json2.type = "string";
             const { minimum, maximum, format, patterns, contentEncoding } = schema._zod.bag;
             if (typeof minimum === "number")
-              json.minLength = minimum;
+              json2.minLength = minimum;
             if (typeof maximum === "number")
-              json.maxLength = maximum;
+              json2.maxLength = maximum;
             if (format) {
-              json.format = formatMap[format] ?? format;
-              if (json.format === "")
-                delete json.format;
+              json2.format = formatMap[format] ?? format;
+              if (json2.format === "")
+                delete json2.format;
             }
             if (contentEncoding)
-              json.contentEncoding = contentEncoding;
+              json2.contentEncoding = contentEncoding;
             if (patterns && patterns.size > 0) {
               const regexes = [...patterns];
               if (regexes.length === 1)
-                json.pattern = regexes[0].source;
+                json2.pattern = regexes[0].source;
               else if (regexes.length > 1) {
                 result.schema.allOf = [
                   ...regexes.map((regex) => ({
@@ -10475,41 +10475,41 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "number": {
-            const json = _json;
+            const json2 = _json;
             const { minimum, maximum, format, multipleOf, exclusiveMaximum, exclusiveMinimum } = schema._zod.bag;
             if (typeof format === "string" && format.includes("int"))
-              json.type = "integer";
+              json2.type = "integer";
             else
-              json.type = "number";
+              json2.type = "number";
             if (typeof exclusiveMinimum === "number")
-              json.exclusiveMinimum = exclusiveMinimum;
+              json2.exclusiveMinimum = exclusiveMinimum;
             if (typeof minimum === "number") {
-              json.minimum = minimum;
+              json2.minimum = minimum;
               if (typeof exclusiveMinimum === "number") {
                 if (exclusiveMinimum >= minimum)
-                  delete json.minimum;
+                  delete json2.minimum;
                 else
-                  delete json.exclusiveMinimum;
+                  delete json2.exclusiveMinimum;
               }
             }
             if (typeof exclusiveMaximum === "number")
-              json.exclusiveMaximum = exclusiveMaximum;
+              json2.exclusiveMaximum = exclusiveMaximum;
             if (typeof maximum === "number") {
-              json.maximum = maximum;
+              json2.maximum = maximum;
               if (typeof exclusiveMaximum === "number") {
                 if (exclusiveMaximum <= maximum)
-                  delete json.maximum;
+                  delete json2.maximum;
                 else
-                  delete json.exclusiveMaximum;
+                  delete json2.exclusiveMaximum;
               }
             }
             if (typeof multipleOf === "number")
-              json.multipleOf = multipleOf;
+              json2.multipleOf = multipleOf;
             break;
           }
           case "boolean": {
-            const json = _json;
-            json.type = "boolean";
+            const json2 = _json;
+            json2.type = "boolean";
             break;
           }
           case "bigint": {
@@ -10557,23 +10557,23 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "array": {
-            const json = _json;
+            const json2 = _json;
             const { minimum, maximum } = schema._zod.bag;
             if (typeof minimum === "number")
-              json.minItems = minimum;
+              json2.minItems = minimum;
             if (typeof maximum === "number")
-              json.maxItems = maximum;
-            json.type = "array";
-            json.items = this.process(def.element, { ...params, path: [...params.path, "items"] });
+              json2.maxItems = maximum;
+            json2.type = "array";
+            json2.items = this.process(def.element, { ...params, path: [...params.path, "items"] });
             break;
           }
           case "object": {
-            const json = _json;
-            json.type = "object";
-            json.properties = {};
+            const json2 = _json;
+            json2.type = "object";
+            json2.properties = {};
             const shape = def.shape;
             for (const key in shape) {
-              json.properties[key] = this.process(shape[key], {
+              json2.properties[key] = this.process(shape[key], {
                 ...params,
                 path: [...params.path, "properties", key]
               });
@@ -10588,15 +10588,15 @@ var JSONSchemaGenerator = class {
               }
             }));
             if (requiredKeys.size > 0) {
-              json.required = Array.from(requiredKeys);
+              json2.required = Array.from(requiredKeys);
             }
             if (def.catchall?._zod.def.type === "never") {
-              json.additionalProperties = false;
+              json2.additionalProperties = false;
             } else if (!def.catchall) {
               if (this.io === "output")
-                json.additionalProperties = false;
+                json2.additionalProperties = false;
             } else if (def.catchall) {
-              json.additionalProperties = this.process(def.catchall, {
+              json2.additionalProperties = this.process(def.catchall, {
                 ...params,
                 path: [...params.path, "additionalProperties"]
               });
@@ -10604,15 +10604,15 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "union": {
-            const json = _json;
-            json.anyOf = def.options.map((x, i) => this.process(x, {
+            const json2 = _json;
+            json2.anyOf = def.options.map((x, i) => this.process(x, {
               ...params,
               path: [...params.path, "anyOf", i]
             }));
             break;
           }
           case "intersection": {
-            const json = _json;
+            const json2 = _json;
             const a = this.process(def.left, {
               ...params,
               path: [...params.path, "allOf", 0]
@@ -10626,17 +10626,17 @@ var JSONSchemaGenerator = class {
               ...isSimpleIntersection(a) ? a.allOf : [a],
               ...isSimpleIntersection(b) ? b.allOf : [b]
             ];
-            json.allOf = allOf;
+            json2.allOf = allOf;
             break;
           }
           case "tuple": {
-            const json = _json;
-            json.type = "array";
+            const json2 = _json;
+            json2.type = "array";
             const prefixItems = def.items.map((x, i) => this.process(x, { ...params, path: [...params.path, "prefixItems", i] }));
             if (this.target === "draft-2020-12") {
-              json.prefixItems = prefixItems;
+              json2.prefixItems = prefixItems;
             } else {
-              json.items = prefixItems;
+              json2.items = prefixItems;
             }
             if (def.rest) {
               const rest = this.process(def.rest, {
@@ -10644,29 +10644,29 @@ var JSONSchemaGenerator = class {
                 path: [...params.path, "items"]
               });
               if (this.target === "draft-2020-12") {
-                json.items = rest;
+                json2.items = rest;
               } else {
-                json.additionalItems = rest;
+                json2.additionalItems = rest;
               }
             }
             if (def.rest) {
-              json.items = this.process(def.rest, {
+              json2.items = this.process(def.rest, {
                 ...params,
                 path: [...params.path, "items"]
               });
             }
             const { minimum, maximum } = schema._zod.bag;
             if (typeof minimum === "number")
-              json.minItems = minimum;
+              json2.minItems = minimum;
             if (typeof maximum === "number")
-              json.maxItems = maximum;
+              json2.maxItems = maximum;
             break;
           }
           case "record": {
-            const json = _json;
-            json.type = "object";
-            json.propertyNames = this.process(def.keyType, { ...params, path: [...params.path, "propertyNames"] });
-            json.additionalProperties = this.process(def.valueType, {
+            const json2 = _json;
+            json2.type = "object";
+            json2.propertyNames = this.process(def.keyType, { ...params, path: [...params.path, "propertyNames"] });
+            json2.additionalProperties = this.process(def.valueType, {
               ...params,
               path: [...params.path, "additionalProperties"]
             });
@@ -10685,17 +10685,17 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "enum": {
-            const json = _json;
+            const json2 = _json;
             const values = getEnumValues(def.entries);
             if (values.every((v) => typeof v === "number"))
-              json.type = "number";
+              json2.type = "number";
             if (values.every((v) => typeof v === "string"))
-              json.type = "string";
-            json.enum = values;
+              json2.type = "string";
+            json2.enum = values;
             break;
           }
           case "literal": {
-            const json = _json;
+            const json2 = _json;
             const vals = [];
             for (const val of def.values) {
               if (val === void 0) {
@@ -10716,23 +10716,23 @@ var JSONSchemaGenerator = class {
             if (vals.length === 0) {
             } else if (vals.length === 1) {
               const val = vals[0];
-              json.type = val === null ? "null" : typeof val;
-              json.const = val;
+              json2.type = val === null ? "null" : typeof val;
+              json2.const = val;
             } else {
               if (vals.every((v) => typeof v === "number"))
-                json.type = "number";
+                json2.type = "number";
               if (vals.every((v) => typeof v === "string"))
-                json.type = "string";
+                json2.type = "string";
               if (vals.every((v) => typeof v === "boolean"))
-                json.type = "string";
+                json2.type = "string";
               if (vals.every((v) => v === null))
-                json.type = "null";
-              json.enum = vals;
+                json2.type = "null";
+              json2.enum = vals;
             }
             break;
           }
           case "file": {
-            const json = _json;
+            const json2 = _json;
             const file = {
               type: "string",
               format: "binary",
@@ -10746,15 +10746,15 @@ var JSONSchemaGenerator = class {
             if (mime) {
               if (mime.length === 1) {
                 file.contentMediaType = mime[0];
-                Object.assign(json, file);
+                Object.assign(json2, file);
               } else {
-                json.anyOf = mime.map((m) => {
+                json2.anyOf = mime.map((m) => {
                   const mFile = { ...file, contentMediaType: m };
                   return mFile;
                 });
               }
             } else {
-              Object.assign(json, file);
+              Object.assign(json2, file);
             }
             break;
           }
@@ -10775,8 +10775,8 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "success": {
-            const json = _json;
-            json.type = "boolean";
+            const json2 = _json;
+            json2.type = "boolean";
             break;
           }
           case "default": {
@@ -10811,12 +10811,12 @@ var JSONSchemaGenerator = class {
             break;
           }
           case "template_literal": {
-            const json = _json;
+            const json2 = _json;
             const pattern = schema._zod.pattern;
             if (!pattern)
               throw new Error("Pattern not found in template literal");
-            json.type = "string";
-            json.pattern = pattern.source;
+            json2.type = "string";
+            json2.pattern = pattern.source;
             break;
           }
           case "pipe": {
@@ -13480,8 +13480,8 @@ var StdioServerTransport = class {
   }
   send(message) {
     return new Promise((resolve) => {
-      const json = serializeMessage(message);
-      if (this._stdout.write(json)) {
+      const json2 = serializeMessage(message);
+      if (this._stdout.write(json2)) {
         resolve();
       } else {
         this._stdout.once("drain", resolve);
@@ -13497,13 +13497,14 @@ import path from "node:path";
 
 // packages/mcp/src/copy.ts
 var RISK_TIER_SAMPLE_COMMENT = "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
-var SERVER_INSTRUCTIONS = "Local read-only tools for the Spurvik SDK. They do not call the Spurvik API or any other network. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content and does not classify a use case.";
+var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
 var READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
   idempotentHint: true,
   openWorldHint: false
 };
+var READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, openWorldHint: true };
 var SETUP_TITLE = "Spurvik setup snippet";
 var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph. Provider clients are wrapped with withSpurvik. The Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel. The Mastra snippet calls withSpurvikMastra. The OpenAI Agents snippet calls withSpurvikModelProvider. The LangGraph snippet calls withSpurvikLangGraph and spurvikInterrupt. The snippet is built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
 var FRAMEWORK_FIELD = "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
@@ -13550,6 +13551,23 @@ var MARKING_TITLE = "Marking hooks";
 var MARKING_DESCRIPTION = "Explain how to plug your own Article 50(2) marking into marking.text or marking.media. Spurvik does not mark content. withSpurvik and spurvikMiddleware log the call and attach an HMAC receipt. A hook runs only when you supply one. The signed text trailer is an application-level binding you can opt into. It is not, by itself, an Article 50(2) machine-readable mark.";
 var SURFACE_FIELD = "Which hook to explain: text, media, or both. Defaults to both.";
 var UNKNOWN_SURFACE = "The surface must be text, media, or both.";
+var SCAN_TITLE = "Scan a live URL for Art. 50(1)";
+var SCAN_DESCRIPTION = "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl and upgradeUrls. localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
+var SCAN_URL_FIELD = "Public http(s) URL or bare domain, for example stepnetwork.dk.";
+var CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
+var CLASSIFY_DESCRIPTION = "Deterministic, zero-network mapping of one AI use case to an EU AI Act tier: prohibited_art5, high_risk_annex_iii, limited_transparency_art50 or minimal_risk. Returns JSON with the matched signals, obligations with dates, recommended Spurvik controls, interactiveClassifierUrl and upgradeUrls. The use-case text is matched against fixed patterns; it is not stored or echoed. Engineering mapping aid; not legal advice and not a decision under Article 6.";
+var USE_CASE_FIELD = "What the AI system does and for whom, in one or two sentences. Max 4000 characters. Not stored or echoed.";
+var DOMAIN_FIELD = "Annex III area, or general (default): biometrics, critical_infrastructure, education, employment_hr, essential_services_credit, law_enforcement, migration_border, justice_democracy.";
+var INTERACTS_FIELD = "People talk to or chat with the system (Art. 50(1)). Inferred from useCase when omitted.";
+var SYNTHETIC_FIELD = "The system generates audio, images, video or text (Art. 50(2)). Inferred from useCase when omitted.";
+var DECISIONS_FIELD = "The system decides about, ranks or scores natural persons, or materially influences such decisions. Inferred from useCase when omitted.";
+var BADGE_TITLE = "Generate an Art. 50(1) badge";
+var BADGE_DESCRIPTION = 'Zero-network generator for an EU AI Act Article 50(1) notice in any of the 24 official EU languages: a one-line badge.js <script>, a Next.js <Script>, the WordPress plugin .zip, the Framer component and the shadcn/v0 registry item. Returns JSON. attribution defaults to true (Free) and shows a subtle "Art. 50 · Spurvik" link; attribution: false is white-label on Pro (€19/mo) or Done-For-You (€199 once). The language is inferred from a domain-like systemName when locale is omitted. Not legal advice.';
+var LOCALE_FIELD = "One of the 24 official EU language codes: en, da, de, fr, es, nl, sv, pl, it, pt, fi, cs, bg, el, et, ga, hr, hu, lt, lv, mt, ro, sk, sl.";
+var POSITION_FIELD = "bottom-right (default), bottom-left or inline.";
+var THEME_FIELD = "dark (default) or light.";
+var SYSTEM_NAME_FIELD = "Product or assistant name, or the site domain. Defaults to Support Assistant.";
+var ATTRIBUTION_FIELD = 'Show the "Art. 50 · Spurvik" trust link. Defaults to true. false is white-label (Pro or Done-For-You).';
 
 // packages/mcp/src/root.ts
 var WorkspacePathError = class extends Error {
@@ -14120,8 +14138,8 @@ var ZodIssueCode = util.arrayToEnum([
   "not_finite"
 ]);
 var quotelessJson = (obj) => {
-  const json = JSON.stringify(obj, null, 2);
-  return json.replace(/"([^"]+)":/g, "$1:");
+  const json2 = JSON.stringify(obj, null, 2);
+  return json2.replace(/"([^"]+)":/g, "$1:");
 };
 var ZodError2 = class _ZodError extends Error {
   get errors() {
@@ -20302,7 +20320,7 @@ var Protocol = class {
    * @param sessionId Session of the request that waits, passed to the task store
    * @returns Promise that resolves when an update occurs or rejects if aborted
    */
-  async _waitForTaskUpdate(taskId, signal, sessionId) {
+  async _waitForTaskUpdate(taskId, signal2, sessionId) {
     let interval = this._options?.defaultTaskPollInterval ?? 1e3;
     try {
       const task = await this._taskStore?.getTask(taskId, sessionId);
@@ -20312,12 +20330,12 @@ var Protocol = class {
     } catch {
     }
     return new Promise((resolve, reject) => {
-      if (signal.aborted) {
+      if (signal2.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
       const timeoutId = setTimeout(resolve, interval);
-      signal.addEventListener("abort", () => {
+      signal2.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
       }, { once: true });
@@ -22015,6 +22033,565 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
+// packages/mcp/src/links.ts
+var CONSOLE_ORIGIN = "https://console.spurvik.com";
+var BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
+var REPORT_URL = `${CONSOLE_ORIGIN}/report`;
+var SANDBOX_URL = `${CONSOLE_ORIGIN}/sandbox`;
+var RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
+var PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
+var TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
+var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
+var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
+var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
+var PRO_PRICE = "€19/mo";
+var TEAM_PRICE = "€79/mo";
+var CONCIERGE_PRICE = "€199 once";
+var PRICE_NOTE = "Prices excl. VAT, B2B.";
+function reportUrlFor(host) {
+  return `${REPORT_URL}?domain=${encodeURIComponent(host)}`;
+}
+function sandboxUrlFor(host) {
+  return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
+}
+
+// packages/mcp/src/tools/badge-copy.ts
+var EU_LANGUAGES = [
+  { code: "en", label: "English (en)", interaction: "You are interacting with an AI system." },
+  { code: "da", label: "Dansk (da)", interaction: "Du interagerer med et AI-system." },
+  { code: "de", label: "Deutsch (de)", interaction: "Sie interagieren mit einem KI-System." },
+  { code: "fr", label: "Français (fr)", interaction: "Vous interagissez avec un système d’IA." },
+  { code: "es", label: "Español (es)", interaction: "Está interactuando con un sistema de IA." },
+  { code: "nl", label: "Nederlands (nl)", interaction: "U communiceert met een AI-systeem." },
+  { code: "sv", label: "Svenska (sv)", interaction: "Du interagerar med ett AI-system." },
+  { code: "pl", label: "Polski (pl)", interaction: "Korzystasz z systemu AI." },
+  { code: "it", label: "Italiano (it)", interaction: "Stai interagendo con un sistema di IA." },
+  { code: "pt", label: "Português (pt)", interaction: "Está a interagir com um sistema de IA." },
+  { code: "fi", label: "Suomi (fi)", interaction: "Käytät tekoälyjärjestelmää." },
+  { code: "cs", label: "Čeština (cs)", interaction: "Komunikujete se systémem umělé inteligence." },
+  { code: "bg", label: "Български (bg)", interaction: "Взаимодействате със система с изкуствен интелект." },
+  { code: "el", label: "Ελληνικά (el)", interaction: "Αλληλεπιδράτε με σύστημα τεχνητής νοημοσύνης." },
+  { code: "et", label: "Eesti (et)", interaction: "Suhtlete tehisintellektisüsteemiga." },
+  { code: "ga", label: "Gaeilge (ga)", interaction: "Tá tú ag idirghníomhú le córas intleachta saorga." },
+  { code: "hr", label: "Hrvatski (hr)", interaction: "Komunicirate sa sustavom umjetne inteligencije." },
+  { code: "hu", label: "Magyar (hu)", interaction: "Ön egy mesterségesintelligencia-rendszerrel lép kapcsolatba." },
+  { code: "lt", label: "Lietuvių (lt)", interaction: "Jūs sąveikaujate su dirbtinio intelekto sistema." },
+  { code: "lv", label: "Latviešu (lv)", interaction: "Jūs mijiedarbojaties ar mākslīgā intelekta sistēmu." },
+  { code: "mt", label: "Malti (mt)", interaction: "Qed tinteraġixxi ma’ sistema tal-IA." },
+  { code: "ro", label: "Română (ro)", interaction: "Interacționați cu un sistem de IA." },
+  { code: "sk", label: "Slovenčina (sk)", interaction: "Komunikujete so systémom umelej inteligencie." },
+  { code: "sl", label: "Slovenščina (sl)", interaction: "Sodelujete s sistemom umetne inteligence." }
+];
+var EU_LOCALE_CODES = EU_LANGUAGES.map((language) => language.code);
+var BADGE_POSITIONS = ["bottom-right", "bottom-left", "inline"];
+var BADGE_THEMES = ["dark", "light"];
+var DEFAULT_SYSTEM_NAME = "Support Assistant";
+var ATTRIBUTION_LABEL = "Art. 50 · Spurvik";
+function euLanguage(code) {
+  return EU_LANGUAGES.find((language) => language.code === code) ?? EU_LANGUAGES[0];
+}
+var CCTLD_LOCALES = {
+  dk: "da",
+  de: "de",
+  at: "de",
+  se: "sv",
+  nl: "nl",
+  fr: "fr",
+  be: "fr",
+  es: "es",
+  it: "it",
+  pl: "pl",
+  pt: "pt",
+  fi: "fi",
+  gr: "el",
+  cz: "cs",
+  ro: "ro",
+  hu: "hu",
+  bg: "bg",
+  hr: "hr",
+  sk: "sk",
+  si: "sl",
+  lt: "lt",
+  lv: "lv",
+  ee: "et"
+};
+function hostFromDomainLike(raw) {
+  if (typeof raw !== "string") return "";
+  const trimmed = raw.trim().toLowerCase();
+  if (!trimmed || /\s/.test(trimmed)) return "";
+  try {
+    const withScheme = /^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const host = new URL(withScheme).hostname.replace(/\.$/, "");
+    return host.includes(".") ? host : "";
+  } catch {
+    return "";
+  }
+}
+function inferLocaleFromDomain(raw) {
+  const host = hostFromDomainLike(raw);
+  if (!host) return "en";
+  const tld = host.slice(host.lastIndexOf(".") + 1);
+  return Object.hasOwn(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld] : "en";
+}
+function sanitizeSystemName(raw) {
+  const cleaned = (raw ?? "").replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029\u202A-\u202E\u2066-\u2069<>"'`&\\{}]/g, " ").replace(/\s+/g, " ").trim().slice(0, 64).trim();
+  return cleaned || DEFAULT_SYSTEM_NAME;
+}
+function badgeDataAttributes(input) {
+  const pairs = [
+    ["data-system", sanitizeSystemName(input.systemName)],
+    ["data-locale", EU_LOCALE_CODES.includes(input.locale) ? input.locale : "en"],
+    ["data-theme", input.theme === "light" ? "light" : "dark"]
+  ];
+  if (input.position === "bottom-left") pairs.push(["data-position", "bottom-left"]);
+  pairs.push(["data-attribution", input.attribution ? "true" : "false"]);
+  return pairs;
+}
+function buildBadgeScript(input) {
+  const attrs = badgeDataAttributes(input).map(([name, value]) => ` ${name}="${value}"`).join("");
+  const tag = `<script src="${BADGE_SCRIPT_SRC}"${attrs} defer></script>`;
+  return input.position === "inline" ? `<div data-spurvik-badge></div>
+${tag}` : tag;
+}
+
+// packages/mcp/src/tools/art50-badge.ts
+var ART50_BADGE_INPUT_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    locale: {
+      type: "string",
+      enum: [...EU_LOCALE_CODES],
+      description: "One of the 24 official EU language codes. Inferred from a domain-like systemName when omitted, else en."
+    },
+    position: { type: "string", enum: [...BADGE_POSITIONS], description: "Badge placement. Defaults to bottom-right." },
+    theme: { type: "string", enum: [...BADGE_THEMES], description: "Badge theme. Defaults to dark." },
+    systemName: { type: "string", description: "Product or assistant name, or the site domain. Defaults to Support Assistant." },
+    attribution: {
+      type: "boolean",
+      description: 'Show the "Art. 50 · Spurvik" trust link. Defaults to true (Free). false is white-label (Pro or Done-For-You).'
+    }
+  },
+  additionalProperties: false
+};
+var MAX_SYSTEM_NAME_INPUT = 200;
+function nextJsSnippet(attrs, position) {
+  const lines = [
+    'import Script from "next/script";',
+    "",
+    "// app/layout.tsx: render inside <body>.",
+    "export function SpurvikArt50Badge() {",
+    "  return (",
+    "    <>"
+  ];
+  if (position === "inline") lines.push("      <div data-spurvik-badge />");
+  lines.push("      <Script", `        src="${BADGE_SCRIPT_SRC}"`);
+  for (const [name, value] of attrs) lines.push(`        ${name}="${value}"`);
+  lines.push('        strategy="afterInteractive"', "      />", "    </>", "  );", "}");
+  return lines.join("\n");
+}
+function resolveLocale(input) {
+  if (input.locale !== void 0 && input.locale.trim() !== "") {
+    const requested = input.locale.trim().toLowerCase();
+    return EU_LOCALE_CODES.includes(requested) ? { locale: requested, source: "input" } : null;
+  }
+  const inferred = inferLocaleFromDomain(input.systemName);
+  if (inferred !== "en") return { locale: inferred, source: "systemName_domain" };
+  return { locale: "en", source: "default" };
+}
+function generateArt50Badge(input = {}) {
+  if (input.systemName !== void 0 && typeof input.systemName !== "string") {
+    return { ok: false, error: "invalid_system_name", message: "systemName must be a string." };
+  }
+  if (typeof input.systemName === "string" && input.systemName.length > MAX_SYSTEM_NAME_INPUT) {
+    return { ok: false, error: "invalid_system_name", message: `systemName is longer than ${MAX_SYSTEM_NAME_INPUT} characters.` };
+  }
+  if (input.locale !== void 0 && typeof input.locale !== "string") {
+    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
+  }
+  const position = input.position ?? "bottom-right";
+  if (!BADGE_POSITIONS.includes(position)) {
+    return { ok: false, error: "invalid_position", message: `position must be one of: ${BADGE_POSITIONS.join(", ")}.` };
+  }
+  const theme = input.theme ?? "dark";
+  if (!BADGE_THEMES.includes(theme)) {
+    return { ok: false, error: "invalid_theme", message: `theme must be one of: ${BADGE_THEMES.join(", ")}.` };
+  }
+  if (input.attribution !== void 0 && typeof input.attribution !== "boolean") {
+    return { ok: false, error: "invalid_attribution", message: "attribution must be true or false." };
+  }
+  const resolved = resolveLocale(input);
+  if (!resolved) {
+    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
+  }
+  const attribution = input.attribution !== false;
+  const systemName = sanitizeSystemName(input.systemName);
+  const language = euLanguage(resolved.locale);
+  const badge = { systemName, locale: resolved.locale, theme, position, attribution };
+  const attrs = badgeDataAttributes(badge);
+  const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
+  return {
+    ok: true,
+    result: {
+      tool: "spurvik_generate_art50_badge",
+      notice: "art50_1_interaction",
+      systemName,
+      locale: resolved.locale,
+      language: language.label,
+      localeSource: resolved.source,
+      position,
+      theme,
+      attribution,
+      attributionLabel: attribution ? ATTRIBUTION_LABEL : null,
+      previewText: `${systemName}. ${language.interaction}`,
+      script: buildBadgeScript(badge),
+      nextjs: nextJsSnippet(attrs, position),
+      wordpress: {
+        pluginZipUrl: WORDPRESS_PLUGIN_URL,
+        steps: "WordPress admin: Plugins > Add New > Upload Plugin, choose the .zip, then activate it."
+      },
+      framer: {
+        componentUrl: FRAMER_COMPONENT_URL,
+        steps: "Add the .tsx file as a Framer code component, then place it on the page."
+      },
+      shadcn: {
+        registryUrl: SHADCN_REGISTRY_URL,
+        command: `npx shadcn@latest add ${SHADCN_REGISTRY_URL}`,
+        v0: `In v0, ask it to add the shadcn registry item ${SHADCN_REGISTRY_URL}.`
+      },
+      supportedLocales: EU_LANGUAGES.map((entry) => entry.code),
+      plan: {
+        attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
+        whiteLabel: attribution ? whiteLabelNote : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
+        proUrl: PRO_SIGNUP_URL,
+        doneForYouUrl: CONCIERGE_SIGNUP_URL
+      },
+      note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
+    }
+  };
+}
+
+// packages/mcp/src/tools/classify-risk.ts
+var RISK_DOMAINS = [
+  "general",
+  "biometrics",
+  "critical_infrastructure",
+  "education",
+  "employment_hr",
+  "essential_services_credit",
+  "law_enforcement",
+  "migration_border",
+  "justice_democracy"
+];
+var MAX_USE_CASE_CHARS = 4e3;
+var SCOPE_NOTE = "Engineering mapping aid; not legal advice.";
+var CLASSIFY_RISK_INPUT_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    useCase: { type: "string", description: "One or two sentences on what the AI system does and for whom. Not stored or echoed." },
+    domain: { type: "string", enum: [...RISK_DOMAINS], description: "Annex III area, or general. Defaults to general." },
+    interactsWithHumans: { type: "boolean", description: "People talk to or chat with the system (Art. 50(1))." },
+    generatesSyntheticMedia: { type: "boolean", description: "The system generates audio, images, video or text (Art. 50(2)/(4))." },
+    makesAutomatedDecisionsAboutPeople: {
+      type: "boolean",
+      description: "The system decides about, ranks or scores natural persons, or materially influences such decisions."
+    }
+  },
+  required: ["useCase"],
+  additionalProperties: false
+};
+var TIER_LABELS = {
+  prohibited_art5: "Prohibited practice (Article 5)",
+  high_risk_annex_iii: "High-risk (Article 6(2) and Annex III)",
+  limited_transparency_art50: "Transparency duties only (Article 50)",
+  minimal_risk: "Minimal risk"
+};
+var ANNEX_POINTS = {
+  biometrics: "Annex III point 1 (biometrics)",
+  critical_infrastructure: "Annex III point 2 (critical infrastructure)",
+  education: "Annex III point 3 (education and vocational training)",
+  employment_hr: "Annex III point 4 (employment and workers management)",
+  essential_services_credit: "Annex III point 5 (essential private and public services, credit)",
+  law_enforcement: "Annex III point 6 (law enforcement)",
+  migration_border: "Annex III point 7 (migration, asylum and border control)",
+  justice_democracy: "Annex III point 8 (administration of justice and democratic processes)"
+};
+var PROHIBITED = [
+  {
+    id: "subliminal_manipulation",
+    article: "Art. 5(1)(a)",
+    label: "Subliminal, manipulative or deceptive techniques that distort behaviour",
+    pattern: /\bsubliminal\b|\b(?:covert|deceptive) (?:manipulation|persuasion|nudg\w*)|\bmanipulat\w* (?:users?|people|customers?|voters?|consumers?) (?:into|to)\b/
+  },
+  {
+    id: "exploiting_vulnerabilities",
+    article: "Art. 5(1)(b)",
+    label: "Exploiting vulnerabilities due to age, disability or social or economic situation",
+    pattern: /\bexploit\w* (?:the )?(?:vulnerab\w*|children|minors|elderly|disabilit\w*|financial hardship|poverty)/
+  },
+  {
+    id: "social_scoring",
+    article: "Art. 5(1)(c)",
+    label: "Social scoring",
+    pattern: /\bsocial[- ]scor(?:e|es|ing)\b|\bcitizen[- ]scor(?:e|es|ing)\b|\bsocial credit (?:score|system)/
+  },
+  {
+    id: "predictive_policing_profiling",
+    article: "Art. 5(1)(d)",
+    label: "Predicting that a person will commit a crime based solely on profiling",
+    pattern: /\bpredict\w*[^.]{0,60}\b(?:commit\w* (?:a )?(?:crimes?|criminal|offen[cs]es?)|re-?offend\w*)/
+  },
+  {
+    id: "untargeted_face_scraping",
+    article: "Art. 5(1)(e)",
+    label: "Untargeted scraping of facial images to build facial recognition databases",
+    pattern: /\b(?:untargeted|mass|bulk) scrap\w*[^.]{0,50}\bfac(?:e|es|ial)\b|\bscrap\w*[^.]{0,50}\bfacial (?:images|recognition database)/
+  },
+  {
+    id: "emotion_recognition_work_education",
+    article: "Art. 5(1)(f)",
+    label: "Emotion recognition in the workplace or in education",
+    pattern: /\bemotion(?:al)? (?:recognition|detection|inference|analysis|tracking)[^.]{0,60}\b(?:employees?|workers?|workplace|staff|students?|pupils?|classrooms?|schools?)\b|\b(?:employees?|workers?|workplace|staff|students?|pupils?|classrooms?|schools?)\b[^.]{0,60}\bemotion(?:al)? (?:recognition|detection|inference|analysis|tracking)/
+  },
+  {
+    id: "biometric_categorisation_sensitive",
+    article: "Art. 5(1)(g)",
+    label: "Biometric categorisation inferring race, political opinions, trade union membership, religion or sex life",
+    pattern: /\bbiometric\w*[^.]{0,60}\b(?:race|racial|ethnic\w*|political (?:opinions?|views|affiliation)|trade union|religio\w*|sexual orientation|sex life)\b|\b(?:infer|predict|classif)\w*[^.]{0,40}\b(?:sexual orientation|religio\w*|political (?:opinions?|views)|race|ethnicity)\b[^.]{0,40}\bfrom (?:faces?|facial|biometric)/
+  },
+  {
+    id: "realtime_remote_biometric_identification",
+    article: "Art. 5(1)(h)",
+    label: "Real-time remote biometric identification in public spaces for law enforcement",
+    pattern: /\breal[- ]time\b[^.]{0,40}\b(?:facial recognition|face identification|remote biometric identification)\b[^.]{0,80}\b(?:public|streets?|police|law enforcement)\b|\b(?:police|law enforcement)\b[^.]{0,80}\breal[- ]time (?:facial recognition|face identification|remote biometric identification)/
+  }
+];
+var ANNEX_KEYWORDS = [
+  {
+    area: "biometrics",
+    pattern: /\b(?:remote biometric identification|facial recognition|face recognition|biometric categori[sz]ation|emotion(?:al)? recognition)\b/
+  },
+  {
+    area: "critical_infrastructure",
+    pattern: /\b(?:safety component|control system)s?\b[^.]{0,60}\b(?:grid|electricity|gas|water|heating|traffic|critical (?:digital )?infrastructure)\b|\b(?:power grid|electricity grid|water supply|gas supply|heating supply|road traffic) (?:control|management|operation)/
+  },
+  {
+    area: "education",
+    pattern: /\b(?:admissions? (?:decisions?|screening|scoring)|exam proctoring|proctoring|automated grading|grad(?:e|es|ing) (?:students?|exams?|essays?)|assess\w* (?:students?|learning outcomes)|student (?:assessment|evaluation|scoring))\b/
+  },
+  {
+    area: "employment_hr",
+    pattern: /\b(?:cvs?|resumes?|résumés?|candidates?|applicants?|applications?) (?:screen\w*|rank\w*|filter\w*|scor\w*|shortlist\w*)|\b(?:screen\w*|rank\w*|filter\w*|scor\w*|shortlist\w*) (?:cvs?|resumes?|candidates?|job applicants?|applications?)\b|\b(?:recruit\w*|hiring) (?:decisions?|tool|platform|screening)\b|\bpromotion decisions?\b|\bterminat\w* (?:employees?|workers?|contracts)\b|\bperformance (?:evaluation|monitoring) of (?:employees?|workers?)\b|\bworker (?:monitoring|task allocation)\b/
+  },
+  {
+    area: "essential_services_credit",
+    pattern: /\bcredit ?(?:scor\w*|worthiness|checks?|decisions?|limits?)\b|\bcreditworth\w*|\bloan (?:approval|decisions?|underwriting|eligibility)\b|\b(?:life|health) insurance (?:pricing|risk assessment|underwriting)\b|\b(?:public |social )?benefits? eligibility\b|\bwelfare eligibility\b|\bemergency (?:calls?|dispatch) (?:triage|classification|prioriti[sz]ation)\b/
+  },
+  {
+    area: "law_enforcement",
+    pattern: /\b(?:police|law enforcement)\b[^.]{0,60}\b(?:risk assessment|evidence|polygraph|profil\w*|suspects?|victims?)\b|\bevidence reliability\b/
+  },
+  {
+    area: "migration_border",
+    pattern: /\b(?:asylum|visa applications?|residence permits?|border control|migration risk|migrants?)\b/
+  },
+  {
+    area: "justice_democracy",
+    pattern: /\b(?:court|judicial|judges?|sentencing|dispute resolution)\b[^.]{0,40}\b(?:decisions?|rulings?|research|interpret\w*|assist\w*)\b|\binfluenc\w*[^.]{0,30}\b(?:elections?|referend\w*|voting behaviou?r)\b/
+  }
+];
+var INTERACTS_RE = /\b(?:chat ?bots?|chat assistant|assistants?|virtual agents?|conversational|voice ?bots?|ai agents?|copilots?|customer (?:support|service) (?:bots?|agents?|ai)|talks? (?:to|with) (?:users|customers|people|visitors))\b/;
+var SYNTHETIC_RE = /\bgenerat\w*[^.]{0,40}\b(?:images?|videos?|audio|voices?|speech|music|text|content|articles?|avatars?|copy|descriptions?|posts?|captions?|emails?|summar(?:y|ies)|stories|reports?)\b|\btext-to-(?:image|video|speech)\b|\bdeep ?fakes?\b|\bsynthetic (?:media|voices?|videos?|images?)\b|\bimage generator\b|\bvoice clon\w*/;
+var DECISIONS_RE = /\b(?:approv|reject|den(?:y|ies)|rank|scor|screen|shortlist|select|filter|assess|evaluat|decid)\w*[^.]{0,40}\b(?:applicants?|candidates?|customers?|people|persons|individuals|students?|employees?|workers?|patients?|tenants?|borrowers?|claimants?|citizens?)\b/;
+var DEEPFAKE_RE = /\bdeep ?fakes?\b|\b(?:face|voice) (?:swap\w*|clon\w*)\b|\bsynthetic (?:people|persons?|faces?)\b/;
+var EMOTION_RE = /\bemotion(?:al)? (?:recognition|detection|inference|analysis|tracking)\b|\bbiometric categori[sz]ation\b/;
+var ART50_FROM = "2026-08-02";
+var ANNEX_III_FROM = "2027-12-02";
+var ART5_FROM = "2025-02-02";
+function signal(explicit, text2, pattern) {
+  if (typeof explicit === "boolean") return { value: explicit, source: "input" };
+  return { value: pattern.test(text2), source: "useCase_keywords" };
+}
+function upgradeOffers() {
+  return {
+    pro: { url: PRO_SIGNUP_URL, price: `${PRO_PRICE} (${PRICE_NOTE})`, includes: "White-label Art. 50 badge and hosted Slack/Teams approval gates (Art. 14)." },
+    team: { url: TEAM_SIGNUP_URL, price: `${TEAM_PRICE} (${PRICE_NOTE})`, includes: "Annex IV technical documentation draft (Art. 11) and webhook export." },
+    concierge: { url: CONCIERGE_SIGNUP_URL, price: `${CONCIERGE_PRICE} (${PRICE_NOTE})`, includes: "Done-For-You 24h setup, includes 1 year of Pro." }
+  };
+}
+function validate(input) {
+  if (!input || typeof input !== "object") return { error: "invalid_input", message: "Pass an object with useCase." };
+  const record2 = input;
+  if (typeof record2.useCase !== "string" || !record2.useCase.trim()) {
+    return { error: "invalid_use_case", message: "Pass useCase as a non-empty string." };
+  }
+  if (record2.useCase.length > MAX_USE_CASE_CHARS) {
+    return { error: "invalid_use_case", message: `useCase is longer than ${MAX_USE_CASE_CHARS} characters.` };
+  }
+  if (record2.domain !== void 0 && !RISK_DOMAINS.includes(record2.domain)) {
+    return { error: "invalid_domain", message: `domain must be one of: ${RISK_DOMAINS.join(", ")}.` };
+  }
+  for (const key of ["interactsWithHumans", "generatesSyntheticMedia", "makesAutomatedDecisionsAboutPeople"]) {
+    if (record2[key] !== void 0 && typeof record2[key] !== "boolean") {
+      return { error: "invalid_flag", message: `${key} must be true or false.` };
+    }
+  }
+  return record2;
+}
+function classifyAiActRisk(rawInput) {
+  const checked = validate(rawInput);
+  if ("error" in checked) return { ok: false, error: checked.error, message: checked.message };
+  const input = checked;
+  const text2 = input.useCase.toLowerCase().replace(/\s+/g, " ");
+  const domain = input.domain ?? "general";
+  const signals = {
+    interactsWithHumans: signal(input.interactsWithHumans, text2, INTERACTS_RE),
+    generatesSyntheticMedia: signal(input.generatesSyntheticMedia, text2, SYNTHETIC_RE),
+    makesAutomatedDecisionsAboutPeople: signal(input.makesAutomatedDecisionsAboutPeople, text2, DECISIONS_RE)
+  };
+  const prohibited = PROHIBITED.filter((entry) => entry.pattern.test(text2)).map(({ id, article, label }) => ({ id, article, label }));
+  const keywordAreas = ANNEX_KEYWORDS.filter((entry) => entry.pattern.test(text2)).map((entry) => entry.area);
+  const annexArea = domain !== "general" ? domain : keywordAreas[0] ?? null;
+  const domainSource = domain !== "general" ? "input" : annexArea ? "useCase_keywords" : null;
+  const deepfake = DEEPFAKE_RE.test(text2);
+  const emotionOrBiometric = EMOTION_RE.test(text2) || annexArea === "biometrics";
+  const rationale = [];
+  const reviewFlags = [];
+  let tier;
+  const areaWithoutPersonDecision = annexArea === "critical_infrastructure" || annexArea === "biometrics";
+  const optedOut = input.makesAutomatedDecisionsAboutPeople === false && !areaWithoutPersonDecision;
+  if (prohibited.length > 0) {
+    tier = "prohibited_art5";
+    rationale.push(`The use case matches ${prohibited.map((entry) => entry.article).join(", ")}.`);
+    reviewFlags.push("Article 5 has narrow exceptions (for example medical or safety reasons for emotion recognition). Get legal advice before you go further.");
+  } else if (annexArea && !optedOut) {
+    tier = "high_risk_annex_iii";
+    rationale.push(
+      `${ANNEX_POINTS[annexArea]} ${domainSource === "input" ? "was selected" : "matches the use case"}${signals.makesAutomatedDecisionsAboutPeople.value ? " and the system decides about or ranks people" : ""}.`
+    );
+    reviewFlags.push(
+      "Article 6(3): an Annex III system is not high-risk when it only performs a narrow procedural task or does not materially influence decisions; document that assessment (Article 6(4)). A system that profiles natural persons is always high-risk."
+    );
+    if (annexArea === "biometrics") {
+      reviewFlags.push("Biometric verification whose only purpose is to confirm that a person is who they claim to be is not in Annex III point 1.");
+    }
+    if (signals.makesAutomatedDecisionsAboutPeople.source === "useCase_keywords" && !signals.makesAutomatedDecisionsAboutPeople.value) {
+      reviewFlags.push("Pass makesAutomatedDecisionsAboutPeople: false when the system does not decide about, rank or score people.");
+    }
+  } else {
+    if (annexArea && optedOut) {
+      reviewFlags.push(
+        `${ANNEX_POINTS[annexArea]} applies but no decisions about people were reported. Check that the use is not one listed in that point and keep the Article 6(3) assessment on file.`
+      );
+    }
+    const transparency = signals.interactsWithHumans.value || signals.generatesSyntheticMedia.value || deepfake || emotionOrBiometric;
+    tier = transparency ? "limited_transparency_art50" : "minimal_risk";
+    rationale.push(
+      transparency ? "No Article 5 practice and no Annex III use matched; an Article 50 transparency trigger applies." : "No Article 5 practice, Annex III use or Article 50 trigger matched."
+    );
+  }
+  const obligations = [];
+  const controls = [];
+  if (tier === "prohibited_art5") {
+    obligations.push({ article: "Art. 5", duty: "Do not place on the market, put into service or use this practice.", appliesFrom: ART5_FROM });
+    controls.push({
+      article: "Art. 5",
+      control: "Spurvik does not offer a setup for a prohibited practice. Get legal advice before you go further.",
+      tool: null,
+      plan: null
+    });
+  } else {
+    if (signals.interactsWithHumans.value) {
+      obligations.push({ article: "Art. 50(1)", duty: "Tell people they are interacting with an AI system (provider).", appliesFrom: ART50_FROM });
+      controls.push({
+        article: "Art. 50(1)",
+        control: "Add the Art. 50(1) notice (badge.js <script>, Next.js <Script>, WordPress, Framer or shadcn).",
+        tool: "spurvik_generate_art50_badge",
+        plan: "free"
+      });
+    }
+    if (signals.generatesSyntheticMedia.value) {
+      obligations.push({
+        article: "Art. 50(2)",
+        duty: "Mark AI-generated audio, image, video or text output in a machine-readable format (provider).",
+        appliesFrom: ART50_FROM
+      });
+      controls.push({
+        article: "Art. 50(2)",
+        control: `Wrap model calls with withSpurvik for signed provenance records and plug your own marking into the marking hooks; check images at ${CONSOLE_ORIGIN}/c2pa. The provenance record supports, but does not replace, Art. 50(2) marking.`,
+        tool: "spurvik_setup_snippet",
+        plan: "free"
+      });
+    }
+    if (emotionOrBiometric) {
+      obligations.push({
+        article: "Art. 50(3)",
+        duty: "Tell people exposed to emotion recognition or biometric categorisation (deployer).",
+        appliesFrom: ART50_FROM
+      });
+    }
+    if (deepfake) {
+      obligations.push({ article: "Art. 50(4)", duty: "Disclose deepfake image, audio or video content as artificially generated (deployer).", appliesFrom: ART50_FROM });
+    }
+    if (emotionOrBiometric || deepfake) {
+      controls.push({
+        article: "Art. 50(3)/(4)",
+        control: "Show the matching deployer notice next to the content or system.",
+        tool: "spurvik_generate_art50_badge",
+        plan: "free"
+      });
+    }
+    if (tier === "high_risk_annex_iii") {
+      obligations.push(
+        { article: "Art. 9-15", duty: "Risk management, data governance, accuracy and robustness for the high-risk system.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 11 + Annex IV", duty: "Technical documentation.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 12", duty: "Automatic logging of events over the system's lifetime.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 14", duty: "Human oversight measures.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 26", duty: "Deployer duties, including log retention and monitoring.", appliesFrom: ANNEX_III_FROM }
+      );
+      controls.push(
+        {
+          article: "Art. 12",
+          control: "Log every model call with hash-chained HMAC receipts, then scan for unwrapped calls.",
+          tool: "spurvik_setup_snippet",
+          plan: "free"
+        },
+        { article: "Art. 12", control: "Find AI calls that bypass logging.", tool: "spurvik_find_unwrapped_calls", plan: "free" },
+        { article: "Art. 14", control: "Route risky actions to Slack or Teams approval gates.", tool: null, plan: "pro" },
+        { article: "Art. 11", control: "Export the Annex IV technical documentation draft from the console.", tool: null, plan: "team" }
+      );
+    }
+    if (tier === "minimal_risk") {
+      controls.push({
+        article: "Voluntary",
+        control: "Keep a record of this self-assessment. Optional: add the Free Art. 50 badge so users know when AI is involved.",
+        tool: "spurvik_generate_art50_badge",
+        plan: "free"
+      });
+    }
+  }
+  return {
+    ok: true,
+    result: {
+      tool: "spurvik_classify_ai_act_risk",
+      tier,
+      tierLabel: TIER_LABELS[tier],
+      annexIiiArea: tier === "prohibited_art5" ? null : annexArea,
+      annexIiiPoint: tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea],
+      domainSource: tier === "prohibited_art5" ? null : domainSource,
+      prohibitedPractices: prohibited,
+      signals,
+      rationale,
+      reviewFlags,
+      obligations,
+      recommendedSpurvikControls: controls,
+      interactiveClassifierUrl: RISK_CHECK_URL,
+      upgradeUrls: upgradeOffers(),
+      scopeNote: SCOPE_NOTE
+    }
+  };
+}
+
 // packages/core/src/canonical.ts
 function canonicalJson(value) {
   return JSON.stringify(canonicalize(value));
@@ -23125,6 +23702,290 @@ function markingHooksText(surface = "both") {
 `;
 }
 
+// packages/mcp/src/version.ts
+var MCP_VERSION = "1.0.5";
+var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
+
+// packages/mcp/src/tools/scan-live-url.ts
+var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
+var SCAN_TIMEOUT_MS = 8e3;
+var MAX_URL_CHARS = 2048;
+var MAX_LIST_ITEMS = 50;
+var MAX_ITEM_CHARS = 120;
+var HOSTNAME_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
+var ScanTargetRejected = class extends Error {
+  code;
+  constructor(code, message) {
+    super(message);
+    this.name = "ScanTargetRejected";
+    this.code = code;
+  }
+};
+var INVALID2 = "The URL is not valid. Pass a public http(s) URL or a bare domain, for example stepnetwork.dk.";
+var BLOCKED = "That host is not a public address. localhost, private or reserved IPs and internal hosts are not scanned.";
+function normalizeHost(value) {
+  let host = value.trim().toLowerCase();
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
+  return host;
+}
+function isBlockedHostname(host) {
+  const suffixes = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
+  return suffixes.some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
+}
+function parseIpv4(value) {
+  const parts = value.split(".");
+  if (parts.length !== 4) return null;
+  let out = 0;
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part) || part.length > 1 && part.startsWith("0")) return null;
+    const num = Number(part);
+    if (num > 255) return null;
+    out = out * 256 + num;
+  }
+  return out;
+}
+var IPV4_PRIVATE = [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4]
+];
+function ipv4Public(ip) {
+  return !IPV4_PRIVATE.some(([literal2, bits]) => {
+    const base = parseIpv4(literal2) ?? 0;
+    const mask = bits === 0 ? 0 : 4294967295 << 32 - bits >>> 0;
+    return (ip >>> 0 & mask) === (base >>> 0 & mask);
+  });
+}
+function parseIpv6Groups(value) {
+  let text2 = value;
+  if (text2.includes(".")) {
+    const lastColon = text2.lastIndexOf(":");
+    if (lastColon === -1) return null;
+    const v4 = parseIpv4(text2.slice(lastColon + 1));
+    if (v4 === null) return null;
+    text2 = `${text2.slice(0, lastColon)}:${(v4 >>> 16 & 65535).toString(16)}:${(v4 & 65535).toString(16)}`;
+  }
+  const halves = text2.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  if (halves.length === 1 && head.length !== 8) return null;
+  const missing = 8 - head.length - tail.length;
+  if (halves.length === 2 && missing < 1) return null;
+  const groups = halves.length === 2 ? [...head, ...Array(missing).fill("0"), ...tail] : head;
+  if (groups.length !== 8) return null;
+  const nums = [];
+  for (const group of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
+    nums.push(Number.parseInt(group, 16));
+  }
+  return nums;
+}
+function ipv6Public(groups) {
+  const [g0 = 0, g1 = 0, g2 = 0, g3 = 0, g4 = 0, g5 = 0, g6 = 0, g7 = 0] = groups;
+  const firstFiveZero = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
+  if (firstFiveZero && g5 === 65535) return ipv4Public((g6 << 16 | g7) >>> 0);
+  if (firstFiveZero && g5 === 0) return false;
+  if ((g0 & 65024) === 64512) return false;
+  if ((g0 & 65472) === 65152) return false;
+  if ((g0 & 65280) === 65280) return false;
+  if (g0 === 8193 && g1 === 3512) return false;
+  if (g0 === 100 && g1 === 65435) return false;
+  if (g0 === 8194) return false;
+  if (g0 === 8193 && (g1 & 65024) === 0) return false;
+  if (g0 === 256 && g1 === 0 && g2 === 0 && g3 === 0) return false;
+  return true;
+}
+function isPublicIpLiteral(host) {
+  const normalized = normalizeHost(host);
+  if (!normalized) return null;
+  if (normalized.includes("%")) return false;
+  if (normalized.includes(":")) {
+    const groups = parseIpv6Groups(normalized);
+    return groups ? ipv6Public(groups) : false;
+  }
+  const v4 = parseIpv4(normalized);
+  if (v4 !== null) return ipv4Public(v4);
+  if (/^[0-9.]+$/.test(normalized)) return false;
+  return null;
+}
+function normalizeScanTarget(raw) {
+  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", INVALID2);
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > MAX_URL_CHARS || /[\u0000-\u001f\u007f\s<>"'`\\]/.test(trimmed)) {
+    throw new ScanTargetRejected("invalid_url", INVALID2);
+  }
+  const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(trimmed)?.[1]?.toLowerCase();
+  if (scheme !== void 0 && scheme !== "http" && scheme !== "https") {
+    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
+  }
+  if (scheme === void 0 && /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) && !trimmed.startsWith("[")) {
+    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
+  }
+  let url;
+  try {
+    url = new URL(scheme === void 0 ? `https://${trimmed.replace(/^\/\//, "")}` : trimmed);
+  } catch {
+    throw new ScanTargetRejected("invalid_url", INVALID2);
+  }
+  if (url.username || url.password) {
+    throw new ScanTargetRejected("invalid_url", "Credentials are not allowed in a scan URL.");
+  }
+  const nonDefaultPort = url.port !== "";
+  url.protocol = "https:";
+  url.hash = "";
+  const host = normalizeHost(url.hostname);
+  if (!host) throw new ScanTargetRejected("invalid_url", INVALID2);
+  const ipPublic = isPublicIpLiteral(host);
+  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED);
+  if (ipPublic === null) {
+    if (isBlockedHostname(host)) throw new ScanTargetRejected("blocked_target", BLOCKED);
+    if (!HOSTNAME_RE.test(host)) {
+      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED);
+      throw new ScanTargetRejected("invalid_url", INVALID2);
+    }
+  }
+  if (nonDefaultPort) throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
+  return { url: url.toString(), host };
+}
+function scanLinks(host) {
+  return {
+    reportUrl: reportUrlFor(host),
+    sandboxUrl: sandboxUrlFor(host),
+    upgradeUrls: {
+      proWhiteLabelAndAuditVault: PRO_SIGNUP_URL,
+      doneForYou24hSetup: CONCIERGE_SIGNUP_URL
+    }
+  };
+}
+function isRecord2(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function stringList(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const clean = item.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_ITEM_CHARS);
+    if (clean && !out.includes(clean)) out.push(clean);
+    if (out.length >= MAX_LIST_ITEMS) break;
+  }
+  return out;
+}
+function intOrNull(value, min, max) {
+  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max ? value : null;
+}
+function shortCode(value) {
+  return typeof value === "string" && /^[a-z0-9_]{1,40}$/.test(value) ? value : null;
+}
+function readUpstreamScan(body) {
+  if (!isRecord2(body)) return null;
+  const scan = isRecord2(body.scan) ? body.scan : body;
+  return typeof scan.reachable === "boolean" ? scan : null;
+}
+function baseResult(target) {
+  const locale = inferLocaleFromDomain(target.host);
+  return {
+    tool: "spurvik_scan_live_url",
+    host: target.host,
+    scannedUrl: target.url,
+    httpStatus: null,
+    score: null,
+    detectedWidgets: [],
+    detectedSdks: [],
+    detectedModel: null,
+    art50NoticeDetected: null,
+    markers: null,
+    suggestedLocale: locale,
+    suggestedLanguage: euLanguage(locale).label,
+    badgeSnippet: buildBadgeScript({ systemName: target.host, locale, theme: "dark", position: "bottom-right", attribution: true }),
+    ...scanLinks(target.host)
+  };
+}
+function fallback(target, reason) {
+  return {
+    ...baseResult(target),
+    offlineFallback: true,
+    status: "offline_fallback",
+    reason,
+    note: `The live scan service did not answer, so nothing was measured. Open sandboxUrl to run the scan in the browser, share reportUrl, or paste badgeSnippet before </body> for an Art. 50(1) notice. Not legal advice. ${PRICE_NOTE}`
+  };
+}
+function fromUpstream(target, scan) {
+  const reachable = scan.reachable === true;
+  const measured = scan.measured === true;
+  const markersRaw = isRecord2(scan.markers) ? scan.markers : null;
+  const markers = markersRaw ? {
+    art50_1_disclosure: markersRaw.art50_1_disclosure === true,
+    art50_2_provenance: markersRaw.art50_2_provenance === true,
+    art50_4_synthetic: markersRaw.art50_4_synthetic === true,
+    art12_telemetry: markersRaw.art12_telemetry === true
+  } : null;
+  const httpStatus = intOrNull(scan.httpStatus, 100, 599);
+  const pageRead = reachable && httpStatus === null;
+  const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
+  return {
+    ...baseResult(target),
+    offlineFallback: false,
+    status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
+    reason: shortCode(scan.reason),
+    httpStatus,
+    score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
+    detectedWidgets: pageRead ? stringList(scan.detectedWidgets) : [],
+    detectedSdks: pageRead ? stringList(scan.detectedSdks) : [],
+    detectedModel: pageRead ? model : null,
+    art50NoticeDetected: pageRead && markers ? markers.art50_1_disclosure : null,
+    markers: pageRead ? markers : null,
+    note: `Heuristic check of one public page. It can miss a widget or a notice that loads later. Not legal advice. ${PRICE_NOTE}`
+  };
+}
+async function scanLiveUrl(rawUrl, deps = {}) {
+  let target;
+  try {
+    target = normalizeScanTarget(rawUrl);
+  } catch (error2) {
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
+    return { ok: false, error: "invalid_url", message: INVALID2 };
+  }
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") return { ok: true, result: fallback(target, "fetch_unavailable") };
+  let response;
+  try {
+    response = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(target.url)}`, {
+      method: "GET",
+      headers: { "User-Agent": MCP_USER_AGENT, Accept: "application/json" },
+      signal: AbortSignal.timeout(deps.timeoutMs ?? SCAN_TIMEOUT_MS)
+    });
+  } catch (error2) {
+    const name = error2 instanceof Error ? error2.name : "";
+    return { ok: true, result: fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error") };
+  }
+  if (response.status !== 200) {
+    return { ok: true, result: fallback(target, `upstream_http_${response.status}`) };
+  }
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    return { ok: true, result: fallback(target, "upstream_invalid_json") };
+  }
+  const scan = readUpstreamScan(body);
+  if (!scan) return { ok: true, result: fallback(target, "upstream_invalid_shape") };
+  return { ok: true, result: fromUpstream(target, scan) };
+}
+
 // packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
 var SpurvikError = class extends Error {
   constructor(message) {
@@ -23434,9 +24295,9 @@ function classifyUpstreamMarking2(input, support = void 0) {
     return "unknown";
   }
   if (affirmative(input.returned)) return "provider_confirmed";
-  if (input.returned.length > 0 && input.returned.every((signal) => negative(signal))) return "not_requested";
+  if (input.returned.length > 0 && input.returned.every((signal2) => negative(signal2))) return "not_requested";
   if (affirmative(input.requested)) return "requested";
-  if (input.requested.length > 0 && input.requested.every((signal) => negative(signal))) return "not_requested";
+  if (input.requested.length > 0 && input.requested.every((signal2) => negative(signal2))) return "not_requested";
   if (isCloudPartnerRoute2(input.route)) return "unknown";
   if (supportInference2(input.provider, input.model, input.modality, support)) return "inferred";
   return "unknown";
@@ -23453,17 +24314,17 @@ async function signUpstreamMarkingEvidence2(fields, secret) {
   return { ...fields, signature, signedPayload };
 }
 function evidenceSource(requested, returned) {
-  const affirmed = returned.find((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
-  const chosen = affirmed ?? (returned.length > 0 && returned.every((signal) => NEGATIVE.has(signal.value.trim().toLowerCase())) ? returned[0] : void 0);
+  const affirmed = returned.find((signal2) => AFFIRMATIVE.has(signal2.value.trim().toLowerCase()));
+  const chosen = affirmed ?? (returned.length > 0 && returned.every((signal2) => NEGATIVE.has(signal2.value.trim().toLowerCase())) ? returned[0] : void 0);
   if (chosen) return chosen.source === "header" ? "header" : "response";
   if (requested.length > 0) return "request";
   return "none";
 }
 function affirmative(signals) {
-  return signals.some((signal) => AFFIRMATIVE.has(signal.value.trim().toLowerCase()));
+  return signals.some((signal2) => AFFIRMATIVE.has(signal2.value.trim().toLowerCase()));
 }
-function negative(signal) {
-  return NEGATIVE.has(signal.value.trim().toLowerCase());
+function negative(signal2) {
+  return NEGATIVE.has(signal2.value.trim().toLowerCase());
 }
 function collectSignals(node, source) {
   const found = [];
@@ -23471,7 +24332,7 @@ function collectSignals(node, source) {
   return found.slice(0, 16);
 }
 function walk(node, source, depth, found) {
-  if (depth > 2 || found.length >= 16 || !isRecord2(node)) return;
+  if (depth > 2 || found.length >= 16 || !isRecord3(node)) return;
   for (const [key, value] of Object.entries(node)) {
     const lower = key.toLowerCase();
     if (MARKING_KEYS.has(lower)) {
@@ -23479,7 +24340,7 @@ function walk(node, source, depth, found) {
       if (rendered) found.push({ source, name: lower.slice(0, 64), value: rendered });
       continue;
     }
-    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord2(value)) {
+    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord3(value)) {
       walk(value, source, depth + 1, found);
     }
   }
@@ -23487,9 +24348,9 @@ function walk(node, source, depth, found) {
 function collectHeaders(response) {
   const found = [];
   const bags = [];
-  if (isRecord2(response)) {
+  if (isRecord3(response)) {
     bags.push(response.headers);
-    if (isRecord2(response.response)) bags.push(response.response.headers);
+    if (isRecord3(response.response)) bags.push(response.response.headers);
   }
   for (const bag of bags) readHeaderBag(bag, found);
   return found;
@@ -23500,7 +24361,7 @@ function readHeaderBag(bag, found) {
     bag.forEach((value, key) => pushHeader(key, value, found));
     return;
   }
-  if (!isRecord2(bag)) return;
+  if (!isRecord3(bag)) return;
   for (const [key, value] of Object.entries(bag)) {
     if (typeof value === "string") pushHeader(key, value, found);
   }
@@ -23522,13 +24383,13 @@ function renderValue(value) {
     if (/\s/.test(trimmed) && trimmed.length > 40) return null;
     return trimmed;
   }
-  if (isRecord2(value)) {
+  if (isRecord3(value)) {
     const compact = canonicalJson2(value);
     if (compact.length <= 80) return compact;
   }
   return null;
 }
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 var PAYLOAD_SUMMARY_SCHEMA2 = "spurvik.payload_summary.v1";
@@ -23572,8 +24433,8 @@ function textHookFromSetting(textSetting) {
   }
   return null;
 }
-function timeoutMs(name, value, fallback) {
-  if (value === void 0) return fallback;
+function timeoutMs(name, value, fallback2) {
+  if (value === void 0) return fallback2;
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > MAX_TIMEOUT_MS) {
     throw new SpurvikConfigError(
       `${name} must be a finite positive integer up to ${MAX_TIMEOUT_MS} milliseconds.`
@@ -24016,18 +24877,18 @@ var OversightCache = class {
    * that request: a fetch socket stays referenced for the whole timeout.
    * Halt checks the caller awaits still go through `config.fetch`.
    */
-  async refreshInBackground(signal) {
+  async refreshInBackground(signal2) {
     try {
-      const state = nodeProcess() ? await this.readUnrefJson("/api/v1/oversight", signal) : await this.load();
-      if (signal.aborted) return;
+      const state = nodeProcess() ? await this.readUnrefJson("/api/v1/oversight", signal2) : await this.load();
+      if (signal2.aborted) return;
       if (nodeProcess()) this.apply(state);
     } catch {
     }
   }
-  async readPush(signal) {
+  async readPush(signal2) {
     try {
       if (nodeProcess()) {
-        await this.readPushNode(signal);
+        await this.readPushNode(signal2);
         return;
       }
       const timeout = AbortSignal.timeout(this.config.telemetry.requestTimeoutMs);
@@ -24036,7 +24897,7 @@ var OversightCache = class {
           authorization: `Bearer ${this.config.apiKey}`,
           accept: "text/event-stream"
         },
-        signal: AbortSignal.any([signal, timeout])
+        signal: AbortSignal.any([signal2, timeout])
       });
       if (!response.body) return;
       const reader = response.body.getReader();
@@ -24062,7 +24923,7 @@ var OversightCache = class {
    * stream off Node still use `config.fetch`. `shutdown()` aborts `signal`.
    * Headers that never arrive are dropped after the request timeout.
    */
-  readPushNode(signal) {
+  readPushNode(signal2) {
     return new Promise((resolve) => {
       let headersSeen = false;
       let headersTimer;
@@ -24076,7 +24937,7 @@ var OversightCache = class {
             authorization: `Bearer ${this.config.apiKey}`,
             accept: "text/event-stream"
           },
-          signal
+          signal: signal2
         },
         (res) => {
           headersSeen = true;
@@ -24124,10 +24985,10 @@ var OversightCache = class {
    * unref'd as well, so neither the socket nor the deadline keeps a short
    * process running.
    */
-  readUnrefJson(path4, signal) {
+  readUnrefJson(path4, signal2) {
     return new Promise((resolve, reject) => {
-      if (signal.aborted) {
-        reject(signal.reason instanceof Error ? signal.reason : new DOMException("The operation was aborted.", "AbortError"));
+      if (signal2.aborted) {
+        reject(signal2.reason instanceof Error ? signal2.reason : new DOMException("The operation was aborted.", "AbortError"));
         return;
       }
       const url = new URL(`${this.config.baseUrl}${path4}`);
@@ -24138,13 +24999,13 @@ var OversightCache = class {
         if (settled) return;
         settled = true;
         if (timer) clearTimeout(timer);
-        signal.removeEventListener("abort", onAbort);
+        signal2.removeEventListener("abort", onAbort);
         if (error2) reject(error2);
         else resolve(value);
       };
       const onAbort = () => {
         req.destroy();
-        const reason = signal.reason;
+        const reason = signal2.reason;
         finish(reason instanceof Error ? reason : new DOMException("The operation was aborted.", "AbortError"));
       };
       const req = transport(
@@ -24187,7 +25048,7 @@ var OversightCache = class {
         finish(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
       }, this.config.telemetry.requestTimeoutMs);
       unrefTimer(timer);
-      signal.addEventListener("abort", onAbort, { once: true });
+      signal2.addEventListener("abort", onAbort, { once: true });
       unrefClientRequest(req);
       req.on("error", (error2) => finish(error2));
       req.end();
@@ -25122,10 +25983,10 @@ var ControlPlaneClient = class {
 };
 var HALT_REASON_WHEN_BLANK = "Halted via SDK (no reason given)";
 var RELEASE_REASON_WHEN_BLANK = "Released via SDK (no reason given)";
-function reasonForOversight(reason, fallback) {
+function reasonForOversight(reason, fallback2) {
   const trimmed = reason?.trim() ?? "";
   if (trimmed.length > 0) return { reason: trimmed, reasonSource: "caller" };
-  return { reason: fallback, reasonSource: "sdk_default" };
+  return { reason: fallback2, reasonSource: "sdk_default" };
 }
 var SpurvikClient = class {
   config;
@@ -25152,8 +26013,8 @@ var SpurvikClient = class {
           return openFileTelemetryBuffer2(this.config.apiKey);
         }
       } : {},
-      send: async (events, signal) => {
-        await this.transport.post("/api/v1/telemetry", { events }, signal ? { signal } : {});
+      send: async (events, signal2) => {
+        await this.transport.post("/api/v1/telemetry", { events }, signal2 ? { signal: signal2 } : {});
       }
     });
     this.oversight = new OversightCache(this.transport, this.config);
@@ -25521,18 +26382,18 @@ function provenanceFromProviderMetadata(value) {
   }
   return receipt;
 }
-function waitForPoll(sleep, ms, signal) {
-  if (!signal) return sleep(ms);
-  if (signal.aborted) return Promise.resolve();
+function waitForPoll(sleep, ms, signal2) {
+  if (!signal2) return sleep(ms);
+  if (signal2.aborted) return Promise.resolve();
   return new Promise((resolve) => {
     let settled = false;
     const finish = () => {
       if (settled) return;
       settled = true;
-      signal.removeEventListener("abort", finish);
+      signal2.removeEventListener("abort", finish);
       resolve();
     };
-    signal.addEventListener("abort", finish, { once: true });
+    signal2.addEventListener("abort", finish, { once: true });
     void sleep(ms).then(finish, finish);
   });
 }
@@ -25846,12 +26707,12 @@ function withSpurvikModel(model, config2, options) {
 }
 function withSpurvikModelProvider(provider, config2, options) {
   const client = new SpurvikClient(config2);
-  const fallback = options?.defaultModelId?.trim() ? options.defaultModelId.trim() : void 0;
+  const fallback2 = options?.defaultModelId?.trim() ? options.defaultModelId.trim() : void 0;
   return {
     async getModel(modelName) {
       const inner = await provider.getModel(modelName);
       const named = modelName?.trim();
-      return new WrappedAgentsModel(inner, client, named ? named : fallback);
+      return new WrappedAgentsModel(inner, client, named ? named : fallback2);
     },
     flush: () => client.flush(),
     resolveInterruptions: (interruptions, options2) => resolveAgentInterruptions(interruptions, client, options2)
@@ -25941,8 +26802,8 @@ function interruptionCallId(item, index) {
   }
   return `call_${index}`;
 }
-function interruptionActionName(item, fallback) {
-  const candidates = [item.name, item.toolName, item.rawItem?.name, fallback];
+function interruptionActionName(item, fallback2) {
+  const candidates = [item.name, item.toolName, item.rawItem?.name, fallback2];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && candidate.trim().length > 0) return candidate.trim();
   }
@@ -26668,8 +27529,8 @@ function interruptId(item, index) {
   }
   return `interrupt_${index}`;
 }
-function interruptActionName(item, fallback) {
-  const candidates = [item.actionName, item.value?.actionName, fallback];
+function interruptActionName(item, fallback2) {
+  const candidates = [item.actionName, item.value?.actionName, fallback2];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && candidate.trim().length > 0) return candidate.trim();
   }
@@ -27106,6 +27967,12 @@ function setupSnippet(framework, runtime) {
       "registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook."
     );
   }
+  lines.push(
+    `Shareable compliance report for your domain: ${REPORT_URL}`,
+    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+    PRICE_NOTE
+  );
   return `${lines.join("\n")}
 
 \`\`\`ts
@@ -27117,6 +27984,12 @@ ${source}\`\`\`
 function text(value) {
   return { content: [{ type: "text", text: value }] };
 }
+function json(outcome) {
+  if (!outcome.ok) {
+    return { ...text(JSON.stringify({ error: outcome.error, message: outcome.message }, null, 2)), isError: true };
+  }
+  return text(JSON.stringify(outcome.result, null, 2));
+}
 function serverVersion() {
   try {
     const here = dirname(fileURLToPath(import.meta.url));
@@ -27124,11 +27997,11 @@ function serverVersion() {
     const parsed = JSON.parse(raw);
     if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
-    return "1.0.4";
+    return MCP_VERSION;
   }
-  return "1.0.4";
+  return MCP_VERSION;
 }
-function createServer(workspaceRoot) {
+function createServer(workspaceRoot, options = {}) {
   const server = new McpServer(
     { name: "spurvik", version: serverVersion() },
     { instructions: SERVER_INSTRUCTIONS }
@@ -27191,6 +28064,50 @@ function createServer(workspaceRoot) {
       annotations: READ_ONLY_ANNOTATIONS
     },
     async ({ surface }) => text(markingHooksText(surface ?? "both"))
+  );
+  server.registerTool(
+    "spurvik_scan_live_url",
+    {
+      title: SCAN_TITLE,
+      description: SCAN_DESCRIPTION,
+      inputSchema: {
+        url: external_exports.string().min(1).max(2048).describe(SCAN_URL_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
+    },
+    async ({ url }) => json(await scanLiveUrl(url, options.scan))
+  );
+  server.registerTool(
+    "spurvik_classify_ai_act_risk",
+    {
+      title: CLASSIFY_TITLE,
+      description: CLASSIFY_DESCRIPTION,
+      inputSchema: {
+        useCase: external_exports.string().min(1).max(MAX_USE_CASE_CHARS).describe(USE_CASE_FIELD),
+        domain: external_exports.enum(RISK_DOMAINS).optional().describe(DOMAIN_FIELD),
+        interactsWithHumans: external_exports.boolean().optional().describe(INTERACTS_FIELD),
+        generatesSyntheticMedia: external_exports.boolean().optional().describe(SYNTHETIC_FIELD),
+        makesAutomatedDecisionsAboutPeople: external_exports.boolean().optional().describe(DECISIONS_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
+    },
+    async (args) => json(classifyAiActRisk(args))
+  );
+  server.registerTool(
+    "spurvik_generate_art50_badge",
+    {
+      title: BADGE_TITLE,
+      description: BADGE_DESCRIPTION,
+      inputSchema: {
+        locale: external_exports.string().max(16).optional().describe(LOCALE_FIELD),
+        position: external_exports.enum(BADGE_POSITIONS).optional().describe(POSITION_FIELD),
+        theme: external_exports.enum(BADGE_THEMES).optional().describe(THEME_FIELD),
+        systemName: external_exports.string().max(200).optional().describe(SYSTEM_NAME_FIELD),
+        attribution: external_exports.boolean().optional().describe(ATTRIBUTION_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
+    },
+    async (args) => json(generateArt50Badge(args))
   );
   return server;
 }

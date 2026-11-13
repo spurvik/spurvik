@@ -1,6 +1,6 @@
 # 5-Minute Quickstart
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378). The SDK logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378). The SDK logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 ## Sandbox and hosted console
 
@@ -23,7 +23,7 @@ npm pkg set type=module
 Import the SDK as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.4
+npm i -D spurvik-mcp-server@1.0.5
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 

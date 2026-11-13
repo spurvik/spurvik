@@ -1,6 +1,6 @@
 # FAQ: 2x2 Sandbox Cockpit (`console.spurvik.com/sandbox`) and `@next/env` Shell Precedence
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.4`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.8`, `spurvik-sdk@1.0.8`, `spurvik-mcp-server@1.0.5`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378) in Trekantområdet, Denmark. Spurvik logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 ---
 
