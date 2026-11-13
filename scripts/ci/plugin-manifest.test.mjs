@@ -7,6 +7,18 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const manifestPath = join(root, "docs/distribution/spurvik-com-well-known-mcp.json");
 
+// Property allowlists from the official MCP Registry schema
+// https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
+// (definitions.ServerDetail / Package / Repository). The registry rejects anything else.
+const SERVER_DETAIL_KEYS = ["$schema", "_meta", "description", "icons", "name", "packages", "remotes", "repository", "title", "version", "websiteUrl"];
+const PACKAGE_KEYS = ["environmentVariables", "fileSha256", "identifier", "packageArguments", "registryBaseUrl", "registryType", "runtimeArguments", "runtimeHint", "transport", "version"];
+const REPOSITORY_KEYS = ["id", "source", "subfolder", "url"];
+
+function assertOnlyKeys(obj, allowed, label) {
+  const extra = Object.keys(obj).filter((k) => !allowed.includes(k));
+  assert.deepEqual(extra, [], `${label} has properties outside the 2025-12-11 MCP server schema: ${extra.join(", ")}`);
+}
+
 test("spurvik.com well-known MCP manifest versions", () => {
   const body = JSON.parse(readFileSync(manifestPath, "utf8"));
   assert.equal(body.version, "1.0.8");
@@ -34,9 +46,12 @@ test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) matc
 
     assert.equal(server.name, "io.github.spurvik/spurvik-mcp-server");
     assert.equal(server.version, "1.0.5");
-    assert.equal(server.license, "MIT");
+    assert.equal(server.$schema, "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json");
+    assertOnlyKeys(server, SERVER_DETAIL_KEYS, `${relDir || "."}/server.json`);
+    assertOnlyKeys(server.repository, REPOSITORY_KEYS, `${relDir || "."}/server.json repository`);
+    for (const pkg of server.packages) assertOnlyKeys(pkg, PACKAGE_KEYS, `${relDir || "."}/server.json packages[]`);
+    assert.ok(server.description.length <= 100, "registry caps description at 100 chars");
     assert.equal(server.websiteUrl, "https://spurvik.com/docs");
-    assert.equal(server.sandboxUrl, "https://console.spurvik.com/sandbox?scan=https://your-app.com");
     assert.equal(server.repository.url, "https://github.com/spurvik/spurvik");
     assert.equal(server.packages[0].identifier, "spurvik-mcp-server");
     assert.equal(server.packages[0].version, "1.0.5");
@@ -64,6 +79,13 @@ test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) matc
     assert.ok(!("registry_base_url" in server.packages[0]));
     assert.ok(!("environment_variables" in server.packages[0]));
     assert.ok(!("transport_type" in server.remotes[0]));
+  }
+});
+
+test("all server.json copies are byte-identical", () => {
+  const canonical = readFileSync(join(root, "server.json"), "utf8");
+  for (const rel of ["packages/mcp/server.json", "docs/distribution/server.json"]) {
+    assert.equal(readFileSync(join(root, rel), "utf8"), canonical, `${rel} drifted from server.json`);
   }
 });
 

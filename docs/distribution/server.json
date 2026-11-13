@@ -4,9 +4,7 @@
   "title": "Spurvik",
   "description": "EU AI Act Art. 50, 12 & 14 setup snippets, unwrapped-call scan, HMAC receipt & marking hooks.",
   "version": "1.0.5",
-  "license": "MIT",
   "websiteUrl": "https://spurvik.com/docs",
-  "sandboxUrl": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
   "repository": {
     "url": "https://github.com/spurvik/spurvik",
     "source": "github",
@@ -17,13 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "spurvik-mcp-server",
-      "name": "spurvik-mcp-server",
       "version": "1.0.5",
-      "license": "MIT",
-      "sdkPackages": [
-        "spurvik@1.0.8",
-        "spurvik-sdk@1.0.8"
-      ],
       "transport": {
         "type": "stdio"
       },
@@ -68,7 +60,7 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 4 read-only tools).",
+          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 7 zero-key read-only tools).",
           "isRequired": false,
           "isSecret": true,
           "placeholder": "Bearer spurvik_live_..."

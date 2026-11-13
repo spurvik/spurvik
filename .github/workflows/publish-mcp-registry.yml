@@ -1,0 +1,112 @@
+name: Publish MCP Registry
+
+# Publishes server.json (io.github.spurvik/spurvik-mcp-server) to the official MCP Registry
+# via GitHub Actions OIDC. No long-lived secrets: the io.github.spurvik/* namespace is proven
+# by the workflow's OIDC token. Re-runs are idempotent (an already-published version is skipped).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - server.json
+      - packages/mcp/package.json
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-mcp-registry
+  cancel-in-progress: false
+
+env:
+  MCP_PUBLISHER_VERSION: v1.8.9
+  # sha256 of mcp-publisher_linux_amd64.tar.gz from registry_1.8.9_checksums.txt (pinned, verified before use)
+  MCP_PUBLISHER_SHA256: 4d527ca8f1ced0394c962dc925c2a4a4addef441cbefd62501c875e9481823a8
+  REGISTRY_URL: https://registry.modelcontextprotocol.io
+
+jobs:
+  publish:
+    name: Publish server.json to registry.modelcontextprotocol.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read server.json name and version
+        id: meta
+        run: |
+          name=$(jq -r .name server.json)
+          version=$(jq -r .version server.json)
+          pkg_version=$(jq -r '.packages[0].version' server.json)
+          pkg_id=$(jq -r '.packages[0].identifier' server.json)
+          if [ "$version" != "$pkg_version" ]; then
+            echo "::error::server.json version ($version) != packages[0].version ($pkg_version)"; exit 1
+          fi
+          for f in packages/mcp/server.json docs/distribution/server.json; do
+            cmp -s server.json "$f" || { echo "::error::$f drifted from server.json"; exit 1; }
+          done
+          {
+            echo "name=$name"
+            echo "version=$version"
+            echo "pkg_id=$pkg_id"
+            echo "encoded=$(jq -rn --arg n "$name" '$n|@uri')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check npm package ownership marker (mcpName)
+        env:
+          PKG_ID: ${{ steps.meta.outputs.pkg_id }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          NAME: ${{ steps.meta.outputs.name }}
+        run: |
+          mcp_name=$(npm view "${PKG_ID}@${VERSION}" mcpName)
+          if [ "$mcp_name" != "$NAME" ]; then
+            echo "::error::npm ${PKG_ID}@${VERSION} mcpName='${mcp_name}', expected '${NAME}' (publish the npm release first)"; exit 1
+          fi
+
+      - name: Skip if this version is already in the registry
+        id: exists
+        env:
+          ENCODED: ${{ steps.meta.outputs.encoded }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' "${REGISTRY_URL}/v0.1/servers/${ENCODED}/versions/${VERSION}")
+          echo "registry lookup HTTP ${code}"
+          if [ "$code" = "200" ]; then echo "published=true" >> "$GITHUB_OUTPUT"; else echo "published=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Install mcp-publisher (checksum-verified)
+        if: steps.exists.outputs.published != 'true'
+        run: |
+          url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/mcp-publisher.tar.gz" "$url"
+          echo "${MCP_PUBLISHER_SHA256}  $RUNNER_TEMP/mcp-publisher.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/mcp-publisher"
+          tar -xzf "$RUNNER_TEMP/mcp-publisher.tar.gz" -C "$RUNNER_TEMP/mcp-publisher" mcp-publisher
+          echo "$RUNNER_TEMP/mcp-publisher" >> "$GITHUB_PATH"
+
+      - name: Validate server.json
+        if: steps.exists.outputs.published != 'true'
+        run: mcp-publisher validate server.json
+
+      - name: Login (GitHub OIDC)
+        if: steps.exists.outputs.published != 'true'
+        run: mcp-publisher login github-oidc
+
+      - name: Publish
+        if: steps.exists.outputs.published != 'true'
+        run: mcp-publisher publish server.json
+
+      - name: Verify registry entry
+        env:
+          ENCODED: ${{ steps.meta.outputs.encoded }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          for i in 1 2 3 4 5 6; do
+            got=$(curl -fsS "${REGISTRY_URL}/v0.1/servers/${ENCODED}/versions/latest" | jq -r .server.version || true)
+            if [ "$got" = "$VERSION" ]; then echo "registry latest = $got"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::registry latest is '${got}', expected '${VERSION}'"; exit 1
