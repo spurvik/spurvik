@@ -37,7 +37,7 @@ Node.js 20 or newer. From this folder:
 npm install
 ```
 
-`package.json` depends on `spurvik` `^1.0.8`.
+`package.json` depends on `spurvik` `^1.0.9`.
 
 ## Environment
 

@@ -1,5 +1,9 @@
 # spurvik-mcp-server
 
+## Unreleased
+
+- `spurvik_setup_snippet` pins `spurvik@1.0.9` and `spurvik-sdk@1.0.9` (`SNIPPET_SDK_VERSION`). The Claude Code plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is rebuilt from this tree.
+
 ## 1.0.5 — 2026-11-13
 
 Published as `spurvik-mcp-server@1.0.5`. The local stdio server now lists the same seven tool names as the hosted MCP server at `https://console.spurvik.com/api/mcp`.
