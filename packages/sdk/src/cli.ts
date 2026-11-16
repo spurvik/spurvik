@@ -282,6 +282,11 @@ function cleanText(value: unknown, max = 120): string {
     : "";
 }
 
+/** Local file names can hold control/bidi characters too: show them as \\uXXXX instead of sending them to the terminal. */
+export function escapeForTerminal(value: string): string {
+  return value.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g, (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}
+
 function cleanList(...values: unknown[]): string[] {
   const out: string[] = [];
   for (const value of values) {
@@ -607,7 +612,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
   } else {
     const { c, out } = io;
     out();
-    out(`  ${c.bold("Spurvik · local audit of unwrapped model calls")} ${c.dim(`(${display})`)}`);
+    out(`  ${c.bold("Spurvik · local audit of unwrapped model calls")} ${c.dim(`(${escapeForTerminal(display)})`)}`);
     out();
     out(`  ${c.dim("Files scanned".padEnd(18))}${report.filesScanned}${report.truncated ? c.yellow(" (limit reached)") : ""}`);
     out(`  ${c.dim("Already wrapped".padEnd(18))}${report.wrappedFiles} file(s)`);
@@ -616,7 +621,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
     );
     if (report.unwrapped.length > 0) {
       out();
-      for (const f of report.unwrapped) out(`    ${f.file}:${f.line} — ${f.provider}`);
+      for (const f of report.unwrapped) out(`    ${escapeForTerminal(f.file)}:${f.line} — ${f.provider}`);
       out();
       out(`  ${c.bold("Wrap the client once")}`);
       for (const line of WRAP_SNIPPET) out(`    ${line}`);

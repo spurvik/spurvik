@@ -293,6 +293,14 @@ describe("spurvik audit", () => {
     expect(clean.out()).toContain("Unwrapped calls   0");
   });
 
+  it("escapes control and bidi characters in file names instead of sending them to the terminal", async () => {
+    writeFileSync(path.join(dir, "src", "evil\u001b[2J\u202e.ts"), "const c = new OpenAI();\n");
+    const h = harness(undefined, { cwd: dir });
+    await runCli(["audit"], h.deps);
+    expect(h.out()).toContain("src/evil\\u001b[2J\\u202e.ts:1 — OpenAI");
+    expect(h.out()).not.toMatch(/[\u001b\u202e]/);
+  });
+
   it("rejects a path that is not a directory", async () => {
     const h = harness(undefined, { cwd: dir });
     expect(await runCli(["audit", "does-not-exist"], h.deps)).toBe(EXIT_ERROR);
