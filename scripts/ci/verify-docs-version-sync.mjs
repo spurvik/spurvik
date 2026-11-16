@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { isPublishedOnNpm, latestOnNpm } from "./npm-registry.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -59,18 +60,37 @@ test("Docs, README, RELEASING, and examples stay synced to canonical package ver
     }
   }
 
+  // An example with a committed package-lock.json installs from the npm registry (CI runs `npm ci` there),
+  // so it cannot pin a spurvik version that is not published yet. Until packages/sdk's version is on npm,
+  // such an example may pin the current npm `latest` instead; once it is published, the strict check applies.
+  const registryCache = new Map();
+  function lockedExampleAllowance(pkgName, expected) {
+    if (pkgName !== "spurvik" && pkgName !== "spurvik-sdk") return null;
+    if (!registryCache.has(pkgName)) {
+      registryCache.set(pkgName, isPublishedOnNpm(pkgName, expected) ? null : latestOnNpm(pkgName));
+    }
+    return registryCache.get(pkgName);
+  }
+
   const examplePkgFiles = collectFiles(join(root, "examples"), (f) => f.endsWith("package.json"));
   for (const pkgFile of examplePkgFiles) {
     const rel = relative(root, pkgFile);
     const pkg = JSON.parse(readFileSync(pkgFile, "utf8"));
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    const lockPath = join(dirname(pkgFile), "package-lock.json");
     for (const [pkgName, expected] of Object.entries(expectedVersions)) {
-      if (deps[pkgName]) {
-        assert.ok(
-          deps[pkgName] === expected || deps[pkgName] === `^${expected}`,
-          `${rel} has outdated dependency ${pkgName}: ${deps[pkgName]} (expected ^${expected})`,
-        );
-      }
+      if (!deps[pkgName]) continue;
+      if (deps[pkgName] === expected || deps[pkgName] === `^${expected}`) continue;
+      const published = existsSync(lockPath) ? lockedExampleAllowance(pkgName, expected) : null;
+      const locked = existsSync(lockPath)
+        ? JSON.parse(readFileSync(lockPath, "utf8")).packages?.[`node_modules/${pkgName}`]?.version
+        : undefined;
+      assert.ok(
+        published !== null && locked === published && (deps[pkgName] === published || deps[pkgName] === `^${published}`),
+        `${rel} has outdated dependency ${pkgName}: ${deps[pkgName]} (expected ^${expected}` +
+          (published ? `, or ^${published} with a matching lockfile while ${pkgName}@${expected} is unpublished)` : ")"),
+      );
+      console.log(`note: ${rel} pins ${pkgName}@${published} (npm latest); ${pkgName}@${expected} is not published yet.`);
     }
   }
 

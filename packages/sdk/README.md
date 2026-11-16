@@ -1,8 +1,40 @@
 # spurvik-sdk
 
+## Check a live site or a codebase (no API key)
+
+```bash
+npx spurvik scan yourdomain.com    # Art. 50(1) notice check of a live site; --json, --fail-on-gap for CI
+npx spurvik audit .                # unwrapped OpenAI / Anthropic / Gemini / AI SDK calls as file:line
+npx spurvik badge yourdomain.com   # badge.js tag and a <AIDisclosureLabel /> snippet
+```
+
+`npx spurvik folk.app` is short for `npx spurvik scan folk.app`. `spurvik-sdk` ships the same CLI (`npx spurvik-sdk scan ...`). Exit codes: `0` ok, `1` gap found with `--fail-on-gap`, `2` usage or network error. `scan` sends only the domain or URL you pass to `console.spurvik.com`. `audit` runs locally and prints `file:line` and the provider, never source text.
+
+## Wrap a client
+
+```bash
+npm install openai spurvik@1.0.9
+```
+
+```ts
+import OpenAI from "openai";
+import { withSpurvik } from "spurvik";
+
+const ai = withSpurvik(new OpenAI(), {
+  apiKey: process.env.SPURVIK_API_KEY!, // spurvik_live_…
+  signingSecret: process.env.SPURVIK_SIGNING_SECRET!,
+  contentHash: { mode: "keyed", secret: process.env.SPURVIK_CONTENT_HASH_SECRET! },
+  baseUrl: "https://console.spurvik.com",
+  riskTier: "limited_art50", // your own classification
+});
+const reply = await ai.chat.completions.create({ model: "gpt-4o-mini", messages: [{ role: "user", content: "Hi" }] });
+```
+
+## Reference
+
 Runtime client for provenance records, telemetry, a live human-oversight queue, and the halt cache.
 
-The public MIT release is `spurvik@1.0.8` and `spurvik-sdk@1.0.8` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
+The public MIT release is `spurvik@1.0.9` and `spurvik-sdk@1.0.9` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
 
 `withSpurvik` is the provider wrapper. An older name of that function was removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
 

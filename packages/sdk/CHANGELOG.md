@@ -1,5 +1,17 @@
 # spurvik-sdk
 
+## 1.0.9 — 2026-11-16
+
+Published as `spurvik@1.0.9` and `spurvik-sdk@1.0.9` (same build). Library exports are unchanged.
+
+### Added
+
+- `spurvik` CLI (`bin`: `spurvik` in `spurvik`, `spurvik-sdk` in `spurvik-sdk`; `dist/cli.js`, Node.js 20+, no dependencies, no API key).
+  - `spurvik scan <domain-or-url> [--json] [--fail-on-gap]` (or `spurvik <domain>`): calls `GET https://console.spurvik.com/api/v1/sandbox/scan` (10-second timeout, `User-Agent: spurvik-cli/1.0.9`) and prints the detected AI widgets, the Art. 50(1) notice status (`COVERED`, `GAP`, or `NO PUBLIC WIDGET DETECTED`), a one-line `badge.js` tag, and report and plan links. localhost, private IPs, internal hosts, credentials, and non-default ports are refused before any request.
+  - `spurvik audit [dir] [--json] [--fail-on-gap]`: local, read-only scan of `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, and `.py` files for `new OpenAI(`, `new Anthropic(`, `new GoogleGenAI(`, `generateText(`, and `streamText(` in files that do not mention Spurvik. Prints `file:line` and the provider only, never source text. Skips `node_modules`, `.git`, `dist`, `build`, `.next`, `coverage`, `.turbo`, `vendor`, `.venv`, symlinks, and files over 512 KB.
+  - `spurvik badge [domain] [--lang da|de|en]`: `badge.js` tag (`data-locale` from the TLD: `.dk` → `da`, `.de`/`.at` → `de`, else `en`) and a `spurvik/react` `<AIDisclosureLabel />` snippet.
+  - Exit codes: `0` ok, `1` gap found with `--fail-on-gap`, `2` usage or network error.
+
 ## 1.0.8 — 2026-11-11
 
 Published as `spurvik@1.0.8` and `spurvik-sdk@1.0.8` (same build).

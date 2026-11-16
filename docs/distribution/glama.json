@@ -16,7 +16,7 @@
   },
   "npm": {
     "mcpServer": "spurvik-mcp-server@1.0.5",
-    "sdk": "spurvik@1.0.8",
-    "sdkAlias": "spurvik-sdk@1.0.8"
+    "sdk": "spurvik@1.0.9",
+    "sdkAlias": "spurvik-sdk@1.0.9"
   }
 }

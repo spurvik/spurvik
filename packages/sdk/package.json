@@ -1,6 +1,6 @@
 {
   "name": "spurvik-sdk",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "description": "Runtime wrapper designed to support EU AI Act record-keeping, human oversight, and transparency work. It does not by itself mean a system meets the Act.",
   "author": "EyeTea Solutions ApS",
@@ -71,13 +71,16 @@
   },
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "spurvik-sdk": "./dist/cli.js"
+  },
   "files": [
     "dist",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "build": "node scripts/link-core.mjs && tsup && node scripts/copy-react-export.mjs",
+    "build": "node scripts/link-core.mjs && node scripts/clean-dist.mjs && tsup && node scripts/finalize-cli.mjs && node scripts/copy-react-export.mjs",
     "test": "node scripts/link-core.mjs && vitest run",
     "typecheck": "node scripts/link-core.mjs && tsc --noEmit",
     "lint": "node scripts/link-core.mjs && tsc --noEmit",

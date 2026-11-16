@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const manifestPath = join(root, "docs/distribution/spurvik-com-well-known-mcp.json");
+const sdkVersion = JSON.parse(readFileSync(join(root, "packages/sdk/package.json"), "utf8")).version;
+const sdkVersionRe = new RegExp(`spurvik@${sdkVersion.replaceAll(".", "\\.")}(?![\\d])`);
 
 // Property allowlists from the official MCP Registry schema
 // https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json
@@ -21,20 +23,20 @@ function assertOnlyKeys(obj, allowed, label) {
 
 test("spurvik.com well-known MCP manifest versions", () => {
   const body = JSON.parse(readFileSync(manifestPath, "utf8"));
-  assert.equal(body.version, "1.0.8");
+  assert.equal(body.version, sdkVersion);
   assert.equal(body.localStdio.version, "1.0.5");
   assert.equal(body.localStdio.npmPackage, "spurvik-mcp-server");
   assert.equal(body.localStdio.packageName, "spurvik-mcp-server");
-  assert.deepEqual(body.localStdio.sdkNpmPackages, ["spurvik@1.0.8", "spurvik-sdk@1.0.8"]);
+  assert.deepEqual(body.localStdio.sdkNpmPackages, [`spurvik@${sdkVersion}`, `spurvik-sdk@${sdkVersion}`]);
   assert.equal(body.homepage, "https://spurvik.com");
-  assert.equal(body.packages.sdk, "spurvik@1.0.8");
+  assert.equal(body.packages.sdk, `spurvik@${sdkVersion}`);
   assert.equal(body.packages.mcpServer, "spurvik-mcp-server@1.0.5");
   assert.equal(body.autoDiscovery.mcpRegistry, "https://github.com/spurvik/spurvik/blob/main/server.json");
   assert.equal(body.autoDiscovery.smithery, "https://github.com/spurvik/spurvik/blob/main/smithery.yaml");
   assert.equal(body.autoDiscovery.glama, "https://github.com/spurvik/spurvik/blob/main/glama.json");
 });
 
-test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) match 1.0.8/1.0.5 MIT metadata", () => {
+test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) match the packages/sdk and 1.0.5 MIT metadata", () => {
   for (const relDir of ["", "packages/mcp", "docs/distribution"]) {
     const dir = relDir ? join(root, relDir) : root;
     const serverText = readFileSync(join(dir, "server.json"), "utf8");
@@ -66,9 +68,9 @@ test("MCP auto-discovery manifests (server.json, smithery.yaml, glama.json) matc
     assert.equal(glama.repository, "https://github.com/spurvik/spurvik");
     assert.equal(glama.sandboxUrl, "https://console.spurvik.com/sandbox?scan=https://your-app.com");
     assert.equal(glama.npm.mcpServer, "spurvik-mcp-server@1.0.5");
-    assert.equal(glama.npm.sdk, "spurvik@1.0.8");
+    assert.equal(glama.npm.sdk, `spurvik@${sdkVersion}`);
 
-    assert.match(smitheryText, /spurvik@1\.0\.8/);
+    assert.match(smitheryText, sdkVersionRe);
     assert.match(smitheryText, /spurvik-mcp-server@1\.0\.5/);
     assert.match(smitheryText, /https:\/\/github\.com\/spurvik\/spurvik/);
     assert.match(smitheryText, /https:\/\/spurvik\.com\/docs/);

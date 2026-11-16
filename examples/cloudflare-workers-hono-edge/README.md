@@ -1,11 +1,11 @@
-# Cloudflare Workers, Hono & Supabase Edge Functions (`spurvik@1.0.8`)
+# Cloudflare Workers, Hono & Supabase Edge Functions (`spurvik@1.0.9`)
 
 Reference Web-Standard `fetch(request, ctx)` handler supporting parts of your EU AI Act Art. 50, Art. 12, and Art. 14 engineering work in serverless Edge isolates (Cloudflare Workers, Hono, Vercel Edge, and Supabase Edge Functions).
 
 ## Install
 
 ```bash
-npm i spurvik@1.0.8
+npm i spurvik@1.0.9
 ```
 
 ## What This Template Covers

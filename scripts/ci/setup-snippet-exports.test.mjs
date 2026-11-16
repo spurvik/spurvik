@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { isPublishedOnNpm, latestOnNpm } from "./npm-registry.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const serverBin = join(root, "plugins", "spurvik", "bin", "spurvik-mcp.mjs");
@@ -82,13 +83,22 @@ function isSpurvikSpecifier(spec) {
   return spec === "spurvik" || spec.startsWith("spurvik/");
 }
 
-test("spurvik_setup_snippet imports resolve against published spurvik@1.0.8 exports", async (t) => {
+test("spurvik_setup_snippet imports resolve against published spurvik exports", async (t) => {
   const source = readFileSync(snippetSource, "utf8");
   const frameworks = parseExportedStringArray(source, "FRAMEWORKS");
   const runtimes = parseExportedStringArray(source, "RUNTIMES");
   const snippetVersion = parseSnippetSdkVersion(source);
   const sdkVersion = JSON.parse(readFileSync(join(root, "packages/sdk/package.json"), "utf8")).version;
-  assert.equal(snippetVersion, sdkVersion);
+  // The snippet tells users what to `npm install`, so it must name a published version: packages/sdk's
+  // version once that is on npm, and the current npm `latest` only while packages/sdk's version is unpublished.
+  if (snippetVersion !== sdkVersion) {
+    assert.equal(
+      isPublishedOnNpm("spurvik", sdkVersion),
+      false,
+      `SNIPPET_SDK_VERSION is ${snippetVersion}, but spurvik@${sdkVersion} is published: set it to ${sdkVersion} and rebuild the plugin bundle`,
+    );
+    assert.equal(snippetVersion, latestOnNpm("spurvik"), "SNIPPET_SDK_VERSION must be packages/sdk's version or the current npm latest");
+  }
   assert.ok(frameworks.length > 0 && runtimes.length > 0);
 
   const installDir = mkdtempSync(join(tmpdir(), "spurvik-npm-"));
