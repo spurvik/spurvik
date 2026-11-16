@@ -9,6 +9,24 @@ Spurvik is a developer control plane that **supports your EU AI Act work**: hash
 
 Regulation (EU) 2024/1689 is the legal instrument. Dates below follow the AI Omnibus timeline and the Commission’s Code of Practice on Transparency of AI-generated Content. Have counsel confirm how they apply to a specific system.
 
+## Zero-Install CLI (`npx spurvik`)
+
+No install, no API key, no account. Node.js 20+. The CLI ships in `spurvik@1.0.9`.
+
+```bash
+npx spurvik scan folk.app          # live Art. 50(1) notice + AI chat-widget check, with a client report link
+npx spurvik audit .                # find unwrapped OpenAI / Anthropic / Gemini / Vercel AI SDK calls
+npx spurvik badge yourdomain.com   # localized badge.js tag + <AIDisclosureLabel /> snippet
+```
+
+| Command | What you get | Network |
+| --- | --- | --- |
+| `scan <domain-or-url>` | Detected AI chat widgets, whether a visible Art. 50(1) notice was found, a `badge.js` fix when it was not, and a client / DPO brief at `console.spurvik.com/report?domain=…`. | Sends only the URL to `console.spurvik.com`. |
+| `audit [dir]` | Every file and line with an OpenAI, Anthropic, Gemini or Vercel AI SDK call not wrapped by `withSpurvik()` / `spurvikMiddleware()`, plus the one-line wrap. Skips `node_modules`, `.git`, `dist` and build output. | None. Runs locally. |
+| `badge [domain]` | The `badge.js` `<script>` tag and the `<AIDisclosureLabel />` React snippet for that domain. Language follows the domain (`.dk` → `da`, `.de`/`.at` → `de`, else `en`); override with `--lang da\|de\|en`. | None. |
+
+For CI, `scan` and `audit` take `--json` and `--fail-on-gap` (exit code `1` on a gap, `2` on an error). The [GitHub Actions PR gate](https://spurvik.com/r/github-action-spurvik-check.yml) wires `audit` into pull requests.
+
 ## Live Sandbox, Hosted EU Console & Starter Templates
 
 > **Not a developer? Vibe-coding in Lovable, Bolt, Replit or WordPress?** Get the **Done-For-You 24h AI Act Setup** (€199 once, includes 1 full year of Pro, €190 value): we install your 24-language Art. 50 notice, server call logging and a human approval gate within 24 hours. Self-serve checkout: [console.spurvik.com/signup?plan=concierge](https://console.spurvik.com/signup?plan=concierge).
