@@ -4,6 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/spurvik?label=spurvik&color=10B981)](https://www.npmjs.com/package/spurvik)
 [![mcp version](https://img.shields.io/npm/v/spurvik-mcp-server?label=spurvik-mcp-server&color=38BDF8)](https://www.npmjs.com/package/spurvik-mcp-server)
 [![n8n node version](https://img.shields.io/npm/v/n8n-nodes-spurvik?label=n8n-nodes-spurvik&color=818CF8)](https://www.npmjs.com/package/n8n-nodes-spurvik)
+[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=spurvik.com)](https://console.spurvik.com/report?domain=spurvik.com)
 
 Spurvik is a developer control plane that **supports your EU AI Act work**: hash-chained record-keeping, human-oversight hooks, and transparency notices. It is infrastructure. It is not a conformity assessment, a certification, or legal advice.
 
@@ -26,6 +27,14 @@ npx spurvik badge yourdomain.com   # localized badge.js tag + <AIDisclosureLabel
 | `badge [domain]` | The `badge.js` `<script>` tag and the `<AIDisclosureLabel />` React snippet for that domain. Language follows the domain (`.dk` → `da`, `.de`/`.at` → `de`, else `en`); override with `--lang da\|de\|en`. | None. |
 
 For CI, `scan` and `audit` take `--json` and `--fail-on-gap` (exit code `1` on a gap, `2` on an error). The [GitHub Actions PR gate](https://spurvik.com/r/github-action-spurvik-check.yml) wires `audit` into pull requests.
+
+### Add the Live Art. 50 Status Shield to Your README
+
+Swap in your domain. The shield shows the live Art. 50(1) notice status and links to the public report:
+
+```markdown
+[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=yourdomain.com)](https://console.spurvik.com/report?domain=yourdomain.com)
+```
 
 ## Live Sandbox, Hosted EU Console & Starter Templates
 
