@@ -11,6 +11,7 @@ Published as `spurvik-mcp-server@1.0.7`. The local stdio server has nine zero-ke
 
 ### Changed
 
+- `spurvik_setup_snippet` pins `spurvik@1.0.10` and `spurvik-sdk@1.0.10` (`SNIPPET_SDK_VERSION`), which ship the `spurvik c2pa` CLI.
 - Server instructions name all three network tools. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), the Claude plugin manifests (`1.0.7`), `spurvik-com-well-known-mcp.json` (9 stdio and 9 hosted tools) and the bundled plugin server move to 1.0.7.
 
 ## 1.0.6 — 2026-11-17
