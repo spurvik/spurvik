@@ -11,21 +11,21 @@ const root = join(here, "..", "..");
 const serverBin = join(root, "plugins", "spurvik", "bin", "spurvik-mcp.mjs");
 const { withSpurvik, provenanceOf } = await import(join(root, "packages/spurvik/dist/index.js"));
 
-test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.7", () => {
+test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.8", () => {
   const cursorCfg = JSON.parse(readFileSync(join(here, "cursor.mcp.json"), "utf8"));
   assert.equal(cursorCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.7"));
+  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.8"));
 
   const claudeCfg = JSON.parse(readFileSync(join(here, "claude-code.mcp.json"), "utf8"));
   assert.equal(claudeCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.7"));
+  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.8"));
 
   const vscodeCfg = JSON.parse(readFileSync(join(here, "vscode.mcp.json"), "utf8"));
   assert.equal(vscodeCfg.servers.spurvik.command, "npx");
-  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.7"));
+  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.8"));
 });
 
-test("Stdio MCP server exposes all 9 read-only tools and executes the core tools over JSON-RPC", async () => {
+test("Stdio MCP server exposes all 10 read-only tools and executes the core tools over JSON-RPC", async () => {
   const workDir = mkdtempSync(join(tmpdir(), "spurvik-mcp-stdio-"));
   writeFileSync(join(workDir, "package.json"), JSON.stringify({ name: "mcp-demo", private: true }));
   writeFileSync(
@@ -105,6 +105,7 @@ test("Stdio MCP server exposes all 9 read-only tools and executes the core tools
       "spurvik_marking_hooks",
       "spurvik_scan_live_url",
       "spurvik_setup_snippet",
+      "spurvik_vendor_questionnaire_answers",
     ]);
 
     // 1. spurvik_setup_snippet
@@ -120,6 +121,7 @@ test("Stdio MCP server exposes all 9 read-only tools and executes the core tools
     const snippetRes = await waitId(3);
     const snippetText = snippetRes?.result?.content?.[0]?.text ?? "";
     assert.ok(snippetText.includes("withSpurvikLangGraph"));
+    assert.ok(snippetText.includes("## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s"));
 
     // 2. spurvik_find_unwrapped_calls
     send({
@@ -237,6 +239,20 @@ test("Stdio MCP server exposes all 9 read-only tools and executes the core tools
     const liveScanRes = await waitId(9);
     assert.equal(liveScanRes?.result?.isError, true);
     assert.equal(JSON.parse(liveScanRes?.result?.content?.[0]?.text ?? "{}").error, "blocked_target");
+
+    // 8. spurvik_vendor_questionnaire_answers works with zero arguments
+    send({
+      jsonrpc: "2.0",
+      id: 10,
+      method: "tools/call",
+      params: { name: "spurvik_vendor_questionnaire_answers", arguments: {} },
+    });
+    const vqRes = await waitId(10);
+    const vqText = vqRes?.result?.content?.[0]?.text ?? "";
+    assert.notEqual(vqRes?.result?.isError, true);
+    assert.ok(vqText.includes("## Q2: Art. 12 Cryptographic Event Logging"));
+    assert.ok(vqText.includes("https://console.spurvik.com/signup?plan=concierge"));
+    assert.equal((vqText.match(/not legal advice/gi) ?? []).length, 1);
   } finally {
     child.stdin.end();
     child.kill();

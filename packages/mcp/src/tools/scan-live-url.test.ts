@@ -151,7 +151,7 @@ describe("scanLiveUrl", () => {
     expect(String(input)).toBe("https://console.spurvik.com/api/v1/sandbox/scan?url=https%3A%2F%2Fstepnetwork.dk%2F");
     expect(init?.method).toBe("GET");
     expect((init?.headers as Record<string, string>)["User-Agent"]).toBe(MCP_USER_AGENT);
-    expect(MCP_USER_AGENT).toBe("spurvik-mcp-server/1.0.7");
+    expect(MCP_USER_AGENT).toBe("spurvik-mcp-server/1.0.8");
     expect(init?.signal).toBeInstanceOf(AbortSignal);
     expect(timeoutSpy).toHaveBeenCalledWith(SCAN_TIMEOUT_MS);
     expect(SCAN_TIMEOUT_MS).toBe(8000);

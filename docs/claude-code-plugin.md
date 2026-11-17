@@ -1,8 +1,8 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Spurvik SDK (`spurvik@1.0.10`) and MCP server (`spurvik-mcp-server@1.0.7`, MIT).** Describes `plugins/spurvik` (`1.0.7`, MIT). The commands may change. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.10`) and MCP server (`spurvik-mcp-server@1.0.8`, MIT).** Describes `plugins/spurvik` (`1.0.8`, MIT). The commands may change. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, `spurvik-mcp-server@1.0.7`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, `spurvik-mcp-server@1.0.8`.*
 
 The Spurvik plugin in `plugins/spurvik` gives Claude Code three slash commands, one skill (`eu-ai-act-guardrails`), and a bundled local stdio MCP server (`bin/spurvik-mcp.mjs`). They help you find model calls in your code that are not wrapped yet, add `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, or `withSpurvikLangGraph`, and write a short engineering summary.
 
@@ -13,8 +13,8 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- Public MIT packages are live on npm as `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, and `spurvik-mcp-server@1.0.7` (inside the monorepo, use the published `spurvik@1.0.10`, including `spurvik/react`; see [5-minute quickstart](5-minute-quickstart.md)).
-- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `spurvik-mcp-server` `1.0.7` and published on npm as `spurvik-mcp-server@1.0.7` (MIT)). Its eight tools are read-only. Six make no network calls; `spurvik_scan_live_url` and `spurvik_batch_scan_domains` send public URLs to console.spurvik.com. There is no hosted MCP endpoint in this plugin.
+- Public MIT packages are live on npm as `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, and `spurvik-mcp-server@1.0.8` (inside the monorepo, use the published `spurvik@1.0.10`, including `spurvik/react`; see [5-minute quickstart](5-minute-quickstart.md)).
+- The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `spurvik-mcp-server` `1.0.8` and published on npm as `spurvik-mcp-server@1.0.8` (MIT)). Its ten tools are read-only. Seven make no network calls; `spurvik_scan_live_url`, `spurvik_batch_scan_domains` and `spurvik_check_image_c2pa_url` send public URLs to console.spurvik.com. There is no hosted MCP endpoint in this plugin.
 
 ## Install
 
@@ -41,7 +41,7 @@ claude --plugin-dir /path/to/spurvik/plugins/spurvik
 
 ### Website marketplace catalog (`docs/distribution/spurvik-com-marketplace.json`)
 
-The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `url: "https://github.com/spurvik/spurvik.git"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.7"`) for `https://spurvik.com/.claude-plugin/marketplace.json`. Install from your local clone using Option 1 or Option 2, or from that git-subdir once the website catalog is served.
+The repository also stages `docs/distribution/spurvik-com-marketplace.json` (`name: "spurvik-marketplace"`, `source: "git-subdir"`, `url: "https://github.com/spurvik/spurvik.git"`, `path: "plugins/spurvik"`, `ref: "main"`, `version: "1.0.8"`) for `https://spurvik.com/.claude-plugin/marketplace.json`. Install from your local clone using Option 1 or Option 2, or from that git-subdir once the website catalog is served.
 
 ## Slash commands
 
@@ -92,7 +92,7 @@ The file says that it is not evidence of conformity and not legal advice. It doe
 
 ## Bundled local MCP server (`.mcp.json`)
 
-`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`spurvik-mcp-server`, version `1.0.7`) automatically when the plugin loads:
+`plugins/spurvik/.mcp.json` starts the bundled local stdio MCP server (`spurvik-mcp-server`, version `1.0.8`) automatically when the plugin loads:
 
 ```json
 {
@@ -109,7 +109,7 @@ The file says that it is not evidence of conformity and not legal advice. It doe
 }
 ```
 
-It exposes nine read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url`, `spurvik_batch_scan_domains`, `spurvik_check_image_c2pa_url`, `spurvik_classify_ai_act_risk`, `spurvik_generate_art50_badge`). Six run locally on your machine and make no network calls. `spurvik_scan_live_url` sends one public URL to console.spurvik.com, `spurvik_batch_scan_domains` sends up to 10, and `spurvik_check_image_c2pa_url` sends one public https image URL for a read-only C2PA JUMBF manifest & CDN-strip check; all three refuse localhost, private IPs and internal hosts before any request. To check a receipt's HMAC signature with `spurvik_explain_receipt`, pass `signingSecret` to the tool call or set `SPURVIK_SIGNING_SECRET` in the MCP server's environment. Third-party licence notices for the bundled server are in `plugins/spurvik/THIRD-PARTY-NOTICES.txt`.
+It exposes ten read-only tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url`, `spurvik_batch_scan_domains`, `spurvik_check_image_c2pa_url`, `spurvik_classify_ai_act_risk`, `spurvik_generate_art50_badge`, `spurvik_vendor_questionnaire_answers`). Seven run locally on your machine and make no network calls. `spurvik_scan_live_url` sends one public URL to console.spurvik.com, `spurvik_batch_scan_domains` sends up to 10, and `spurvik_check_image_c2pa_url` sends one public https image URL for a read-only C2PA JUMBF manifest & CDN-strip check; all three refuse localhost, private IPs and internal hosts before any request. To check a receipt's HMAC signature with `spurvik_explain_receipt`, pass `signingSecret` to the tool call or set `SPURVIK_SIGNING_SECRET` in the MCP server's environment. Third-party licence notices for the bundled server are in `plugins/spurvik/THIRD-PARTY-NOTICES.txt`.
 
 ## Skill: `eu-ai-act-guardrails`
 

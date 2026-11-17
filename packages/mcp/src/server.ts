@@ -44,7 +44,22 @@ import {
   SYSTEM_NAME_FIELD,
   THEME_FIELD,
   USE_CASE_FIELD,
+  VQ_DESCRIPTION,
+  VQ_DOMAIN_FIELD,
+  VQ_GENERATES_MEDIA_FIELD,
+  VQ_HIGH_RISK_ACTIONS_FIELD,
+  VQ_PLAN_FIELD,
+  VQ_PROVIDER_FIELD,
+  VQ_TITLE,
 } from "./copy.js";
+import {
+  badgeNextSteps,
+  classifyNextSteps,
+  FIND_NEXT_STEPS,
+  MARKING_NEXT_STEPS,
+  RECEIPT_NEXT_STEPS,
+  SETUP_NEXT_STEPS,
+} from "./next-steps.js";
 import { generateArt50Badge } from "./tools/art50-badge.js";
 import { BADGE_POSITIONS, BADGE_THEMES } from "./tools/badge-copy.js";
 import { BATCH_MAX_DOMAINS, batchScanDomains } from "./tools/batch-scan-domains.js";
@@ -55,10 +70,27 @@ import { scanWorkspace } from "./tools/find-unwrapped.js";
 import { markingHooksText } from "./tools/marking-hooks.js";
 import { scanLiveUrl, type ScanLiveUrlDeps } from "./tools/scan-live-url.js";
 import { FRAMEWORKS, RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
+import {
+  MAX_QUESTIONNAIRE_DOMAIN_CHARS,
+  QUESTIONNAIRE_PLANS,
+  QUESTIONNAIRE_PROVIDERS,
+  vendorQuestionnaireAnswers,
+} from "./tools/vendor-questionnaire.js";
 import { MCP_VERSION } from "./version.js";
 
 function text(value: string): { content: [{ type: "text"; text: string }] } {
   return { content: [{ type: "text", text: value }] };
+}
+
+type TextContent = { type: "text"; text: string };
+
+/** Appends a Markdown block (for example `## Next steps`) as a second text item, so the first item stays valid JSON. */
+function withMarkdown(
+  result: { content: TextContent[]; isError?: true },
+  markdown: string | null,
+): { content: TextContent[]; isError?: true } {
+  if (result.isError || !markdown) return result;
+  return { content: [...result.content, { type: "text", text: markdown }] };
 }
 
 type ToolOutcome<T> =
@@ -97,7 +129,7 @@ export interface ServerOptions {
 }
 
 /**
- * Stdio MCP server. Tools are read-only; only spurvik_scan_live_url, spurvik_batch_scan_domains and
+ * Stdio MCP server with 10 tools. Tools are read-only; only spurvik_scan_live_url, spurvik_batch_scan_domains and
  * spurvik_check_image_c2pa_url call the network (console.spurvik.com).
  */
 export function createServer(workspaceRoot: string, options: ServerOptions = {}): McpServer {
@@ -117,7 +149,7 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ framework, runtime }) => text(setupSnippet(framework, runtime)),
+    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime)}${SETUP_NEXT_STEPS}`),
   );
 
   server.registerTool(
@@ -130,7 +162,7 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ directory }) => text(scanWorkspace(workspaceRoot, directory)),
+    async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`),
   );
 
   server.registerTool(
@@ -148,7 +180,8 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       let secret: string | undefined;
       try {
         secret = resolveSigningSecret(signingSecret);
-        return text(await explainReceipt(receipt, secret));
+        // The links are static, so they cannot carry a secret; they are added on success only.
+        return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : "The receipt could not be explained.";
         throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));
@@ -166,7 +199,7 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ surface }) => text(markingHooksText(surface ?? "both")),
+    async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`),
   );
 
   server.registerTool(
@@ -222,7 +255,10 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async (args) => json(classifyAiActRisk(args)),
+    async (args) => {
+      const outcome = classifyAiActRisk(args);
+      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier) : null);
+    },
   );
 
   server.registerTool(
@@ -239,7 +275,28 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async (args) => json(generateArt50Badge(args)),
+    async (args) => withMarkdown(json(generateArt50Badge(args)), badgeNextSteps(args.systemName)),
+  );
+
+  server.registerTool(
+    "spurvik_vendor_questionnaire_answers",
+    {
+      title: VQ_TITLE,
+      description: VQ_DESCRIPTION,
+      inputSchema: {
+        plan: z.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
+        provider: z.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
+        hasHighRiskActions: z.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
+        generatesMedia: z.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
+        domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
+      },
+      annotations: READ_ONLY_ANNOTATIONS,
+    },
+    async (args) => {
+      const outcome = vendorQuestionnaireAnswers(args);
+      if (!outcome.ok) return json(outcome);
+      return text(outcome.text);
+    },
   );
 
   return server;

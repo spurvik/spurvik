@@ -16,6 +16,7 @@ const ALL_TOOLS = [
   "spurvik_marking_hooks",
   "spurvik_scan_live_url",
   "spurvik_setup_snippet",
+  "spurvik_vendor_questionnaire_answers",
 ];
 
 let workspace: string;
@@ -42,15 +43,28 @@ function textOf(result: Awaited<ReturnType<Client["callTool"]>>): string {
   return content[0]?.text ?? "";
 }
 
+/** Second text item: the `## Next steps` Markdown after a JSON result. */
+function nextStepsOf(result: Awaited<ReturnType<Client["callTool"]>>): string {
+  const content = result.content as Array<{ type: string; text?: string }>;
+  expect(content).toHaveLength(2);
+  return content[1]?.text ?? "";
+}
+
+function allText(result: Awaited<ReturnType<Client["callTool"]>>): string {
+  return (result.content as Array<{ text?: string }>).map((item) => item.text ?? "").join("\n");
+}
+
 describe("createServer", () => {
-  it("advertises the 1.0.7 version and lists all 9 tools", async () => {
+  it("advertises the 1.0.8 version and lists all 10 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.7" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.8" });
+    expect(client.getInstructions()).toMatch(/Seven tools run locally and do not use the network/);
+    expect(client.getInstructions()).toMatch(/spurvik_vendor_questionnaire_answers drafts copy-paste answers/);
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
     expect(client.getInstructions()).toMatch(/spurvik_batch_scan_domains does the same for up to 10 public domains/);
     expect(client.getInstructions()).toMatch(/spurvik_check_image_c2pa_url sends one public https image URL to console\.spurvik\.com for a read-only C2PA manifest check/);
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(9);
+    expect(tools).toHaveLength(10);
     expect(tools.map((tool) => tool.name).sort()).toEqual(ALL_TOOLS);
     const networkTools = ["spurvik_batch_scan_domains", "spurvik_check_image_c2pa_url", "spurvik_scan_live_url"];
     for (const tool of tools) {
@@ -88,6 +102,17 @@ describe("createServer", () => {
     expect((classify?.inputSchema.properties as Record<string, { enum?: string[] }>).domain?.enum).toContain("employment_hr");
     const badge = tools.find((tool) => tool.name === "spurvik_generate_art50_badge");
     expect(badge?.inputSchema.required ?? []).toEqual([]);
+    const questionnaire = tools.find((tool) => tool.name === "spurvik_vendor_questionnaire_answers");
+    expect(questionnaire?.inputSchema.required ?? []).toEqual([]);
+    const props = questionnaire?.inputSchema.properties as Record<string, { type?: string; enum?: string[]; maxLength?: number }>;
+    expect(props.plan?.enum).toEqual(["free", "pro", "team", "concierge"]);
+    expect(props.provider?.enum).toEqual(["openai", "anthropic", "google-genai", "vercel-ai-sdk", "langgraph", "openai-agents", "mastra", "custom"]);
+    expect(props.hasHighRiskActions?.type).toBe("boolean");
+    expect(props.generatesMedia?.type).toBe("boolean");
+    expect(props.domain).toMatchObject({ type: "string", maxLength: 2048 });
+    expect(questionnaire?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false });
+    expect(questionnaire?.description).toContain("€79/mo");
+    expect(questionnaire?.description).not.toMatch(/€49|inputHmac|entryHash/);
     await client.close();
   });
 
@@ -300,8 +325,38 @@ describe("createServer", () => {
     expect(body.tier).toBe("high_risk_annex_iii");
     expect(body.scopeNote).toBe("Engineering mapping aid; not legal advice.");
     expect(body.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check");
+    const steps = nextStepsOf(result);
+    expect(steps).toMatch(/^## Next steps\n/);
+    expect(steps).toContain("https://spurvik.com/eu-ai-act-vendor-security-questionnaire");
+    expect(steps).toContain("https://console.spurvik.com/signup\n");
+    expect(steps).toContain("https://console.spurvik.com/signup?plan=pro\n");
+    expect(steps).toContain("Team €79/mo): https://console.spurvik.com/signup?plan=team");
+    expect(steps).toContain("Done-For-You 24h setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge");
     const bad = await client.callTool({ name: "spurvik_classify_ai_act_risk", arguments: { useCase: "x", domain: "healthcare" } });
     expect(bad.isError).toBe(true);
+    expect((bad.content as unknown[]).length).toBe(1);
+    await client.close();
+  });
+
+  it("spurvik_classify_ai_act_risk Next steps: no Team/Done-For-You below high-risk, none for a prohibited practice", async () => {
+    const client = await connect();
+    const limited = await client.callTool({
+      name: "spurvik_classify_ai_act_risk",
+      arguments: { useCase: "A customer support chatbot that answers shipping questions" },
+    });
+    expect(JSON.parse(textOf(limited)).tier).toBe("limited_transparency_art50");
+    const steps = nextStepsOf(limited);
+    expect(steps).toContain("https://spurvik.com/eu-ai-act-vendor-security-questionnaire");
+    expect(steps).toContain("https://console.spurvik.com/signup?plan=pro");
+    expect(steps).not.toContain("plan=team");
+    expect(steps).not.toContain("plan=concierge");
+    const prohibited = await client.callTool({
+      name: "spurvik_classify_ai_act_risk",
+      arguments: { useCase: "A social scoring system that ranks citizens by trustworthiness for public services" },
+    });
+    expect(JSON.parse(textOf(prohibited)).tier).toBe("prohibited_art5");
+    expect((prohibited.content as unknown[]).length).toBe(1);
+    expect(JSON.stringify(prohibited.content)).not.toContain("Next steps");
     await client.close();
   });
 
@@ -316,9 +371,17 @@ describe("createServer", () => {
     expect(body.script).toBe(
       '<script src="https://spurvik.com/badge.js" data-system="stepnetwork.dk" data-locale="da" data-theme="light" data-position="bottom-left" data-attribution="false" defer></script>',
     );
+    const steps = nextStepsOf(result);
+    expect(steps).toContain("https://console.spurvik.com/labels");
+    expect(steps).toContain("Done-For-You 24h setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge&appUrl=stepnetwork.dk");
+    expect(allText(result).match(/not legal advice/gi)).toHaveLength(1);
+    const named = await client.callTool({ name: "spurvik_generate_art50_badge", arguments: { systemName: "Acme <Bot>" } });
+    expect(nextStepsOf(named)).toContain("https://console.spurvik.com/signup?plan=concierge\n");
+    expect(nextStepsOf(named)).not.toContain("appUrl");
     const bad = await client.callTool({ name: "spurvik_generate_art50_badge", arguments: { locale: "xx" } });
     expect(bad.isError).toBe(true);
     expect(JSON.parse(textOf(bad)).error).toBe("invalid_locale");
+    expect((bad.content as unknown[]).length).toBe(1);
     await client.close();
   });
 
@@ -332,6 +395,70 @@ describe("createServer", () => {
     expect(text).toContain("€199");
     expect(text).toMatch(/import \{[\s\S]*withSpurvik[\s\S]*\} from "spurvik"/);
     expect(text.includes("@spurvik/")).toBe(false);
+    expect(text).toMatch(/```\n\n## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s \(work email only, no password, EU Frankfurt fra1\): https:\/\/console\.spurvik\.com\/signup\n/);
+    expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
+    expect(text).toContain("- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge\n");
+    await client.close();
+  });
+
+  it("spurvik_find_unwrapped_calls ends with wrap and signup Next steps", async () => {
+    const client = await connect();
+    const result = await client.callTool({ name: "spurvik_find_unwrapped_calls", arguments: { directory: "." } });
+    const text = textOf(result);
+    expect(text).toContain("No unwrapped calls found.");
+    const steps = text.slice(text.indexOf("## Next steps"));
+    expect(steps).toContain("- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).");
+    expect(steps).toContain("https://console.spurvik.com/signup\n");
+    expect(steps).toContain("https://console.spurvik.com/signup?plan=pro\n");
+    expect(steps).toContain("https://console.spurvik.com/signup?plan=concierge\n");
+    await client.close();
+  });
+
+  it("spurvik_explain_receipt adds receipt Next steps on success only, without the secret", async () => {
+    const client = await connect();
+    const secret = "server-test-signing-secret-0001";
+    const result = await client.callTool({
+      name: "spurvik_explain_receipt",
+      arguments: { receipt: JSON.stringify({ kind: "provenance_record", signatureAlg: "HMAC-SHA-256", inputHash: "abc" }), signingSecret: secret },
+    });
+    expect(result.isError).toBeFalsy();
+    const text = textOf(result);
+    expect(text).toContain("## Next steps");
+    expect(text).toContain("(`inputHash` + `recordHash`) to EU Frankfurt (`fra1`) — Free SPURVIK_API_KEY in 10s: https://console.spurvik.com/signup\n");
+    expect(text).toContain("- 90-day audit retention + DPO engineering summary download (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
+    expect(text).toContain("- 12-month retention + Annex IV technical documentation draft (Team €79/mo): https://console.spurvik.com/signup?plan=team\n");
+    expect(text).not.toContain(secret);
+    const bad = await client.callTool({ name: "spurvik_explain_receipt", arguments: { receipt: "not json" } });
+    expect(bad.isError).toBe(true);
+    expect(JSON.stringify(bad.content)).not.toContain("Next steps");
+    await client.close();
+  });
+
+  it("spurvik_marking_hooks ends with the C2PA checker and signup Next steps", async () => {
+    const client = await connect();
+    const text = textOf(await client.callTool({ name: "spurvik_marking_hooks", arguments: { surface: "media" } }));
+    expect(text).toMatch(/\n\n## Next steps\n- Check live image URLs for C2PA JUMBF manifests & CDN stripping \(2 Dec 2026 Art\. 50\(2\)\): call `spurvik_check_image_c2pa_url` or open https:\/\/console\.spurvik\.com\/c2pa\n/);
+    expect(text).toContain("- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): https://console.spurvik.com/signup\n");
+    expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
+    await client.close();
+  });
+
+  it("spurvik_vendor_questionnaire_answers returns Markdown with zero arguments", async () => {
+    const client = await connect();
+    const result = await client.callTool({ name: "spurvik_vendor_questionnaire_answers", arguments: {} });
+    expect(result.isError).toBeFalsy();
+    const text = textOf(result);
+    expect(text).toContain("## Q1: Art. 50(1) & 2 Dec 2026 Art. 50(2) Transparency & Provenance");
+    expect(text).toContain("## Q5: Audit Retention, DPO Evidence & Annex IV Documentation");
+    expect(text).toContain("Spurvik plan: Pro (€19/mo or €190/yr)");
+    expect(text.match(/not legal advice/gi)).toHaveLength(1);
+    const prefilled = textOf(
+      await client.callTool({ name: "spurvik_vendor_questionnaire_answers", arguments: { plan: "team", provider: "langgraph", domain: "acme.eu" } }),
+    );
+    expect(prefilled).toContain("https://console.spurvik.com/signup?plan=concierge&appUrl=acme.eu");
+    expect(prefilled).toContain("`spurvikInterrupt`");
+    const bad = await client.callTool({ name: "spurvik_vendor_questionnaire_answers", arguments: { plan: "enterprise" } });
+    expect(bad.isError).toBe(true);
     await client.close();
   });
 });

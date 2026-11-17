@@ -4,7 +4,7 @@ export const RISK_TIER_SAMPLE_COMMENT =
   "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
 
 export const SERVER_INSTRUCTIONS =
-  "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
+  "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Seven tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6. spurvik_vendor_questionnaire_answers drafts copy-paste answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs.";
 
 export const READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
@@ -130,3 +130,16 @@ export const THEME_FIELD = "dark (default) or light.";
 export const SYSTEM_NAME_FIELD = "Product or assistant name, or the site domain. Defaults to Support Assistant.";
 export const ATTRIBUTION_FIELD =
   'Show the "Art. 50 · Spurvik" trust link. Defaults to true. false is white-label (Pro or Done-For-You).';
+
+export const VQ_TITLE = "Answer an EU AI Act vendor security questionnaire";
+export const VQ_DESCRIPTION =
+  "Zero-network, deterministic Markdown answers to the five EU AI Act questions enterprise buyers ask in vendor security questionnaires and DPO RFPs: Q1 Art. 50(1) notice and 2 Dec 2026 Art. 50(2) provenance, Q2 Art. 12 cryptographic event logging (keyed HMAC-SHA256 inputHash/outputHash, SHA-256 recordHash chained by prevLogHash), Q3 GDPR Art. 5(1)(c) zero-prompt minimisation and EU Frankfurt residency, Q4 Art. 14 deterministic human approval gates, Q5 audit retention, DPO evidence and Annex IV documentation. Answers match the chosen Spurvik plan: Free €0 (10,000 events/mo, 30 days), Pro €19/mo (250,000, 90 days, white-label badge, hosted approval queue, DPO engineering summary), Team €79/mo (2,000,000, 12 months, Annex IV draft, webhook export) or Done-For-You €199 once (24h install, signed DPO readiness report, 1 year of Pro). Every field is optional. Ends with links to the interactive questionnaire and signup. Review the wording against your own setup before you send it.";
+export const VQ_PLAN_FIELD = "Spurvik plan the answers describe: free, pro (default), team or concierge (Done-For-You).";
+export const VQ_PROVIDER_FIELD =
+  "Model provider or agent framework: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra or custom.";
+export const VQ_HIGH_RISK_ACTIONS_FIELD =
+  "Agents or tools can trigger refunds, emails, permission changes or deletions. Defaults to true.";
+export const VQ_GENERATES_MEDIA_FIELD =
+  "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false.";
+export const VQ_DOMAIN_FIELD =
+  "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";

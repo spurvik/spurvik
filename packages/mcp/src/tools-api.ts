@@ -8,6 +8,7 @@ export {
   RECEIPT_DESCRIPTION,
   SCAN_DESCRIPTION,
   SETUP_DESCRIPTION,
+  VQ_DESCRIPTION,
 } from "./copy.js";
 export {
   explainReceipt,
@@ -93,9 +94,25 @@ export {
 export {
   C2PA_PAGE_URL,
   conciergeSignupUrlFor,
+  LABELS_URL,
+  SIGNUP_URL,
+  VENDOR_QUESTIONNAIRE_URL,
   PORTFOLIO_URL,
   proSignupUrlFor,
   statusShieldMarkdownFor,
   statusShieldUrlFor,
 } from "./links.js";
+export {
+  MAX_QUESTIONNAIRE_DOMAIN_CHARS,
+  QUESTIONNAIRE_PLANS,
+  QUESTIONNAIRE_PROVIDERS,
+  VENDOR_QUESTIONNAIRE_DEFAULTS,
+  VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA,
+  vendorQuestionnaireAnswers,
+  type QuestionnairePlan,
+  type QuestionnaireProvider,
+  type VendorQuestionnaireInput,
+  type VendorQuestionnaireOutcome,
+} from "./tools/vendor-questionnaire.js";
+export { publicHostname } from "./tools/public-hostname.js";
 export { MCP_USER_AGENT, MCP_VERSION } from "./version.js";

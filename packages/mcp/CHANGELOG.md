@@ -1,5 +1,19 @@
 # spurvik-mcp-server
 
+## 1.0.8 — 2026-11-17
+
+Published as `spurvik-mcp-server@1.0.8`. The local stdio server has ten zero-key tools: the nine on the hosted MCP server at `https://console.spurvik.com/api/mcp` plus `spurvik_vendor_questionnaire_answers`.
+
+### Added
+
+- `spurvik_vendor_questionnaire_answers` `{ plan?, provider?, hasHighRiskActions?, generatesMedia?, domain? }` (all optional; defaults `pro`, `openai`, `true`, `false`): zero-network, deterministic Markdown answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs (Q1 Art. 50(1) and 2 Dec 2026 Art. 50(2), Q2 Art. 12 cryptographic event logging, Q3 GDPR Art. 5(1)(c) zero-prompt minimisation and Frankfurt residency, Q4 Art. 14 deterministic approval gates, Q5 retention, DPO evidence and Annex IV). Plan figures follow console `PLAN_LIMITS` and `upgrade-plans.ts` (Free 10,000/30 days, Pro 250,000/90 days, Team 2,000,000/12 months, Done-For-You €199 once with 1 year of Pro). Field and API names are the shipped ones (`inputHash`, `outputHash`, `recordHash`, `prevLogHash`, `requireHumanApproval`, `spurvikInterrupt`, `createSpurvikNeedsApproval`, `createMultiChannelApprovalRouter`, `verifyHitlWebhook`). `domain` must be a public hostname; it prefills `/report?domain=` and `&appUrl=`, and any other value is dropped without being echoed. One legal line at the bottom. Read-only, `openWorldHint: false`.
+- `## Next steps` links on tool output, the same lines as the hosted server (H25): `spurvik_setup_snippet` (Free key, Pro, Done-For-You), `spurvik_find_unwrapped_calls` (wrap with `spurvik_setup_snippet`, Free, Pro, Done-For-You), `spurvik_explain_receipt` on success (`inputHash` + `recordHash` streaming, Pro 90-day retention + DPO summary, Team Annex IV), `spurvik_marking_hooks` (C2PA URL check, Free, Pro). `spurvik_classify_ai_act_risk` (vendor questionnaire, Free, Pro; Team and Done-For-You on `high_risk_annex_iii`; none on `prohibited_art5`) and `spurvik_generate_art50_badge` (Label Studio, Done-For-You with `&appUrl=<host>` for a hostname `systemName`) return the block as a second text item, so the first item stays valid JSON.
+- `@spurvik/mcp/tools` exports `vendorQuestionnaireAnswers`, `VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA`, `VENDOR_QUESTIONNAIRE_DEFAULTS`, `QUESTIONNAIRE_PLANS`, `QUESTIONNAIRE_PROVIDERS`, `MAX_QUESTIONNAIRE_DOMAIN_CHARS`, `publicHostname`, `SIGNUP_URL`, `LABELS_URL` and `VENDOR_QUESTIONNAIRE_URL`.
+
+### Changed
+
+- User-Agent `spurvik-mcp-server/1.0.8`. Server instructions: seven local tools. `server.json` description mentions the questionnaire answers. Listing manifests, the Claude plugin manifests (`1.0.8`), `spurvik-com-well-known-mcp.json` (10 stdio and 9 hosted tools) and the bundled plugin server move to 1.0.8.
+
 ## 1.0.7 — 2026-11-17
 
 Published as `spurvik-mcp-server@1.0.7`. The local stdio server has nine zero-key tools, the same nine as the hosted MCP server at `https://console.spurvik.com/api/mcp`.

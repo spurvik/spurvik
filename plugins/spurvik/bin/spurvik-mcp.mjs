@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.7, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.8, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -2984,7 +2984,7 @@ var require_compile = __commonJS({
       const schOrFunc = root.refs[ref];
       if (schOrFunc)
         return schOrFunc;
-      let _sch = resolve.call(this, root, ref);
+      let _sch = resolve2.call(this, root, ref);
       if (_sch === void 0) {
         const schema = (_a = root.localRefs) === null || _a === void 0 ? void 0 : _a[ref];
         const { schemaId } = this.opts;
@@ -3011,7 +3011,7 @@ var require_compile = __commonJS({
     function sameSchemaEnv(s1, s2) {
       return s1.schema === s2.schema && s1.root === s2.root && s1.baseId === s2.baseId;
     }
-    function resolve(root, ref) {
+    function resolve2(root, ref) {
       let sch;
       while (typeof (sch = this.refs[ref]) == "string")
         ref = sch;
@@ -3875,7 +3875,7 @@ var require_fast_uri = __commonJS({
       }
       return uri;
     }
-    function resolve(baseURI, relativeURI, options) {
+    function resolve2(baseURI, relativeURI, options) {
       const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
       const {
         parsed: baseParsed,
@@ -4266,7 +4266,7 @@ var require_fast_uri = __commonJS({
     var fastUri = {
       SCHEMES,
       normalize,
-      resolve,
+      resolve: resolve2,
       resolveComponent,
       equal,
       serialize,
@@ -5110,8 +5110,8 @@ var require_multipleOf = __commonJS({
         const { gen, data, schemaCode, it } = cxt;
         const prec = it.opts.multipleOfPrecision;
         const res = gen.let("res");
-        const invalid = prec ? (0, codegen_1._)`Math.abs(Math.round(${res}) - ${res}) > 1e-${prec}` : (0, codegen_1._)`${res} !== parseInt(${res})`;
-        cxt.fail$data((0, codegen_1._)`(${schemaCode} === 0 || (${res} = ${data}/${schemaCode}, ${invalid}))`);
+        const invalid2 = prec ? (0, codegen_1._)`Math.abs(Math.round(${res}) - ${res}) > 1e-${prec}` : (0, codegen_1._)`${res} !== parseInt(${res})`;
+        cxt.fail$data((0, codegen_1._)`(${schemaCode} === 0 || (${res} = ${data}/${schemaCode}, ${invalid2}))`);
       }
     };
     exports.default = def;
@@ -5774,7 +5774,7 @@ var require_contains = __commonJS({
           const count = gen.let("count", 0);
           validateItems(schValid, () => gen.if(schValid, () => checkLimits(count)));
         }
-        function validateItems(_valid, block) {
+        function validateItems(_valid, block2) {
           gen.forRange("i", 0, len, (i) => {
             cxt.subschema({
               keyword: "contains",
@@ -5782,7 +5782,7 @@ var require_contains = __commonJS({
               dataPropType: util_1.Type.Num,
               compositeRule: true
             }, _valid);
-            block();
+            block2();
           });
         }
         function checkLimits(count) {
@@ -13479,12 +13479,12 @@ var StdioServerTransport = class {
     this.onclose?.();
   }
   send(message) {
-    return new Promise((resolve) => {
+    return new Promise((resolve2) => {
       const json2 = serializeMessage(message);
       if (this._stdout.write(json2)) {
-        resolve();
+        resolve2();
       } else {
-        this._stdout.once("drain", resolve);
+        this._stdout.once("drain", resolve2);
       }
     });
   }
@@ -13497,7 +13497,7 @@ import path from "node:path";
 
 // packages/mcp/src/copy.ts
 var RISK_TIER_SAMPLE_COMMENT = "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
-var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
+var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Seven tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6. spurvik_vendor_questionnaire_answers drafts copy-paste answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs.";
 var READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -13574,6 +13574,13 @@ var POSITION_FIELD = "bottom-right (default), bottom-left or inline.";
 var THEME_FIELD = "dark (default) or light.";
 var SYSTEM_NAME_FIELD = "Product or assistant name, or the site domain. Defaults to Support Assistant.";
 var ATTRIBUTION_FIELD = 'Show the "Art. 50 · Spurvik" trust link. Defaults to true. false is white-label (Pro or Done-For-You).';
+var VQ_TITLE = "Answer an EU AI Act vendor security questionnaire";
+var VQ_DESCRIPTION = "Zero-network, deterministic Markdown answers to the five EU AI Act questions enterprise buyers ask in vendor security questionnaires and DPO RFPs: Q1 Art. 50(1) notice and 2 Dec 2026 Art. 50(2) provenance, Q2 Art. 12 cryptographic event logging (keyed HMAC-SHA256 inputHash/outputHash, SHA-256 recordHash chained by prevLogHash), Q3 GDPR Art. 5(1)(c) zero-prompt minimisation and EU Frankfurt residency, Q4 Art. 14 deterministic human approval gates, Q5 audit retention, DPO evidence and Annex IV documentation. Answers match the chosen Spurvik plan: Free €0 (10,000 events/mo, 30 days), Pro €19/mo (250,000, 90 days, white-label badge, hosted approval queue, DPO engineering summary), Team €79/mo (2,000,000, 12 months, Annex IV draft, webhook export) or Done-For-You €199 once (24h install, signed DPO readiness report, 1 year of Pro). Every field is optional. Ends with links to the interactive questionnaire and signup. Review the wording against your own setup before you send it.";
+var VQ_PLAN_FIELD = "Spurvik plan the answers describe: free, pro (default), team or concierge (Done-For-You).";
+var VQ_PROVIDER_FIELD = "Model provider or agent framework: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra or custom.";
+var VQ_HIGH_RISK_ACTIONS_FIELD = "Agents or tools can trigger refunds, emails, permission changes or deletions. Defaults to true.";
+var VQ_GENERATES_MEDIA_FIELD = "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false.";
+var VQ_DOMAIN_FIELD = "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
 
 // packages/mcp/src/root.ts
 var WorkspacePathError = class extends Error {
@@ -19978,7 +19985,7 @@ var Protocol = class {
           return;
         }
         const pollInterval = task2.pollInterval ?? this._options?.defaultTaskPollInterval ?? 1e3;
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
         options?.signal?.throwIfAborted();
       }
     } catch (error2) {
@@ -19995,7 +20002,7 @@ var Protocol = class {
    */
   request(request, resultSchema, options) {
     const { relatedRequestId, resumptionToken, onresumptiontoken, task, relatedTask } = options ?? {};
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve2, reject) => {
       const earlyReject = (error2) => {
         reject(error2);
       };
@@ -20073,7 +20080,7 @@ var Protocol = class {
           if (!parseResult.success) {
             reject(parseResult.error);
           } else {
-            resolve(parseResult.data);
+            resolve2(parseResult.data);
           }
         } catch (error2) {
           reject(error2);
@@ -20335,12 +20342,12 @@ var Protocol = class {
       }
     } catch {
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve2, reject) => {
       if (signal2.aborted) {
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
         return;
       }
-      const timeoutId = setTimeout(resolve, interval);
+      const timeoutId = setTimeout(resolve2, interval);
       signal2.addEventListener("abort", () => {
         clearTimeout(timeoutId);
         reject(new McpError(ErrorCode.InvalidRequest, "Request cancelled"));
@@ -21471,7 +21478,7 @@ var McpServer = class {
     let task = createTaskResult.task;
     const pollInterval = task.pollInterval ?? 5e3;
     while (task.status !== "completed" && task.status !== "failed" && task.status !== "cancelled") {
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      await new Promise((resolve2) => setTimeout(resolve2, pollInterval));
       const updatedTask = await extra.taskStore.getTask(taskId);
       if (!updatedTask) {
         throw new McpError(ErrorCode.InternalError, `Task ${taskId} not found during polling`);
@@ -22045,12 +22052,15 @@ var BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
 var REPORT_URL = `${CONSOLE_ORIGIN}/report`;
 var SANDBOX_URL = `${CONSOLE_ORIGIN}/sandbox`;
 var RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
+var SIGNUP_URL = `${CONSOLE_ORIGIN}/signup`;
 var PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
 var TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
+var LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
+var VENDOR_QUESTIONNAIRE_URL = "https://spurvik.com/eu-ai-act-vendor-security-questionnaire";
 var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
@@ -22076,6 +22086,10 @@ function statusShieldUrlFor(host) {
 function statusShieldMarkdownFor(host) {
   return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
 }
+
+// packages/mcp/src/version.ts
+var MCP_VERSION = "1.0.8";
+var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/badge-copy.ts
 var EU_LANGUAGES = [
@@ -22175,126 +22189,6 @@ function buildBadgeScript(input) {
   return input.position === "inline" ? `<div data-spurvik-badge></div>
 ${tag}` : tag;
 }
-
-// packages/mcp/src/tools/art50-badge.ts
-var ART50_BADGE_INPUT_JSON_SCHEMA = {
-  type: "object",
-  properties: {
-    locale: {
-      type: "string",
-      enum: [...EU_LOCALE_CODES],
-      description: "One of the 24 official EU language codes. Inferred from a domain-like systemName when omitted, else en."
-    },
-    position: { type: "string", enum: [...BADGE_POSITIONS], description: "Badge placement. Defaults to bottom-right." },
-    theme: { type: "string", enum: [...BADGE_THEMES], description: "Badge theme. Defaults to dark." },
-    systemName: { type: "string", description: "Product or assistant name, or the site domain. Defaults to Support Assistant." },
-    attribution: {
-      type: "boolean",
-      description: 'Show the "Art. 50 · Spurvik" trust link. Defaults to true (Free). false is white-label (Pro or Done-For-You).'
-    }
-  },
-  additionalProperties: false
-};
-var MAX_SYSTEM_NAME_INPUT = 200;
-function nextJsSnippet(attrs, position) {
-  const lines = [
-    'import Script from "next/script";',
-    "",
-    "// app/layout.tsx: render inside <body>.",
-    "export function SpurvikArt50Badge() {",
-    "  return (",
-    "    <>"
-  ];
-  if (position === "inline") lines.push("      <div data-spurvik-badge />");
-  lines.push("      <Script", `        src="${BADGE_SCRIPT_SRC}"`);
-  for (const [name, value] of attrs) lines.push(`        ${name}="${value}"`);
-  lines.push('        strategy="afterInteractive"', "      />", "    </>", "  );", "}");
-  return lines.join("\n");
-}
-function resolveLocale(input) {
-  if (input.locale !== void 0 && input.locale.trim() !== "") {
-    const requested = input.locale.trim().toLowerCase();
-    return EU_LOCALE_CODES.includes(requested) ? { locale: requested, source: "input" } : null;
-  }
-  const inferred = inferLocaleFromDomain(input.systemName);
-  if (inferred !== "en") return { locale: inferred, source: "systemName_domain" };
-  return { locale: "en", source: "default" };
-}
-function generateArt50Badge(input = {}) {
-  if (input.systemName !== void 0 && typeof input.systemName !== "string") {
-    return { ok: false, error: "invalid_system_name", message: "systemName must be a string." };
-  }
-  if (typeof input.systemName === "string" && input.systemName.length > MAX_SYSTEM_NAME_INPUT) {
-    return { ok: false, error: "invalid_system_name", message: `systemName is longer than ${MAX_SYSTEM_NAME_INPUT} characters.` };
-  }
-  if (input.locale !== void 0 && typeof input.locale !== "string") {
-    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
-  }
-  const position = input.position ?? "bottom-right";
-  if (!BADGE_POSITIONS.includes(position)) {
-    return { ok: false, error: "invalid_position", message: `position must be one of: ${BADGE_POSITIONS.join(", ")}.` };
-  }
-  const theme = input.theme ?? "dark";
-  if (!BADGE_THEMES.includes(theme)) {
-    return { ok: false, error: "invalid_theme", message: `theme must be one of: ${BADGE_THEMES.join(", ")}.` };
-  }
-  if (input.attribution !== void 0 && typeof input.attribution !== "boolean") {
-    return { ok: false, error: "invalid_attribution", message: "attribution must be true or false." };
-  }
-  const resolved = resolveLocale(input);
-  if (!resolved) {
-    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
-  }
-  const attribution = input.attribution !== false;
-  const systemName = sanitizeSystemName(input.systemName);
-  const language = euLanguage(resolved.locale);
-  const badge = { systemName, locale: resolved.locale, theme, position, attribution };
-  const attrs = badgeDataAttributes(badge);
-  const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
-  return {
-    ok: true,
-    result: {
-      tool: "spurvik_generate_art50_badge",
-      notice: "art50_1_interaction",
-      systemName,
-      locale: resolved.locale,
-      language: language.label,
-      localeSource: resolved.source,
-      position,
-      theme,
-      attribution,
-      attributionLabel: attribution ? ATTRIBUTION_LABEL : null,
-      previewText: `${systemName}. ${language.interaction}`,
-      script: buildBadgeScript(badge),
-      nextjs: nextJsSnippet(attrs, position),
-      wordpress: {
-        pluginZipUrl: WORDPRESS_PLUGIN_URL,
-        steps: "WordPress admin: Plugins > Add New > Upload Plugin, choose the .zip, then activate it."
-      },
-      framer: {
-        componentUrl: FRAMER_COMPONENT_URL,
-        steps: "Add the .tsx file as a Framer code component, then place it on the page."
-      },
-      shadcn: {
-        registryUrl: SHADCN_REGISTRY_URL,
-        command: `npx shadcn@latest add ${SHADCN_REGISTRY_URL}`,
-        v0: `In v0, ask it to add the shadcn registry item ${SHADCN_REGISTRY_URL}.`
-      },
-      supportedLocales: EU_LANGUAGES.map((entry) => entry.code),
-      plan: {
-        attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
-        whiteLabel: attribution ? whiteLabelNote : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
-        proUrl: PRO_SIGNUP_URL,
-        doneForYouUrl: CONCIERGE_SIGNUP_URL
-      },
-      note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
-    }
-  };
-}
-
-// packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.7";
-var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/scan-live-url.ts
 var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
@@ -22580,6 +22474,198 @@ async function scanNormalizedTarget(target, deps = {}) {
   return fromUpstream(target, scan);
 }
 
+// packages/mcp/src/tools/public-hostname.ts
+var MAX_INPUT_CHARS = 2048;
+var MAX_HOSTNAME_CHARS = 253;
+var LABEL_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
+var TLD_RE = /^(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
+var BLOCKED_SUFFIXES = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp", "test", "invalid", "example"];
+function publicHostname(raw) {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim().toLowerCase();
+  if (!trimmed || trimmed.length > MAX_INPUT_CHARS || /[\u0000- \u007f-￿<>"'`\\{}|^]/.test(trimmed)) return null;
+  const scheme = /^([a-z][a-z0-9+.-]*):\/\//.exec(trimmed)?.[1];
+  if (scheme !== void 0 && scheme !== "http" && scheme !== "https") return null;
+  let url;
+  try {
+    url = new URL(scheme === void 0 ? `https://${trimmed}` : trimmed);
+  } catch {
+    return null;
+  }
+  if (url.username || url.password || url.port) return null;
+  const host = url.hostname.replace(/\.$/, "");
+  if (!host || host.length > MAX_HOSTNAME_CHARS || host.startsWith("[")) return null;
+  if (isPublicIpLiteral(host) !== null) return null;
+  const labels = host.split(".");
+  if (labels.length < 2 || !labels.every((label) => LABEL_RE.test(label))) return null;
+  if (!TLD_RE.test(labels[labels.length - 1])) return null;
+  if (BLOCKED_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) return null;
+  return host;
+}
+
+// packages/mcp/src/next-steps.ts
+var FREE_KEY_STEP = `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`;
+var PRO_STEP = `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}`;
+var TEAM_STEP = `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`;
+var CONCIERGE_LABEL = "- Done-For-You 24h setup (€199 once, incl. 1 yr Pro):";
+var CONCIERGE_STEP = `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}`;
+function block(...steps) {
+  return `
+## Next steps
+${steps.join("\n")}
+`;
+}
+var SETUP_NEXT_STEPS = block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+var FIND_NEXT_STEPS = block(
+  "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
+  FREE_KEY_STEP,
+  PRO_STEP,
+  CONCIERGE_STEP
+);
+var RECEIPT_NEXT_STEPS = block(
+  `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${SIGNUP_URL}`,
+  `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${PRO_SIGNUP_URL}`,
+  TEAM_STEP
+);
+var MARKING_NEXT_STEPS = block(
+  `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
+  `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`,
+  `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`
+);
+function classifyNextSteps(tier) {
+  if (tier === "prohibited_art5") return null;
+  const steps = [
+    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
+    FREE_KEY_STEP,
+    PRO_STEP
+  ];
+  if (tier === "high_risk_annex_iii") steps.push(TEAM_STEP, CONCIERGE_STEP);
+  return block(...steps).trimStart();
+}
+function badgeNextSteps(systemName) {
+  const host = publicHostname(systemName);
+  return block(
+    `- Interactive Label Studio & CMS downloads (Shopify, WordPress, Framer): ${LABELS_URL}`,
+    `${CONCIERGE_LABEL} ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`
+  ).trimStart();
+}
+
+// packages/mcp/src/tools/art50-badge.ts
+var ART50_BADGE_INPUT_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    locale: {
+      type: "string",
+      enum: [...EU_LOCALE_CODES],
+      description: "One of the 24 official EU language codes. Inferred from a domain-like systemName when omitted, else en."
+    },
+    position: { type: "string", enum: [...BADGE_POSITIONS], description: "Badge placement. Defaults to bottom-right." },
+    theme: { type: "string", enum: [...BADGE_THEMES], description: "Badge theme. Defaults to dark." },
+    systemName: { type: "string", description: "Product or assistant name, or the site domain. Defaults to Support Assistant." },
+    attribution: {
+      type: "boolean",
+      description: 'Show the "Art. 50 · Spurvik" trust link. Defaults to true (Free). false is white-label (Pro or Done-For-You).'
+    }
+  },
+  additionalProperties: false
+};
+var MAX_SYSTEM_NAME_INPUT = 200;
+function nextJsSnippet(attrs, position) {
+  const lines = [
+    'import Script from "next/script";',
+    "",
+    "// app/layout.tsx: render inside <body>.",
+    "export function SpurvikArt50Badge() {",
+    "  return (",
+    "    <>"
+  ];
+  if (position === "inline") lines.push("      <div data-spurvik-badge />");
+  lines.push("      <Script", `        src="${BADGE_SCRIPT_SRC}"`);
+  for (const [name, value] of attrs) lines.push(`        ${name}="${value}"`);
+  lines.push('        strategy="afterInteractive"', "      />", "    </>", "  );", "}");
+  return lines.join("\n");
+}
+function resolveLocale(input) {
+  if (input.locale !== void 0 && input.locale.trim() !== "") {
+    const requested = input.locale.trim().toLowerCase();
+    return EU_LOCALE_CODES.includes(requested) ? { locale: requested, source: "input" } : null;
+  }
+  const inferred = inferLocaleFromDomain(input.systemName);
+  if (inferred !== "en") return { locale: inferred, source: "systemName_domain" };
+  return { locale: "en", source: "default" };
+}
+function generateArt50Badge(input = {}) {
+  if (input.systemName !== void 0 && typeof input.systemName !== "string") {
+    return { ok: false, error: "invalid_system_name", message: "systemName must be a string." };
+  }
+  if (typeof input.systemName === "string" && input.systemName.length > MAX_SYSTEM_NAME_INPUT) {
+    return { ok: false, error: "invalid_system_name", message: `systemName is longer than ${MAX_SYSTEM_NAME_INPUT} characters.` };
+  }
+  if (input.locale !== void 0 && typeof input.locale !== "string") {
+    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
+  }
+  const position = input.position ?? "bottom-right";
+  if (!BADGE_POSITIONS.includes(position)) {
+    return { ok: false, error: "invalid_position", message: `position must be one of: ${BADGE_POSITIONS.join(", ")}.` };
+  }
+  const theme = input.theme ?? "dark";
+  if (!BADGE_THEMES.includes(theme)) {
+    return { ok: false, error: "invalid_theme", message: `theme must be one of: ${BADGE_THEMES.join(", ")}.` };
+  }
+  if (input.attribution !== void 0 && typeof input.attribution !== "boolean") {
+    return { ok: false, error: "invalid_attribution", message: "attribution must be true or false." };
+  }
+  const resolved = resolveLocale(input);
+  if (!resolved) {
+    return { ok: false, error: "invalid_locale", message: `locale must be one of: ${EU_LOCALE_CODES.join(", ")}.` };
+  }
+  const attribution = input.attribution !== false;
+  const systemName = sanitizeSystemName(input.systemName);
+  const language = euLanguage(resolved.locale);
+  const badge = { systemName, locale: resolved.locale, theme, position, attribution };
+  const attrs = badgeDataAttributes(badge);
+  const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
+  return {
+    ok: true,
+    result: {
+      tool: "spurvik_generate_art50_badge",
+      notice: "art50_1_interaction",
+      systemName,
+      locale: resolved.locale,
+      language: language.label,
+      localeSource: resolved.source,
+      position,
+      theme,
+      attribution,
+      attributionLabel: attribution ? ATTRIBUTION_LABEL : null,
+      previewText: `${systemName}. ${language.interaction}`,
+      script: buildBadgeScript(badge),
+      nextjs: nextJsSnippet(attrs, position),
+      wordpress: {
+        pluginZipUrl: WORDPRESS_PLUGIN_URL,
+        steps: "WordPress admin: Plugins > Add New > Upload Plugin, choose the .zip, then activate it."
+      },
+      framer: {
+        componentUrl: FRAMER_COMPONENT_URL,
+        steps: "Add the .tsx file as a Framer code component, then place it on the page."
+      },
+      shadcn: {
+        registryUrl: SHADCN_REGISTRY_URL,
+        command: `npx shadcn@latest add ${SHADCN_REGISTRY_URL}`,
+        v0: `In v0, ask it to add the shadcn registry item ${SHADCN_REGISTRY_URL}.`
+      },
+      supportedLocales: EU_LANGUAGES.map((entry) => entry.code),
+      plan: {
+        attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
+        whiteLabel: attribution ? whiteLabelNote : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
+        proUrl: PRO_SIGNUP_URL,
+        doneForYouUrl: CONCIERGE_SIGNUP_URL
+      },
+      note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
+    }
+  };
+}
+
 // packages/mcp/src/tools/batch-scan-domains.ts
 var BATCH_MAX_DOMAINS = 10;
 var BATCH_SCAN_CONCURRENCY = 4;
@@ -22694,7 +22780,7 @@ var MAX_CLAIM_GENERATOR_CHARS = 100;
 var MAX_VALIDATION_CODES = 20;
 var MAX_FILE_NAME_CHARS = 80;
 var HOSTNAME_RE2 = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
-var BLOCKED_SUFFIXES = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
+var BLOCKED_SUFFIXES2 = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
 var ENTER_IMAGE_URL = "Enter the full URL of a PNG, JPEG or WebP image, for example https://example.com/hero.png.";
 var HTTPS_ONLY = "Only https image URLs can be checked.";
 var NO_CREDENTIALS = "Remove the user name and password from the URL.";
@@ -22749,7 +22835,7 @@ function normalizeImageUrl(raw) {
   const ipPublic = isPublicIpLiteral(host);
   if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED2);
   if (ipPublic === null) {
-    if (BLOCKED_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) {
+    if (BLOCKED_SUFFIXES2.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) {
       throw new ScanTargetRejected("blocked_target", BLOCKED2);
     }
     if (!HOSTNAME_RE2.test(host)) {
@@ -24897,8 +24983,8 @@ function resolveConfig(config2) {
     // keep the event loop alive, and Node then exits with code 13
     // ("unsettled top-level await") while the caller is still waiting.
     // Background flush timers are unref'd separately in the telemetry queue.
-    sleep: config2.sleep ?? ((ms) => new Promise((resolve) => {
-      setTimeout(resolve, ms);
+    sleep: config2.sleep ?? ((ms) => new Promise((resolve2) => {
+      setTimeout(resolve2, ms);
     })),
     registerProcessHooks: config2.registerProcessHooks ?? true,
     onTelemetryError: config2.onTelemetryError
@@ -24997,8 +25083,8 @@ function extractOutput(value) {
     const parts = [];
     for (const item of output) {
       if (!isRecord22(item)) continue;
-      const block = textFromBlocks(item.content);
-      if (block) parts.push(block);
+      const block2 = textFromBlocks(item.content);
+      if (block2) parts.push(block2);
     }
     if (parts.length > 0) return parts.join("\n");
   }
@@ -25092,9 +25178,9 @@ function textFromBlocks(value) {
   if (typeof value === "string") return value;
   if (!Array.isArray(value)) return null;
   const parts = [];
-  for (const block of value) {
-    if (typeof block === "string") parts.push(block);
-    else if (isRecord22(block) && typeof block.text === "string") parts.push(block.text);
+  for (const block2 of value) {
+    if (typeof block2 === "string") parts.push(block2);
+    else if (isRecord22(block2) && typeof block2.text === "string") parts.push(block2.text);
   }
   return parts.length > 0 ? parts.join("") : null;
 }
@@ -25105,8 +25191,8 @@ function textFromCandidates(candidates) {
     if (!isRecord22(candidate) || !isRecord22(candidate.content)) continue;
     const blocks = candidate.content.parts;
     if (!Array.isArray(blocks)) continue;
-    for (const block of blocks) {
-      if (isRecord22(block) && typeof block.text === "string") parts.push(block.text);
+    for (const block2 of blocks) {
+      if (isRecord22(block2) && typeof block2.text === "string") parts.push(block2.text);
     }
   }
   return parts.length > 0 ? parts.join("") : null;
@@ -25142,9 +25228,9 @@ function applyMarkedText(result, marked) {
     }
   }
   if (Array.isArray(result.content)) {
-    const block = result.content[0];
-    if (isRecord22(block) && typeof block.text === "string") {
-      block.text = marked;
+    const block2 = result.content[0];
+    if (isRecord22(block2) && typeof block2.text === "string") {
+      block2.text = marked;
       return;
     }
   }
@@ -25319,7 +25405,7 @@ var OversightCache = class {
    * Headers that never arrive are dropped after the request timeout.
    */
   readPushNode(signal2) {
-    return new Promise((resolve) => {
+    return new Promise((resolve2) => {
       let headersSeen = false;
       let headersTimer;
       const url = new URL(`${this.config.baseUrl}/api/v1/oversight/stream`);
@@ -25341,7 +25427,7 @@ var OversightCache = class {
           const status = res.statusCode ?? 0;
           if (status < 200 || status >= 300) {
             res.resume();
-            resolve();
+            resolve2();
             return;
           }
           res.setEncoding("utf8");
@@ -25353,8 +25439,8 @@ var OversightCache = class {
             this.invalidate();
             void this.refresh().catch(() => void 0);
           });
-          res.on("end", () => resolve());
-          res.on("error", () => resolve());
+          res.on("end", () => resolve2());
+          res.on("error", () => resolve2());
         }
       );
       headersTimer = setTimeout(() => {
@@ -25366,11 +25452,11 @@ var OversightCache = class {
       req.on("socket", (socket) => socket.unref());
       req.on("error", () => {
         if (headersTimer) clearTimeout(headersTimer);
-        resolve();
+        resolve2();
       });
       req.on("close", () => {
         if (headersTimer) clearTimeout(headersTimer);
-        resolve();
+        resolve2();
       });
       req.end();
     });
@@ -25381,7 +25467,7 @@ var OversightCache = class {
    * process running.
    */
   readUnrefJson(path4, signal2) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve2, reject) => {
       if (signal2.aborted) {
         reject(signal2.reason instanceof Error ? signal2.reason : new DOMException("The operation was aborted.", "AbortError"));
         return;
@@ -25396,7 +25482,7 @@ var OversightCache = class {
         if (timer) clearTimeout(timer);
         signal2.removeEventListener("abort", onAbort);
         if (error2) reject(error2);
-        else resolve(value);
+        else resolve2(value);
       };
       const onAbort = () => {
         req.destroy();
@@ -25524,8 +25610,8 @@ var FINAL_READERS = ["finalResponse", "finalChatCompletion", "finalMessage", "fi
 function wrapStream(source, spurvik, path4, request, requestBody, started) {
   let resolveProvenance;
   let rejectProvenance;
-  const provenance = new Promise((resolve, reject) => {
-    resolveProvenance = resolve;
+  const provenance = new Promise((resolve2, reject) => {
+    resolveProvenance = resolve2;
     rejectProvenance = reject;
   });
   void provenance.catch(() => void 0);
@@ -25735,8 +25821,8 @@ function trackReturned(returned, transform2) {
   };
 }
 function box(value) {
-  return new Promise((resolve) => {
-    resolve({ current: value });
+  return new Promise((resolve2) => {
+    resolve2({ current: value });
   });
 }
 function afterHalt(spurvik, invoke) {
@@ -25838,8 +25924,8 @@ function gateEventStream(spurvik, invoke, path4) {
   };
   const begin = () => {
     if (!ready) {
-      ready = new Promise((resolve, reject) => {
-        resolveReady = resolve;
+      ready = new Promise((resolve2, reject) => {
+        resolveReady = resolve2;
         rejectReady = reject;
       });
       void ready.catch(() => void 0);
@@ -26780,13 +26866,13 @@ function provenanceFromProviderMetadata(value) {
 function waitForPoll(sleep, ms, signal2) {
   if (!signal2) return sleep(ms);
   if (signal2.aborted) return Promise.resolve();
-  return new Promise((resolve) => {
+  return new Promise((resolve2) => {
     let settled = false;
     const finish = () => {
       if (settled) return;
       settled = true;
       signal2.removeEventListener("abort", finish);
-      resolve();
+      resolve2();
     };
     signal2.addEventListener("abort", finish, { once: true });
     void sleep(ms).then(finish, finish);
@@ -27046,13 +27132,13 @@ function attachReceipt(result, provenance) {
   return result;
 }
 function deferred() {
-  let resolve;
+  let resolve2;
   let reject;
   const promise = new Promise((res, rej) => {
-    resolve = res;
+    resolve2 = res;
     reject = rej;
   });
-  return { promise, resolve, reject };
+  return { promise, resolve: resolve2, reject };
 }
 
 // packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/mastra.js
@@ -27517,13 +27603,13 @@ function receiptFromBag(value) {
   return receipt;
 }
 function deferred2() {
-  let resolve;
+  let resolve2;
   let reject;
   const promise = new Promise((res, rej) => {
-    resolve = res;
+    resolve2 = res;
     reject = rej;
   });
-  return { promise, resolve, reject };
+  return { promise, resolve: resolve2, reject };
 }
 
 // packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/langgraph.js
@@ -27937,13 +28023,13 @@ function interruptPayload(item, callId, actionName) {
   return { callId, actionName };
 }
 function deferred3() {
-  let resolve;
+  let resolve2;
   let reject;
   const promise = new Promise((res, rej) => {
-    resolve = res;
+    resolve2 = res;
     reject = rej;
   });
-  return { promise, resolve, reject };
+  return { promise, resolve: resolve2, reject };
 }
 
 // packages/mcp/src/sdk-exports.ts
@@ -28375,9 +28461,300 @@ ${source}\`\`\`
 `;
 }
 
+// packages/mcp/src/tools/vendor-questionnaire.ts
+var QUESTIONNAIRE_PLANS = ["free", "pro", "team", "concierge"];
+var QUESTIONNAIRE_PROVIDERS = [
+  "openai",
+  "anthropic",
+  "google-genai",
+  "vercel-ai-sdk",
+  "langgraph",
+  "openai-agents",
+  "mastra",
+  "custom"
+];
+var VENDOR_QUESTIONNAIRE_DEFAULTS = {
+  plan: "pro",
+  provider: "openai",
+  hasHighRiskActions: true,
+  generatesMedia: false
+};
+var MAX_QUESTIONNAIRE_DOMAIN_CHARS = 2048;
+var VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    plan: { type: "string", enum: [...QUESTIONNAIRE_PLANS], description: "Spurvik plan the answers describe. Defaults to pro." },
+    provider: {
+      type: "string",
+      enum: [...QUESTIONNAIRE_PROVIDERS],
+      description: "Model provider or agent framework the product uses. Defaults to openai."
+    },
+    hasHighRiskActions: {
+      type: "boolean",
+      description: "Agents or tools can trigger refunds, emails, permission changes or deletions. Defaults to true."
+    },
+    generatesMedia: {
+      type: "boolean",
+      description: "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false."
+    },
+    domain: {
+      type: "string",
+      maxLength: MAX_QUESTIONNAIRE_DOMAIN_CHARS,
+      description: "Optional public hostname of the product, for example acme.eu. Used to prefill links; an invalid value is ignored."
+    }
+  },
+  additionalProperties: false
+};
+var PRO_FACTS = {
+  name: "Pro",
+  price: "€19/mo or €190/yr",
+  events: "250,000",
+  retention: "90 days",
+  whiteLabel: true,
+  hostedQueue: true,
+  dpoSummary: true,
+  annexIv: false,
+  webhookExport: false
+};
+var PLAN_FACTS = {
+  free: {
+    name: "Free",
+    price: "€0",
+    events: "10,000",
+    retention: "30 days",
+    whiteLabel: false,
+    hostedQueue: false,
+    dpoSummary: false,
+    annexIv: false,
+    webhookExport: false
+  },
+  pro: PRO_FACTS,
+  team: {
+    name: "Team",
+    price: "€79/mo or €790/yr",
+    events: "2,000,000",
+    retention: "12 months",
+    whiteLabel: true,
+    hostedQueue: true,
+    dpoSummary: true,
+    annexIv: true,
+    webhookExport: true
+  },
+  // Done-For-You includes one full year of Pro, so the running controls are Pro's.
+  concierge: { ...PRO_FACTS, name: "Done-For-You 24h Setup", price: "€199 once, includes 1 full year of Pro (€190 value)" }
+};
+var CLIENT_APPROVAL = "`requireHumanApproval(actionName, payload)` on the Spurvik client";
+var PROVIDER_FACTS = {
+  openai: { label: "OpenAI", inference: "OpenAI", wrapper: "`withSpurvik(new OpenAI())`", approval: CLIENT_APPROVAL },
+  anthropic: { label: "Anthropic", inference: "Anthropic", wrapper: "`withSpurvik(new Anthropic())`", approval: CLIENT_APPROVAL },
+  "google-genai": {
+    label: "Google Gemini (Google Gen AI SDK)",
+    inference: "Google",
+    wrapper: "`withSpurvik(new GoogleGenAI())`",
+    approval: CLIENT_APPROVAL
+  },
+  "vercel-ai-sdk": {
+    label: "Vercel AI SDK",
+    inference: "our model provider",
+    wrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    approval: CLIENT_APPROVAL
+  },
+  langgraph: {
+    label: "LangGraph",
+    inference: "our model provider",
+    wrapper: "`withSpurvikLangGraph`, from `spurvik/langgraph`",
+    approval: "`spurvikInterrupt` in the graph node, from `spurvik/langgraph`"
+  },
+  "openai-agents": {
+    label: "OpenAI Agents SDK",
+    inference: "our model provider",
+    wrapper: "`withSpurvikModelProvider`, from `spurvik/openai-agents`",
+    approval: "`createSpurvikNeedsApproval` on each tool and `resolveInterruptions`, from `spurvik/openai-agents`"
+  },
+  mastra: { label: "Mastra", inference: "our model provider", wrapper: "`withSpurvikMastra`, from `spurvik/mastra`", approval: CLIENT_APPROVAL },
+  custom: { label: "our model provider", inference: "our model provider", wrapper: "`withSpurvik` on the provider client", approval: CLIENT_APPROVAL }
+};
+function invalid(error2, message) {
+  return { ok: false, error: error2, message };
+}
+function resolve(rawInput) {
+  if (rawInput !== void 0 && rawInput !== null && (typeof rawInput !== "object" || Array.isArray(rawInput))) {
+    return invalid("invalid_input", "Pass an object; every field is optional.");
+  }
+  const record2 = rawInput ?? {};
+  const plan = record2.plan ?? VENDOR_QUESTIONNAIRE_DEFAULTS.plan;
+  if (!QUESTIONNAIRE_PLANS.includes(plan)) {
+    return invalid("invalid_plan", `plan must be one of: ${QUESTIONNAIRE_PLANS.join(", ")}.`);
+  }
+  const provider = record2.provider ?? VENDOR_QUESTIONNAIRE_DEFAULTS.provider;
+  if (!QUESTIONNAIRE_PROVIDERS.includes(provider)) {
+    return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
+  }
+  for (const key of ["hasHighRiskActions", "generatesMedia"]) {
+    if (record2[key] !== void 0 && typeof record2[key] !== "boolean") return invalid("invalid_flag", `${key} must be true or false.`);
+  }
+  if (record2.domain !== void 0 && typeof record2.domain !== "string") {
+    return invalid("invalid_domain", "domain must be a string, for example acme.eu.");
+  }
+  const rawDomain = typeof record2.domain === "string" ? record2.domain : "";
+  const host = rawDomain.trim() ? publicHostname(rawDomain) : null;
+  return {
+    plan,
+    provider,
+    hasHighRiskActions: record2.hasHighRiskActions ?? VENDOR_QUESTIONNAIRE_DEFAULTS.hasHighRiskActions,
+    generatesMedia: record2.generatesMedia ?? VENDOR_QUESTIONNAIRE_DEFAULTS.generatesMedia,
+    host,
+    domainIgnored: rawDomain.trim() !== "" && host === null
+  };
+}
+function question(heading, asks, answer) {
+  const lines = [`## ${heading}`, "", `**Customer asks:** ${asks}`, ""];
+  answer.forEach((paragraph, index) => lines.push(index === 0 ? `**Answer:** ${paragraph}` : paragraph, ""));
+  return lines;
+}
+function q1(product, plan, generatesMedia, isConcierge) {
+  const notice = plan.whiteLabel ? `The notice is white-labelled (\`data-attribution="false"\`): users see only ${product}'s own AI notice, with no third-party branding.` : 'The `badge.js` notice carries a small "Art. 50 · Spurvik" attribution link.';
+  const media = generatesMedia ? [
+    `Art. 50(2), from 2 December 2026: where ${product} generates synthetic images, audio or video, our own marking step (for example a C2PA signer) is plugged into the Spurvik SDK marking hook (\`marking.media\`), and each receipt records whether marking was applied (\`markingApplied\`). Spurvik checks marking; it does not sign or mark content itself.`,
+    `We check that published media still carries its C2PA (JUMBF) manifest after CDN and CMS processing with ${C2PA_PAGE_URL}, and CI runs \`npx spurvik c2pa <image-url> --fail-on-missing\`, which fails the build when a manifest is missing or stripped.${isConcierge ? " Our Done-For-You setup includes a signed DPO Readiness & C2PA Art. 50(2) provenance report." : ""}`
+  ] : [
+    `Art. 50(2), from 2 December 2026: ${product} does not generate synthetic images, audio or video today. If it starts to, our own C2PA marking plugs into the Spurvik SDK marking hook (\`marking.media\`), and CI checks published images with \`npx spurvik c2pa <image-url> --fail-on-missing\`.`
+  ];
+  return question(
+    "Q1: Art. 50(1) & 2 Dec 2026 Art. 50(2) Transparency & Provenance",
+    "Do users know they are interacting with an AI system, and is AI-generated content marked in a machine-readable way?",
+    [
+      `Every AI feature in ${product} shows a visible notice, in the user's language (all 24 official EU languages), that they are interacting with an AI system (Art. 50(1)). It is rendered by Spurvik's \`badge.js\` script or the \`<AIDisclosureLabel />\` React component. ${notice}`,
+      ...media
+    ]
+  );
+}
+function q2(product, plan, provider) {
+  return question(
+    "Q2: Art. 12 Cryptographic Event Logging",
+    "What do you log about AI interactions, and can the log be tampered with?",
+    [
+      `Every ${provider.label} model call made by ${product} is wrapped with the MIT-licensed Spurvik SDK (${provider.wrapper}), which records one event per call. Prompt and output text are replaced by keyed HMAC-SHA256 fingerprints (\`inputHash\`, \`outputHash\`), computed in our own infrastructure with a key that is never sent to Spurvik, and each call carries an HMAC-SHA256-signed provenance receipt.`,
+      `Stored events form a hash chain: each event's SHA-256 \`recordHash\` is linked to the previous event by \`prevLogHash\`, so an edited, inserted or deleted event breaks verification. When events age out, a signed checkpoint keeps the remaining chain verifiable. Our Spurvik ${plan.name} plan covers ${plan.events} events per month.`
+    ]
+  );
+}
+function q3(product, plan, provider) {
+  return question(
+    "Q3: GDPR Art. 5(1)(c) Zero-Prompt Minimisation & EU Frankfurt Residency",
+    "Is customer prompt or output text stored, and where is AI-related data kept?",
+    [
+      `Data minimisation (GDPR Art. 5(1)(c)): 0 bytes of raw prompt or completion text are persisted by Spurvik. Only the keyed fingerprints and call metadata leave our systems. Keyed fingerprints are pseudonymised data (GDPR Art. 4(5)) while our key exists, not anonymised data.`,
+      `Residency: event records are stored in Frankfurt, Germany (Vercel \`fra1\` for the API, Neon Postgres on AWS \`eu-central-1\`) and kept for ${plan.retention}. Spurvik is operated by EyeTea Solutions ApS, Denmark; its sub-processors are listed at https://spurvik.com/privacy. Model inference runs with ${provider.inference} under our own agreement; Spurvik is not in that data path.`
+    ]
+  );
+}
+function q4(product, plan, provider, hasHighRiskActions) {
+  const gate = plan.hostedQueue ? [
+    `The action is held in Spurvik's hosted approval queue (${provider.approval}) until a named reviewer decides. Our code continues only on an \`approved\` decision; a rejected, overridden or timed-out request does not run. The request carries a field-names-only payload summary, so reviewers see which fields an action touches, not their values.`,
+    `Decision webhooks to our backend are verified with \`verifyHitlWebhook\` (HMAC-SHA-256 over the raw body), and each decision is recorded on the signed event, kept ${plan.retention} in Frankfurt. The same requests can reach reviewers in Slack or Microsoft Teams through signed approval links (\`spurvik/channels\`).`
+  ] : [
+    "The action waits for a named reviewer to approve it through signed Slack or Microsoft Teams approval links, routed by `createMultiChannelApprovalRouter` (`spurvik/channels`) in our own stack. Only an explicit approval lets it run; a rejected or expired request does not."
+  ];
+  const intro = hasHighRiskActions ? `AI agents and tools in ${product} that can issue refunds, send emails, change permissions or delete data are gated deterministically in code before they run, not by a model prompt.` : `AI features in ${product} do not trigger refunds, outbound emails, permission changes or deletions on their own today; they return output to a person who decides. Any such action we add is gated deterministically in code before it runs.`;
+  return question(
+    "Q4: Art. 14 Deterministic Human Oversight Gates",
+    "How does a human oversee consequential actions taken by your AI features?",
+    [intro, ...gate]
+  );
+}
+function q5(product, plan, isConcierge) {
+  const evidence = [];
+  if (plan.dpoSummary) evidence.push("a DPO engineering summary (`.md`) downloaded from the signed event log");
+  if (plan.annexIv) evidence.push("an Annex IV technical documentation draft (Art. 11), exported as PDF or Markdown");
+  if (plan.webhookExport) evidence.push("a webhook export of signed events into our own systems");
+  const answer = [
+    `Signed AI events for ${product} are kept for ${plan.retention} in Frankfurt (Spurvik ${plan.name}, ${plan.events} events per month), and the hash chain can be re-verified at any point in that window.`
+  ];
+  if (evidence.length > 0) answer.push(`Evidence we can share with your DPO: ${evidence.join("; ")}.`);
+  else answer.push("Evidence we can share with your DPO: the event record and receipt fields described in Q2, on request.");
+  if (isConcierge) {
+    answer.push(
+      "Our setup was installed by a Spurvik engineer within 24 hours (pull request or CMS snippet), and we hold a signed DPO Readiness & C2PA Art. 50(2) provenance report."
+    );
+  }
+  return question(
+    "Q5: Audit Retention, DPO Evidence & Annex IV Documentation",
+    "How long do you keep AI audit records, and what evidence can you share with our DPO?",
+    answer
+  );
+}
+function planTable() {
+  return [
+    "## What each Spurvik plan puts on the questionnaire",
+    "",
+    "| Control | Free €0 | Pro €19/mo | Team €79/mo | Done-For-You €199 once |",
+    "| --- | --- | --- | --- | --- |",
+    "| AI events per month | 10,000 | 250,000 | 2,000,000 | 250,000 (1 yr Pro) |",
+    "| Retention in Frankfurt (`fra1`) | 30 days | 90 days | 12 months | 90 days |",
+    '| Art. 50(1) notice | `badge.js` with "Art. 50 · Spurvik" link | White-label (`data-attribution="false"`) | White-label | White-label |',
+    "| Keyed HMAC receipts (`inputHash` + `recordHash`) | Yes | Yes | Yes | Yes |",
+    "| Human approval gates | Slack / Teams links (`spurvik/channels`) | Hosted queue + `verifyHitlWebhook` | Hosted queue + `verifyHitlWebhook` | Hosted queue, gate set up for you |",
+    "| DPO engineering summary (`.md`) | No | Yes | Yes | Yes + signed DPO readiness report |",
+    "| Annex IV draft (Art. 11, PDF/Markdown) | No | No | Yes | No |",
+    "| Webhook export of signed events | No | No | Yes | No |",
+    "",
+    "Annual: Pro €190/yr, Team €790/yr. Prices excl. VAT, B2B.",
+    ""
+  ];
+}
+function nextSteps(host) {
+  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
+  if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
+  lines.push(
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
+    `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
+    `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
+    ""
+  );
+  return lines;
+}
+function vendorQuestionnaireAnswers(rawInput = {}) {
+  const resolved = resolve(rawInput);
+  if ("ok" in resolved) return resolved;
+  const plan = PLAN_FACTS[resolved.plan];
+  const provider = PROVIDER_FACTS[resolved.provider];
+  const isConcierge = resolved.plan === "concierge";
+  const product = resolved.host ?? "our product";
+  const header2 = [
+    `# EU AI Act vendor security questionnaire: answers for ${product}`,
+    "",
+    `Spurvik plan: ${plan.name} (${plan.price}) · Provider: ${provider.label} · Consequential agent actions: ${resolved.hasHighRiskActions ? "yes" : "no"} · Synthetic media: ${resolved.generatesMedia ? "yes" : "no"}`,
+    "",
+    "Paste each answer into the buyer's questionnaire, then check it against your own setup before you send it.",
+    ""
+  ];
+  if (resolved.domainIgnored) {
+    header2.push("The domain was not a public hostname, so it was left out of these answers.", "");
+  }
+  const lines = [
+    ...header2,
+    ...q1(product, plan, resolved.generatesMedia, isConcierge),
+    ...q2(product, plan, provider),
+    ...q3(product, plan, provider),
+    ...q4(product, plan, provider, resolved.hasHighRiskActions),
+    ...q5(product, plan, isConcierge),
+    ...planTable(),
+    ...nextSteps(resolved.host),
+    "_Engineering answers based on Spurvik's shipped controls. Articles 12 and 14 bind high-risk systems (Art. 6, Annex III); that classification stays with you. Not legal advice._"
+  ];
+  return { ok: true, text: `${lines.join("\n")}
+` };
+}
+
 // packages/mcp/src/server.ts
 function text(value) {
   return { content: [{ type: "text", text: value }] };
+}
+function withMarkdown(result, markdown) {
+  if (result.isError || !markdown) return result;
+  return { content: [...result.content, { type: "text", text: markdown }] };
 }
 function json(outcome) {
   if (!outcome.ok) {
@@ -28413,7 +28790,7 @@ function createServer(workspaceRoot, options = {}) {
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ framework, runtime }) => text(setupSnippet(framework, runtime))
+    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime)}${SETUP_NEXT_STEPS}`)
   );
   server.registerTool(
     "spurvik_find_unwrapped_calls",
@@ -28425,7 +28802,7 @@ function createServer(workspaceRoot, options = {}) {
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ directory }) => text(scanWorkspace(workspaceRoot, directory))
+    async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`)
   );
   server.registerTool(
     "spurvik_explain_receipt",
@@ -28442,7 +28819,7 @@ function createServer(workspaceRoot, options = {}) {
       let secret;
       try {
         secret = resolveSigningSecret(signingSecret);
-        return text(await explainReceipt(receipt, secret));
+        return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
       } catch (error2) {
         const message = error2 instanceof Error ? error2.message : "The receipt could not be explained.";
         throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));
@@ -28459,7 +28836,7 @@ function createServer(workspaceRoot, options = {}) {
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ surface }) => text(markingHooksText(surface ?? "both"))
+    async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`)
   );
   server.registerTool(
     "spurvik_scan_live_url",
@@ -28511,7 +28888,10 @@ function createServer(workspaceRoot, options = {}) {
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async (args) => json(classifyAiActRisk(args))
+    async (args) => {
+      const outcome = classifyAiActRisk(args);
+      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier) : null);
+    }
   );
   server.registerTool(
     "spurvik_generate_art50_badge",
@@ -28527,7 +28907,27 @@ function createServer(workspaceRoot, options = {}) {
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async (args) => json(generateArt50Badge(args))
+    async (args) => withMarkdown(json(generateArt50Badge(args)), badgeNextSteps(args.systemName))
+  );
+  server.registerTool(
+    "spurvik_vendor_questionnaire_answers",
+    {
+      title: VQ_TITLE,
+      description: VQ_DESCRIPTION,
+      inputSchema: {
+        plan: external_exports.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
+        provider: external_exports.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
+        hasHighRiskActions: external_exports.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
+        generatesMedia: external_exports.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
+    },
+    async (args) => {
+      const outcome = vendorQuestionnaireAnswers(args);
+      if (!outcome.ok) return json(outcome);
+      return text(outcome.text);
+    }
   );
   return server;
 }
