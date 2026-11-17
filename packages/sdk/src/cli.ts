@@ -605,7 +605,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
     root = realpathSync(target);
     if (!statSync(root).isDirectory()) throw new Error("not a directory");
   } catch {
-    io.err(`spurvik audit: not a readable directory: ${args.positionals[0] ?? "."}`);
+    io.err(`spurvik audit: not a readable directory: ${escapeForTerminal(args.positionals[0] ?? ".")}`);
     return EXIT_ERROR;
   }
   const report = auditDirectory(root);
@@ -1209,7 +1209,7 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     return EXIT_OK;
   }
   if (args.unknown.length > 0) {
-    io.err(`spurvik: unknown option ${args.unknown[0]}. Run spurvik --help.`);
+    io.err(`spurvik: unknown option ${escapeForTerminal(args.unknown[0]!)}. Run spurvik --help.`);
     return EXIT_ERROR;
   }
   if (args.lang !== undefined && args.command !== "badge") {
@@ -1252,6 +1252,16 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
   }
 }
 
+/**
+ * `spurvik rfp | head -n 5`: once the reader closes the pipe, drop the rest of the output instead of crashing
+ * with an uncaught EPIPE. The command still exits with its own code. Other stream errors are rethrown.
+ */
+export function ignoreBrokenPipe(stream: NodeJS.WritableStream): void {
+  stream.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code !== "EPIPE") throw error;
+  });
+}
+
 function invokedDirectly(): boolean {
   const entry = process.argv[1];
   if (!entry) return false;
@@ -1263,6 +1273,8 @@ function invokedDirectly(): boolean {
 }
 
 if (invokedDirectly()) {
+  ignoreBrokenPipe(process.stdout);
+  ignoreBrokenPipe(process.stderr);
   runCli(process.argv.slice(2)).then(
     (code) => {
       process.exitCode = code;

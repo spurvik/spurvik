@@ -4,7 +4,7 @@ import {
   type ChannelDispatchReceipt,
   type HumanApprovalChannelConfig,
 } from "spurvik-sdk";
-import { resolveScanBaseUrl, SPURVIK_CONSOLE_ORIGIN } from "./scan-domain";
+import { N8N_NODES_SPURVIK_USER_AGENT, resolveScanBaseUrl, SPURVIK_CONSOLE_ORIGIN } from "./scan-domain";
 
 export type SpurvikWorkflowOperation = "art50_disclosure" | "art12_hmac_log" | "art14_ask_human";
 
@@ -129,6 +129,7 @@ async function postConsoleJson(
       authorization: `Bearer ${config.apiKey}`,
       accept: "application/json",
       "content-type": "application/json",
+      "user-agent": N8N_NODES_SPURVIK_USER_AGENT,
     },
     body: JSON.stringify(payload),
   });

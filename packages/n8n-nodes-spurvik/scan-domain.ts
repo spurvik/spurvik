@@ -7,6 +7,14 @@
  * instead of throwing. Nothing is logged: the input, the response and any error stay in memory.
  */
 
+/** Package version, sent in the User-Agent. A test pins it to package.json. */
+export const N8N_NODES_SPURVIK_VERSION = "1.0.8";
+/**
+ * First-party client User-Agent, sent on every console request (scan, C2PA check, console sync).
+ * Console sync (pending): add the `n8n-nodes-spurvik/` prefix to the console's FIRST_PARTY_CLIENT_USER_AGENT_RE.
+ */
+export const N8N_NODES_SPURVIK_USER_AGENT = `n8n-nodes-spurvik/${N8N_NODES_SPURVIK_VERSION}`;
+
 export const SPURVIK_CONSOLE_ORIGIN = "https://console.spurvik.com";
 export const SPURVIK_BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
 export const SPURVIK_AGENCY_CALCULATOR_URL = "https://spurvik.com/eu-ai-act-for-agencies";
@@ -309,7 +317,7 @@ export async function scanSpurvikDomain(
   try {
     response = await fetchFn(`${baseUrl}${SPURVIK_SCAN_PATH}?url=${encodeURIComponent(host)}`, {
       method: "GET",
-      headers: { accept: "application/json" },
+      headers: { accept: "application/json", "user-agent": N8N_NODES_SPURVIK_USER_AGENT },
       redirect: "error",
       signal,
     });

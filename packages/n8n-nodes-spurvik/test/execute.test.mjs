@@ -7,6 +7,9 @@ import { SpurvikApi } from "../dist/credentials/SpurvikApi.credentials.js";
 import { batchScanSpurvikDomains, scanSpurvikDomain } from "../dist/scan-domain.js";
 import * as packageIndex from "../dist/index.js";
 
+// First-party User-Agent on every console request; the version comes from package.json.
+const USER_AGENT = `n8n-nodes-spurvik/${createRequire(import.meta.url)("../package.json").version}`;
+
 const SECRET = "spurvik-n8n-test-secret-2026";
 const PROMPT = "RAW_PROMPT_SHOULD_NOT_LEAK_1105";
 
@@ -355,6 +358,19 @@ describe("SpurvikEuAiActGuard.execute", () => {
         assert.equal(call.body.includes(PROMPT), false);
         assert.equal(call.body.includes("Invoice updated."), false);
       }
+      const consoleCalls = calls.filter((call) => call.url.startsWith("https://console.spurvik.com/api/v1/"));
+      assert.deepEqual(
+        consoleCalls.map((call) => new URL(call.url).pathname),
+        ["/api/v1/disclosure", "/api/v1/telemetry", "/api/v1/hitl"],
+      );
+      for (const call of consoleCalls) {
+        assert.deepEqual(call.headers, {
+          authorization: `Bearer ${liveKey}`,
+          accept: "application/json",
+          "content-type": "application/json",
+          "user-agent": USER_AGENT,
+        });
+      }
       const telemetryPayload = JSON.parse(calls[1].body);
       assert.equal(telemetryPayload.events[0].contentHashMode, "keyed");
       assert.equal(telemetryPayload.events[0].inputHash, art12Out[0].json.spurvik.art12Record.inputHmac);
@@ -622,7 +638,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
         assert.equal(init.redirect, "error");
         assert.ok(init.signal instanceof AbortSignal);
         assert.equal(init.signal.aborted, false);
-        assert.deepEqual(init.headers, { accept: "application/json" });
+        assert.deepEqual(init.headers, { accept: "application/json", "user-agent": USER_AGENT });
         const headers = new Headers(init.headers);
         for (const name of ["authorization", "cookie", "x-api-key"]) assert.equal(headers.has(name), false, name);
         assert.equal(init.body, undefined);
@@ -989,7 +1005,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
             assert.equal(call.url, `${CONSOLE}/api/v1/sandbox/scan?url=${hostOf(call.url)}`);
             assert.equal(call.init.method, "GET");
             assert.equal(call.init.redirect, "error");
-            assert.deepEqual(call.init.headers, { accept: "application/json" });
+            assert.deepEqual(call.init.headers, { accept: "application/json", "user-agent": USER_AGENT });
             assert.equal(call.init.body, undefined);
           }
           const body = JSON.stringify(out);

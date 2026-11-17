@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -13,6 +14,7 @@ import {
   SCAN_ENDPOINT,
   detectImageProxy,
   generatedNotice,
+  ignoreBrokenPipe,
   langForHost,
   looksLikeDomainOrUrl,
   noticeLocaleForHost,
@@ -600,6 +602,13 @@ describe("spurvik audit", () => {
     expect(await runCli(["audit", "does-not-exist"], h.deps)).toBe(EXIT_ERROR);
     expect(h.err()).toContain("not a readable directory");
   });
+
+  it("escapes control characters in a rejected path instead of echoing them", async () => {
+    const h = harness(undefined, { cwd: dir });
+    expect(await runCli(["audit", "./nope\u001b[2J\u009b31m‮"], h.deps)).toBe(EXIT_ERROR);
+    expect(h.err()).toContain("not a readable directory: ./nope\\u001b[2J\\u009b31m\\u202e");
+    expect(h.err()).not.toMatch(/[\u001b\u009b‮]/);
+  });
 });
 
 describe("spurvik badge", () => {
@@ -873,5 +882,30 @@ describe("spurvik --version / --help", () => {
     expect(looksLikeDomainOrUrl("./src")).toBe(false);
     expect(looksLikeDomainOrUrl(".")).toBe(false);
     expect(looksLikeDomainOrUrl("audit")).toBe(false);
+  });
+
+  it("escapes control, C1 and bidi characters in an unknown option instead of echoing them", async () => {
+    const h = harness();
+    expect(await runCli(["scan", "folk.app", "--x\u001b]0;pwned\u0007\u001b[2J\u009b31m‮"], h.deps)).toBe(EXIT_ERROR);
+    expect(h.err()).toBe("spurvik: unknown option --x\\u001b]0;pwned\\u0007\\u001b[2J\\u009b31m\\u202e. Run spurvik --help.\n");
+    expect(h.err()).not.toMatch(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f‮]/);
+    expect(h.out()).toBe("");
+  });
+});
+
+describe("ignoreBrokenPipe", () => {
+  const errnoError = (code: string) => Object.assign(new Error(`write ${code}`), { code });
+
+  it("swallows EPIPE once the reader is gone (spurvik rfp | head -n 5)", () => {
+    const stream = new EventEmitter();
+    ignoreBrokenPipe(stream as unknown as NodeJS.WritableStream);
+    expect(() => stream.emit("error", errnoError("EPIPE"))).not.toThrow();
+    expect(() => stream.emit("error", errnoError("EPIPE"))).not.toThrow();
+  });
+
+  it("still surfaces every other stream error", () => {
+    const stream = new EventEmitter();
+    ignoreBrokenPipe(stream as unknown as NodeJS.WritableStream);
+    expect(() => stream.emit("error", errnoError("EIO"))).toThrow("write EIO");
   });
 });

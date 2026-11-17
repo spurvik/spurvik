@@ -1,5 +1,12 @@
 # spurvik-sdk
 
+## Unreleased
+
+### Fixed
+
+- `spurvik rfp | head -n 5`, `spurvik audit . | head` and other pipes that close early no longer crash with an uncaught `EPIPE` stack trace. The CLI drops the rest of its output and keeps its own exit code (`audit --fail-on-gap` still exits `1` under `set -o pipefail`).
+- `spurvik: unknown option ...` and `spurvik audit: not a readable directory: ...` show control, C1, and bidi characters as `\uXXXX` instead of sending them to the terminal.
+
 ## 1.0.11 — 2026-11-17
 
 Published as `spurvik@1.0.11` and `spurvik-sdk@1.0.11` (same build). Library exports are unchanged.

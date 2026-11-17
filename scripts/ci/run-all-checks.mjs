@@ -57,6 +57,11 @@ runStep("MCP CLI Subcommands (check, snippet, marking-hooks, --ci) Gate", proces
   "scripts/ci/mcp-cli.test.mjs",
 ]);
 
+runStep("spurvik CLI Broken-Pipe (EPIPE) Gate", process.execPath, [
+  "--test",
+  "scripts/ci/spurvik-cli-broken-pipe.test.mjs",
+]);
+
 runStep("Cloudflare Workers, Hono & Edge Fetch Handler Smoke Test", process.execPath, [
   "--test",
   "examples/cloudflare-workers-hono-edge/smoke.test.mjs",

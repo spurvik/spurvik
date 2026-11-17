@@ -1,3 +1,7 @@
+## Unreleased
+
+- Scan Live Domain, Batch Scan Domains, and console sync (`/api/v1/disclosure`, `/api/v1/telemetry`, `/api/v1/hitl`) now send `User-Agent: n8n-nodes-spurvik/<version>`, like Check Image C2PA. No other header, URL, or output field changes. `N8N_NODES_SPURVIK_VERSION` and `N8N_NODES_SPURVIK_USER_AGENT` now live in `scan-domain.ts`; the package index exports them as before.
+
 ## n8n-nodes-spurvik 1.0.8 — 2026-11-17
 
 - Added zero-credential operation #7, **Answer Vendor Security Questionnaire (Art. 50/12/14 RFP)** (`vendorQuestionnaireAnswers`): copy-paste Markdown answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs (Art. 50(1)/50(2), Art. 12, GDPR Art. 5(1)(c) and Frankfurt residency, Art. 14, retention and DPO evidence). The Markdown is byte-identical to `spurvik-mcp-server@1.0.8` tool #10 (`spurvik_vendor_questionnaire_answers`). It is built locally: no request, no credential, no API key, and nothing from the incoming item is copied. `spurvikApi`, `systemName`, `passThroughFields`, and `consoleBaseUrl` are hidden for it, and the credential is never read when every item runs a zero-key operation.

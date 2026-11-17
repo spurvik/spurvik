@@ -10,19 +10,15 @@
 
 import {
   type SpurvikScanUpgradeUrls,
+  N8N_NODES_SPURVIK_USER_AGENT,
   SPURVIK_BADGE_SCRIPT_SRC,
   SPURVIK_CONSOLE_ORIGIN,
   localeForHost,
   resolveScanBaseUrl,
 } from "./scan-domain";
 
-/** Package version, sent in the User-Agent. A test pins it to package.json. */
-export const N8N_NODES_SPURVIK_VERSION = "1.0.8";
-/**
- * First-party client User-Agent. Console sync (pending): add the `n8n-nodes-spurvik/` prefix to the
- * console's FIRST_PARTY_CLIENT_USER_AGENT_RE.
- */
-export const N8N_NODES_SPURVIK_USER_AGENT = `n8n-nodes-spurvik/${N8N_NODES_SPURVIK_VERSION}`;
+// Defined in scan-domain.ts (shared by scan, C2PA and console sync); re-exported here for the package index.
+export { N8N_NODES_SPURVIK_USER_AGENT, N8N_NODES_SPURVIK_VERSION } from "./scan-domain";
 export const SPURVIK_C2PA_CHECK_PATH = "/api/v1/provenance/public-check-url";
 /** Interactive checker (upload or URL) on the public console. */
 export const SPURVIK_C2PA_CHECKER_URL = `${SPURVIK_CONSOLE_ORIGIN}/c2pa`;
