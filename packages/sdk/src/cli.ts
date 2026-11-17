@@ -1,5 +1,6 @@
 /**
- * `spurvik` CLI: zero-API-key Art. 50(1) live-site scan, local unwrapped-call audit, and badge.js snippets.
+ * `spurvik` CLI: zero-API-key Art. 50(1) live-site scan, C2PA image manifest & CDN-strip check, local unwrapped-call
+ * audit, and badge.js snippets.
  *
  * Nothing here reads environment variables (except NO_COLOR), writes files, or logs input anywhere but stdout/stderr.
  * `audit` never prints source text: only relative `file:line` and a provider label.
@@ -8,7 +9,7 @@ import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "no
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const CLI_VERSION = "1.0.9";
+export const CLI_VERSION = "1.0.10";
 export const USER_AGENT = `spurvik-cli/${CLI_VERSION}`;
 
 export const CONSOLE_ORIGIN = "https://console.spurvik.com";
@@ -275,10 +276,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-/** Upstream strings go to a terminal: drop control/bidi chars (no ANSI injection), trim, cap. */
+/** Upstream strings go to a terminal: drop control, bidi, zero-width and tag chars (no ANSI injection), trim, cap. */
 function cleanText(value: unknown, max = 120): string {
   return typeof value === "string"
-    ? value.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g, "").trim().slice(0, max)
+    ? value.replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff\u{e0000}-\u{e007f}]/gu, "").trim().slice(0, max)
     : "";
 }
 
@@ -673,6 +674,344 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// c2pa — C2PA JUMBF manifest & CDN-strip checker (read-only; it never signs or adds a manifest)
+// ---------------------------------------------------------------------------------------------------------------
+
+export const C2PA_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/provenance/public-check-url`;
+export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
+export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
+/** The console allows 8 s for the image fetch, then reads the manifest; 15 s covers both. */
+export const C2PA_TIMEOUT_MS = 15_000;
+export const C2PA_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+/** `c2pa --fail-on-missing`: no C2PA manifest, or one whose signature no longer matches. */
+export const EXIT_MISSING = 2;
+
+const IMAGE_URL_HELP = "Enter the full URL of a PNG, JPEG or WebP image, for example https://example.com/hero.png.";
+const HTTPS_ONLY = "Only https image URLs can be checked.";
+const IMAGE_BLOCKED =
+  "That host is not a public address. localhost, .local, .internal, private or reserved IPs are refused. Nothing was sent.";
+
+/**
+ * Public https image URL on port 443, no credentials, no localhost/.local/.internal host and no private IP literal.
+ * Checked before any network call. No DNS lookup: the console resolves, pins and re-checks every redirect.
+ */
+export function normalizeImageUrl(raw: string): ScanTarget {
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > 2048 || /[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)) {
+    throw new ScanTargetError("invalid_url", IMAGE_URL_HELP);
+  }
+  const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(trimmed)?.[1]?.toLowerCase();
+  if (scheme === undefined) {
+    throw new ScanTargetError("invalid_url", /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) ? HTTPS_ONLY : IMAGE_URL_HELP);
+  }
+  if (scheme !== "https") throw new ScanTargetError("invalid_url", HTTPS_ONLY);
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new ScanTargetError("invalid_url", IMAGE_URL_HELP);
+  }
+  if (url.username || url.password) throw new ScanTargetError("invalid_url", "Remove the user name and password from the URL.");
+  let host = url.hostname.toLowerCase();
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
+  if (!host) throw new ScanTargetError("invalid_url", IMAGE_URL_HELP);
+  const ipPublic = isPublicIpLiteral(host);
+  if (ipPublic === false) throw new ScanTargetError("blocked_target", IMAGE_BLOCKED);
+  if (ipPublic === null) {
+    if (BLOCKED_SUFFIXES.some((s) => host === s || host.endsWith(`.${s}`))) throw new ScanTargetError("blocked_target", IMAGE_BLOCKED);
+    if (!HOSTNAME_RE.test(host)) {
+      throw new ScanTargetError(host.includes(".") ? "invalid_url" : "blocked_target", host.includes(".") ? IMAGE_URL_HELP : IMAGE_BLOCKED);
+    }
+  }
+  // WHATWG URL drops :443 for https, so any port left is not 443.
+  if (url.port !== "") throw new ScanTargetError("invalid_url", "Only the default https port (443) is allowed.");
+  url.hash = "";
+  if (!host.includes(":")) url.hostname = host;
+  return { url: url.toString(), host };
+}
+
+export interface ImageProxy {
+  name: string;
+  fix: string;
+}
+
+const REENCODE_FIX =
+  "Re-check the untransformed original URL. If it also has no manifest, the CDN strips it on delivery: serve the signed file from your own origin.";
+
+/** Image optimizers that re-encode on the fly and drop the C2PA JUMBF boxes (same rules as the hosted MCP tool). */
+export function detectImageProxy(rawUrl: string): ImageProxy | null {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase();
+  if (url.pathname.startsWith("/_next/image")) {
+    return {
+      name: "Next.js image optimizer (/_next/image)",
+      fix: "Set `unoptimized` on that next/image <Image> (or `images.unoptimized` in next.config) so the original signed bytes are served.",
+    };
+  }
+  if (url.pathname.includes("/cdn-cgi/image/")) return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
+  if (host === "cloudinary.com" || host.endsWith(".cloudinary.com")) return { name: "Cloudinary", fix: REENCODE_FIX };
+  if (host === "imgix.net" || host.endsWith(".imgix.net")) return { name: "imgix", fix: REENCODE_FIX };
+  return null;
+}
+
+/** An image CDN host is not the customer's site, so it is not used as the signup appUrl. */
+function isImageCdnHost(host: string): boolean {
+  return /(?:^|\.)(?:cloudinary\.com|imgix\.net)$/i.test(host);
+}
+
+/** ccTLD -> one of the 24 official EU languages (same table as spurvik-mcp-server and the console). */
+const CCTLD_LOCALES: Readonly<Record<string, string>> = {
+  dk: "da", de: "de", at: "de", se: "sv", nl: "nl", fr: "fr", be: "fr", es: "es", it: "it", pl: "pl", pt: "pt", fi: "fi",
+  gr: "el", cz: "cs", ro: "ro", hu: "hu", bg: "bg", hr: "hr", sk: "sk", si: "sl", lt: "lt", lv: "lv", ee: "et",
+};
+
+export function noticeLocaleForHost(host: string | null): string {
+  const tld = (host ?? "").toLowerCase().replace(/\.$/, "").split(".").pop() ?? "";
+  return Object.hasOwn(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld]! : "en";
+}
+
+/** Manifest text is attacker-controllable: letters, digits and ` ._()/+:@-` only, single spaces, at most 100 chars. */
+export function safeClaimGenerator(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const cleaned = value
+    .replace(/[^\p{L}\p{N} ._()/+:@-]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 100)
+    .trim();
+  return cleaned || null;
+}
+
+/** Validation codes are dotted identifiers (`claimSignature.mismatch`): anything else is dropped. At most 20. */
+export function safeValidationCodes(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((code): code is string => typeof code === "string" && /^[A-Za-z0-9._:-]{1,80}$/.test(code)).slice(0, 20);
+}
+
+const C2PA_MEDIA_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
+type C2paMediaType = (typeof C2PA_MEDIA_TYPES)[number];
+const MEDIA_EXTENSION: Record<C2paMediaType, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+
+const TRUST_ANCHOR_TEXT: Readonly<Record<string, string>> = {
+  not_on_trust_list: "Signer certificate is not on the C2PA trust list",
+  no_failure_reported: "No trust-list failure reported",
+  not_checked: "Not checked (no manifest)",
+};
+
+export type C2paStatus = "manifest_valid" | "signature_mismatch" | "no_manifest";
+
+export interface C2paReport {
+  imageUrl: string;
+  host: string;
+  fileName: string;
+  mediaType: C2paMediaType;
+  byteLength: number;
+  status: C2paStatus;
+  manifestFound: boolean;
+  embedded: boolean;
+  /** Unverified text from the manifest, reduced to plain printable characters. */
+  claimGenerator: string | null;
+  signatureMatches: boolean;
+  trustAnchor: string;
+  validationCodes: string[];
+  imageProxy: { detected: boolean; name: string | null; fix: string | null };
+  diagnosis: string | null;
+  disclosure: { locale: string; react: string; script: string };
+  links: { c2pa: string; pro: string; concierge: string };
+}
+
+/** The same `<AIDisclosureLabel notice="generated" />` and badge.js `data-notice="generated"` the hosted tool returns. */
+export function generatedNotice(locale: string): { react: string; script: string } {
+  return {
+    react: `import { AIDisclosureLabel } from "spurvik/react";\n\n<AIDisclosureLabel\n  notice="generated"\n  locale="${locale}"\n  presentation="block"\n/>`,
+    script: `<script src="${BADGE_SCRIPT_SRC}" data-notice="generated" data-locale="${locale}" data-theme="auto" data-attribution="true" defer></script>`,
+  };
+}
+
+/** Builds the report from the console answer `{ data: { mediaType, byteLength, manifestFound, ... }, fileName }`. */
+export function reportFromC2pa(target: ScanTarget, body: unknown): C2paReport | null {
+  if (!isRecord(body) || !isRecord(body.data)) return null;
+  const data = body.data;
+  const mediaType = C2PA_MEDIA_TYPES.find((type) => type === data.mediaType);
+  if (!mediaType) return null;
+  const byteLength = data.byteLength;
+  if (typeof byteLength !== "number" || !Number.isInteger(byteLength) || byteLength < 0 || byteLength > C2PA_MAX_IMAGE_BYTES) return null;
+  if (typeof data.manifestFound !== "boolean") return null;
+  const manifestFound = data.manifestFound;
+  // No manifest means nothing was signed, so nothing can match.
+  const signatureMatches = manifestFound && data.signatureMatches === true;
+  const trustAnchor =
+    typeof data.trustAnchor === "string" && /^[a-z_]{1,40}$/.test(data.trustAnchor)
+      ? data.trustAnchor
+      : manifestFound
+        ? "no_failure_reported"
+        : "not_checked";
+  const rawName = typeof body.fileName === "string" ? body.fileName : "";
+  const fileName = rawName.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[._]+/, "").slice(0, 80) || `image.${MEDIA_EXTENSION[mediaType]}`;
+  const proxy = detectImageProxy(target.url);
+  const siteHost = isImageCdnHost(target.host) ? null : target.host;
+  const locale = noticeLocaleForHost(siteHost);
+  const status: C2paStatus = !manifestFound ? "no_manifest" : signatureMatches ? "manifest_valid" : "signature_mismatch";
+  let diagnosis: string | null = null;
+  if (!manifestFound) {
+    diagnosis = proxy
+      ? `This URL goes through ${proxy.name}. Image optimizers decode and re-encode the image, which drops the C2PA JUMBF boxes, so a signed original arrives unsigned. ${proxy.fix}`
+      : `These bytes carry no C2PA manifest. If the original file was signed, a CMS, CDN or upload step re-encoded it on the way. Upload the original file at ${C2PA_PAGE_URL} and compare.`;
+  } else if (!signatureMatches) {
+    diagnosis = `A C2PA manifest is present, but its signature does not match: the bytes or the claim changed after signing.${
+      proxy ? ` This URL goes through ${proxy.name}, which re-encodes images. ${proxy.fix}` : ` Upload the original file at ${C2PA_PAGE_URL} and compare.`
+    }`;
+  } else if (proxy) {
+    diagnosis = `The manifest survived ${proxy.name}. Re-check after any change to its settings.`;
+  }
+  const h = siteHost ? encodeURIComponent(siteHost) : null;
+  return {
+    imageUrl: target.url,
+    host: target.host,
+    fileName,
+    mediaType,
+    byteLength,
+    status,
+    manifestFound,
+    embedded: manifestFound && data.embedded === true,
+    claimGenerator: manifestFound ? safeClaimGenerator(data.claimGenerator) : null,
+    signatureMatches,
+    trustAnchor,
+    validationCodes: safeValidationCodes(data.validationCodes),
+    imageProxy: { detected: proxy !== null, name: proxy?.name ?? null, fix: proxy?.fix ?? null },
+    diagnosis,
+    disclosure: { locale, ...generatedNotice(locale) },
+    links: {
+      c2pa: C2PA_PAGE_URL,
+      pro: h ? `${PRO_SIGNUP_URL}&appUrl=${h}` : PRO_SIGNUP_URL,
+      concierge: h ? `${CONCIERGE_SIGNUP_URL}&appUrl=${h}` : CONCIERGE_SIGNUP_URL,
+    },
+  };
+}
+
+async function fetchC2pa(target: ScanTarget, deps: CliDeps): Promise<C2paReport> {
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") throw new ScanFailed("This Node.js has no fetch. Use Node.js 20 or later.");
+  const timeoutMs = deps.timeoutMs ?? C2PA_TIMEOUT_MS;
+  let response: Response;
+  try {
+    response = await fetchImpl(C2PA_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", "User-Agent": USER_AGENT },
+      body: JSON.stringify({ url: target.url }),
+      redirect: "error",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    throw new ScanFailed(
+      name === "TimeoutError" || name === "AbortError"
+        ? `The C2PA check did not answer within ${Math.round(timeoutMs / 1000)}s.`
+        : "Could not reach console.spurvik.com. Check your network and try again.",
+    );
+  }
+  let body: unknown = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+  if (response.status !== 200) {
+    const upstream = isRecord(body) && isRecord(body.error) ? body.error : {};
+    const code = /^[a-z_]{1,40}$/.test(String(upstream.code ?? "")) ? String(upstream.code) : `http_${response.status}`;
+    const message = cleanText(upstream.message, 200);
+    throw new ScanFailed(`Check refused (${code})${message ? `: ${message}` : "."}`);
+  }
+  const report = reportFromC2pa(target, body);
+  if (!report) throw new ScanFailed("The C2PA check sent an answer this CLI cannot read. Try again later.");
+  return report;
+}
+
+function printC2pa(report: C2paReport, io: Io): void {
+  const { c, out } = io;
+  const row = (label: string, value: string) => out(`  ${c.dim(label.padEnd(18))}${value}`);
+  out();
+  out(`  ${c.bold("Spurvik · C2PA JUMBF manifest & CDN-strip check")}`);
+  out();
+  row("Image", `${report.fileName} ${c.dim(`(${report.mediaType}, ${report.byteLength.toLocaleString("en-US")} bytes)`)}`);
+  row("Host", report.host);
+  row(
+    "C2PA manifest",
+    report.manifestFound
+      ? c.green(`FOUND${report.embedded ? " (embedded JUMBF)" : " (remote, referenced from the image)"}`)
+      : c.red("NOT FOUND"),
+  );
+  if (report.manifestFound) {
+    row("Signature", report.signatureMatches ? c.green("MATCHES") : c.red("DOES NOT MATCH (bytes or claim changed after signing)"));
+    row("Trust list", TRUST_ANCHOR_TEXT[report.trustAnchor] ?? report.trustAnchor);
+    row("Signer/generator", report.claimGenerator ? `${report.claimGenerator} ${c.dim("(unverified text from the manifest)")}` : "not stated");
+    row("Validation codes", report.validationCodes.length > 0 ? report.validationCodes.join(", ") : "none");
+  }
+  row("Image optimizer", report.imageProxy.name ?? "none detected");
+  out();
+  if (report.diagnosis) {
+    const warn = report.status !== "manifest_valid";
+    out(`  ${warn ? c.yellow(report.imageProxy.detected ? "⚠ CDN strip:" : "⚠ No valid manifest:") : c.cyan("Note:")} ${report.diagnosis}`);
+    out();
+  }
+  out(`  ${c.bold("Visible Art. 50 notice")} ${c.dim(`(AI-generated image, ${report.disclosure.locale})`)}`);
+  out(`  ${c.dim("React / Next.js (npm i spurvik):")}`);
+  out(`    import { AIDisclosureLabel } from "spurvik/react";`);
+  out(`    <AIDisclosureLabel notice="generated" locale="${report.disclosure.locale}" presentation="block" />`);
+  out(`  ${c.dim("Any site (paste before </body>):")}`);
+  out(`    ${report.disclosure.script}`);
+  out();
+  out(`  ${c.bold("Next steps")} ${c.dim("(prices excl. VAT)")}`);
+  const step = (label: string, url: string) => {
+    out(`  › ${label}`);
+    out(`    ${c.cyan(url)}`);
+  };
+  step("Interactive C2PA checker (upload the original, compare)", report.links.c2pa);
+  step("White-label Pro (€19/mo)", report.links.pro);
+  step("24h engineer Done-For-You (€199 once, incl. 1 year of Pro)", report.links.concierge);
+  out();
+  out(`  ${c.dim("Read-only check: Spurvik did not sign or change the image. The URL and bytes were not stored.")}`);
+  out();
+}
+
+async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number> {
+  const raw = args.positionals[0];
+  if (!raw || args.positionals.length > 1) {
+    io.err("Usage: spurvik c2pa <image-url> [--json] [--fail-on-missing]");
+    return EXIT_ERROR;
+  }
+  let target: ScanTarget;
+  try {
+    target = normalizeImageUrl(raw);
+  } catch (error) {
+    io.err(`spurvik c2pa: ${error instanceof ScanTargetError ? error.message : IMAGE_URL_HELP}`);
+    return EXIT_ERROR;
+  }
+  let report: C2paReport;
+  try {
+    report = await fetchC2pa(target, deps);
+  } catch (error) {
+    const message = error instanceof ScanFailed ? error.message : "The C2PA check failed.";
+    if (args.json) {
+      io.out(JSON.stringify({ host: target.host, status: "error", error: message, links: { c2pa: C2PA_PAGE_URL } }, null, 2));
+    } else {
+      io.err(`spurvik c2pa: ${message}`);
+      io.err(`Check it in the browser instead: ${C2PA_PAGE_URL}`);
+    }
+    return EXIT_ERROR;
+  }
+  if (args.json) io.out(JSON.stringify(report, null, 2));
+  else printC2pa(report, io);
+  return args.failOnMissing && (!report.manifestFound || !report.signatureMatches) ? EXIT_MISSING : EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -681,16 +1020,26 @@ interface ParsedArgs {
   positionals: string[];
   json: boolean;
   failOnGap: boolean;
+  failOnMissing: boolean;
   help: boolean;
   version: boolean;
   lang?: string;
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "audit", "badge", "help", "version"]);
+const COMMANDS = new Set(["scan", "c2pa", "audit", "badge", "help", "version"]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
-  const parsed: ParsedArgs = { command: undefined, positionals: [], json: false, failOnGap: false, help: false, version: false, unknown: [] };
+  const parsed: ParsedArgs = {
+    command: undefined,
+    positionals: [],
+    json: false,
+    failOnGap: false,
+    failOnMissing: false,
+    help: false,
+    version: false,
+    unknown: [],
+  };
   const rest: string[] = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]!;
@@ -700,6 +1049,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
     if (arg === "--json") parsed.json = true;
     else if (arg === "--fail-on-gap") parsed.failOnGap = true;
+    else if (arg === "--fail-on-missing") parsed.failOnMissing = true;
     else if (arg === "-h" || arg === "--help") parsed.help = true;
     else if (arg === "-v" || arg === "--version") parsed.version = true;
     else if (arg === "--lang") parsed.lang = argv[++i] ?? "";
@@ -728,18 +1078,21 @@ export function helpText(): string {
     "Usage:",
     "  spurvik scan <domain-or-url> [--json] [--fail-on-gap]   Art. 50(1) notice check of a live site",
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
+    "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check of a public https image",
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped OpenAI/Anthropic/Gemini/AI SDK calls",
     "  spurvik badge [domain] [--lang da|de|en]                 badge.js tag + React snippet",
     "  spurvik --version | --help",
     "",
-    "Exit codes: 0 ok, 1 gap found with --fail-on-gap, 2 usage or network error.",
+    "Exit codes: 0 ok, 1 gap found with --fail-on-gap, 2 usage or network error,",
+    "            or c2pa --fail-on-missing with no C2PA manifest or a signature that does not match.",
     "",
     "Examples:",
     "  npx spurvik scan stepnetwork.dk",
+    "  npx spurvik c2pa https://example.com/hero.png --fail-on-missing",
     "  npx spurvik audit . --fail-on-gap",
     "  npx spurvik badge example.de",
     "",
-    "scan sends only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only. Not legal advice.",
+    "scan and c2pa send only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only. Not legal advice.",
   ].join("\n");
 }
 
@@ -769,9 +1122,19 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --lang applies to the badge command only.");
     return EXIT_ERROR;
   }
+  if (args.failOnMissing && args.command !== "c2pa") {
+    io.err("spurvik: --fail-on-missing applies to the c2pa command only.");
+    return EXIT_ERROR;
+  }
+  if (args.failOnGap && args.command === "c2pa") {
+    io.err("spurvik: use --fail-on-missing with c2pa (--fail-on-gap is for scan and audit).");
+    return EXIT_ERROR;
+  }
   switch (args.command) {
     case "scan":
       return cmdScan(args, deps, io);
+    case "c2pa":
+      return cmdC2pa(args, deps, io);
     case "audit":
       return cmdAudit(args, deps, io);
     case "badge":

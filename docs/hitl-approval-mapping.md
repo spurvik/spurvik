@@ -1,8 +1,8 @@
 # Mapping Tool Approvals & Interruptions to Spurvik's Human-Oversight Queue
 
-> Describes human-oversight and tool-approval integration for `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, and `spurvik-mcp-server@1.0.6`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
+> Describes human-oversight and tool-approval integration for `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, and `spurvik-mcp-server@1.0.7`. Public source: https://github.com/spurvik/spurvik. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.6`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, `spurvik-mcp-server@1.0.7`.*
 
 Use this guide to connect tool-approval pauses from the **Vercel AI SDK** (`finishReason` / `rawFinishReason === "interrupted"` and `tool-approval-request`), **OpenAI Agents SDK** (`needsApproval` and `RunState` interruptions), and **LangGraph** (`interrupt()` and `Command({ resume })`) to Spurvik's human-oversight queue (`hitl_approvals` and `/dashboard/projects/<projectId>/oversight`). For a dedicated LangGraph walkthrough, see [`docs/langgraph-quickstart.md`](./langgraph-quickstart.md).
 
@@ -241,7 +241,7 @@ declare class Command<TResume = HitlRecordWire> {
 
 // Step A — Inside your LangGraph node before executing a side-effect action:
 export async function refundNode(state: { orderId: string; amountCents: number }) {
-  // spurvik@1.0.9 does not export a payload-summary helper. Send key names, not values.
+  // spurvik@1.0.10 does not export a payload-summary helper. Send key names, not values.
   const payloadSummary = `spurvik.payload_summary.v1:${Object.keys(state).sort().join(",")}`;
 
   const res = await fetch(`${process.env.SPURVIK_BASE_URL}/api/v1/hitl`, {

@@ -3,7 +3,7 @@
     "spurvik": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "spurvik-mcp-server@1.0.6", "--root", "${workspaceFolder}"]
+      "args": ["-y", "spurvik-mcp-server@1.0.7", "--root", "${workspaceFolder}"]
     }
   }
 }

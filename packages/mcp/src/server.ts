@@ -10,6 +10,9 @@ import {
   BATCH_DESCRIPTION,
   BATCH_DOMAINS_FIELD,
   BATCH_TITLE,
+  C2PA_DESCRIPTION,
+  C2PA_TITLE,
+  C2PA_URL_FIELD,
   CLASSIFY_DESCRIPTION,
   CLASSIFY_TITLE,
   DECISIONS_FIELD,
@@ -45,6 +48,7 @@ import {
 import { generateArt50Badge } from "./tools/art50-badge.js";
 import { BADGE_POSITIONS, BADGE_THEMES } from "./tools/badge-copy.js";
 import { BATCH_MAX_DOMAINS, batchScanDomains } from "./tools/batch-scan-domains.js";
+import { checkImageC2paUrl, type CheckImageC2paDeps } from "./tools/check-image-c2pa-url.js";
 import { classifyAiActRisk, MAX_USE_CASE_CHARS, RISK_DOMAINS } from "./tools/classify-risk.js";
 import { explainReceipt, knownSigningSecrets, resolveSigningSecret, scrubSecrets } from "./tools/explain-receipt.js";
 import { scanWorkspace } from "./tools/find-unwrapped.js";
@@ -88,9 +92,14 @@ export function serverVersion(): string {
 export interface ServerOptions {
   /** Test hook for spurvik_scan_live_url and spurvik_batch_scan_domains. Defaults to globalThis.fetch with an 8 s timeout. */
   scan?: ScanLiveUrlDeps;
+  /** Test hook for spurvik_check_image_c2pa_url. Defaults to globalThis.fetch with a 15 s timeout. */
+  c2pa?: CheckImageC2paDeps;
 }
 
-/** Stdio MCP server. Tools are read-only; only spurvik_scan_live_url and spurvik_batch_scan_domains call the network (console.spurvik.com). */
+/**
+ * Stdio MCP server. Tools are read-only; only spurvik_scan_live_url, spurvik_batch_scan_domains and
+ * spurvik_check_image_c2pa_url call the network (console.spurvik.com).
+ */
 export function createServer(workspaceRoot: string, options: ServerOptions = {}): McpServer {
   const server = new McpServer(
     { name: "spurvik", version: serverVersion() },
@@ -184,6 +193,19 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS,
     },
     async ({ domains }) => json(await batchScanDomains(domains, options.scan)),
+  );
+
+  server.registerTool(
+    "spurvik_check_image_c2pa_url",
+    {
+      title: C2PA_TITLE,
+      description: C2PA_DESCRIPTION,
+      inputSchema: {
+        url: z.string().min(1).max(2048).describe(C2PA_URL_FIELD),
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS,
+    },
+    async ({ url }) => json(await checkImageC2paUrl(url, options.c2pa)),
   );
 
   server.registerTool(

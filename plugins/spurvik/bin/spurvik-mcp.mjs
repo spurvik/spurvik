@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.6, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.7, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -13497,7 +13497,7 @@ import path from "node:path";
 
 // packages/mcp/src/copy.ts
 var RISK_TIER_SAMPLE_COMMENT = "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
-var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, and spurvik_batch_scan_domains does the same for up to 10 public domains; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
+var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
 var READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -13557,6 +13557,9 @@ var SCAN_URL_FIELD = "Public http(s) URL or bare domain, for example stepnetwork
 var BATCH_TITLE = "Batch-scan up to 10 domains for Art. 50(1)";
 var BATCH_DESCRIPTION = "Scan 1 to 10 public domains or http(s) URLs (for example an agency's client sites) through console.spurvik.com for AI chat widgets and AI SDKs, and check each frontpage for a visible EU AI Act Article 50(1) notice. Every entry is checked first: if any entry is localhost, a private or reserved IP or an internal host, the whole batch is refused and nothing is sent. Returns JSON: totalDomains, gapsFound and one row per host with detectedWidgets, art50NoticeDetected, gap, reportUrl, a one-line badgeSnippet and statusShieldMarkdown, plus portfolioUrl and upgradeUrls (Team €79/mo, Done-For-You €199 once per site). At most 4 scans run at once, each with an 8-second timeout; a host the service cannot reach returns offlineFallback: true in its row. Heuristic: reads the HTML of one page per domain. Not legal advice.";
 var BATCH_DOMAINS_FIELD = '1 to 10 public http(s) URLs or bare domains, for example ["stepnetwork.dk", "folk.app"]. Duplicate hosts are scanned once.';
+var C2PA_TITLE = "Check an image URL for a C2PA manifest (CDN-strip check)";
+var C2PA_DESCRIPTION = 'C2PA JUMBF manifest & CDN-strip checker for one public https image URL (PNG, JPEG or WebP, up to 4 MB), ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). console.spurvik.com fetches the image once through its SSRF gate and reads the manifest in memory; nothing is stored. Returns JSON: status, mediaType, byteLength, fileName, c2pa { manifestFound, embedded, claimGenerator, signatureMatches, trustAnchor, validationCodes }, whether the URL goes through an image optimizer that strips C2PA (/_next/image, Cloudinary, imgix, Cloudflare /cdn-cgi/image/) with a fix, a visible "AI-generated" notice (<AIDisclosureLabel notice="generated" /> and badge.js data-notice="generated"), and links: the interactive checker, Pro (€19/mo) and Done-For-You (€199 once) with appUrl prefilled. Read-only: it never signs or adds a manifest. Only https on port 443, no credentials; localhost, .local, .internal and private or reserved IPs are refused before any request. 15-second timeout; 10 checks per minute per address, shared with console.spurvik.com/c2pa. Not legal advice.';
+var C2PA_URL_FIELD = "Public https URL of a PNG, JPEG or WebP image up to 4 MB, for example https://example.com/hero.png.";
 var CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
 var CLASSIFY_DESCRIPTION = "Deterministic, zero-network mapping of one AI use case to an EU AI Act tier: prohibited_art5, high_risk_annex_iii, limited_transparency_art50 or minimal_risk. Returns JSON with the matched signals, obligations with dates, recommended Spurvik controls, interactiveClassifierUrl and upgradeUrls. The use-case text is matched against fixed patterns; it is not stored or echoed. Engineering mapping aid; not legal advice and not a decision under Article 6.";
 var USE_CASE_FIELD = "What the AI system does and for whom, in one or two sentences. Max 4000 characters. Not stored or echoed.";
@@ -22047,6 +22050,7 @@ var TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
@@ -22289,7 +22293,7 @@ function generateArt50Badge(input = {}) {
 }
 
 // packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.6";
+var MCP_VERSION = "1.0.7";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/scan-live-url.ts
@@ -22677,6 +22681,273 @@ async function batchScanDomains(domains, deps = {}) {
       note: `Heuristic check of one public page per domain. It can miss a widget or a notice that loads later. A row with offlineFallback: true was not measured; rerun it later or open portfolioUrl. Not legal advice. ${PRICE_NOTE}`
     }
   };
+}
+
+// packages/mcp/src/tools/check-image-c2pa-url.ts
+var C2PA_CHECK_PATH = "/api/v1/provenance/public-check-url";
+var C2PA_CHECK_ENDPOINT = `${CONSOLE_ORIGIN}${C2PA_CHECK_PATH}`;
+var C2PA_CHECK_TIMEOUT_MS = 15e3;
+var C2PA_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+var C2PA_MAX_IMAGE_LABEL = "4 MB";
+var MAX_URL_CHARS2 = 2048;
+var MAX_CLAIM_GENERATOR_CHARS = 100;
+var MAX_VALIDATION_CODES = 20;
+var MAX_FILE_NAME_CHARS = 80;
+var HOSTNAME_RE2 = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
+var BLOCKED_SUFFIXES = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
+var ENTER_IMAGE_URL = "Enter the full URL of a PNG, JPEG or WebP image, for example https://example.com/hero.png.";
+var HTTPS_ONLY = "Only https image URLs can be checked.";
+var NO_CREDENTIALS = "Remove the user name and password from the URL.";
+var PORT_443_ONLY = "Only the default https port (443) is allowed.";
+var BLOCKED2 = "That host is not a public address. localhost, .local, .internal, private or reserved IPs are refused. Nothing was sent.";
+var CHECK_IMAGE_C2PA_URL_INPUT_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    url: {
+      type: "string",
+      minLength: 1,
+      maxLength: MAX_URL_CHARS2,
+      description: `Public https URL of a PNG, JPEG or WebP image up to ${C2PA_MAX_IMAGE_LABEL}, for example https://example.com/hero.png.`
+    }
+  },
+  required: ["url"],
+  additionalProperties: false
+};
+var C2PA_MEDIA_TYPES = ["image/png", "image/jpeg", "image/webp"];
+var TRUST_ANCHOR_TEXT = {
+  not_on_trust_list: "Signer certificate is not on the C2PA trust list",
+  no_failure_reported: "No trust-list failure reported",
+  not_checked: "Not checked (no manifest)"
+};
+function normalizeHost2(value) {
+  let host = value.trim().toLowerCase();
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
+  return host;
+}
+function normalizeImageUrl(raw) {
+  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > MAX_URL_CHARS2 || /[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)) {
+    throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  }
+  const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(trimmed)?.[1]?.toLowerCase();
+  if (scheme === void 0) {
+    throw new ScanTargetRejected("invalid_url", /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) ? HTTPS_ONLY : ENTER_IMAGE_URL);
+  }
+  if (scheme !== "https") throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
+  let url;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  }
+  if (url.protocol !== "https:") throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
+  if (url.username || url.password) throw new ScanTargetRejected("invalid_url", NO_CREDENTIALS);
+  const host = normalizeHost2(url.hostname);
+  if (!host) throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  const ipPublic = isPublicIpLiteral(host);
+  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED2);
+  if (ipPublic === null) {
+    if (BLOCKED_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) {
+      throw new ScanTargetRejected("blocked_target", BLOCKED2);
+    }
+    if (!HOSTNAME_RE2.test(host)) {
+      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED2);
+      throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+    }
+  }
+  if (url.port !== "") throw new ScanTargetRejected("invalid_url", PORT_443_ONLY);
+  url.hash = "";
+  if (!host.includes(":")) url.hostname = host;
+  return { url: url.toString(), host };
+}
+var REENCODE_FIX = "Re-check the untransformed original URL. If it also has no manifest, the CDN strips it on delivery: serve the signed file from your own origin.";
+function detectImageProxy(rawUrl) {
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase();
+  if (url.pathname.startsWith("/_next/image")) {
+    return {
+      name: "Next.js image optimizer (/_next/image)",
+      fix: "Set `unoptimized` on that next/image <Image> (or `images.unoptimized` in next.config) so the original signed bytes are served."
+    };
+  }
+  if (url.pathname.includes("/cdn-cgi/image/")) return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
+  if (host === "cloudinary.com" || host.endsWith(".cloudinary.com")) return { name: "Cloudinary", fix: REENCODE_FIX };
+  if (host === "imgix.net" || host.endsWith(".imgix.net")) return { name: "imgix", fix: REENCODE_FIX };
+  return null;
+}
+function isImageCdnHost(host) {
+  return /(?:^|\.)(?:cloudinary\.com|imgix\.net)$/i.test(host);
+}
+function safeClaimGenerator(value) {
+  if (typeof value !== "string") return null;
+  const cleaned = value.replace(/[^\p{L}\p{N} ._()/+:@-]+/gu, " ").replace(/\s+/g, " ").trim().slice(0, MAX_CLAIM_GENERATOR_CHARS).trim();
+  return cleaned || null;
+}
+function safeValidationCodes(value) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((code) => typeof code === "string" && /^[A-Za-z0-9._:-]{1,80}$/.test(code)).slice(0, MAX_VALIDATION_CODES);
+}
+var EXTENSION = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+function safeFileName(value, mediaType) {
+  const safe = typeof value === "string" ? value.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[._]+/, "").slice(0, MAX_FILE_NAME_CHARS) : "";
+  return safe || `image.${EXTENSION[mediaType]}`;
+}
+function cleanMessage(value) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff\u{e0000}-\u{e007f}`<>]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 200);
+}
+function isRecord2(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function readUpstreamReport(body) {
+  if (!isRecord2(body) || !isRecord2(body.data)) return null;
+  const data = body.data;
+  const mediaType = C2PA_MEDIA_TYPES.find((type) => type === data.mediaType);
+  if (!mediaType) return null;
+  const byteLength = data.byteLength;
+  if (typeof byteLength !== "number" || !Number.isInteger(byteLength) || byteLength < 0 || byteLength > C2PA_MAX_IMAGE_BYTES) {
+    return null;
+  }
+  if (typeof data.manifestFound !== "boolean") return null;
+  const manifestFound = data.manifestFound;
+  const trustAnchor = typeof data.trustAnchor === "string" && /^[a-z_]{1,40}$/.test(data.trustAnchor) ? data.trustAnchor : manifestFound ? "no_failure_reported" : "not_checked";
+  return {
+    mediaType,
+    byteLength,
+    manifestFound,
+    embedded: manifestFound && data.embedded === true,
+    claimGenerator: manifestFound ? safeClaimGenerator(data.claimGenerator) : null,
+    // No manifest means nothing was signed, so nothing can match.
+    signatureMatches: manifestFound && data.signatureMatches === true,
+    trustAnchor,
+    validationCodes: safeValidationCodes(data.validationCodes),
+    fileName: safeFileName(body.fileName, mediaType)
+  };
+}
+function generatedNoticeReactSnippet(locale) {
+  return [
+    'import { AIDisclosureLabel } from "spurvik/react";',
+    "",
+    "<AIDisclosureLabel",
+    '  notice="generated"',
+    `  locale="${euLanguage(locale).code}"`,
+    '  presentation="block"',
+    "/>"
+  ].join("\n");
+}
+function generatedNoticeScript(locale) {
+  return `<script src="${BADGE_SCRIPT_SRC}" data-notice="generated" data-locale="${euLanguage(locale).code}" data-theme="auto" data-attribution="true" defer></script>`;
+}
+function diagnose(report, proxy) {
+  if (!report.manifestFound) {
+    return proxy ? `This URL goes through ${proxy.name}. Image optimizers decode and re-encode the image, which drops the C2PA JUMBF boxes, so a signed original arrives unsigned. ${proxy.fix}` : `These bytes carry no C2PA manifest. If the original file was signed, a CMS, CDN or upload step re-encoded it on the way. Upload the original file at ${C2PA_PAGE_URL} and compare.`;
+  }
+  if (!report.signatureMatches) {
+    return `A C2PA manifest is present, but its signature does not match: the bytes or the claim changed after signing.${proxy ? ` This URL goes through ${proxy.name}, which re-encodes images. ${proxy.fix}` : ` Upload the original file at ${C2PA_PAGE_URL} and compare.`}`;
+  }
+  return proxy ? `The manifest survived ${proxy.name}. Re-check after any change to its settings.` : null;
+}
+function buildResult(target, report) {
+  const proxy = detectImageProxy(target.url);
+  const siteHost = isImageCdnHost(target.host) ? null : target.host;
+  const locale = inferLocaleFromDomain(siteHost ?? "");
+  const status = !report.manifestFound ? "no_manifest" : report.signatureMatches ? "manifest_valid" : "signature_mismatch";
+  return {
+    tool: "spurvik_check_image_c2pa_url",
+    status,
+    host: target.host,
+    fileName: report.fileName,
+    mediaType: report.mediaType,
+    byteLength: report.byteLength,
+    c2pa: {
+      manifestFound: report.manifestFound,
+      embedded: report.embedded,
+      claimGenerator: report.claimGenerator,
+      signatureMatches: report.signatureMatches,
+      trustAnchor: report.trustAnchor,
+      trustAnchorText: TRUST_ANCHOR_TEXT[report.trustAnchor] ?? report.trustAnchor,
+      validationCodes: report.validationCodes
+    },
+    imageProxy: { detected: proxy !== null, name: proxy?.name ?? null, fix: proxy?.fix ?? null },
+    diagnosis: diagnose(report, proxy),
+    disclosure: {
+      locale,
+      language: euLanguage(locale).label,
+      react: generatedNoticeReactSnippet(locale),
+      script: generatedNoticeScript(locale)
+    },
+    links: {
+      c2pa: C2PA_PAGE_URL,
+      pro: siteHost ? proSignupUrlFor(siteHost) : PRO_SIGNUP_URL,
+      concierge: siteHost ? conciergeSignupUrlFor(siteHost) : CONCIERGE_SIGNUP_URL
+    },
+    prices: { pro: PRO_PRICE, concierge: `${CONCIERGE_PRICE}, incl. 1 year of Pro` },
+    note: `Read-only C2PA check: Spurvik did not sign or change the image, and the URL and bytes were not stored. claimGenerator is unverified text from the manifest. Not legal advice. ${PRICE_NOTE}`
+  };
+}
+function endpointFor(baseUrl) {
+  if (baseUrl === void 0) return C2PA_CHECK_ENDPOINT;
+  try {
+    const origin = new URL(baseUrl);
+    if (origin.protocol !== "https:" || origin.username || origin.password) return null;
+    return `${origin.origin}${C2PA_CHECK_PATH}`;
+  } catch {
+    return null;
+  }
+}
+var FALLBACK_HINT = `Upload the image at ${C2PA_PAGE_URL} instead.`;
+async function checkImageC2paUrl(rawUrl, deps = {}) {
+  let target;
+  try {
+    target = normalizeImageUrl(rawUrl);
+  } catch (error2) {
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
+    return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
+  }
+  const endpoint = endpointFor(deps.baseUrl);
+  if (!endpoint) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") {
+    return { ok: false, error: "service_unreachable", message: `This Node.js has no fetch. ${FALLBACK_HINT}` };
+  }
+  const timeoutMs2 = deps.timeoutMs ?? C2PA_CHECK_TIMEOUT_MS;
+  let response;
+  try {
+    response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", "User-Agent": MCP_USER_AGENT },
+      body: JSON.stringify({ url: target.url }),
+      redirect: "error",
+      signal: AbortSignal.timeout(timeoutMs2)
+    });
+  } catch (error2) {
+    const name = error2 instanceof Error ? error2.name : "";
+    return name === "TimeoutError" || name === "AbortError" ? { ok: false, error: "timeout", message: `console.spurvik.com did not answer within ${Math.round(timeoutMs2 / 1e3)} s. Nothing was checked. ${FALLBACK_HINT}` } : { ok: false, error: "service_unreachable", message: `console.spurvik.com could not be reached. Nothing was checked. ${FALLBACK_HINT}` };
+  }
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+  if (response.status !== 200) {
+    const upstream = isRecord2(body) && isRecord2(body.error) ? body.error : {};
+    const code = typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code) ? upstream.code : `upstream_http_${response.status}`;
+    const message = cleanMessage(upstream.message) || `The check service answered HTTP ${response.status}.`;
+    return { ok: false, error: code, message: `${message} ${FALLBACK_HINT}` };
+  }
+  const report = readUpstreamReport(body);
+  if (!report) {
+    return { ok: false, error: "upstream_invalid_response", message: `The check service sent an answer this server cannot read. ${FALLBACK_HINT}` };
+  }
+  return { ok: true, result: buildResult(target, report) };
 }
 
 // packages/mcp/src/tools/classify-risk.ts
@@ -23168,7 +23439,7 @@ function fieldCopy(name) {
       return "Field on the pasted JSON.";
   }
 }
-function isRecord2(value) {
+function isRecord3(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function rejectShortSigningInput(secret) {
@@ -23223,16 +23494,16 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   } catch {
     throw new Error(RECEIPT_NOT_JSON);
   }
-  if (!isRecord2(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord3(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
   let markedOutput;
   let body = parsed;
   let readFromWrapper = false;
-  if (isRecord2(parsed.record)) {
+  if (isRecord3(parsed.record)) {
     body = parsed.record;
     readFromWrapper = true;
     if (typeof parsed.markedOutput === "string") markedOutput = parsed.markedOutput;
   }
-  if (!isRecord2(body)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord3(body)) throw new Error(RECEIPT_NOT_OBJECT);
   const lines = ["HMAC provenance receipt", ""];
   if (readFromWrapper) {
     lines.push(
@@ -24456,7 +24727,7 @@ function collectSignals(node, source) {
   return found.slice(0, 16);
 }
 function walk(node, source, depth, found) {
-  if (depth > 2 || found.length >= 16 || !isRecord3(node)) return;
+  if (depth > 2 || found.length >= 16 || !isRecord4(node)) return;
   for (const [key, value] of Object.entries(node)) {
     const lower = key.toLowerCase();
     if (MARKING_KEYS.has(lower)) {
@@ -24464,7 +24735,7 @@ function walk(node, source, depth, found) {
       if (rendered) found.push({ source, name: lower.slice(0, 64), value: rendered });
       continue;
     }
-    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord3(value)) {
+    if (depth < 2 && CONFIG_OBJECTS.has(lower) && isRecord4(value)) {
       walk(value, source, depth + 1, found);
     }
   }
@@ -24472,9 +24743,9 @@ function walk(node, source, depth, found) {
 function collectHeaders(response) {
   const found = [];
   const bags = [];
-  if (isRecord3(response)) {
+  if (isRecord4(response)) {
     bags.push(response.headers);
-    if (isRecord3(response.response)) bags.push(response.response.headers);
+    if (isRecord4(response.response)) bags.push(response.response.headers);
   }
   for (const bag of bags) readHeaderBag(bag, found);
   return found;
@@ -24485,7 +24756,7 @@ function readHeaderBag(bag, found) {
     bag.forEach((value, key) => pushHeader(key, value, found));
     return;
   }
-  if (!isRecord3(bag)) return;
+  if (!isRecord4(bag)) return;
   for (const [key, value] of Object.entries(bag)) {
     if (typeof value === "string") pushHeader(key, value, found);
   }
@@ -24507,13 +24778,13 @@ function renderValue(value) {
     if (/\s/.test(trimmed) && trimmed.length > 40) return null;
     return trimmed;
   }
-  if (isRecord3(value)) {
+  if (isRecord4(value)) {
     const compact = canonicalJson2(value);
     if (compact.length <= 80) return compact;
   }
   return null;
 }
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 var PAYLOAD_SUMMARY_SCHEMA2 = "spurvik.payload_summary.v1";
@@ -28213,6 +28484,18 @@ function createServer(workspaceRoot, options = {}) {
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
     async ({ domains }) => json(await batchScanDomains(domains, options.scan))
+  );
+  server.registerTool(
+    "spurvik_check_image_c2pa_url",
+    {
+      title: C2PA_TITLE,
+      description: C2PA_DESCRIPTION,
+      inputSchema: {
+        url: external_exports.string().min(1).max(2048).describe(C2PA_URL_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
+    },
+    async ({ url }) => json(await checkImageC2paUrl(url, options.c2pa))
   );
   server.registerTool(
     "spurvik_classify_ai_act_risk",

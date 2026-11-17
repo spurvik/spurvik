@@ -11,6 +11,8 @@ export const TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
 export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+/** Interactive C2PA JUMBF manifest & CDN-strip checker (upload or URL). */
+export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 
 export const WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 export const FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";

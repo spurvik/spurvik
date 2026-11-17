@@ -8,6 +8,7 @@ import { createServer, type ServerOptions } from "./server.js";
 
 const ALL_TOOLS = [
   "spurvik_batch_scan_domains",
+  "spurvik_check_image_c2pa_url",
   "spurvik_classify_ai_act_risk",
   "spurvik_explain_receipt",
   "spurvik_find_unwrapped_calls",
@@ -42,18 +43,20 @@ function textOf(result: Awaited<ReturnType<Client["callTool"]>>): string {
 }
 
 describe("createServer", () => {
-  it("advertises the 1.0.6 version and lists all 8 tools", async () => {
+  it("advertises the 1.0.7 version and lists all 9 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.6" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.7" });
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
     expect(client.getInstructions()).toMatch(/spurvik_batch_scan_domains does the same for up to 10 public domains/);
+    expect(client.getInstructions()).toMatch(/spurvik_check_image_c2pa_url sends one public https image URL to console\.spurvik\.com for a read-only C2PA manifest check/);
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(8);
+    expect(tools).toHaveLength(9);
     expect(tools.map((tool) => tool.name).sort()).toEqual(ALL_TOOLS);
-    const networkTools = ["spurvik_batch_scan_domains", "spurvik_scan_live_url"];
+    const networkTools = ["spurvik_batch_scan_domains", "spurvik_check_image_c2pa_url", "spurvik_scan_live_url"];
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBe(true);
       expect(tool.annotations?.destructiveHint).toBe(false);
+      expect(tool.annotations?.idempotentHint).toBe(true);
       expect(tool.annotations?.openWorldHint).toBe(networkTools.includes(tool.name));
     }
     const scan = tools.find((tool) => tool.name === "spurvik_scan_live_url");
@@ -67,6 +70,19 @@ describe("createServer", () => {
     });
     expect(batch?.description).toContain("€79/mo");
     expect(batch?.description).toContain("€199 once");
+    const c2pa = tools.find((tool) => tool.name === "spurvik_check_image_c2pa_url");
+    expect(c2pa?.inputSchema.required).toEqual(["url"]);
+    expect((c2pa?.inputSchema.properties as Record<string, { type?: string; minLength?: number; maxLength?: number }>).url).toMatchObject({
+      type: "string",
+      minLength: 1,
+      maxLength: 2048,
+    });
+    expect(c2pa?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true });
+    expect(c2pa?.description).toContain("C2PA JUMBF manifest & CDN-strip checker");
+    expect(c2pa?.description).toContain("never signs");
+    expect(c2pa?.description).toContain("€19/mo");
+    expect(c2pa?.description).toContain("€199 once");
+    expect(c2pa?.description).not.toMatch(/Ed25519|signer\b/i);
     const classify = tools.find((tool) => tool.name === "spurvik_classify_ai_act_risk");
     expect(classify?.inputSchema.required).toEqual(["useCase"]);
     expect((classify?.inputSchema.properties as Record<string, { enum?: string[] }>).domain?.enum).toContain("employment_hr");
@@ -211,6 +227,64 @@ describe("createServer", () => {
       const result = await client.callTool({ name: "spurvik_scan_live_url", arguments: { url } });
       expect(result.isError).toBe(true);
       expect(JSON.parse(textOf(result)).error).toMatch(/^(blocked_target|invalid_url)$/);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+    await client.close();
+  });
+
+  it("spurvik_check_image_c2pa_url returns JSON from a mocked console check", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          data: {
+            mediaType: "image/png",
+            byteLength: 33270,
+            manifestFound: false,
+            embedded: false,
+            claimGenerator: null,
+            signatureMatches: false,
+            trustAnchor: "not_checked",
+            validationCodes: [],
+          },
+          fileName: "hero.png",
+        }),
+        { status: 200 },
+      ),
+    );
+    const client = await connect({ c2pa: { fetch: fetchMock as unknown as typeof fetch } });
+    const result = await client.callTool({
+      name: "spurvik_check_image_c2pa_url",
+      arguments: { url: "https://example.fr/_next/image?url=%2Fhero.png&w=640&q=75" },
+    });
+    expect(result.isError).toBeFalsy();
+    const body = JSON.parse(textOf(result));
+    expect(body).toMatchObject({
+      tool: "spurvik_check_image_c2pa_url",
+      status: "no_manifest",
+      host: "example.fr",
+      fileName: "hero.png",
+      mediaType: "image/png",
+      byteLength: 33270,
+      c2pa: { manifestFound: false, signatureMatches: false, trustAnchor: "not_checked", claimGenerator: null, validationCodes: [] },
+      imageProxy: { detected: true, name: "Next.js image optimizer (/_next/image)" },
+      disclosure: { locale: "fr" },
+      links: {
+        c2pa: "https://console.spurvik.com/c2pa",
+        pro: "https://console.spurvik.com/signup?plan=pro&appUrl=example.fr",
+        concierge: "https://console.spurvik.com/signup?plan=concierge&appUrl=example.fr",
+      },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await client.close();
+  });
+
+  it("spurvik_check_image_c2pa_url refuses http, private and internal URLs with isError and no request", async () => {
+    const fetchMock = vi.fn();
+    const client = await connect({ c2pa: { fetch: fetchMock as unknown as typeof fetch } });
+    for (const url of ["http://example.com/a.png", "https://192.168.0.10/a.png", "https://cam.local/a.png", "https://example.com:8443/a.png"]) {
+      const result = await client.callTool({ name: "spurvik_check_image_c2pa_url", arguments: { url } });
+      expect(result.isError).toBe(true);
+      expect(JSON.parse(textOf(result)).error).toMatch(/^(invalid_url|blocked_target)$/);
     }
     expect(fetchMock).not.toHaveBeenCalled();
     await client.close();

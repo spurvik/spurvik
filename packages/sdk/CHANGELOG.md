@@ -1,5 +1,13 @@
 # spurvik-sdk
 
+## 1.0.10 — 2026-11-17
+
+Published as `spurvik@1.0.10` and `spurvik-sdk@1.0.10` (same build). Library exports are unchanged.
+
+### Added
+
+- `spurvik c2pa <image-url> [--json] [--fail-on-missing]`: C2PA JUMBF manifest & CDN-strip check of one public `https://` PNG, JPEG or WebP image (up to 4 MB). Read-only; it never signs. The URL must be `https:` on port 443 with no credentials; `localhost`, `.local`/`.internal` and private or reserved IP literals are refused before any request. Sends `POST https://console.spurvik.com/api/v1/provenance/public-check-url` (`User-Agent: spurvik-cli/1.0.10`, 15-second timeout). Prints the manifest status, signature and trust-list result, the claim generator (sanitized, unverified), validation codes, a CDN-strip warning for `/_next/image`, `/cdn-cgi/image/`, Cloudinary and imgix, a visible `notice="generated"` React and `badge.js` snippet, and `/c2pa`, Pro (€19/mo) and Done-For-You (€199 once) links with `&appUrl=<image host>`. `--json` prints the same as one flat object (`manifestFound`, `signatureMatches`, `trustAnchor`, `claimGenerator`, `mediaType`, `byteLength`, `validationCodes`, ...). `--fail-on-missing` exits `2` when `manifestFound` or `signatureMatches` is `false`.
+
 ## 1.0.9 — 2026-11-16
 
 Published as `spurvik@1.0.9` and `spurvik-sdk@1.0.9` (same build). Library exports are unchanged.

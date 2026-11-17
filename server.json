@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.spurvik/spurvik-mcp-server",
   "title": "Spurvik",
-  "description": "EU AI Act Art. 50, 12 & 14 setup snippets, unwrapped-call scan, HMAC receipt & marking hooks.",
-  "version": "1.0.6",
+  "description": "EU AI Act Art. 50 URL & C2PA image checks, Art. 12/14 setup snippets, HMAC receipts & marking hooks.",
+  "version": "1.0.7",
   "websiteUrl": "https://spurvik.com/docs",
   "repository": {
     "url": "https://github.com/spurvik/spurvik",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "spurvik-mcp-server",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "transport": {
         "type": "stdio"
       },
@@ -60,7 +60,7 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 7 zero-key read-only tools).",
+          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 9 zero-key read-only tools).",
           "isRequired": false,
           "isSecret": true,
           "placeholder": "Bearer spurvik_live_..."

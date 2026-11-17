@@ -4,16 +4,17 @@
 
 ```bash
 npx spurvik scan yourdomain.com    # Art. 50(1) notice check of a live site; --json, --fail-on-gap for CI
+npx spurvik c2pa https://yourdomain.com/hero.png   # C2PA manifest & CDN-strip check; --json, --fail-on-missing for CI
 npx spurvik audit .                # unwrapped OpenAI / Anthropic / Gemini / AI SDK calls as file:line
 npx spurvik badge yourdomain.com   # badge.js tag and a <AIDisclosureLabel /> snippet
 ```
 
-`npx spurvik folk.app` is short for `npx spurvik scan folk.app`. `spurvik-sdk` ships the same CLI (`npx spurvik-sdk scan ...`). Exit codes: `0` ok, `1` gap found with `--fail-on-gap`, `2` usage or network error. `scan` sends only the domain or URL you pass to `console.spurvik.com`. `audit` runs locally and prints `file:line` and the provider, never source text.
+`npx spurvik folk.app` is short for `npx spurvik scan folk.app`. `spurvik-sdk` ships the same CLI (`npx spurvik-sdk scan ...`). Exit codes: `0` ok, `1` gap found with `--fail-on-gap`, `2` usage or network error, or `c2pa --fail-on-missing` with no C2PA manifest or a signature that does not match. `scan` and `c2pa` send only the domain or URL you pass to `console.spurvik.com`; `c2pa` refuses non-https, non-443, credentialed, `localhost`, `.local`/`.internal` and private-IP URLs before any request, and it reads, never signs. `audit` runs locally and prints `file:line` and the provider, never source text.
 
 ## Wrap a client
 
 ```bash
-npm install openai spurvik@1.0.9
+npm install openai spurvik@1.0.10
 ```
 
 ```ts
@@ -34,7 +35,7 @@ const reply = await ai.chat.completions.create({ model: "gpt-4o-mini", messages:
 
 Runtime client for provenance records, telemetry, a live human-oversight queue, and the halt cache.
 
-The public MIT release is `spurvik@1.0.9` and `spurvik-sdk@1.0.9` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
+The public MIT release is `spurvik@1.0.10` and `spurvik-sdk@1.0.10` on npm (core is bundled; both names ship the same build), from https://github.com/spurvik/spurvik. This directory's package name is `spurvik-sdk`. `spurvik-sdk/ai` types against `@ai-sdk/provider` and is meant to be passed to the Vercel AI SDK (`ai` 7, optional peer). See the root `LICENSE`.
 
 `withSpurvik` is the provider wrapper. An older name of that function was removed; use `withSpurvik`. That old name did not mean the wrapped client meets the Act. `verifyChannelApprovalToken` checks Spurvik's own approval-link token and returns true or false. From 1.0.5, `verifySignedChannelCallback` returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when that token matches, and `false` otherwise. A missing signature returns `false` and does not throw.
 

@@ -12,10 +12,11 @@ Regulation (EU) 2024/1689 is the legal instrument. Dates below follow the AI Omn
 
 ## Zero-Install CLI (`npx spurvik`)
 
-No install, no API key, no account. Node.js 20+. The CLI ships in `spurvik@1.0.9`.
+No install, no API key, no account. Node.js 20+. The CLI ships in `spurvik@1.0.10`.
 
 ```bash
 npx spurvik scan folk.app          # live Art. 50(1) notice + AI chat-widget check, with a client report link
+npx spurvik c2pa <image-url>       # C2PA JUMBF manifest & CDN-strip check of a public https image (Art. 50(2))
 npx spurvik audit .                # find unwrapped OpenAI / Anthropic / Gemini / Vercel AI SDK calls
 npx spurvik badge yourdomain.com   # localized badge.js tag + <AIDisclosureLabel /> snippet
 ```
@@ -23,10 +24,15 @@ npx spurvik badge yourdomain.com   # localized badge.js tag + <AIDisclosureLabel
 | Command | What you get | Network |
 | --- | --- | --- |
 | `scan <domain-or-url>` | Detected AI chat widgets, whether a visible Art. 50(1) notice was found, a `badge.js` fix when it was not, and a client / DPO brief at `console.spurvik.com/report?domain=…`. | Sends only the URL to `console.spurvik.com`. |
+| `c2pa <image-url>` | Whether a public `https://` PNG, JPEG or WebP (up to 4 MB) carries a C2PA (Content Credentials) manifest, whether its signature still matches, the trust-list result and the claim generator, a CDN-strip warning when the URL goes through `/_next/image`, Cloudinary, imgix or Cloudflare `/cdn-cgi/image/`, a visible `notice="generated"` snippet, and links to [console.spurvik.com/c2pa](https://console.spurvik.com/c2pa), Pro (€19/mo) and Done-For-You (€199 once). A C2PA JUMBF manifest & CDN-strip checker: it reads, it never signs. | Sends only the image URL to `console.spurvik.com`. Non-https, non-443, credentialed, `localhost`, `.local`/`.internal` and private-IP URLs are refused first. |
 | `audit [dir]` | Every file and line with an OpenAI, Anthropic, Gemini or Vercel AI SDK call not wrapped by `withSpurvik()` / `spurvikMiddleware()`, plus the one-line wrap. Skips `node_modules`, `.git`, `dist` and build output. | None. Runs locally. |
 | `badge [domain]` | The `badge.js` `<script>` tag and the `<AIDisclosureLabel />` React snippet for that domain. Language follows the domain (`.dk` → `da`, `.de`/`.at` → `de`, else `en`); override with `--lang da\|de\|en`. | None. |
 
-For CI, `scan` and `audit` take `--json` and `--fail-on-gap` (exit code `1` on a gap, `2` on an error). The [GitHub Actions PR gate](https://spurvik.com/r/github-action-spurvik-check.yml) wires `audit` into pull requests.
+For CI, `scan` and `audit` take `--json` and `--fail-on-gap` (exit code `1` on a gap, `2` on an error). `c2pa` takes `--json` and `--fail-on-missing`, which exits `2` when `manifestFound` or `signatureMatches` is `false`, so a pipeline can stop an image that lost its C2PA manifest before the Art. 50(2) marking duty applies on 2 December 2026:
+
+```bash
+npx spurvik@1.0.10 c2pa https://yourdomain.com/hero.png --fail-on-missing
+``` The [GitHub Actions PR gate](https://spurvik.com/r/github-action-spurvik-check.yml) wires `audit` into pull requests.
 
 ### Add the Live Art. 50 Status Shield to Your README
 
@@ -46,7 +52,7 @@ Swap in your domain. The shield shows the live Art. 50(1) notice status and link
 | **24-Language Article 50 Label Studio** | [console.spurvik.com/labels](https://console.spurvik.com/labels) | Live interactive preview across all 5 Article 50 scenarios, 24 official EU languages, and optional EU AI icons — 1-click export of `spurvik/react` JSX or `badge.js` `<script>`. |
 | **Hosted EU Console (Frankfurt `fra1`)** | [console.spurvik.com/signup](https://console.spurvik.com/signup) | Open self-serve signup: **Free €0/mo** (10k events/mo, 30d retention) · **Pro €19/mo or €190/yr** (250k events/mo, 90d retention, hosted human review queue, DPO `.md` & Annex IV draft exports) · **Team €79/mo or €790/yr** · **Done-For-You 24h AI Act Setup €199 once, incl. 1 year Pro** ([checkout](https://console.spurvik.com/signup?plan=concierge)) (`excl. VAT · B2B only`). |
 | **Free EU AI Act Risk Check & Art. 50(2) C2PA Checker** | [console.spurvik.com/risk-check](https://console.spurvik.com/risk-check) · [console.spurvik.com/c2pa](https://console.spurvik.com/c2pa) | No login. Self-assess your AI Act risk tier from a few answers, and check whether an image carries C2PA provenance. Not legal advice. |
-| **Agent Skill (`skills.sh`) & Official MCP Registry (8 zero-key tools)** | `npx skills add spurvik/skills` · `io.github.spurvik/spurvik-mcp-server` → `npx -y spurvik-mcp-server@1.0.6 --root .` · `com.spurvik/eu-ai-act` → `https://console.spurvik.com/api/mcp` | No API key. The local stdio server `spurvik-mcp-server@1.0.6` has 8 tools: `spurvik_scan_live_url`, `spurvik_batch_scan_domains` (up to 10 client domains in one call, with gap counts and a README status shield per domain), `spurvik_classify_ai_act_risk`, `spurvik_generate_art50_badge`, plus 4 SDK/audit tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`). The remote Streamable HTTP endpoint has the same tools except `spurvik_batch_scan_domains`. Skill source: [spurvik/skills](https://github.com/spurvik/skills). |
+| **Agent Skill (`skills.sh`) & Official MCP Registry (9 zero-key tools)** | `npx skills add spurvik/skills` · `io.github.spurvik/spurvik-mcp-server` → `npx -y spurvik-mcp-server@1.0.7 --root .` · `com.spurvik/eu-ai-act` → `https://console.spurvik.com/api/mcp` | No API key. The local stdio server `spurvik-mcp-server@1.0.7` has 9 tools: `spurvik_scan_live_url`, `spurvik_batch_scan_domains` (up to 10 client domains in one call, with gap counts and a README status shield per domain), `spurvik_check_image_c2pa_url` (C2PA JUMBF manifest & CDN-strip checker for one public https image), `spurvik_classify_ai_act_risk`, `spurvik_generate_art50_badge`, plus 4 SDK/audit tools (`spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`). The remote Streamable HTTP endpoint has the same 9 tools. Skill source: [spurvik/skills](https://github.com/spurvik/skills). |
 | **WordPress, Framer & `shadcn`/`v0` Assets** | [spurvik-eu-ai-act-wp.zip](https://spurvik.com/r/spurvik-eu-ai-act-wp.zip) · [spurvik-framer-badge.tsx](https://spurvik.com/r/spurvik-framer-badge.tsx) · [article-50-badge.json](https://spurvik.com/r/article-50-badge.json) | WordPress plugin (Upload Plugin), Framer code component, and `npx shadcn@latest add https://spurvik.com/r/article-50-badge.json`. All render the same `badge.js` notice; `data-attribution="false"` (React: `attribution={false}`) hides the "Art. 50 · Spurvik" link for Pro / Done-For-You white-label. |
 | **Documentation & Framework Guides** | [spurvik.com/docs](https://spurvik.com/docs) | Copy-paste setup for Next.js / Vercel AI SDK, LangGraph, Mastra, OpenAI Agents, [Lovable / Replit](https://spurvik.com/lovable-bolt-replit-eu-ai-act), [WordPress / Shopify / Webflow](https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge), Cursor / Claude Code MCP, and n8n. |
 | **1-Click n8n Starter Workflow** | [spurvik.com/r/n8n-art50-starter.json](https://spurvik.com/r/n8n-art50-starter.json) | Import URL directly in self-hosted n8n (`Import from URL`) with `n8n-nodes-spurvik@1.0.6`. |
@@ -61,7 +67,7 @@ Milestones 1–4, scoped to the EU market.
 | `packages/sdk` | `withSpurvik()` wrapper for OpenAI, Anthropic, and Gemini-shaped clients, `spurvikMiddleware()` for the Vercel AI SDK, plus Mastra, OpenAI Agents, and LangGraph adapters. |
 | `packages/react` | Always-visible Article 50 labels, in all 24 EU languages. |
 | `packages/core` | Hashing, provenance signatures, text-marking hook, audit-chain checks, webhook signatures. |
-| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, marking-hook notes, a live Art. 50(1) URL scan, a batch scan of up to 10 domains, an EU AI Act risk-tier mapping, and a 24-language Art. 50 badge generator. Published on npm as `spurvik-mcp-server@1.0.6` (MIT). Workspace package `packages/mcp` (`1.0.6`). |
+| `packages/mcp` | Local stdio MCP server. Setup snippets, an unwrapped-call scan, HMAC receipt explanations, marking-hook notes, a live Art. 50(1) URL scan, a batch scan of up to 10 domains, a C2PA JUMBF manifest & CDN-strip check of one image URL, an EU AI Act risk-tier mapping, and a 24-language Art. 50 badge generator. Published on npm as `spurvik-mcp-server@1.0.7` (MIT). Workspace package `packages/mcp` (`1.0.7`). |
 | `packages/n8n-nodes-spurvik` | Native n8n Community Node (`SpurvikEuAiActGuard`) and importable Make.com blueprint (`make-com-blueprint.json`) for Art. 50(1) notices, and Art. 12 HMAC-SHA256 digests and Art. 14 `ask_human()` gates for high-risk AI systems, with optional `console.spurvik.com` sync, plus zero-key **Scan Live Domain (Art. 50 & Client Brief)** and **Batch Scan up to 10 Domains (Agency Roster)** operations. Package version `n8n-nodes-spurvik@1.0.6` (MIT). |
 | `examples/` | Runnable developer templates: Next.js + Vercel AI SDK (`nextjs-vercel-ai-sdk`), LangGraph + Mastra + OpenAI Agents (`langgraph-mastra-openai-agents`), 9-channel `ask_human()` router (`slack-telegram-linear-ask-human` & `multi-channel-hitl.ts`), n8n & Make.com workflows (`n8n-make-import`), and GitHub Actions CI check (`github-actions-ci-check`). |
 
@@ -80,7 +86,7 @@ Guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/5-minute-quickstart.m
 (a) npm:
 
 ```bash
-npm install spurvik@1.0.9 spurvik-sdk@1.0.9
+npm install spurvik@1.0.10 spurvik-sdk@1.0.10
 ```
 
 `spurvik` and `spurvik-sdk` publish the same SDK. Import it as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, `spurvik/channels`, and `spurvik/react`.
@@ -88,7 +94,7 @@ npm install spurvik@1.0.9 spurvik-sdk@1.0.9
 (b) Local MCP server. `--root` is required since 1.0.3:
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.6
+npm i -D spurvik-mcp-server@1.0.7
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
@@ -96,7 +102,7 @@ In your app (an ES module project, because the example uses top-level `await`):
 
 ```bash
 npm pkg set type=module
-npm install openai spurvik@1.0.9
+npm install openai spurvik@1.0.10
 ```
 
 **Wrap a call and check the record:**
@@ -204,7 +210,7 @@ The disclosure label does not write browser storage unless the integrator sets `
 
 A deployer that wraps a third-party model may rely on that provider's output marking only when it can show the marking works. `withSpurvik` records one signed evidence event per wrapped call. The event stores the provider, the model, the modality, marking settings the request and the response actually expose, and `upstreamMarking`. Settings are read only from flags and headers the SDK object carries (`watermark`, `synthid`, `c2pa`, provenance headers, and the same names inside `metadata`, `generationConfig`, or a `withResponse()` body). When the public SDK object has no such field, the status is `unknown`, including OpenAI text (no per-request parameter), Anthropic models the dated help-center table does not list, Gemini text, and Mistral. Cloud-partner routes (Bedrock, Vertex, Foundry, Azure) are not inferred from the first-party table. The support table in `packages/core/src/upstream-support.ts` is dated and lists a source URL on each row.
 
-The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. The published `spurvik@1.0.9` package does not export a function that checks this signature. It is designed to support your EU AI Act work.
+The evidence is HMAC-SHA-256 with the client-held signing secret and is stored beside the audit chain. It is not part of the record hash. Each event records `routeKind` (`direct`, `bedrock`, `vertex`, `azure`, or `foundry`) and `markingSource` (`response`, `request`, `header`, or `none`). Set `upstreamRoute` on `withSpurvik` when the SDK path does not contain the route name. The control plane checks the payload shape and that the event id matches. It does not hold the secret, so it does not recompute the signature. The published `spurvik@1.0.10` package does not export a function that checks this signature. It is designed to support your EU AI Act work.
 
 `packages/core/src/marking-registry.ts` lists OpenAI, Anthropic, Google, Mistral, and open-weight models for text, image, audio, and video. Each entry has a source URL and the date that source was read (`sourceReadOn`). Edit that list when a public page changes.
 
@@ -336,7 +342,7 @@ The Annex IV file is a draft assembled from project fields and ledger counts. Se
 
 Spurvik helps a team implement technical measures that map to parts of Articles 12, 14, and 50 and to the Annex III / Article 50 product taxonomy. Using it does not make a system conformant. It does not perform a conformity assessment, issue an EU declaration of conformity, apply CE marking, run a quality management system, or register a system in the EU database. The Annex IV download is a draft. The risk wizard records your answers. It labels Article 5 practices Prohibited. It does not decide that a use is high-risk under Article 6.
 
-This tree does not claim that data stays in the EU. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.6`, `n8n-nodes-spurvik@1.0.6`) and synced to https://github.com/spurvik/spurvik; see `LICENSE`.
+This tree does not claim that data stays in the EU. A draft Cyber Resilience Act reporting runbook is in `docs/cra-article-14-reporting.md`. Data Act export notes are in `docs/data-act.md`. Open packages are released under the MIT License (`spurvik@1.0.10`, `spurvik-sdk@1.0.10`, `spurvik-mcp-server@1.0.7`, `n8n-nodes-spurvik@1.0.6`) and synced to https://github.com/spurvik/spurvik; see `LICENSE`.
 
 ## MCP server
 
@@ -344,10 +350,10 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 
 | Piece | MCP setup |
 | --- | --- |
-| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.6` (MIT); workspace package `packages/mcp` stays `"private": true` at `1.0.6` in this repository. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com; these two are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `packages/mcp` 1.0.6 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
-| `plugins/spurvik` | Claude Code plugin. The same eight read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com; these two are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `packages/mcp` 1.0.6 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
+| `packages/mcp` | Published to npm as `spurvik-mcp-server@1.0.7` (MIT); workspace package `packages/mcp` stays `"private": true` at `1.0.7` in this repository. Read-only tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com), `spurvik_check_image_c2pa_url` (one public https image URL to console.spurvik.com for a read-only C2PA manifest & CDN-strip check; these three are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `packages/mcp` 1.0.7 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
+| `plugins/spurvik` | Claude Code plugin. The same nine read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com), `spurvik_check_image_c2pa_url` (one public https image URL to console.spurvik.com for a read-only C2PA manifest & CDN-strip check; these three are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `plugins/spurvik/.mcp.json` runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `packages/mcp` 1.0.7 via `node packages/mcp/scripts/bundle-plugin.mjs`. |
 
-`packages/mcp` (`packages/mcp`) and `plugins/spurvik` expose the same eight read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com; these two are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.6` (MIT); workspace package `packages/mcp` stays `"private": true` at `1.0.6` in this repository. Install and start it with `npm i -D spurvik-mcp-server@1.0.6` and then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required since 1.0.3. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `packages/mcp` 1.0.6 via `node packages/mcp/scripts/bundle-plugin.mjs`. The other six tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
+`packages/mcp` (`packages/mcp`) and `plugins/spurvik` expose the same nine read-only MCP tools: `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url` (one public URL to console.spurvik.com), `spurvik_batch_scan_domains` (up to 10 public domains to console.spurvik.com), `spurvik_check_image_c2pa_url` (one public https image URL to console.spurvik.com for a read-only C2PA manifest & CDN-strip check; these three are the only tools that use the network), `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. `packages/mcp` is a local stdio MCP server for Cursor, VS Code, and other MCP clients. Published to npm as `spurvik-mcp-server@1.0.7` (MIT); workspace package `packages/mcp` stays `"private": true` at `1.0.7` in this repository. Install and start it with `npm i -D spurvik-mcp-server@1.0.7` and then `./node_modules/.bin/spurvik-mcp-server --root .`. `--root` is required since 1.0.3. The Claude Code plugin reads `plugins/spurvik/.mcp.json`, which runs `node ${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`. That server file is bundled from `packages/mcp` 1.0.7 via `node packages/mcp/scripts/bundle-plugin.mjs`. The other six tools do not call the Spurvik API or any network. The SDK logs the call and attaches an HMAC receipt. It does not mark content. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The scanner skips files named .env or .env.* (any case), including through symlinks and hard links. Config examples are in `packages/mcp/README.md`.
 
 ## Multi-channel `ask_human()` router & `n8n` / `Make.com` workflow guard
 
@@ -364,4 +370,4 @@ This tree does not claim that data stays in the EU. A draft Cyber Resilience Act
 - **Article 5.** Prohibited practices are not a risk-tier value. The wizard shows an SDK setup when the answers produce a tier. It shows "No SDK setup is offered for this answer set." when the answers are Prohibited or outside the EU. An unanswered form shows neither. The wizard does not block a caller who ignores it.
 - **Annex I.** Product-embedded systems follow 2 August 2028 and are not a separate tier.
 - **Shared limits.** The ingestion rate limit and the halt SSE bus are single-process.
-- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`. Those workspace packages stay `"private": true`. Published versions are `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.6`, and `n8n-nodes-spurvik@1.0.6`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.
+- **Trademark.** The MIT License text in the repository `LICENSE` applies to `packages/sdk`, `packages/core`, `packages/react`, `packages/mcp`, and `packages/c2pa`. Those workspace packages stay `"private": true`. Published versions are `spurvik@1.0.10`, `spurvik-sdk@1.0.10`, `spurvik-mcp-server@1.0.7`, and `n8n-nodes-spurvik@1.0.6`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository and the MIT licence does not cover it.

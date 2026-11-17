@@ -1,6 +1,7 @@
 export {
   BADGE_DESCRIPTION,
   BATCH_DESCRIPTION,
+  C2PA_DESCRIPTION,
   CLASSIFY_DESCRIPTION,
   FIND_DESCRIPTION,
   MARKING_DESCRIPTION,
@@ -48,6 +49,22 @@ export {
   type BatchScanDomainsResult,
 } from "./tools/batch-scan-domains.js";
 export {
+  C2PA_CHECK_ENDPOINT,
+  C2PA_CHECK_TIMEOUT_MS,
+  C2PA_MAX_IMAGE_BYTES,
+  CHECK_IMAGE_C2PA_URL_INPUT_JSON_SCHEMA,
+  checkImageC2paUrl,
+  detectImageProxy,
+  normalizeImageUrl,
+  safeClaimGenerator,
+  safeValidationCodes,
+  type C2paStatus,
+  type CheckImageC2paDeps,
+  type CheckImageC2paOutcome,
+  type CheckImageC2paResult,
+  type ImageTarget,
+} from "./tools/check-image-c2pa-url.js";
+export {
   CLASSIFY_RISK_INPUT_JSON_SCHEMA,
   classifyAiActRisk,
   RISK_DOMAINS,
@@ -74,6 +91,7 @@ export {
   type ScanTarget,
 } from "./tools/scan-live-url.js";
 export {
+  C2PA_PAGE_URL,
   conciergeSignupUrlFor,
   PORTFOLIO_URL,
   proSignupUrlFor,

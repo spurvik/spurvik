@@ -1,5 +1,18 @@
 # spurvik-mcp-server
 
+## 1.0.7 — 2026-11-17
+
+Published as `spurvik-mcp-server@1.0.7`. The local stdio server has nine zero-key tools, the same nine as the hosted MCP server at `https://console.spurvik.com/api/mcp`.
+
+### Added
+
+- `spurvik_check_image_c2pa_url` `{ url }`: C2PA JUMBF manifest & CDN-strip checker for one public `https://` PNG, JPEG or WebP image up to 4 MB. Read-only; it never signs. The URL must be `https:` on port 443 with no credentials, and `localhost`, `.local`/`.internal` (and the other internal suffixes) and private or reserved IP literals are refused before any request. Sends `POST https://console.spurvik.com/api/v1/provenance/public-check-url` (`Content-Type: application/json`, `User-Agent: spurvik-mcp-server/1.0.7`, 15-second `AbortSignal.timeout`, `redirect: "error"`). Returns `status`, `mediaType`, `byteLength`, `fileName`, `c2pa` (`manifestFound`, `embedded`, `claimGenerator`, `signatureMatches`, `trustAnchor`, `trustAnchorText`, `validationCodes`), `imageProxy` and `diagnosis` for `/_next/image`, `/cdn-cgi/image/`, Cloudinary and imgix, a visible `notice="generated"` React and `badge.js` snippet, and `/c2pa`, Pro (€19/mo) and Done-For-You (€199 once) links with `&appUrl=<image host>`. `claimGenerator`, `validationCodes` and `fileName` are sanitized with the hosted tool's rules.
+- `@spurvik/mcp/tools` exports `checkImageC2paUrl`, `normalizeImageUrl`, `detectImageProxy`, `safeClaimGenerator`, `safeValidationCodes`, `CHECK_IMAGE_C2PA_URL_INPUT_JSON_SCHEMA`, `C2PA_CHECK_ENDPOINT`, `C2PA_CHECK_TIMEOUT_MS`, `C2PA_MAX_IMAGE_BYTES` and `C2PA_PAGE_URL`.
+
+### Changed
+
+- Server instructions name all three network tools. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), the Claude plugin manifests (`1.0.7`), `spurvik-com-well-known-mcp.json` (9 stdio and 9 hosted tools) and the bundled plugin server move to 1.0.7.
+
 ## 1.0.6 — 2026-11-17
 
 Published as `spurvik-mcp-server@1.0.6`. The local stdio server has eight zero-key tools. The hosted MCP server at `https://console.spurvik.com/api/mcp` still lists seven; it does not have `spurvik_batch_scan_domains`.
