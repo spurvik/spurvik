@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-spurvik",
-  "version": "1.0.6",
-  "description": "Designed to support Article 50 interaction notices, and Article 12 HMAC-SHA256 record-keeping and Article 14 human approval requests for high-risk AI systems, for n8n, with optional console.spurvik.com sync. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana. Also scans one live public site, or an agency roster of up to 10, for AI widgets and an Art. 50 notice with no API key.",
+  "version": "1.0.7",
+  "description": "Designed to support Article 50 interaction notices, and Article 12 HMAC-SHA256 record-keeping and Article 14 human approval requests for high-risk AI systems, for n8n, with optional console.spurvik.com sync. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana. Also scans one live public site, or an agency roster of up to 10, for AI widgets and an Art. 50 notice, and checks one public https image URL for a C2PA JUMBF manifest and CDN stripping (read-only, never signs), with no API key.",
   "author": "EyeTea Solutions ApS",
   "license": "MIT",
   "repository": {
@@ -21,11 +21,12 @@
     "eu-ai-act",
     "spurvik",
     "human-in-the-loop",
+    "c2pa",
     "ai-agents"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/SpurvikEuAiActGuard && cp nodes/SpurvikEuAiActGuard/spurvik.svg dist/nodes/SpurvikEuAiActGuard/spurvik.svg",
-    "test": "npm run build && node --test test/execute.test.mjs",
+    "test": "npm run build && node --test test/execute.test.mjs test/check-image-c2pa-url.test.mjs",
     "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
   },
   "n8n": {

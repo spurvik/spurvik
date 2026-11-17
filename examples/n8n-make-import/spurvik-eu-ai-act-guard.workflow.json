@@ -94,6 +94,18 @@
       "typeVersion": 1,
       "position": [280, 520],
       "notes": "Batch Scan operation. 1 to 10 public domains, no credential and no API key. Every entry is checked before any request. The output does not copy the incoming item."
+    },
+    {
+      "parameters": {
+        "operation": "checkImageC2paUrl",
+        "imageUrl": "https://raw.githubusercontent.com/contentauth/c2pa-rs/main/sdk/tests/fixtures/C.jpg"
+      },
+      "id": "77777777-7777-4777-8777-777777777777",
+      "name": "Spurvik Check Image C2PA",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 680],
+      "notes": "Check Image C2PA & CDN Strip (Art. 50(2)). Read-only C2PA JUMBF manifest & CDN-strip checker: it never signs. No credential and no API key. Only the https image URL is sent to console.spurvik.com. The output does not copy the incoming item."
     }
   ],
   "connections": {
@@ -122,6 +134,11 @@
           },
           {
             "node": "Spurvik Batch Scan Agency Roster",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Check Image C2PA",
             "type": "main",
             "index": 0
           }

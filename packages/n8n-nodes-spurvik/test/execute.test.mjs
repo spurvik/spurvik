@@ -508,7 +508,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
   const json = (body, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-  it("keeps art50_disclosure as the default, the existing operations unchanged, and adds batchScanDomains last", () => {
+  it("keeps art50_disclosure as the default, the existing operations unchanged, and adds checkImageC2paUrl last", () => {
     const operation = SpurvikN8nNodeDescription.properties.find((property) => property.name === "operation");
     assert.equal(operation.default, "art50_disclosure");
     assert.deepEqual(
@@ -519,6 +519,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
         ["art14_ask_human", "Send an ask_human() approval request"],
         ["scanDomain", "Scan Live Domain (Art. 50 & Client Brief)"],
         ["batchScanDomains", "Batch Scan up to 10 Domains (Agency Roster)"],
+        ["checkImageC2paUrl", "Check Image C2PA & CDN Strip (Art. 50(2))"],
       ],
     );
     const domainOrUrl = SpurvikN8nNodeDescription.properties.find((property) => property.name === "domainOrUrl");
@@ -530,12 +531,14 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     assert.equal(consoleBaseUrl.displayOptions, undefined);
   });
 
-  it("keeps spurvikApi required for the existing operations and not for scanDomain or batchScanDomains (n8n-workflow rules)", () => {
+  it("keeps spurvikApi required for the existing operations and not for scanDomain, batchScanDomains or checkImageC2paUrl (n8n-workflow rules)", () => {
     const [credential] = SpurvikN8nNodeDescription.credentials;
     assert.equal(SpurvikN8nNodeDescription.credentials.length, 1);
     assert.equal(credential.name, "spurvikApi");
     assert.equal(credential.required, true);
-    assert.deepEqual(credential.displayOptions, { hide: { operation: ["scanDomain", "batchScanDomains"] } });
+    assert.deepEqual(credential.displayOptions, {
+      hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] },
+    });
 
     const { validateNodeCredentials, NodeHelpers } = require("n8n-workflow");
     const nodeFor = (parameters) => ({
@@ -554,6 +557,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     }
     assert.deepEqual(missing({ operation: "scanDomain", domainOrUrl: "stepnetwork.dk" }), []);
     assert.deepEqual(missing({ operation: "batchScanDomains", domainsList: "folk.app, stepnetwork.dk" }), []);
+    assert.deepEqual(missing({ operation: "checkImageC2paUrl", imageUrl: "https://example.com/hero.png" }), []);
 
     const resolved = (parameters) =>
       Object.keys(NodeHelpers.getNodeParameters(node.description.properties, parameters, true, false, nodeFor(parameters), node.description));
@@ -914,7 +918,11 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       assert.equal(domainsList.required, true);
       assert.deepEqual(domainsList.displayOptions, { show: { operation: ["batchScanDomains"] } });
       for (const name of ["systemName", "passThroughFields"]) {
-        assert.deepEqual(byName(name).displayOptions, { hide: { operation: ["scanDomain", "batchScanDomains"] } }, name);
+        assert.deepEqual(
+          byName(name).displayOptions,
+          { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
+          name,
+        );
       }
       const shownFor = (operation) =>
         SpurvikN8nNodeDescription.properties

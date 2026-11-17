@@ -176,10 +176,15 @@ export function resolveScanBaseUrl(raw: unknown): string {
   return `${parsed.origin}${parsed.pathname.replace(/\/+$/, "")}`;
 }
 
+/** badge.js locale from the host's country-code TLD (`stepnetwork.dk` gives `da`). Anything else is `en`. */
+export function localeForHost(host: string): string {
+  const tld = host.slice(host.lastIndexOf(".") + 1);
+  return Object.prototype.hasOwnProperty.call(CCTLD_LOCALES, tld) ? (CCTLD_LOCALES[tld] as string) : "en";
+}
+
 /** One-line badge.js tag, the same shape the MCP server's scan tool returns (dark, bottom-right, attribution on). */
 export function badgeSnippetForDomain(host: string): string {
-  const tld = host.slice(host.lastIndexOf(".") + 1);
-  const locale = Object.prototype.hasOwnProperty.call(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld] : "en";
+  const locale = localeForHost(host);
   const systemName = host.replace(/[^a-z0-9.-]/g, "").slice(0, MAX_BADGE_SYSTEM_CHARS) || "Support Assistant";
   return `<script src="${SPURVIK_BADGE_SCRIPT_SRC}" data-system="${systemName}" data-locale="${locale}" data-theme="dark" data-attribution="true" defer></script>`;
 }

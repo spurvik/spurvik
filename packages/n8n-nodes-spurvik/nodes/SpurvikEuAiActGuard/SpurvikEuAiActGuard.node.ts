@@ -6,6 +6,7 @@ import type {
   INodeTypeDescription,
 } from "n8n-workflow";
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
+import { checkSpurvikImageC2paUrl } from "../../check-image-c2pa-url";
 import { batchScanSpurvikDomains, scanSpurvikDomain } from "../../scan-domain";
 import {
   executeSpurvikWorkflowStep,
@@ -16,7 +17,12 @@ import {
 /** Zero-key operations: they read no credential and copy nothing from the incoming item. */
 const SCAN_DOMAIN_OPERATION = "scanDomain";
 const BATCH_SCAN_DOMAINS_OPERATION = "batchScanDomains";
-const ZERO_KEY_OPERATIONS: readonly string[] = [SCAN_DOMAIN_OPERATION, BATCH_SCAN_DOMAINS_OPERATION];
+const CHECK_IMAGE_C2PA_URL_OPERATION = "checkImageC2paUrl";
+const ZERO_KEY_OPERATIONS: readonly string[] = [
+  SCAN_DOMAIN_OPERATION,
+  BATCH_SCAN_DOMAINS_OPERATION,
+  CHECK_IMAGE_C2PA_URL_OPERATION,
+];
 const DEFAULT_CONSOLE_BASE_URL = "https://console.spurvik.com";
 
 const PROMPT_FIELD_NAMES = new Set(["prompttext", "prompt", "chatinput", "query", "input"]);
@@ -57,7 +63,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
     {
       name: "spurvikApi",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
     },
   ],
   properties: [
@@ -95,6 +101,12 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           description:
             "Scan 1 to 10 public client sites in one step and count the Art. 50 notice gaps. Every entry is checked before any request. Needs no credential or API key.",
         },
+        {
+          name: "Check Image C2PA & CDN Strip (Art. 50(2))",
+          value: "checkImageC2paUrl",
+          description:
+            "Read-only C2PA JUMBF manifest & CDN-strip checker for one public https image (PNG, JPEG or WebP, up to 4 MB). It never signs or adds a manifest. Needs no credential or API key.",
+        },
       ],
     },
     {
@@ -121,12 +133,23 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         "1 to 10 public domains or http(s) URLs, separated by commas, spaces or new lines (an expression may also return an array of strings). Every entry is checked before any request: one localhost, IP address, internal name, user:password@ or non-default port refuses the whole batch. Only hostnames are sent to the console, and duplicates are scanned once.",
     },
     {
+      displayName: "Image URL",
+      name: "imageUrl",
+      type: "string",
+      default: "",
+      required: true,
+      placeholder: "https://example.com/hero.png",
+      displayOptions: { show: { operation: ["checkImageC2paUrl"] } },
+      description:
+        "Public https URL of a PNG, JPEG or WebP image up to 4 MB. Only this URL is sent to the console, which fetches the image once and reads the C2PA manifest in memory. http, ports other than 443, user:password@, localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa) and single-label hosts are refused before any request.",
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
       default: "AI system",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
     },
     {
       displayName: "Input Field",
@@ -236,14 +259,14 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "https://console.spurvik.com",
       description:
-        "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
+        "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint, and Check Image C2PA its public C2PA check, without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
     },
     {
       displayName: "Pass-through Fields",
       name: "passThroughFields",
       type: "string",
       default: "",
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
       description:
         "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
@@ -344,7 +367,7 @@ export class SpurvikEuAiActGuard implements INodeType {
     const operationAt = (index: number): string =>
       String(this.getNodeParameter("operation", index, "art50_disclosure"));
     const operations = items.map((_, index) => operationAt(index));
-    // The scan operations never read the credential, so a node set to one of them works with no credential at all.
+    // The scan and C2PA operations never read the credential, so a node set to one of them works with no credential at all.
     const needsCredentials =
       items.length === 0
         ? !ZERO_KEY_OPERATIONS.includes(operationAt(0))
@@ -394,6 +417,14 @@ export class SpurvikEuAiActGuard implements INodeType {
           consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL),
         });
         returnData.push({ json: batch as unknown as IDataObject });
+        continue;
+      }
+      if (operations[i] === CHECK_IMAGE_C2PA_URL_OPERATION) {
+        const check = await checkSpurvikImageC2paUrl({
+          imageUrl: this.getNodeParameter("imageUrl", i, ""),
+          consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL),
+        });
+        returnData.push({ json: check as unknown as IDataObject });
         continue;
       }
       const item = items[i]?.json ?? {};

@@ -16,6 +16,7 @@
     "index.ts",
     "workflow.ts",
     "scan-domain.ts",
+    "check-image-c2pa-url.ts",
     "nodes/**/*.ts",
     "credentials/**/*.ts"
   ],

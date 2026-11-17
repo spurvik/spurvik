@@ -1,14 +1,15 @@
 # n8n-nodes-spurvik
 
-n8n community node designed to support five separate workflow steps:
+n8n community node for self-hosted n8n, designed to support six separate workflow steps:
 
 1. Add an AI interaction notice to one text field.
 2. Record the call as an HMAC-SHA256 digest instead of the raw prompt text. The digest is `spurvik:workflow:input:v1|` plus the input field. This is designed to support Article 12 record-keeping for high-risk AI systems. The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The field value is not returned, including when that name is listed in passThroughFields. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
 3. Send an `ask_human()` approval request. This is designed to support Article 14 human oversight for high-risk AI systems.
 4. Scan a live client site for AI chat widgets and an Art. 50 notice, with no API key. See [Scan Live Domain](#scan-live-domain-art-50--client-brief).
 5. Scan an agency roster of up to 10 client sites in one step, with no API key. See [Batch Scan](#batch-scan-up-to-10-domains-agency-roster).
+6. Check one public image URL for a C2PA manifest and CDN stripping, with no API key. See [Check Image C2PA & CDN Strip](#check-image-c2pa--cdn-strip-art-502).
 
-The node does not mark content.
+The node does not mark or sign content.
 
 n8n keeps each node's input and output on the execution. The Spurvik node output does not copy prompt text, but the incoming item is still that node's input. Set the instance's execution data retention yourself: `EXECUTIONS_DATA_SAVE_ON_SUCCESS`, `EXECUTIONS_DATA_SAVE_ON_ERROR`, `EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS`, `EXECUTIONS_DATA_PRUNE`, `EXECUTIONS_DATA_MAX_AGE`, and `EXECUTIONS_DATA_PRUNE_MAX_COUNT`. n8n's execution history keeps those inputs and outputs until you change those retention settings.
 
@@ -20,7 +21,7 @@ Monday.com only creates a board item. It does not send Approve or Block links.
 
 Slack, Discord, and Teams use a webhook credential. The other channels use an approver target (chat id, email recipient, team id, project key, board id, or project gid) plus the matching token on the `spurvikApi` credential.
 
-`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. By default (when `consoleApiKey` is left empty), the notice, digest, and approval operations run locally without calling the Spurvik HTTP API; setting `consoleApiKey` on the `spurvikApi` credential enables optional sync to `consoleBaseUrl` (`https://console.spurvik.com` by default). Scan Live Domain is the one operation that always calls `consoleBaseUrl`, and it sends only a hostname.
+`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. By default (when `consoleApiKey` is left empty), the notice, digest, and approval operations run locally without calling the Spurvik HTTP API; setting `consoleApiKey` on the `spurvikApi` credential enables optional sync to `consoleBaseUrl` (`https://console.spurvik.com` by default). Scan Live Domain and Batch Scan always call `consoleBaseUrl` and send only hostnames. Check Image C2PA always calls `consoleBaseUrl` and sends only the image URL.
 
 ## Scan Live Domain (Art. 50 & Client Brief)
 
@@ -100,9 +101,56 @@ Output (one item per incoming item):
 - `totalDomains` counts distinct hosts scanned. `gapsFound` counts reachable hosts with at least one detected widget and no Art. 50 notice detected. Offline and unreachable hosts are never counted as gaps.
 - Each row in `results` is a full Scan Live Domain result, including its own `badgeSnippet`, `statusShieldMarkdown`, and `upgradeUrls` with `appUrl` prefilled. The batch-level `upgradeUrls` are plan links: Pro €19/mo, Team €79/mo (for agencies), and Done-For-You €199 once. Prices excl. VAT, B2B only.
 
+## Check Image C2PA & CDN Strip (Art. 50(2))
+
+Operation value `checkImageC2paUrl`. A read-only **C2PA JUMBF manifest & CDN-strip checker** for one public image, ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). It reads the manifest; it **never signs or adds one**. Like the scans it needs **no credential and no API key**, reads nothing from the incoming item, and sends no `Authorization` header.
+
+- **Image URL** (`imageUrl`, required): the public https URL of a PNG, JPEG, or WebP image up to 4 MB, for example `https://example.com/hero.png`. It is checked **before any request**: `http` and other schemes, ports other than 443, `user:password@`, localhost, `.local`, `.internal`, `.lan`, `.home.arpa`, single-label hosts, and every IP address literal are refused with an error, and nothing is sent. The `#fragment` is dropped.
+- The node calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `{ "url": "<imageUrl>" }` and `User-Agent: n8n-nodes-spurvik/1.0.7` (15 second timeout, redirects refused). The console fetches the image once through its own SSRF gate and reads the manifest in memory. The console allows 10 checks per minute per address, shared with https://console.spurvik.com/c2pa.
+
+If the check cannot run (timeout, network error, `rate_limited`, `image_too_large`, `unsupported_media`, an unreadable answer, ...), the node does not fail the workflow. It returns `checkStatus: "not_checked"`, a short `reason` code, and `null` for every C2PA field, so a failed check never reads as "no manifest". The console's error text is never copied.
+
+Example for a signed image behind the Next.js image optimizer:
+
+```json
+{
+  "imageUrl": "https://shop.example.de/_next/image?url=%2Fhero.png&w=1080&q=75",
+  "imageHost": "shop.example.de",
+  "checkStatus": "no_manifest",
+  "reason": null,
+  "fileName": "hero.png",
+  "mediaType": "image/png",
+  "byteLength": 33270,
+  "manifestFound": false,
+  "embedded": false,
+  "signatureMatches": false,
+  "trustAnchor": "not_checked",
+  "claimGenerator": null,
+  "validationCodes": [],
+  "cdnRewriteSuspected": true,
+  "cdnProvider": "Next.js image optimizer (/_next/image)",
+  "diagnosis": "This URL goes through Next.js image optimizer (/_next/image). Image optimizers decode and re-encode the image, which drops the C2PA JUMBF boxes, so a signed original arrives unsigned. Set `unoptimized` on that next/image <Image> (or `images.unoptimized` in next.config) so the original signed bytes are served.",
+  "art50GeneratedBadgeSnippet": "<script src=\"https://spurvik.com/badge.js\" data-notice=\"generated\" data-locale=\"de\" data-theme=\"auto\" data-attribution=\"true\" defer></script>",
+  "c2paCheckerUrl": "https://console.spurvik.com/c2pa",
+  "upgradeUrls": {
+    "proWhiteLabelEur19": "https://console.spurvik.com/signup?plan=pro&appUrl=shop.example.de",
+    "teamAgencyEur79": "https://console.spurvik.com/signup?plan=team&appUrl=shop.example.de",
+    "doneForYou24hEur199": "https://console.spurvik.com/signup?plan=concierge&appUrl=shop.example.de"
+  }
+}
+```
+
+- `checkStatus` is `manifest_valid` (a manifest whose signature matches), `signature_mismatch` (a manifest whose bytes or claim changed after signing), `no_manifest`, or `not_checked`.
+- `claimGenerator` is unverified text from the manifest, reduced to letters, digits, spaces, and `._()/+:@-` (at most 100 characters). `validationCodes` keeps dotted identifiers only (at most 20). `fileName` keeps `A-Z a-z 0-9 . _ -` only.
+- `cdnRewriteSuspected` is `true` when the URL goes through an optimizer that re-encodes images and strips C2PA: `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, or imgix. `diagnosis` explains the result and the fix.
+- `art50GeneratedBadgeSnippet` is a visible "AI-generated" notice (`badge.js` with `data-notice="generated"`), with the locale from the image host's country-code TLD.
+- `upgradeUrls` open console signup with the image host prefilled (`appUrl`): Pro €19/mo, Team €79/mo, and Done-For-You €199 once. Prices excl. VAT, B2B only. On a shared image CDN host (Cloudinary, imgix) `appUrl` is left out, because that host is not your site.
+
+A matching signature is a check of that manifest. It does not mean the image or a site meets the AI Act.
+
 ## Credential
 
-`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain and Batch Scan do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
+`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain, Batch Scan, and Check Image C2PA do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
 
 ## Layout
 

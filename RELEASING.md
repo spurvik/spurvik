@@ -344,7 +344,7 @@ check() {
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check || exit 1
   npm init -y
-  npm install spurvik@1.0.10 spurvik-sdk@1.0.10 n8n-nodes-spurvik@1.0.6
+  npm install spurvik@1.0.10 spurvik-sdk@1.0.10 n8n-nodes-spurvik@1.0.7
 )
 ```
 
@@ -578,9 +578,9 @@ rm -rf "$work"
 )
 ```
 
-## Releasing n8n-nodes-spurvik@1.0.6
+## Releasing n8n-nodes-spurvik@1.0.7
 
-`n8n-nodes-spurvik@1.0.6` adds the zero-key Batch Scan operation (`batchScanDomains`, 1 to 10 domains) and `portfolioUrl`, `statusShieldUrl`, and `statusShieldMarkdown` on Scan Live Domain. 1.0.5 added `scanDomain`. It still depends on `spurvik-sdk@^1.0.8` from the registry. `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server` are not bumped by this release. Never republish an existing version, and do not pass `--provenance`.
+`n8n-nodes-spurvik@1.0.7` adds operation #6, the zero-key Check Image C2PA & CDN Strip operation (`checkImageC2paUrl`): a read-only C2PA JUMBF manifest & CDN-strip checker (it never signs) that calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `User-Agent: n8n-nodes-spurvik/1.0.7`. `N8N_NODES_SPURVIK_VERSION` in `check-image-c2pa-url.ts` must equal `package.json` `version` (a test pins it). 1.0.6 added `batchScanDomains` and 1.0.5 added `scanDomain`. It still depends on `spurvik-sdk@^1.0.8` from the registry. `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server` are not bumped by this release. Never republish an existing version, and do not pass `--provenance`.
 
 Build, test, and pack from a clean detached worktree of the QA-passed commit with the same script used for the other packages. It runs `npm install --no-package-lock --legacy-peer-deps`, `npm run build`, `npm test`, and `bash scripts/ci/no-default-keys.sh` before `npm pack`, and prints the `.tgz` sha1 and the uncompressed tar sha1:
 
@@ -591,12 +591,14 @@ node /Users/nate/Terra/terra-core/scripts/mac-clean-release.mjs --sha "$QA_SHA" 
 ```
 
 ```bash
-# n8n 1.0.6 registry install check. Run only after n8n-nodes-spurvik@1.0.6 is on the registry.
+# n8n 1.0.7 registry install check. Run only after n8n-nodes-spurvik@1.0.7 is on the registry.
 (
   rm -rf /tmp/spurvik-n8n-registry-check
   mkdir -p /tmp/spurvik-n8n-registry-check
   cd /tmp/spurvik-n8n-registry-check || exit 1
   npm init -y
-  npm install n8n-nodes-spurvik@1.0.6
+  npm install n8n-nodes-spurvik@1.0.7
 )
 ```
+
+Console sync (pending, console-git): add the `n8n-nodes-spurvik/` User-Agent prefix to `FIRST_PARTY_CLIENT_USER_AGENT_RE`. The node sends no Origin or Referer header.
