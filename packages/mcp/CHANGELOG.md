@@ -1,5 +1,9 @@
 # spurvik-mcp-server
 
+## Unreleased
+
+- `spurvik_setup_snippet` pins `spurvik@1.0.11` and `spurvik-sdk@1.0.11` (`SNIPPET_SDK_VERSION`), which ship the `spurvik rfp` CLI. The Claude Code plugin bundle (`plugins/spurvik/bin/spurvik-mcp.mjs`) is rebuilt with it. The published `spurvik-mcp-server@1.0.8` still pins `1.0.10`.
+
 ## 1.0.8 — 2026-11-17
 
 Published as `spurvik-mcp-server@1.0.8`. The local stdio server has ten zero-key tools: the nine on the hosted MCP server at `https://console.spurvik.com/api/mcp` plus `spurvik_vendor_questionnaire_answers`.

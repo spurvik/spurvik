@@ -13,7 +13,7 @@ This folder is an import guide for the files that are actually in `packages/n8n-
 | Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.8`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
 | Runtime | `nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts` exports `class SpurvikEuAiActGuard` and `SpurvikN8nNodeDescription`. `workflow.ts` exports `executeSpurvikWorkflowStep`. `index.ts` re-exports both. |
 | Build output | `npm run build` writes `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which `n8n-nodes-spurvik@1.0.8` ships. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js`. |
-| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.7`). `0.0.0-stage` is a placeholder. |
+| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.8`). `0.0.0-stage` is a placeholder. |
 | Make file already in the package | `packages/n8n-nodes-spurvik/make-com-blueprint.json`. See [Make.com](#makecom) before importing it. |
 
 `SpurvikN8nNodeDescription` fields n8n would read:
@@ -96,7 +96,7 @@ Make.com does not load n8n community nodes. A Make scenario cannot install `n8n-
    - Header `content-type`: `application/json`
    - Body: the Slack shape from `buildChannelOutboundRequest` (`text`, `blocks` with one `section` and one `actions` array). Button URLs in the sample are `https://example.com/hitl?...` placeholders. The real URLs are the `approveUrl` and `rejectUrl` strings from `createSignedApprovalLinks`. Make's HTTP module does not compute those HMAC receipts. The sample body is the shape, with `REPLACE_ME` where the digest and signature would be.
 3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName` and `payloadSummary` (`Bearer {{var.organization.spurvikApiKey}}`). This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload.
-4. Console rows come from `spurvik@1.0.9` (`SpurvikClient`) or from `n8n-nodes-spurvik@1.0.8` when `consoleApiKey` is configured on `spurvikApi`. To write those rows directly from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For a hosted console workspace the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
+4. Console rows come from `spurvik@1.0.11` (`SpurvikClient`) or from `n8n-nodes-spurvik@1.0.8` when `consoleApiKey` is configured on `spurvikApi`. To write those rows directly from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For a hosted console workspace the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
 
    `POST {{var.SPURVIK_BASE_URL}}/api/v1/telemetry` with:
 
