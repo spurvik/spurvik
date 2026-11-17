@@ -1,12 +1,14 @@
 export {
   assertHmacSecret,
   executeSpurvikWorkflowStep,
+  workflowUpgradeUrls,
 } from "./workflow";
 export type {
   SpurvikArt12Record,
   SpurvikWorkflowNodeInput,
   SpurvikWorkflowNodeOutput,
   SpurvikWorkflowOperation,
+  SpurvikWorkflowUpgradeUrls,
 } from "./workflow";
 export {
   batchScanSpurvikDomains,
@@ -39,3 +41,17 @@ export type {
   SpurvikC2paImageTarget,
   SpurvikC2paMediaType,
 } from "./check-image-c2pa-url";
+export {
+  questionnaireHostname,
+  SPURVIK_QUESTIONNAIRE_PLANS,
+  SPURVIK_QUESTIONNAIRE_PROVIDERS,
+  SPURVIK_VENDOR_QUESTIONNAIRE_URL,
+  spurvikVendorQuestionnaireAnswers,
+} from "./vendor-questionnaire";
+export type {
+  SpurvikQuestionnairePlan,
+  SpurvikQuestionnaireProvider,
+  SpurvikQuestionnaireUpgradeUrls,
+  SpurvikVendorQuestionnaireInput,
+  SpurvikVendorQuestionnaireOutput,
+} from "./vendor-questionnaire";

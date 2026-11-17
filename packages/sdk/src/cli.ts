@@ -1,6 +1,6 @@
 /**
  * `spurvik` CLI: zero-API-key Art. 50(1) live-site scan, C2PA image manifest & CDN-strip check, local unwrapped-call
- * audit, and badge.js snippets.
+ * audit, badge.js snippets, and local EU AI Act vendor questionnaire & DPO RFP answers.
  *
  * Nothing here reads environment variables (except NO_COLOR), writes files, or logs input anywhere but stdout/stderr.
  * `audit` never prints source text: only relative `file:line` and a provider label.
@@ -8,15 +8,25 @@
 import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  SPURVIK_QUESTIONNAIRE_PLANS,
+  SPURVIK_QUESTIONNAIRE_PROVIDERS,
+  spurvikVendorQuestionnaireAnswers,
+  type SpurvikVendorQuestionnaireOutput,
+} from "./vendor-questionnaire.js";
 
-export const CLI_VERSION = "1.0.10";
+export const CLI_VERSION = "1.0.11";
 export const USER_AGENT = `spurvik-cli/${CLI_VERSION}`;
 
 export const CONSOLE_ORIGIN = "https://console.spurvik.com";
 export const SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
 export const BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
+/** Free signup: mints a SPURVIK_API_KEY (work email, no password, no card). */
+export const SIGNUP_URL = `${CONSOLE_ORIGIN}/signup`;
 export const PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
+export const TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
+export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const SCAN_TIMEOUT_MS = 10_000;
 
 export const EXIT_OK = 0;
@@ -577,6 +587,12 @@ const AI_SDK_SNIPPET = [
   "await generateText({ model, ... });            // same config as withSpurvik",
 ];
 
+const AUDIT_NEXT_STEPS: ReadonlyArray<readonly [string, string]> = [
+  ["Free SPURVIK_API_KEY in 10s (€0, 10,000 events/mo, no card)", SIGNUP_URL],
+  ["White-label badge + 90d Frankfurt vault + HITL queue (Pro €19/mo)", PRO_SIGNUP_URL],
+  ["24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro)", CONCIERGE_SIGNUP_URL],
+];
+
 function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
   if (args.positionals.length > 1) {
     io.err("Usage: spurvik audit [dir] [--json] [--fail-on-gap]");
@@ -605,6 +621,8 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
           unwrapped: report.unwrapped,
           truncated: report.truncated,
           consoleUrl: PRO_SIGNUP_URL,
+          freeSignupUrl: SIGNUP_URL,
+          doneForYouUrl: CONCIERGE_SIGNUP_URL,
         },
         null,
         2,
@@ -634,7 +652,8 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
       out(`  ${c.dim("config fields:")} ${QUICKSTART_URL}`);
     }
     out();
-    out(`  ${c.dim("Hosted EU console for Art. 12 logs & Art. 14 oversight (Frankfurt fra1):")} ${PRO_SIGNUP_URL}`);
+    out(`  ${c.bold("Next steps")} ${c.dim("(hosted EU console, Frankfurt fra1; prices excl. VAT)")}`);
+    for (const [label, url] of AUDIT_NEXT_STEPS) out(`  ${label}: ${c.cyan(url)}`);
     out();
   }
   return args.failOnGap && report.unwrapped.length > 0 ? EXIT_GAP : EXIT_OK;
@@ -679,7 +698,6 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
 
 export const C2PA_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/provenance/public-check-url`;
 export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
-export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 /** The console allows 8 s for the image fetch, then reads the manifest; 15 s covers both. */
 export const C2PA_TIMEOUT_MS = 15_000;
 export const C2PA_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
@@ -1012,6 +1030,63 @@ async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// rfp — EU AI Act vendor security questionnaire & DPO RFP answers (local, no network)
+// ---------------------------------------------------------------------------------------------------------------
+
+export type RfpReport = SpurvikVendorQuestionnaireOutput;
+
+const RFP_USAGE =
+  "Usage: spurvik rfp [domain] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|custom] [--generates-media] [--no-high-risk-actions] [--json]";
+
+/** Answers built from plan and provider facts only. The domain is used only when it is a public hostname. */
+export function rfpReport(options: {
+  domain?: string;
+  plan?: string;
+  provider?: string;
+  hasHighRiskActions?: boolean;
+  generatesMedia?: boolean;
+}): RfpReport {
+  return spurvikVendorQuestionnaireAnswers(options);
+}
+
+function cmdRfp(args: ParsedArgs, io: Io): number {
+  if (args.positionals.length > 1) {
+    io.err(RFP_USAGE);
+    return EXIT_ERROR;
+  }
+  // The rejected value is not repeated.
+  if (args.plan !== undefined && !(SPURVIK_QUESTIONNAIRE_PLANS as readonly string[]).includes(args.plan)) {
+    io.err(`spurvik rfp: --plan must be one of ${SPURVIK_QUESTIONNAIRE_PLANS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  if (args.provider !== undefined && !(SPURVIK_QUESTIONNAIRE_PROVIDERS as readonly string[]).includes(args.provider)) {
+    io.err(`spurvik rfp: --provider must be one of ${SPURVIK_QUESTIONNAIRE_PROVIDERS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  const report = rfpReport({
+    domain: args.positionals[0],
+    plan: args.plan,
+    provider: args.provider,
+    hasHighRiskActions: !args.noHighRiskActions,
+    generatesMedia: args.generatesMedia,
+  });
+  if (args.json) {
+    io.out(JSON.stringify(report, null, 2));
+    return EXIT_OK;
+  }
+  const { c, out } = io;
+  // The Markdown holds only fixed text and a validated hostname ([a-z0-9.-]), so it is safe for a terminal.
+  const lines = report.markdown.replace(/\n$/, "").split("\n");
+  for (const line of lines) {
+    if (line.startsWith("#")) out(c.bold(line));
+    else if (line.startsWith("- ")) out(line.replace(/: (https:\/\/\S+)$/, (_match, url: string) => `: ${c.cyan(url)}`));
+    else out(line);
+  }
+  out();
+  return EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -1024,10 +1099,14 @@ interface ParsedArgs {
   help: boolean;
   version: boolean;
   lang?: string;
+  plan?: string;
+  provider?: string;
+  generatesMedia: boolean;
+  noHighRiskActions: boolean;
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "c2pa", "audit", "badge", "help", "version"]);
+const COMMANDS = new Set(["scan", "c2pa", "audit", "badge", "rfp", "help", "version"]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -1038,6 +1117,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     failOnMissing: false,
     help: false,
     version: false,
+    generatesMedia: false,
+    noHighRiskActions: false,
     unknown: [],
   };
   const rest: string[] = [];
@@ -1054,6 +1135,12 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (arg === "-v" || arg === "--version") parsed.version = true;
     else if (arg === "--lang") parsed.lang = argv[++i] ?? "";
     else if (arg.startsWith("--lang=")) parsed.lang = arg.slice("--lang=".length);
+    else if (arg === "--plan") parsed.plan = argv[++i] ?? "";
+    else if (arg.startsWith("--plan=")) parsed.plan = arg.slice("--plan=".length);
+    else if (arg === "--provider") parsed.provider = argv[++i] ?? "";
+    else if (arg.startsWith("--provider=")) parsed.provider = arg.slice("--provider=".length);
+    else if (arg === "--generates-media") parsed.generatesMedia = true;
+    else if (arg === "--no-high-risk-actions") parsed.noHighRiskActions = true;
     else if (arg.startsWith("-") && arg.length > 1) parsed.unknown.push(arg);
     else rest.push(arg);
   }
@@ -1081,6 +1168,11 @@ export function helpText(): string {
     "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check of a public https image",
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped OpenAI/Anthropic/Gemini/AI SDK calls",
     "  spurvik badge [domain] [--lang da|de|en]                 badge.js tag + React snippet",
+    "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
+    "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
+    "      --plan free|pro|team|concierge (default pro)",
+    "      --provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|custom (default openai)",
+    "      --generates-media, --no-high-risk-actions",
     "  spurvik --version | --help",
     "",
     "Exit codes: 0 ok, 1 gap found with --fail-on-gap, 2 usage or network error,",
@@ -1091,8 +1183,10 @@ export function helpText(): string {
     "  npx spurvik c2pa https://example.com/hero.png --fail-on-missing",
     "  npx spurvik audit . --fail-on-gap",
     "  npx spurvik badge example.de",
+    "  npx spurvik rfp acme.eu --plan team --provider langgraph",
     "",
-    "scan and c2pa send only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only. Not legal advice.",
+    "scan and c2pa send only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only;",
+    "rfp makes no request. Not legal advice.",
   ].join("\n");
 }
 
@@ -1130,6 +1224,17 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: use --fail-on-missing with c2pa (--fail-on-gap is for scan and audit).");
     return EXIT_ERROR;
   }
+  if (args.failOnGap && args.command === "rfp") {
+    io.err("spurvik: --fail-on-gap is for scan and audit.");
+    return EXIT_ERROR;
+  }
+  if (
+    (args.plan !== undefined || args.provider !== undefined || args.generatesMedia || args.noHighRiskActions) &&
+    args.command !== "rfp"
+  ) {
+    io.err("spurvik: --plan, --provider, --generates-media and --no-high-risk-actions apply to the rfp command only.");
+    return EXIT_ERROR;
+  }
   switch (args.command) {
     case "scan":
       return cmdScan(args, deps, io);
@@ -1139,6 +1244,8 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       return cmdAudit(args, deps, io);
     case "badge":
       return cmdBadge(args, io);
+    case "rfp":
+      return cmdRfp(args, io);
     default:
       io.err(`spurvik: unknown command "${cleanText(args.command, 40)}". Run spurvik --help.`);
       return EXIT_ERROR;

@@ -1,5 +1,18 @@
 # spurvik-sdk
 
+## 1.0.11 — 2026-11-17
+
+Published as `spurvik@1.0.11` and `spurvik-sdk@1.0.11` (same build). Library exports are unchanged.
+
+### Added
+
+- `spurvik rfp [domain] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|custom] [--generates-media] [--no-high-risk-actions] [--json]`: Q1–Q5 answers to the EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, plus a plan table and Next steps links (https://spurvik.com/eu-ai-act-vendor-security-questionnaire, Free `/signup`, Pro `/signup?plan=pro`, Team `/signup?plan=team`, Done-For-You `/signup?plan=concierge`). Zero network: nothing is sent anywhere. The Markdown is the same as `spurvik-mcp-server@1.0.8` tool #10 and `n8n-nodes-spurvik@1.0.8`; `--json` prints `plan`, `provider`, `hasHighRiskActions`, `generatesMedia`, `domain`, `markdown`, `interactiveUrl`, `reportUrl`, and `upgradeUrls`. Defaults: `pro`, `openai`, consequential agent actions, no synthetic media. A `[domain]` that is not a public hostname is ignored and never echoed. An unknown `--plan` or `--provider` exits `2` without repeating it.
+
+### Changed
+
+- `spurvik audit` prints three Next steps links: Free `SPURVIK_API_KEY` in 10s (€0, 10,000 events/mo, no card) `https://console.spurvik.com/signup`, Pro €19/mo `/signup?plan=pro`, and Done-For-You €199 once `/signup?plan=concierge`. `--json` keeps `consoleUrl` (Pro) and adds `freeSignupUrl` and `doneForYouUrl`.
+- `User-Agent` for `scan` and `c2pa` is now `spurvik-cli/1.0.11`.
+
 ## 1.0.10 — 2026-11-17
 
 Published as `spurvik@1.0.10` and `spurvik-sdk@1.0.10` (same build). Library exports are unchanged.

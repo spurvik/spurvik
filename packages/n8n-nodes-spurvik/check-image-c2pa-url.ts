@@ -17,7 +17,7 @@ import {
 } from "./scan-domain";
 
 /** Package version, sent in the User-Agent. A test pins it to package.json. */
-export const N8N_NODES_SPURVIK_VERSION = "1.0.7";
+export const N8N_NODES_SPURVIK_VERSION = "1.0.8";
 /**
  * First-party client User-Agent. Console sync (pending): add the `n8n-nodes-spurvik/` prefix to the
  * console's FIRST_PARTY_CLIENT_USER_AGENT_RE.

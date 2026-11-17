@@ -1,8 +1,8 @@
 {
   "name": "Spurvik",
-  "version": "1.0.10",
-  "description": "Spurvik EU AI Act SDK (1.0.10) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
-  "notice": "Spurvik EU AI Act SDK (1.0.10) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "version": "1.0.11",
+  "description": "Spurvik EU AI Act SDK (1.0.11) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Spurvik EU AI Act SDK (1.0.11) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
   "supportedProtocolVersions": [
     "2024-11-05",
@@ -32,7 +32,7 @@
         "spurvik_generate_art50_badge",
         "spurvik_check_image_c2pa_url"
       ],
-      "description": "Spurvik EU AI Act SDK (1.0.10) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+      "description": "Spurvik EU AI Act SDK (1.0.11) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
   ],
   "localStdio": {
@@ -40,8 +40,8 @@
     "version": "1.0.8",
     "npmPackage": "spurvik-mcp-server",
     "sdkNpmPackages": [
-      "spurvik@1.0.10",
-      "spurvik-sdk@1.0.10"
+      "spurvik@1.0.11",
+      "spurvik-sdk@1.0.11"
     ],
     "license": "MIT",
     "command": "node",
@@ -76,8 +76,8 @@
   "documentation": "https://spurvik.com/docs",
   "sandbox": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
   "packages": {
-    "sdk": "spurvik@1.0.10",
-    "sdkAlias": "spurvik-sdk@1.0.10",
+    "sdk": "spurvik@1.0.11",
+    "sdkAlias": "spurvik-sdk@1.0.11",
     "mcpServer": "spurvik-mcp-server@1.0.8"
   },
   "autoDiscovery": {

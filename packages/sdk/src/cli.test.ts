@@ -19,6 +19,7 @@ import {
   normalizeImageUrl,
   normalizeScanTarget,
   reportFromC2pa,
+  rfpReport,
   runCli,
   safeClaimGenerator,
   safeValidationCodes,
@@ -106,7 +107,7 @@ describe("spurvik scan", () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(`${SCAN_ENDPOINT}?url=${encodeURIComponent("https://folk.app/")}`);
     expect(url.startsWith("https://console.spurvik.com/api/v1/sandbox/scan?url=")).toBe(true);
-    expect((init.headers as Record<string, string>)["User-Agent"]).toBe("spurvik-cli/1.0.10");
+    expect((init.headers as Record<string, string>)["User-Agent"]).toBe("spurvik-cli/1.0.11");
     expect(init.signal).toBeInstanceOf(AbortSignal);
 
     const text = h.out();
@@ -265,7 +266,7 @@ describe("spurvik c2pa", () => {
     expect(url).toBe(C2PA_ENDPOINT);
     expect(init.method).toBe("POST");
     expect(init.redirect).toBe("error");
-    expect(init.headers).toMatchObject({ "Content-Type": "application/json", Accept: "application/json", "User-Agent": "spurvik-cli/1.0.10" });
+    expect(init.headers).toMatchObject({ "Content-Type": "application/json", Accept: "application/json", "User-Agent": "spurvik-cli/1.0.11" });
     // FIRST_PARTY_CLIENT_USER_AGENT_RE in console-git funnel-telemetry.ts counts this client.
     expect((init.headers as Record<string, string>)["User-Agent"]).toMatch(/\bspurvik-(?:cli|mcp|mcp-server|sdk)\//i);
     expect(JSON.parse(String(init.body))).toEqual({ url: "https://www.stepnetwork.dk/hero.png" });
@@ -530,6 +531,27 @@ describe("spurvik audit", () => {
     expect(text).not.toMatch(/spurvik\.wrap\s*\(/);
   });
 
+  it("prints the Free, Pro and Done-For-You links after the findings, in that order", async () => {
+    for (const fixture of [dir, mkdtempSync(path.join(tmpdir(), "spurvik-cli-audit-empty-"))]) {
+      const h = harness(undefined, { cwd: fixture });
+      expect(await runCli(["audit", "."], h.deps)).toBe(EXIT_OK);
+      const lines = h.out().split("\n");
+      const free = lines.indexOf("  Free SPURVIK_API_KEY in 10s (€0, 10,000 events/mo, no card): https://console.spurvik.com/signup");
+      const pro = lines.indexOf(
+        "  White-label badge + 90d Frankfurt vault + HITL queue (Pro €19/mo): https://console.spurvik.com/signup?plan=pro",
+      );
+      const dfy = lines.indexOf(
+        "  24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge",
+      );
+      expect(free).toBeGreaterThan(0);
+      expect(pro).toBe(free + 1);
+      expect(dfy).toBe(free + 2);
+      expect(h.out()).not.toContain("€49");
+      expect(h.out().match(/legal advice/gi)).toBeNull();
+      if (fixture !== dir) rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
   it("--json and --fail-on-gap: exit 1 with unwrapped calls, 0 once every file is wrapped", async () => {
     const h = harness(undefined, { cwd: dir });
     expect(await runCli(["audit", "--json", "--fail-on-gap"], h.deps)).toBe(EXIT_GAP);
@@ -541,6 +563,21 @@ describe("spurvik audit", () => {
       { file: "src/chat.ts", line: 3, provider: "OpenAI" },
     ]);
     expect(JSON.stringify(body)).not.toContain(PROMPT);
+    // consoleUrl stays for existing consumers; the Free and Done-For-You links are added beside it.
+    expect(body.consoleUrl).toBe("https://console.spurvik.com/signup?plan=pro");
+    expect(body.freeSignupUrl).toBe("https://console.spurvik.com/signup");
+    expect(body.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge");
+    expect(Object.keys(body)).toEqual([
+      "directory",
+      "filesScanned",
+      "wrappedFiles",
+      "unwrappedCount",
+      "unwrapped",
+      "truncated",
+      "consoleUrl",
+      "freeSignupUrl",
+      "doneForYouUrl",
+    ]);
 
     rmSync(path.join(dir, "src", "chat.ts"));
     rmSync(path.join(dir, "app", "route.tsx"));
@@ -603,6 +640,203 @@ describe("spurvik badge", () => {
   });
 });
 
+describe("spurvik rfp", () => {
+  const CONSOLE = "https://console.spurvik.com";
+  const INTERACTIVE = "https://spurvik.com/eu-ai-act-vendor-security-questionnaire";
+  const HEADINGS = [
+    "## Q1: Art. 50(1) & 2 Dec 2026 Art. 50(2) Transparency & Provenance",
+    "## Q2: Art. 12 Cryptographic Event Logging",
+    "## Q3: GDPR Art. 5(1)(c) Zero-Prompt Minimisation & EU Frankfurt Residency",
+    "## Q4: Art. 14 Deterministic Human Oversight Gates",
+    "## Q5: Audit Retention, DPO Evidence & Annex IV Documentation",
+  ];
+  const PLAIN_UPGRADES = {
+    freeApiKey10sEur0: `${CONSOLE}/signup`,
+    proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro`,
+    teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+    doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge`,
+  };
+
+  /** A fetch that fails the test if anything calls it. */
+  const noNetwork = () => vi.fn(async () => {
+    throw new Error("rfp must not make a request");
+  });
+
+  it("prints Q1–Q5 answers and Next steps with the defaults (pro, openai), with no request", async () => {
+    const fetchMock = noNetwork();
+    const h = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["rfp"], h.deps)).toBe(EXIT_OK);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(h.err()).toBe("");
+    const text = h.out();
+    expect(text.startsWith("# EU AI Act vendor security questionnaire: answers for our product\n")).toBe(true);
+    expect(text).toContain("Spurvik plan: Pro (€19/mo or €190/yr) · Provider: OpenAI · Consequential agent actions: yes · Synthetic media: no");
+    const positions = HEADINGS.map((heading) => text.indexOf(heading));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    expect(text.match(/\*\*Customer asks:\*\*/g)).toHaveLength(5);
+    expect(text).toContain("## Next steps");
+    for (const link of [
+      INTERACTIVE,
+      `${CONSOLE}/signup\n`,
+      `${CONSOLE}/signup?plan=pro\n`,
+      `${CONSOLE}/signup?plan=team\n`,
+      `${CONSOLE}/signup?plan=concierge\n`,
+    ]) {
+      expect(text).toContain(link);
+    }
+    expect(text.match(/not legal advice/gi)).toHaveLength(1);
+    expect(text).not.toContain("€49");
+    expect(text).not.toMatch(/\u001b/);
+  });
+
+  it("states the plan facts and provider APIs that exist, and none that do not", async () => {
+    const cases: Array<[string[], string[]]> = [
+      [["--plan", "free"], ["Spurvik plan: Free (€0)", "10,000 events per month", "kept for 30 days", "`createMultiChannelApprovalRouter`"]],
+      [["--plan=pro"], ["250,000 events per month", "kept for 90 days", "`verifyHitlWebhook`", "DPO engineering summary (`.md`)"]],
+      [["--plan", "team"], ["Spurvik plan: Team (€79/mo or €790/yr)", "2,000,000 events per month", "kept for 12 months", "Annex IV technical documentation draft"]],
+      [["--plan", "concierge"], ["Done-For-You 24h Setup (€199 once, includes 1 full year of Pro (€190 value))", "signed DPO Readiness & C2PA Art. 50(2) provenance report"]],
+      [["--provider", "langgraph"], ["`spurvikInterrupt` in the graph node", "`withSpurvikLangGraph`"]],
+      [["--provider=openai-agents"], ["`createSpurvikNeedsApproval` on each tool", "`withSpurvikModelProvider`"]],
+      [["--provider", "anthropic"], ["`withSpurvik(new Anthropic())`", "`requireHumanApproval(actionName, payload)`"]],
+      [["--provider", "vercel-ai-sdk"], ["`spurvikMiddleware` with `wrapLanguageModel`"]],
+      [["--generates-media"], ["Synthetic media: yes", "`markingApplied`", "npx spurvik c2pa <image-url> --fail-on-missing"]],
+      [["--no-high-risk-actions"], ["Consequential agent actions: no", "do not trigger refunds"]],
+    ];
+    for (const [flags, expected] of cases) {
+      const h = harness(noNetwork() as unknown as typeof fetch);
+      expect(await runCli(["rfp", ...flags], h.deps)).toBe(EXIT_OK);
+      const text = h.out();
+      for (const needle of expected) expect(text, `${flags.join(" ")}: ${needle}`).toContain(needle);
+      for (const needle of ["`inputHash`", "`outputHash`", "`recordHash`", "`prevLogHash`"]) expect(text).toContain(needle);
+      for (const wrong of ["inputHmac", "entryHash", "guardTool", "askHuman", "SSO", "€49"]) expect(text).not.toContain(wrong);
+      expect(text.match(/not legal advice/gi)).toHaveLength(1);
+    }
+  });
+
+  it("--json prints the structured answer with the same keys as the n8n operation", async () => {
+    const h = harness(noNetwork() as unknown as typeof fetch);
+    expect(await runCli(["rfp", "--json", "--plan", "team", "--provider", "mastra"], h.deps)).toBe(EXIT_OK);
+    const body = JSON.parse(h.out());
+    expect(Object.keys(body)).toEqual([
+      "plan",
+      "provider",
+      "hasHighRiskActions",
+      "generatesMedia",
+      "domain",
+      "markdown",
+      "interactiveUrl",
+      "reportUrl",
+      "upgradeUrls",
+    ]);
+    expect(body).toMatchObject({
+      plan: "team",
+      provider: "mastra",
+      hasHighRiskActions: true,
+      generatesMedia: false,
+      domain: null,
+      interactiveUrl: INTERACTIVE,
+      reportUrl: null,
+      upgradeUrls: PLAIN_UPGRADES,
+    });
+    expect(body.markdown).toContain("`withSpurvikMastra`, from `spurvik/mastra`");
+    expect(body.markdown.match(/not legal advice/gi)).toHaveLength(1);
+    expect(h.out()).not.toContain("€49");
+    expect(body).toEqual(rfpReport({ plan: "team", provider: "mastra", hasHighRiskActions: true, generatesMedia: false }));
+  });
+
+  it("prefills a public domain in the answers, the report link and the Pro and Done-For-You links", async () => {
+    const h = harness(noNetwork() as unknown as typeof fetch);
+    expect(await runCli(["rfp", "https://WWW.Acme.EU/pricing?ref=1", "--json"], h.deps)).toBe(EXIT_OK);
+    const body = JSON.parse(h.out());
+    expect(body.domain).toBe("www.acme.eu");
+    expect(body.reportUrl).toBe(`${CONSOLE}/report?domain=www.acme.eu`);
+    expect(body.upgradeUrls).toEqual({
+      freeApiKey10sEur0: `${CONSOLE}/signup`,
+      proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro&appUrl=www.acme.eu`,
+      teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+      doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge&appUrl=www.acme.eu`,
+    });
+    expect(h.out()).not.toContain("pricing");
+
+    const tty = harness(noNetwork() as unknown as typeof fetch);
+    expect(await runCli(["rfp", "acme.eu"], tty.deps)).toBe(EXIT_OK);
+    expect(tty.out()).toContain("# EU AI Act vendor security questionnaire: answers for acme.eu");
+    expect(tty.out()).toContain(`- Live Art. 50(1) report for acme.eu: ${CONSOLE}/report?domain=acme.eu`);
+    expect(tty.out()).toContain(`(Pro €19/mo): ${CONSOLE}/signup?plan=pro&appUrl=acme.eu`);
+  });
+
+  it.each([
+    "127.0.0.1",
+    "http://10.0.0.8/admin",
+    "192.168.1.20",
+    "[::1]",
+    "http://[fd00::1]/",
+    "localhost",
+    "http://localhost:3000",
+    "printer.local",
+    "db.internal",
+    "https://user:pw@acme.eu",
+    "acme.eu:8443",
+    "acme.example",
+    "bücher.de",
+    "x\u001b[2J.eu",
+  ])("drops %j: no echo, no request, null domain and plain links", async (raw) => {
+    const fetchMock = noNetwork();
+    const h = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["rfp", raw, "--json"], h.deps)).toBe(EXIT_OK);
+    const body = JSON.parse(h.out());
+    expect(body.domain).toBeNull();
+    expect(body.reportUrl).toBeNull();
+    expect(body.upgradeUrls).toEqual(PLAIN_UPGRADES);
+    expect(body.markdown).toContain("The domain was not a public hostname, so it was left out of these answers.");
+    expect(h.out()).not.toContain(raw);
+    expect(h.out()).not.toContain(JSON.stringify(raw).slice(1, -1));
+
+    const tty = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["rfp", raw], tty.deps)).toBe(EXIT_OK);
+    expect(tty.out()).not.toContain(raw);
+    expect(tty.out()).toContain("answers for our product");
+    expect(tty.out()).not.toMatch(/\u001b/);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown --plan or --provider without repeating it, and extra arguments", async () => {
+    for (const argv of [
+      ["rfp", "--plan", "enterprise-49"],
+      ["rfp", "--plan"],
+      ["rfp", "--provider=cohere-secret"],
+      ["rfp", "acme.eu", "other.eu"],
+    ]) {
+      const h = harness(noNetwork() as unknown as typeof fetch);
+      expect(await runCli(argv, h.deps)).toBe(EXIT_ERROR);
+      expect(h.out()).toBe("");
+      expect(h.err()).not.toContain("enterprise-49");
+      expect(h.err()).not.toContain("cohere-secret");
+    }
+    const plan = harness();
+    await runCli(["rfp", "--plan", "x"], plan.deps);
+    expect(plan.err()).toContain("--plan must be one of free, pro, team, concierge");
+    const provider = harness();
+    await runCli(["rfp", "--provider", "x"], provider.deps);
+    expect(provider.err()).toContain("--provider must be one of openai, anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, custom");
+  });
+
+  it("keeps the rfp flags on rfp and --fail-on-gap off it", async () => {
+    for (const argv of [
+      ["audit", "--plan", "pro"],
+      ["badge", "--provider", "openai"],
+      ["scan", "folk.app", "--generates-media"],
+      ["rfp", "--fail-on-gap"],
+      ["rfp", "--fail-on-missing"],
+      ["rfp", "--lang", "da"],
+    ]) {
+      const h = harness(noNetwork() as unknown as typeof fetch);
+      expect(await runCli(argv, h.deps), argv.join(" ")).toBe(EXIT_ERROR);
+    }
+  });
+});
+
 describe("spurvik --version / --help", () => {
   it("--version and -v print the package version", async () => {
     const pkg = JSON.parse(readFileSync(path.join(__dirname, "..", "package.json"), "utf8")) as { version: string };
@@ -610,7 +844,7 @@ describe("spurvik --version / --help", () => {
     for (const flag of ["--version", "-v"]) {
       const h = harness();
       expect(await runCli([flag], h.deps)).toBe(EXIT_OK);
-      expect(h.out().trim()).toBe("1.0.10");
+      expect(h.out().trim()).toBe("1.0.11");
     }
   });
 
@@ -622,6 +856,8 @@ describe("spurvik --version / --help", () => {
       expect(h.out()).toContain("spurvik audit [dir]");
       expect(h.out()).toContain("spurvik badge [domain] [--lang da|de|en]");
       expect(h.out()).toContain("spurvik c2pa <image-url> [--json] [--fail-on-missing]");
+      expect(h.out()).toContain("spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]");
+      expect(h.out()).toContain("--plan free|pro|team|concierge (default pro)");
       expect(h.out().match(/legal advice/gi)).toHaveLength(1);
     }
   });

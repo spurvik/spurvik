@@ -4,6 +4,7 @@ import {
   type ChannelDispatchReceipt,
   type HumanApprovalChannelConfig,
 } from "spurvik-sdk";
+import { resolveScanBaseUrl, SPURVIK_CONSOLE_ORIGIN } from "./scan-domain";
 
 export type SpurvikWorkflowOperation = "art50_disclosure" | "art12_hmac_log" | "art14_ask_human";
 
@@ -46,6 +47,14 @@ export interface SpurvikConsoleSyncReceipt {
   remoteId: string | null;
 }
 
+/** Signup links on the console. Set only when no console API key is configured (consoleSync is null). */
+export interface SpurvikWorkflowUpgradeUrls {
+  freeApiKey10sEur0: string;
+  proWhiteLabelEur19: string;
+  teamAgencyEur79: string;
+  doneForYou24hEur199: string;
+}
+
 export interface SpurvikWorkflowNodeOutput {
   operation: SpurvikWorkflowOperation;
   systemName: string;
@@ -62,6 +71,8 @@ export interface SpurvikWorkflowNodeOutput {
     channelReceipt: ChannelDispatchReceipt | null;
   };
   consoleSync: SpurvikConsoleSyncReceipt | null;
+  /** Free API key, Pro, Team and Done-For-You signup links when consoleSync is null; null once a console API key syncs. */
+  upgradeUrls: SpurvikWorkflowUpgradeUrls | null;
 }
 
 const MIN_SECRET_LENGTH = 16;
@@ -143,6 +154,33 @@ async function postConsoleJson(
   };
 }
 
+/**
+ * Signup links on consoleBaseUrl (or https://console.spurvik.com when it is empty or not a valid https URL).
+ * Never throws: without a console API key, consoleBaseUrl is only used for these links.
+ */
+export function workflowUpgradeUrls(rawBaseUrl: unknown): SpurvikWorkflowUpgradeUrls {
+  let base = SPURVIK_CONSOLE_ORIGIN;
+  try {
+    base = resolveScanBaseUrl(rawBaseUrl);
+  } catch {
+    base = SPURVIK_CONSOLE_ORIGIN;
+  }
+  const signup = `${base}/signup`;
+  return {
+    freeApiKey10sEur0: signup,
+    proWhiteLabelEur19: `${signup}?plan=pro`,
+    teamAgencyEur79: `${signup}?plan=team`,
+    doneForYou24hEur199: `${signup}?plan=concierge`,
+  };
+}
+
+function upgradeUrlsUnlessSynced(
+  consoleSync: SpurvikConsoleSyncReceipt | null,
+  rawBaseUrl: string | undefined,
+): SpurvikWorkflowUpgradeUrls | null {
+  return consoleSync === null ? workflowUpgradeUrls(rawBaseUrl) : null;
+}
+
 function idleGate(): SpurvikWorkflowNodeOutput["art14Gate"] {
   return {
     required: false,
@@ -199,6 +237,7 @@ export async function executeSpurvikWorkflowStep(
       art12Record: null,
       art14Gate: idleGate(),
       consoleSync,
+      upgradeUrls: upgradeUrlsUnlessSynced(consoleSync, input.consoleBaseUrl),
     };
   }
 
@@ -258,6 +297,7 @@ export async function executeSpurvikWorkflowStep(
       },
       art14Gate: idleGate(),
       consoleSync,
+      upgradeUrls: upgradeUrlsUnlessSynced(consoleSync, input.consoleBaseUrl),
     };
   }
 
@@ -322,5 +362,6 @@ export async function executeSpurvikWorkflowStep(
       channelReceipt: receipts[0] ?? null,
     },
     consoleSync,
+    upgradeUrls: upgradeUrlsUnlessSynced(consoleSync, input.consoleBaseUrl),
   };
 }

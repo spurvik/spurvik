@@ -1,6 +1,6 @@
 # Cursor, Claude Code, VS Code & Windsurf MCP Starter (`spurvik-mcp-server@1.0.8`)
 
-Drop-in Model Context Protocol (`MCP`) configurations and smoke test for [`spurvik-mcp-server@1.0.8`](https://www.npmjs.com/package/spurvik-mcp-server) and [`spurvik@1.0.10`](https://www.npmjs.com/package/spurvik) (MIT).
+Drop-in Model Context Protocol (`MCP`) configurations and smoke test for [`spurvik-mcp-server@1.0.8`](https://www.npmjs.com/package/spurvik-mcp-server) and [`spurvik@1.0.11`](https://www.npmjs.com/package/spurvik) (MIT).
 
 All four MCP tools run **100% locally over stdio** (`readOnlyHint: true`, zero network calls, `.env` files skipped automatically).
 

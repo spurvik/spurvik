@@ -508,7 +508,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
   const json = (body, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-  it("keeps art50_disclosure as the default, the existing operations unchanged, and adds checkImageC2paUrl last", () => {
+  it("keeps art50_disclosure as the default, the existing operations unchanged, and adds vendorQuestionnaireAnswers last", () => {
     const operation = SpurvikN8nNodeDescription.properties.find((property) => property.name === "operation");
     assert.equal(operation.default, "art50_disclosure");
     assert.deepEqual(
@@ -520,6 +520,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
         ["scanDomain", "Scan Live Domain (Art. 50 & Client Brief)"],
         ["batchScanDomains", "Batch Scan up to 10 Domains (Agency Roster)"],
         ["checkImageC2paUrl", "Check Image C2PA & CDN Strip (Art. 50(2))"],
+        ["vendorQuestionnaireAnswers", "Answer Vendor Security Questionnaire (Art. 50/12/14 RFP)"],
       ],
     );
     const domainOrUrl = SpurvikN8nNodeDescription.properties.find((property) => property.name === "domainOrUrl");
@@ -528,16 +529,17 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     assert.deepEqual(domainOrUrl.displayOptions, { show: { operation: ["scanDomain"] } });
     const consoleBaseUrl = SpurvikN8nNodeDescription.properties.find((property) => property.name === "consoleBaseUrl");
     assert.equal(consoleBaseUrl.default, "https://console.spurvik.com");
-    assert.equal(consoleBaseUrl.displayOptions, undefined);
+    // Hidden only for the questionnaire, which makes no request.
+    assert.deepEqual(consoleBaseUrl.displayOptions, { hide: { operation: ["vendorQuestionnaireAnswers"] } });
   });
 
-  it("keeps spurvikApi required for the existing operations and not for scanDomain, batchScanDomains or checkImageC2paUrl (n8n-workflow rules)", () => {
+  it("keeps spurvikApi required for the existing operations and not for scanDomain, batchScanDomains, checkImageC2paUrl or vendorQuestionnaireAnswers (n8n-workflow rules)", () => {
     const [credential] = SpurvikN8nNodeDescription.credentials;
     assert.equal(SpurvikN8nNodeDescription.credentials.length, 1);
     assert.equal(credential.name, "spurvikApi");
     assert.equal(credential.required, true);
     assert.deepEqual(credential.displayOptions, {
-      hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] },
+      hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] },
     });
 
     const { validateNodeCredentials, NodeHelpers } = require("n8n-workflow");
@@ -558,6 +560,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     assert.deepEqual(missing({ operation: "scanDomain", domainOrUrl: "stepnetwork.dk" }), []);
     assert.deepEqual(missing({ operation: "batchScanDomains", domainsList: "folk.app, stepnetwork.dk" }), []);
     assert.deepEqual(missing({ operation: "checkImageC2paUrl", imageUrl: "https://example.com/hero.png" }), []);
+    assert.deepEqual(missing({ operation: "vendorQuestionnaireAnswers" }), []);
 
     const resolved = (parameters) =>
       Object.keys(NodeHelpers.getNodeParameters(node.description.properties, parameters, true, false, nodeFor(parameters), node.description));
@@ -920,7 +923,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       for (const name of ["systemName", "passThroughFields"]) {
         assert.deepEqual(
           byName(name).displayOptions,
-          { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
+          { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
           name,
         );
       }
@@ -1244,5 +1247,128 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       assert.equal(batch.gapsFound, 0);
       assert.ok(Date.now() - started < 5000);
     });
+  });
+});
+
+describe("upgradeUrls on art50_disclosure, art12_hmac_log and art14_ask_human (1.0.8)", () => {
+  const node = new SpurvikEuAiActGuard();
+  const CONSOLE = "https://console.spurvik.com";
+  const UPGRADE_KEYS = ["freeApiKey10sEur0", "proWhiteLabelEur19", "teamAgencyEur79", "doneForYou24hEur199"];
+  const linksOn = (base) => ({
+    freeApiKey10sEur0: `${base}/signup`,
+    proWhiteLabelEur19: `${base}/signup?plan=pro`,
+    teamAgencyEur79: `${base}/signup?plan=team`,
+    doneForYou24hEur199: `${base}/signup?plan=concierge`,
+  });
+  const liveKey = `${"spurvik"}_live_${"u".repeat(36)}`;
+  const PARAMS = {
+    art50_disclosure: { operation: "art50_disclosure", systemName: "Support bot", outputField: "outputText" },
+    art12_hmac_log: { operation: "art12_hmac_log", systemName: "Support bot", inputField: "promptText" },
+    art14_ask_human: {
+      operation: "art14_ask_human",
+      systemName: "Refund bot",
+      channel: "slack",
+      callbackBaseUrl: "https://approvals.example/hitl/callback",
+      actionName: "stripe.refunds.create",
+      actionSummary: "Refund order 4821",
+    },
+  };
+  const credentialsFor = (extra = {}) => ({
+    signingSecret: SECRET,
+    slackWebhookUrl: "https://hooks.slack.test/services/T/B/X",
+    ...extra,
+  });
+  const ITEM = [{ json: { promptText: PROMPT, outputText: "Invoice updated." } }];
+
+  async function withFetchStub(run) {
+    const original = globalThis.fetch;
+    const calls = [];
+    globalThis.fetch = async (url) => {
+      const target = String(url);
+      calls.push(target);
+      if (target.endsWith("/api/v1/disclosure")) return new Response(JSON.stringify({ data: { sessionId: "n8n_sess_9" } }), { status: 201 });
+      if (target.endsWith("/api/v1/telemetry")) return new Response(JSON.stringify({ data: { inserted: 1 } }), { status: 200 });
+      if (target.endsWith("/api/v1/hitl")) return new Response(JSON.stringify({ data: { id: "hitl_row_9" } }), { status: 201 });
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    try {
+      return await run(calls);
+    } finally {
+      globalThis.fetch = original;
+    }
+  }
+
+  for (const operation of Object.keys(PARAMS)) {
+    it(`${operation}: sets the four signup links on the default console when no consoleApiKey is set`, async () => {
+      await withFetchStub(async (calls) => {
+        const [out] = await node.execute.call(ctx(PARAMS[operation], credentialsFor(), ITEM));
+        const result = out[0].json.spurvik;
+        assert.equal(result.consoleSync, null);
+        assert.deepEqual(result.upgradeUrls, linksOn(CONSOLE));
+        assert.deepEqual(Object.keys(result.upgradeUrls), UPGRADE_KEYS);
+        assert.equal(Object.keys(result).at(-1), "upgradeUrls");
+        assert.equal(calls.some((url) => url.startsWith(CONSOLE)), false, "no console request without a key");
+        assert.equal(JSON.stringify(out).includes(PROMPT), false);
+      });
+    });
+
+    it(`${operation}: uses the configured consoleBaseUrl for the links`, async () => {
+      await withFetchStub(async () => {
+        const [out] = await node.execute.call(
+          ctx({ ...PARAMS[operation], consoleBaseUrl: "https://console.example.eu/eu/" }, credentialsFor(), ITEM),
+        );
+        assert.deepEqual(out[0].json.spurvik.upgradeUrls, linksOn("https://console.example.eu/eu"));
+      });
+    });
+
+    it(`${operation}: sets upgradeUrls to null once a consoleApiKey syncs`, async () => {
+      await withFetchStub(async (calls) => {
+        const [out] = await node.execute.call(ctx(PARAMS[operation], credentialsFor({ consoleApiKey: liveKey }), ITEM));
+        const result = out[0].json.spurvik;
+        assert.equal(result.consoleSync.synced, true);
+        assert.equal(result.upgradeUrls, null);
+        assert.ok(calls.some((url) => url.startsWith(`${CONSOLE}/api/v1/`)));
+      });
+    });
+  }
+
+  it("falls back to https://console.spurvik.com for an empty or unsafe consoleBaseUrl without throwing", async () => {
+    for (const consoleBaseUrl of [
+      "",
+      "   ",
+      "not a url",
+      "http://console.example.eu",
+      "javascript:alert(1)",
+      "https://user:pw@console.example.eu",
+      "https://console.example.eu/?next=evil",
+      "https://console.example.eu/#frag",
+      "ftp://console.example.eu",
+    ]) {
+      await withFetchStub(async () => {
+        const [out] = await node.execute.call(ctx({ ...PARAMS.art12_hmac_log, consoleBaseUrl }, credentialsFor(), ITEM));
+        assert.deepEqual(out[0].json.spurvik.upgradeUrls, linksOn(CONSOLE), JSON.stringify(consoleBaseUrl));
+      });
+    }
+  });
+
+  it("allows http://localhost only, for local testing", async () => {
+    await withFetchStub(async () => {
+      const [out] = await node.execute.call(ctx({ ...PARAMS.art12_hmac_log, consoleBaseUrl: "http://localhost:3000" }, credentialsFor(), ITEM));
+      assert.deepEqual(out[0].json.spurvik.upgradeUrls, linksOn("http://localhost:3000"));
+    });
+  });
+
+  it("exports workflowUpgradeUrls from the package index", () => {
+    assert.equal(typeof packageIndex.workflowUpgradeUrls, "function");
+    assert.deepEqual(packageIndex.workflowUpgradeUrls(undefined), linksOn(CONSOLE));
+    assert.deepEqual(packageIndex.workflowUpgradeUrls(42), linksOn(CONSOLE));
+  });
+
+  it("executeSpurvikWorkflowStep returns upgradeUrls directly too", async () => {
+    const result = await packageIndex.executeSpurvikWorkflowStep(
+      { operation: "art50_disclosure", hmacSecret: SECRET, systemName: "Bot", outputText: "Hi." },
+      { fetchImpl: async () => assert.fail("no request without a console key") },
+    );
+    assert.deepEqual(result.upgradeUrls, linksOn(CONSOLE));
   });
 });

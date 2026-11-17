@@ -106,6 +106,22 @@
       "typeVersion": 1,
       "position": [280, 680],
       "notes": "Check Image C2PA & CDN Strip (Art. 50(2)). Read-only C2PA JUMBF manifest & CDN-strip checker: it never signs. No credential and no API key. Only the https image URL is sent to console.spurvik.com. The output does not copy the incoming item."
+    },
+    {
+      "parameters": {
+        "operation": "vendorQuestionnaireAnswers",
+        "questionnairePlan": "pro",
+        "questionnaireProvider": "openai",
+        "hasHighRiskActions": true,
+        "generatesMedia": false,
+        "questionnaireDomain": "stepnetwork.dk"
+      },
+      "id": "88888888-8888-4888-8888-888888888888",
+      "name": "Spurvik Vendor Questionnaire Answers",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 840],
+      "notes": "Answer Vendor Security Questionnaire (Art. 50/12/14 RFP). Copy-paste Markdown answers to Q1-Q5 for enterprise security questionnaires and DPO RFPs, built locally: no request, no credential and no API key. The domain only prefills links. The output does not copy the incoming item."
     }
   ],
   "connections": {
@@ -139,6 +155,11 @@
           },
           {
             "node": "Spurvik Check Image C2PA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Vendor Questionnaire Answers",
             "type": "main",
             "index": 0
           }

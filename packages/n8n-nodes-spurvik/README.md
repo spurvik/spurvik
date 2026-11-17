@@ -1,6 +1,6 @@
 # n8n-nodes-spurvik
 
-n8n community node for self-hosted n8n, designed to support six separate workflow steps:
+n8n community node for self-hosted n8n, designed to support seven separate workflow steps:
 
 1. Add an AI interaction notice to one text field.
 2. Record the call as an HMAC-SHA256 digest instead of the raw prompt text. The digest is `spurvik:workflow:input:v1|` plus the input field. This is designed to support Article 12 record-keeping for high-risk AI systems. The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The field value is not returned, including when that name is listed in passThroughFields. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
@@ -8,6 +8,7 @@ n8n community node for self-hosted n8n, designed to support six separate workflo
 4. Scan a live client site for AI chat widgets and an Art. 50 notice, with no API key. See [Scan Live Domain](#scan-live-domain-art-50--client-brief).
 5. Scan an agency roster of up to 10 client sites in one step, with no API key. See [Batch Scan](#batch-scan-up-to-10-domains-agency-roster).
 6. Check one public image URL for a C2PA manifest and CDN stripping, with no API key. See [Check Image C2PA & CDN Strip](#check-image-c2pa--cdn-strip-art-502).
+7. Draft answers to the EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, locally, with no request and no API key. See [Answer Vendor Security Questionnaire](#answer-vendor-security-questionnaire-art-501214-rfp).
 
 The node does not mark or sign content.
 
@@ -21,7 +22,9 @@ Monday.com only creates a board item. It does not send Approve or Block links.
 
 Slack, Discord, and Teams use a webhook credential. The other channels use an approver target (chat id, email recipient, team id, project key, board id, or project gid) plus the matching token on the `spurvikApi` credential.
 
-`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. By default (when `consoleApiKey` is left empty), the notice, digest, and approval operations run locally without calling the Spurvik HTTP API; setting `consoleApiKey` on the `spurvikApi` credential enables optional sync to `consoleBaseUrl` (`https://console.spurvik.com` by default). Scan Live Domain and Batch Scan always call `consoleBaseUrl` and send only hostnames. Check Image C2PA always calls `consoleBaseUrl` and sends only the image URL.
+`callbackBaseUrl` is required for an approval request. Pass a URL that accepts GET clicks. By default (when `consoleApiKey` is left empty), the notice, digest, and approval operations run locally without calling the Spurvik HTTP API; setting `consoleApiKey` on the `spurvikApi` credential enables optional sync to `consoleBaseUrl` (`https://console.spurvik.com` by default). Scan Live Domain and Batch Scan always call `consoleBaseUrl` and send only hostnames. Check Image C2PA always calls `consoleBaseUrl` and sends only the image URL. Answer Vendor Security Questionnaire makes no request at all.
+
+Without `consoleApiKey`, the notice, digest, and approval results also carry `upgradeUrls`: signup links on `consoleBaseUrl` (or `https://console.spurvik.com` when it is empty or not a valid https URL) for a Free `SPURVIK_API_KEY` (`freeApiKey10sEur0`, €0, 10,000 events/mo), Pro (`proWhiteLabelEur19`, €19/mo), Team (`teamAgencyEur79`, €79/mo), and Done-For-You (`doneForYou24hEur199`, €199 once, incl. 1 yr Pro). Once `consoleApiKey` syncs (`consoleSync` is set), `upgradeUrls` is `null`. Prices excl. VAT, B2B only.
 
 ## Scan Live Domain (Art. 50 & Client Brief)
 
@@ -106,7 +109,7 @@ Output (one item per incoming item):
 Operation value `checkImageC2paUrl`. A read-only **C2PA JUMBF manifest & CDN-strip checker** for one public image, ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). It reads the manifest; it **never signs or adds one**. Like the scans it needs **no credential and no API key**, reads nothing from the incoming item, and sends no `Authorization` header.
 
 - **Image URL** (`imageUrl`, required): the public https URL of a PNG, JPEG, or WebP image up to 4 MB, for example `https://example.com/hero.png`. It is checked **before any request**: `http` and other schemes, ports other than 443, `user:password@`, localhost, `.local`, `.internal`, `.lan`, `.home.arpa`, single-label hosts, and every IP address literal are refused with an error, and nothing is sent. The `#fragment` is dropped.
-- The node calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `{ "url": "<imageUrl>" }` and `User-Agent: n8n-nodes-spurvik/1.0.7` (15 second timeout, redirects refused). The console fetches the image once through its own SSRF gate and reads the manifest in memory. The console allows 10 checks per minute per address, shared with https://console.spurvik.com/c2pa.
+- The node calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `{ "url": "<imageUrl>" }` and `User-Agent: n8n-nodes-spurvik/1.0.8` (15 second timeout, redirects refused). The console fetches the image once through its own SSRF gate and reads the manifest in memory. The console allows 10 checks per minute per address, shared with https://console.spurvik.com/c2pa.
 
 If the check cannot run (timeout, network error, `rate_limited`, `image_too_large`, `unsupported_media`, an unreadable answer, ...), the node does not fail the workflow. It returns `checkStatus: "not_checked"`, a short `reason` code, and `null` for every C2PA field, so a failed check never reads as "no manifest". The console's error text is never copied.
 
@@ -148,9 +151,43 @@ Example for a signed image behind the Next.js image optimizer:
 
 A matching signature is a check of that manifest. It does not mean the image or a site meets the AI Act.
 
+## Answer Vendor Security Questionnaire (Art. 50/12/14 RFP)
+
+Operation value `vendorQuestionnaireAnswers`. It returns copy-paste Markdown answers to the five EU AI Act questions enterprise buyers put in vendor security questionnaires and DPO RFPs: Art. 50(1) and 50(2) transparency and provenance, Art. 12 event logging, GDPR minimisation and Frankfurt residency, Art. 14 human oversight, and audit retention and DPO evidence. The text is the same as tool #10 of `spurvik-mcp-server@1.0.8` (`spurvik_vendor_questionnaire_answers`) and the interactive page at https://spurvik.com/eu-ai-act-vendor-security-questionnaire. It is built **locally**: no request, **no credential and no API key**, and nothing from the incoming item is copied. `spurvikApi`, `systemName`, `passThroughFields`, and `consoleBaseUrl` are hidden for it.
+
+- **Spurvik Plan** (`questionnairePlan`, default `pro`): `free` (€0, 10,000 events/mo, 30 days), `pro` (€19/mo, 250,000 events/mo, 90 days, white-label badge, hosted approval queue + `verifyHitlWebhook`, DPO engineering summary `.md`), `team` (€79/mo, 2,000,000 events/mo, 12 months, Annex IV draft, webhook export), or `concierge` (Done-For-You, €199 once: 24h setup, signed DPO readiness report, and 1 yr Pro).
+- **Model Provider or Framework** (`questionnaireProvider`, default `openai`): `openai`, `anthropic`, `google-genai`, `vercel-ai-sdk`, `langgraph`, `openai-agents`, `mastra`, or `custom`. It picks the wrapper and approval API named in the answers (`requireHumanApproval`, `spurvikInterrupt` for LangGraph, `createSpurvikNeedsApproval` for the OpenAI Agents SDK, and `createMultiChannelApprovalRouter` on Free).
+- **Has High-Risk Agent Actions** (`hasHighRiskActions`, default `true`) and **Generates Synthetic Media** (`generatesMedia`, default `false`) switch the Art. 14 and Art. 50(2) answers.
+- **Product Domain** (`questionnaireDomain`, optional): a public domain or http(s) URL that prefills the answers and links. Only the lower-case hostname is kept. localhost, IP addresses, internal names, `user:password@`, ports, and anything else that is not a public hostname are ignored and never repeated in the output; the domain is never sent anywhere.
+
+Output (fixed key order):
+
+```json
+{
+  "plan": "pro",
+  "provider": "openai",
+  "hasHighRiskActions": true,
+  "generatesMedia": false,
+  "domain": "acme.eu",
+  "markdown": "# EU AI Act vendor security questionnaire: answers for acme.eu\n\n...",
+  "interactiveUrl": "https://spurvik.com/eu-ai-act-vendor-security-questionnaire",
+  "reportUrl": "https://console.spurvik.com/report?domain=acme.eu",
+  "upgradeUrls": {
+    "freeApiKey10sEur0": "https://console.spurvik.com/signup",
+    "proWhiteLabelEur19": "https://console.spurvik.com/signup?plan=pro&appUrl=acme.eu",
+    "teamAgencyEur79": "https://console.spurvik.com/signup?plan=team",
+    "doneForYou24hEur199": "https://console.spurvik.com/signup?plan=concierge&appUrl=acme.eu"
+  }
+}
+```
+
+- `domain` and `reportUrl` are `null` without a public hostname, and the Pro and Done-For-You links then carry no `appUrl`.
+- A plan, provider, or flag outside the listed values (for example from an expression) stops the node with an error that lists the allowed values without repeating the input.
+- The answers describe Spurvik's shipped controls. Check them against your own setup before you send them to a buyer.
+
 ## Credential
 
-`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain, Batch Scan, and Check Image C2PA do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
+`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain, Batch Scan, Check Image C2PA, and Answer Vendor Security Questionnaire do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
 
 ## Layout
 
@@ -161,7 +198,7 @@ n8n loads:
 
 The node type id stays `spurvikEuAiActGuard`, the same id as 1.0.1.
 
-`dist/index.js` still exports `executeSpurvikWorkflowStep`, `SpurvikN8nNodeDescription`, and `SpurvikEuAiActGuard`.
+`dist/index.js` still exports `executeSpurvikWorkflowStep`, `SpurvikN8nNodeDescription`, and `SpurvikEuAiActGuard`, and also `spurvikVendorQuestionnaireAnswers`, `questionnaireHostname`, and `workflowUpgradeUrls`.
 
 ## Make.com
 

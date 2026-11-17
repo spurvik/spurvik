@@ -8,6 +8,7 @@ import type {
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
 import { checkSpurvikImageC2paUrl } from "../../check-image-c2pa-url";
 import { batchScanSpurvikDomains, scanSpurvikDomain } from "../../scan-domain";
+import { spurvikVendorQuestionnaireAnswers } from "../../vendor-questionnaire";
 import {
   executeSpurvikWorkflowStep,
   type SpurvikWorkflowNodeInput,
@@ -18,10 +19,12 @@ import {
 const SCAN_DOMAIN_OPERATION = "scanDomain";
 const BATCH_SCAN_DOMAINS_OPERATION = "batchScanDomains";
 const CHECK_IMAGE_C2PA_URL_OPERATION = "checkImageC2paUrl";
+const VENDOR_QUESTIONNAIRE_OPERATION = "vendorQuestionnaireAnswers";
 const ZERO_KEY_OPERATIONS: readonly string[] = [
   SCAN_DOMAIN_OPERATION,
   BATCH_SCAN_DOMAINS_OPERATION,
   CHECK_IMAGE_C2PA_URL_OPERATION,
+  VENDOR_QUESTIONNAIRE_OPERATION,
 ];
 const DEFAULT_CONSOLE_BASE_URL = "https://console.spurvik.com";
 
@@ -63,7 +66,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
     {
       name: "spurvikApi",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
     },
   ],
   properties: [
@@ -107,6 +110,12 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           description:
             "Read-only C2PA JUMBF manifest & CDN-strip checker for one public https image (PNG, JPEG or WebP, up to 4 MB). It never signs or adds a manifest. Needs no credential or API key.",
         },
+        {
+          name: "Answer Vendor Security Questionnaire (Art. 50/12/14 RFP)",
+          value: "vendorQuestionnaireAnswers",
+          description:
+            "Copy-paste Markdown answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, from Spurvik's shipped controls. Built locally: no request, no credential or API key.",
+        },
       ],
     },
     {
@@ -144,12 +153,70 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         "Public https URL of a PNG, JPEG or WebP image up to 4 MB. Only this URL is sent to the console, which fetches the image once and reads the C2PA manifest in memory. http, ports other than 443, user:password@, localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa) and single-label hosts are refused before any request.",
     },
     {
+      displayName: "Spurvik Plan",
+      name: "questionnairePlan",
+      type: "options",
+      default: "pro",
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description: "Spurvik plan the answers describe. Prices excl. VAT, B2B.",
+      options: [
+        { name: "Free (€0, 10,000 events/mo, 30 days)", value: "free" },
+        { name: "Pro (€19/mo, 250,000 events/mo, 90 days)", value: "pro" },
+        { name: "Team (€79/mo, 2,000,000 events/mo, 12 months)", value: "team" },
+        { name: "Done-For-You 24h Setup (€199 once, incl. 1 yr Pro)", value: "concierge" },
+      ],
+    },
+    {
+      displayName: "Model Provider or Framework",
+      name: "questionnaireProvider",
+      type: "options",
+      default: "openai",
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description: "Model provider or agent framework your product uses. It picks the wrapper and approval API named in the answers.",
+      options: [
+        { name: "OpenAI", value: "openai" },
+        { name: "Anthropic", value: "anthropic" },
+        { name: "Google Gemini (Google Gen AI SDK)", value: "google-genai" },
+        { name: "Vercel AI SDK", value: "vercel-ai-sdk" },
+        { name: "LangGraph", value: "langgraph" },
+        { name: "OpenAI Agents SDK", value: "openai-agents" },
+        { name: "Mastra", value: "mastra" },
+        { name: "Custom", value: "custom" },
+      ],
+    },
+    {
+      displayName: "Has High-Risk Agent Actions",
+      name: "hasHighRiskActions",
+      type: "boolean",
+      default: true,
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description: "Whether agents or tools can issue refunds, send emails, change permissions or delete data.",
+    },
+    {
+      displayName: "Generates Synthetic Media",
+      name: "generatesMedia",
+      type: "boolean",
+      default: false,
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description: "Whether the product generates synthetic images, audio or video (Art. 50(2)).",
+    },
+    {
+      displayName: "Product Domain",
+      name: "questionnaireDomain",
+      type: "string",
+      default: "",
+      placeholder: "acme.eu",
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description:
+        "Optional public domain or http(s) URL of your product, used to prefill the answers and links. It is never sent anywhere. localhost, IP addresses, internal names and anything else that is not a public hostname are ignored and not repeated in the output.",
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
       default: "AI system",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
     },
     {
       displayName: "Input Field",
@@ -258,15 +325,16 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "consoleBaseUrl",
       type: "string",
       default: "https://console.spurvik.com",
+      displayOptions: { hide: { operation: ["vendorQuestionnaireAnswers"] } },
       description:
-        "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint, and Check Image C2PA its public C2PA check, without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
+        "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint, and Check Image C2PA its public C2PA check, without a key. The notice, digest and approval operations sync to it only when Spurvik Console API Key is set on the spurvikApi credential, and otherwise use it for the signup links in upgradeUrls.",
     },
     {
       displayName: "Pass-through Fields",
       name: "passThroughFields",
       type: "string",
       default: "",
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
       description:
         "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
@@ -367,7 +435,7 @@ export class SpurvikEuAiActGuard implements INodeType {
     const operationAt = (index: number): string =>
       String(this.getNodeParameter("operation", index, "art50_disclosure"));
     const operations = items.map((_, index) => operationAt(index));
-    // The scan and C2PA operations never read the credential, so a node set to one of them works with no credential at all.
+    // The scan, C2PA and questionnaire operations never read the credential, so a node set to one of them works with no credential at all.
     const needsCredentials =
       items.length === 0
         ? !ZERO_KEY_OPERATIONS.includes(operationAt(0))
@@ -425,6 +493,17 @@ export class SpurvikEuAiActGuard implements INodeType {
           consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL),
         });
         returnData.push({ json: check as unknown as IDataObject });
+        continue;
+      }
+      if (operations[i] === VENDOR_QUESTIONNAIRE_OPERATION) {
+        const answers = spurvikVendorQuestionnaireAnswers({
+          plan: this.getNodeParameter("questionnairePlan", i, "pro"),
+          provider: this.getNodeParameter("questionnaireProvider", i, "openai"),
+          hasHighRiskActions: this.getNodeParameter("hasHighRiskActions", i, true),
+          generatesMedia: this.getNodeParameter("generatesMedia", i, false),
+          domain: this.getNodeParameter("questionnaireDomain", i, ""),
+        });
+        returnData.push({ json: answers as unknown as IDataObject });
         continue;
       }
       const item = items[i]?.json ?? {};
