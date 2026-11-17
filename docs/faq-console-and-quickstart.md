@@ -1,8 +1,8 @@
 # FAQ: Console Onboarding and 5-Minute Quickstart (10 Entries)
 
-> **Spurvik SDK (`spurvik@1.0.9`) and MCP server (`spurvik-mcp-server@1.0.5`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.9`) and MCP server (`spurvik-mcp-server@1.0.6`, MIT).** B2B subscription pricing, excl. VAT (ekskl. moms), B2B only. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.5`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.6`.*
 
 ## Signup, Sandbox, and Keys
 

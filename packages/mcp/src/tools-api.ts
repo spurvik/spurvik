@@ -1,5 +1,6 @@
 export {
   BADGE_DESCRIPTION,
+  BATCH_DESCRIPTION,
   CLASSIFY_DESCRIPTION,
   FIND_DESCRIPTION,
   MARKING_DESCRIPTION,
@@ -36,6 +37,17 @@ export {
   type EuLanguage,
 } from "./tools/badge-copy.js";
 export {
+  BATCH_MAX_DOMAINS,
+  BATCH_SCAN_CONCURRENCY,
+  BATCH_SCAN_DOMAINS_INPUT_JSON_SCHEMA,
+  batchScanDomains,
+  type BatchDomainResult,
+  type BatchRejectedEntry,
+  type BatchRejectionCode,
+  type BatchScanDomainsOutcome,
+  type BatchScanDomainsResult,
+} from "./tools/batch-scan-domains.js";
+export {
   CLASSIFY_RISK_INPUT_JSON_SCHEMA,
   classifyAiActRisk,
   RISK_DOMAINS,
@@ -56,8 +68,16 @@ export {
   scanLiveUrl,
   ScanTargetRejected,
   type ScanLiveUrlDeps,
+  type ScanLiveUrlLinks,
   type ScanLiveUrlOutcome,
   type ScanLiveUrlResult,
   type ScanTarget,
 } from "./tools/scan-live-url.js";
+export {
+  conciergeSignupUrlFor,
+  PORTFOLIO_URL,
+  proSignupUrlFor,
+  statusShieldMarkdownFor,
+  statusShieldUrlFor,
+} from "./links.js";
 export { MCP_USER_AGENT, MCP_VERSION } from "./version.js";

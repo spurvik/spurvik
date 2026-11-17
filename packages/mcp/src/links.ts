@@ -9,6 +9,8 @@ export const RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
 export const PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
 export const TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
 export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
+export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
+export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 
 export const WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 export const FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
@@ -27,4 +29,24 @@ export function reportUrlFor(host: string): string {
 /** `?scan=` sandbox link for one host. */
 export function sandboxUrlFor(host: string): string {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
+}
+
+/** Pro signup with the scanned host prefilled as `appUrl`. */
+export function proSignupUrlFor(host: string): string {
+  return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+}
+
+/** Done-For-You signup with the scanned host prefilled as `appUrl`. */
+export function conciergeSignupUrlFor(host: string): string {
+  return `${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+}
+
+/** Live Art. 50 status shield SVG for one host. */
+export function statusShieldUrlFor(host: string): string {
+  return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
+}
+
+/** README Markdown: the live status shield, linked to the host's report. */
+export function statusShieldMarkdownFor(host: string): string {
+  return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
 }

@@ -7,6 +7,9 @@ import {
   ATTRIBUTION_FIELD,
   BADGE_DESCRIPTION,
   BADGE_TITLE,
+  BATCH_DESCRIPTION,
+  BATCH_DOMAINS_FIELD,
+  BATCH_TITLE,
   CLASSIFY_DESCRIPTION,
   CLASSIFY_TITLE,
   DECISIONS_FIELD,
@@ -41,6 +44,7 @@ import {
 } from "./copy.js";
 import { generateArt50Badge } from "./tools/art50-badge.js";
 import { BADGE_POSITIONS, BADGE_THEMES } from "./tools/badge-copy.js";
+import { BATCH_MAX_DOMAINS, batchScanDomains } from "./tools/batch-scan-domains.js";
 import { classifyAiActRisk, MAX_USE_CASE_CHARS, RISK_DOMAINS } from "./tools/classify-risk.js";
 import { explainReceipt, knownSigningSecrets, resolveSigningSecret, scrubSecrets } from "./tools/explain-receipt.js";
 import { scanWorkspace } from "./tools/find-unwrapped.js";
@@ -53,12 +57,17 @@ function text(value: string): { content: [{ type: "text"; text: string }] } {
   return { content: [{ type: "text", text: value }] };
 }
 
-type ToolOutcome<T> = { ok: true; result: T } | { ok: false; error: string; message: string };
+type ToolOutcome<T> =
+  | { ok: true; result: T }
+  | { ok: false; error: string; message: string; rejected?: ReadonlyArray<{ position: number; error: string }> };
 
-/** JSON tool result. A rejected input is returned as `isError: true` with `{ error, message }`. */
+/** JSON tool result. A rejected input is returned as `isError: true` with `{ error, message }` (and `rejected` positions for a batch). */
 function json<T>(outcome: ToolOutcome<T>): { content: [{ type: "text"; text: string }]; isError?: true } {
   if (!outcome.ok) {
-    return { ...text(JSON.stringify({ error: outcome.error, message: outcome.message }, null, 2)), isError: true };
+    const body = outcome.rejected
+      ? { error: outcome.error, message: outcome.message, rejected: outcome.rejected }
+      : { error: outcome.error, message: outcome.message };
+    return { ...text(JSON.stringify(body, null, 2)), isError: true };
   }
   return text(JSON.stringify(outcome.result, null, 2));
 }
@@ -77,11 +86,11 @@ export function serverVersion(): string {
 }
 
 export interface ServerOptions {
-  /** Test hook for spurvik_scan_live_url. Defaults to globalThis.fetch with an 8 s timeout. */
+  /** Test hook for spurvik_scan_live_url and spurvik_batch_scan_domains. Defaults to globalThis.fetch with an 8 s timeout. */
   scan?: ScanLiveUrlDeps;
 }
 
-/** Stdio MCP server. Tools are read-only; only spurvik_scan_live_url calls the network (console.spurvik.com). */
+/** Stdio MCP server. Tools are read-only; only spurvik_scan_live_url and spurvik_batch_scan_domains call the network (console.spurvik.com). */
 export function createServer(workspaceRoot: string, options: ServerOptions = {}): McpServer {
   const server = new McpServer(
     { name: "spurvik", version: serverVersion() },
@@ -162,6 +171,19 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS,
     },
     async ({ url }) => json(await scanLiveUrl(url, options.scan)),
+  );
+
+  server.registerTool(
+    "spurvik_batch_scan_domains",
+    {
+      title: BATCH_TITLE,
+      description: BATCH_DESCRIPTION,
+      inputSchema: {
+        domains: z.array(z.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD),
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS,
+    },
+    async ({ domains }) => json(await batchScanDomains(domains, options.scan)),
   );
 
   server.registerTool(

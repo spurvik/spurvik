@@ -4,7 +4,7 @@ export const RISK_TIER_SAMPLE_COMMENT =
   "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
 
 export const SERVER_INSTRUCTIONS =
-  "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
+  "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, and spurvik_batch_scan_domains does the same for up to 10 public domains; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
 
 export const READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
@@ -95,8 +95,14 @@ export const UNKNOWN_SURFACE = "The surface must be text, media, or both.";
 
 export const SCAN_TITLE = "Scan a live URL for Art. 50(1)";
 export const SCAN_DESCRIPTION =
-  "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl and upgradeUrls. localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
+  "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl, portfolioUrl, upgradeUrls, and statusShieldMarkdown (a live Art. 50 status shield you can offer to add to the project README.md). localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
 export const SCAN_URL_FIELD = "Public http(s) URL or bare domain, for example stepnetwork.dk.";
+
+export const BATCH_TITLE = "Batch-scan up to 10 domains for Art. 50(1)";
+export const BATCH_DESCRIPTION =
+  "Scan 1 to 10 public domains or http(s) URLs (for example an agency's client sites) through console.spurvik.com for AI chat widgets and AI SDKs, and check each frontpage for a visible EU AI Act Article 50(1) notice. Every entry is checked first: if any entry is localhost, a private or reserved IP or an internal host, the whole batch is refused and nothing is sent. Returns JSON: totalDomains, gapsFound and one row per host with detectedWidgets, art50NoticeDetected, gap, reportUrl, a one-line badgeSnippet and statusShieldMarkdown, plus portfolioUrl and upgradeUrls (Team €79/mo, Done-For-You €199 once per site). At most 4 scans run at once, each with an 8-second timeout; a host the service cannot reach returns offlineFallback: true in its row. Heuristic: reads the HTML of one page per domain. Not legal advice.";
+export const BATCH_DOMAINS_FIELD =
+  "1 to 10 public http(s) URLs or bare domains, for example [\"stepnetwork.dk\", \"folk.app\"]. Duplicate hosts are scanned once.";
 
 export const CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
 export const CLASSIFY_DESCRIPTION =

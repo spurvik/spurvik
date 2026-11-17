@@ -1,8 +1,8 @@
 # packages/mcp
 
-Local stdio MCP server for Cursor, VS Code, and other MCP clients. Build this directory from source. It is `"private": true` at version **1.0.5**. The published npm package is `spurvik-mcp-server@1.0.5` (MIT), from https://github.com/spurvik/spurvik.
+Local stdio MCP server for Cursor, VS Code, and other MCP clients. Build this directory from source. It is `"private": true` at version **1.0.6**. The published npm package is `spurvik-mcp-server@1.0.6` (MIT), from https://github.com/spurvik/spurvik.
 
-It depends on `spurvik-sdk@^1.0.7` from the npm registry, on `packages/core` in this repository, and on `@modelcontextprotocol/sdk` 1.32.1. The seven tools are read-only. Six run locally and do not use the network. `spurvik_scan_live_url` sends one public URL to `https://console.spurvik.com/api/v1/sandbox/scan` (8-second timeout, `User-Agent: spurvik-mcp-server/1.0.5`); localhost, private or reserved IPs and internal hosts are refused before any request, and nothing is logged.
+It depends on `spurvik-sdk@^1.0.7` from the npm registry, on `packages/core` in this repository, and on `@modelcontextprotocol/sdk` 1.32.1. The eight tools are read-only. Six run locally and do not use the network. `spurvik_scan_live_url` sends one public URL to `https://console.spurvik.com/api/v1/sandbox/scan` (8-second timeout, `User-Agent: spurvik-mcp-server/1.0.6`), and `spurvik_batch_scan_domains` sends up to 10 the same way; localhost, private or reserved IPs and internal hosts are refused before any request, and nothing is logged.
 
 The SDK logs an AI call and attaches an HMAC receipt. Marking hooks are the caller's. Spurvik does not mark content. `spurvik_classify_ai_act_risk` is a deterministic engineering mapping aid, not legal advice and not a decision under Article 6. `riskTier` in a snippet is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.
 
@@ -42,7 +42,17 @@ Explain how to plug your own Article 50(2) marking into marking.text or marking.
 
 `spurvik_scan_live_url` (new in 1.0.5)
 
-Input `{ url }`: a public http(s) URL or a bare domain such as `stepnetwork.dk` (normalized to `https://stepnetwork.dk/`). Scans one page through the hosted console for AI chat widgets and AI SDKs and checks for a visible Article 50(1) notice. Returns JSON with `host`, `status`, `score`, `detectedWidgets`, `detectedSdks`, `art50NoticeDetected`, a one-line `badgeSnippet`, `reportUrl` (`https://console.spurvik.com/report?domain=<host>`), `sandboxUrl` (`https://console.spurvik.com/sandbox?scan=<host>`) and `upgradeUrls` (`proWhiteLabelAndAuditVault`, `doneForYou24hSetup`). When the console cannot be reached, times out, or answers without a scan, it returns `offlineFallback: true` with the same links and snippet instead of an error. localhost, `.local`/`.internal` hosts, private, loopback, link-local and reserved IPv4/IPv6 literals and non-default ports are refused with `isError: true` before any request. The tool is open-world (`openWorldHint: true`).
+Input `{ url }`: a public http(s) URL or a bare domain such as `stepnetwork.dk` (normalized to `https://stepnetwork.dk/`). Scans one page through the hosted console for AI chat widgets and AI SDKs and checks for a visible Article 50(1) notice. Returns JSON with `host`, `status`, `score`, `detectedWidgets`, `detectedSdks`, `art50NoticeDetected`, a one-line `badgeSnippet`, `reportUrl` (`https://console.spurvik.com/report?domain=<host>`), `sandboxUrl` (`https://console.spurvik.com/sandbox?scan=<host>`), `portfolioUrl` (`https://console.spurvik.com/portfolio`), `upgradeUrls` (`proWhiteLabelAndAuditVault`, `doneForYou24hSetup`; from 1.0.6 both carry `&appUrl=<host>` so the signup form is prefilled), and from 1.0.6 `statusShieldUrl` and `statusShieldMarkdown`. `statusShieldMarkdown` is one line a coding agent can offer to add to the project `README.md`:
+
+```markdown
+[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk)](https://console.spurvik.com/report?domain=stepnetwork.dk)
+```
+
+The console builds the shield SVG from a live check of the host's frontpage. When the console cannot be reached, times out, or answers without a scan, it returns `offlineFallback: true` with the same links and snippet instead of an error. localhost, `.local`/`.internal` hosts, private, loopback, link-local and reserved IPv4/IPv6 literals and non-default ports are refused with `isError: true` before any request. The tool is open-world (`openWorldHint: true`).
+
+`spurvik_batch_scan_domains` (new in 1.0.6)
+
+Input `{ domains }`: 1 to 10 public http(s) URLs or bare domains, for example an agency's client sites. Every entry goes through the same check as `spurvik_scan_live_url` first. If any entry is refused (localhost, private or reserved IP, internal host, credentials, non-default port, not http(s)), the whole batch returns `isError: true` with `rejected` positions and nothing is sent. Duplicate hosts are scanned once. Each host is one `GET https://console.spurvik.com/api/v1/sandbox/scan` call with an 8-second timeout, at most 4 at once. (The console's `POST /api/v1/sandbox/batch-scan` accepts only same-origin browser requests from `/portfolio`, so the stdio server does not use it.) Returns JSON with `totalDomains`, `scannedDomains`, `gapsFound` (page read, AI chat widget or AI SDK found, no Art. 50(1) notice), `offlineFallbacks`, `duplicatesRemoved`, and one row per host with `host`, `status`, `detectedWidgets`, `detectedSdks`, `art50NoticeDetected`, `gap`, `reportUrl`, `sandboxUrl`, `badgeSnippet`, `statusShieldUrl` and `statusShieldMarkdown`. It also returns `portfolioUrl` and `upgradeUrls` (`teamAgencyPack`: Team €79/mo, `doneForYouPerSite`: Done-For-You €199 once per site; excl. VAT). A host that times out, is rate-limited or cannot be reached gets `offlineFallback: true` in its row; the batch still returns. The console rate-limits scans per client address (about 15 per minute), so a second full batch within a minute can come back as fallback rows. The tool is open-world (`openWorldHint: true`).
 
 `spurvik_classify_ai_act_risk` (new in 1.0.5)
 
@@ -54,11 +64,11 @@ Input `{ locale?, position?, theme?, systemName?, attribution? }`. Zero-network 
 
 `spurvik_setup_snippet` notes also link the shareable report (`https://console.spurvik.com/report`), Pro (`https://console.spurvik.com/signup?plan=pro`) and the €199 Done-For-You 24h setup (`https://console.spurvik.com/signup?plan=concierge`).
 
-The handlers and their JSON Schemas are exported from `@spurvik/mcp/tools` (`scanLiveUrl`, `classifyAiActRisk`, `generateArt50Badge`, `SCAN_LIVE_URL_INPUT_JSON_SCHEMA`, `CLASSIFY_RISK_INPUT_JSON_SCHEMA`, `ART50_BADGE_INPUT_JSON_SCHEMA`).
+The handlers and their JSON Schemas are exported from `@spurvik/mcp/tools` (`scanLiveUrl`, `batchScanDomains`, `classifyAiActRisk`, `generateArt50Badge`, `SCAN_LIVE_URL_INPUT_JSON_SCHEMA`, `BATCH_SCAN_DOMAINS_INPUT_JSON_SCHEMA`, `CLASSIFY_RISK_INPUT_JSON_SCHEMA`, `ART50_BADGE_INPUT_JSON_SCHEMA`).
 
 ## Claude Code plugin
 
-`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `packages/mcp` 1.0.5 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same seven read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url`, `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
+`plugins/spurvik/.mcp.json` starts the server bundled inside the plugin. The command is `node`. The arguments are `${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs`, `--root`, and `${CLAUDE_PROJECT_DIR}`. That file is bundled from `packages/mcp` 1.0.6 with `node packages/mcp/scripts/bundle-plugin.mjs`. The same eight read-only tools are `spurvik_setup_snippet`, `spurvik_find_unwrapped_calls`, `spurvik_explain_receipt`, `spurvik_marking_hooks`, `spurvik_scan_live_url`, `spurvik_batch_scan_domains`, `spurvik_classify_ai_act_risk`, and `spurvik_generate_art50_badge`. This plugin entry is not one of the Cursor or VS Code examples below: it runs `bin/spurvik-mcp.mjs` from the plugin directory, not `packages/mcp/dist/index.js`.
 
 ## Cursor
 
@@ -106,7 +116,7 @@ Use an absolute path when the workspace root is not this repo:
 
 ## What it does not do
 
-- It does not call the network, except `spurvik_scan_live_url`, which sends one public URL to console.spurvik.com.
+- It does not call the network, except `spurvik_scan_live_url` (one public URL) and `spurvik_batch_scan_domains` (up to 10 public domains), which send them to console.spurvik.com.
 - It does not mark content.
 - It does not make a legal classification. `spurvik_classify_ai_act_risk` is an engineering mapping aid.
 - It does not ship a key.

@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { createServer, type ServerOptions } from "./server.js";
 
 const ALL_TOOLS = [
+  "spurvik_batch_scan_domains",
   "spurvik_classify_ai_act_risk",
   "spurvik_explain_receipt",
   "spurvik_find_unwrapped_calls",
@@ -41,19 +42,31 @@ function textOf(result: Awaited<ReturnType<Client["callTool"]>>): string {
 }
 
 describe("createServer", () => {
-  it("advertises the 1.0.5 version and lists all 7 tools", async () => {
+  it("advertises the 1.0.6 version and lists all 8 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.5" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.6" });
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
+    expect(client.getInstructions()).toMatch(/spurvik_batch_scan_domains does the same for up to 10 public domains/);
     const { tools } = await client.listTools();
+    expect(tools).toHaveLength(8);
     expect(tools.map((tool) => tool.name).sort()).toEqual(ALL_TOOLS);
+    const networkTools = ["spurvik_batch_scan_domains", "spurvik_scan_live_url"];
     for (const tool of tools) {
       expect(tool.annotations?.readOnlyHint).toBe(true);
       expect(tool.annotations?.destructiveHint).toBe(false);
-      expect(tool.annotations?.openWorldHint).toBe(tool.name === "spurvik_scan_live_url");
+      expect(tool.annotations?.openWorldHint).toBe(networkTools.includes(tool.name));
     }
     const scan = tools.find((tool) => tool.name === "spurvik_scan_live_url");
     expect(scan?.inputSchema.required).toEqual(["url"]);
+    const batch = tools.find((tool) => tool.name === "spurvik_batch_scan_domains");
+    expect(batch?.inputSchema.required).toEqual(["domains"]);
+    expect((batch?.inputSchema.properties as Record<string, { type?: string; minItems?: number; maxItems?: number }>).domains).toMatchObject({
+      type: "array",
+      minItems: 1,
+      maxItems: 10,
+    });
+    expect(batch?.description).toContain("€79/mo");
+    expect(batch?.description).toContain("€199 once");
     const classify = tools.find((tool) => tool.name === "spurvik_classify_ai_act_risk");
     expect(classify?.inputSchema.required).toEqual(["useCase"]);
     expect((classify?.inputSchema.properties as Record<string, { enum?: string[] }>).domain?.enum).toContain("employment_hr");
@@ -96,8 +109,86 @@ describe("createServer", () => {
       suggestedLocale: "fr",
       reportUrl: "https://console.spurvik.com/report?domain=example.fr",
       sandboxUrl: "https://console.spurvik.com/sandbox?scan=example.fr",
+      portfolioUrl: "https://console.spurvik.com/portfolio",
+      statusShieldMarkdown:
+        "[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=example.fr)](https://console.spurvik.com/report?domain=example.fr)",
+      upgradeUrls: {
+        proWhiteLabelAndAuditVault: "https://console.spurvik.com/signup?plan=pro&appUrl=example.fr",
+        doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge&appUrl=example.fr",
+      },
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    await client.close();
+  });
+
+  it("spurvik_batch_scan_domains returns a summary from mocked console scans", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const host = new URL(new URL(String(input)).searchParams.get("url") ?? "").hostname;
+      const widgets = host === "folk.app" ? ["Intercom Fin"] : [];
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          scan: {
+            reachable: true,
+            measured: widgets.length > 0,
+            reason: widgets.length > 0 ? null : "no_ai_surface",
+            httpStatus: null,
+            detectedWidgets: widgets,
+            detectedSdks: [],
+            markers: { art50_1_disclosure: false, art50_2_provenance: false, art50_4_synthetic: false, art12_telemetry: false },
+            readinessScore: widgets.length > 0 ? 25 : null,
+            detectedModel: null,
+          },
+        }),
+        { status: 200 },
+      );
+    });
+    const client = await connect({ scan: { fetch: fetchMock as unknown as typeof fetch } });
+    const result = await client.callTool({ name: "spurvik_batch_scan_domains", arguments: { domains: ["folk.app", "stepnetwork.dk"] } });
+    expect(result.isError).toBeFalsy();
+    const body = JSON.parse(textOf(result));
+    expect(body).toMatchObject({
+      tool: "spurvik_batch_scan_domains",
+      totalDomains: 2,
+      gapsFound: 1,
+      portfolioUrl: "https://console.spurvik.com/portfolio",
+      upgradeUrls: {
+        teamAgencyPack: "https://console.spurvik.com/signup?plan=team",
+        doneForYouPerSite: "https://console.spurvik.com/signup?plan=concierge",
+      },
+    });
+    expect(body.results.map((row: { host: string; gap: boolean }) => [row.host, row.gap])).toEqual([
+      ["folk.app", true],
+      ["stepnetwork.dk", false],
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await client.close();
+  });
+
+  it("spurvik_batch_scan_domains refuses a batch with a private target, and more than 10 domains, before any request", async () => {
+    const fetchMock = vi.fn();
+    const client = await connect({ scan: { fetch: fetchMock as unknown as typeof fetch } });
+    const blocked = await client.callTool({
+      name: "spurvik_batch_scan_domains",
+      arguments: { domains: ["folk.app", "http://192.168.1.1", "localhost"] },
+    });
+    expect(blocked.isError).toBe(true);
+    expect(JSON.parse(textOf(blocked))).toEqual({
+      error: "blocked_target",
+      message: expect.stringMatching(/^Nothing was scanned\. Entries 2, 3 are not public/),
+      rejected: [
+        { position: 2, error: "blocked_target" },
+        { position: 3, error: "blocked_target" },
+      ],
+    });
+    const tooMany = await client.callTool({
+      name: "spurvik_batch_scan_domains",
+      arguments: { domains: Array.from({ length: 11 }, (_, index) => `site${index}.example.com`) },
+    });
+    expect(tooMany.isError).toBe(true);
+    const empty = await client.callTool({ name: "spurvik_batch_scan_domains", arguments: { domains: [] } });
+    expect(empty.isError).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
     await client.close();
   });
 

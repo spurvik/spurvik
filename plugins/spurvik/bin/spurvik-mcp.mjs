@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.5, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.6, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -13497,7 +13497,7 @@ import path from "node:path";
 
 // packages/mcp/src/copy.ts
 var RISK_TIER_SAMPLE_COMMENT = "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
-var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
+var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Six tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, and spurvik_batch_scan_domains does the same for up to 10 public domains; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6.";
 var READ_ONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -13552,8 +13552,11 @@ var MARKING_DESCRIPTION = "Explain how to plug your own Article 50(2) marking in
 var SURFACE_FIELD = "Which hook to explain: text, media, or both. Defaults to both.";
 var UNKNOWN_SURFACE = "The surface must be text, media, or both.";
 var SCAN_TITLE = "Scan a live URL for Art. 50(1)";
-var SCAN_DESCRIPTION = "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl and upgradeUrls. localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
+var SCAN_DESCRIPTION = "Scan one public page (bare domain or http(s) URL, for example stepnetwork.dk) through console.spurvik.com for AI chat widgets and AI SDKs, and check whether a visible EU AI Act Article 50(1) notice is present. Returns JSON: host, status, score, detected widgets and SDKs, a one-line badge.js fix, reportUrl, sandboxUrl, portfolioUrl, upgradeUrls, and statusShieldMarkdown (a live Art. 50 status shield you can offer to add to the project README.md). localhost, private or reserved IPs and internal hosts are refused before any request. 8-second timeout; when the scan service cannot be reached it returns offlineFallback: true with the links and the badge snippet. Heuristic: reads the HTML of one page. Not legal advice.";
 var SCAN_URL_FIELD = "Public http(s) URL or bare domain, for example stepnetwork.dk.";
+var BATCH_TITLE = "Batch-scan up to 10 domains for Art. 50(1)";
+var BATCH_DESCRIPTION = "Scan 1 to 10 public domains or http(s) URLs (for example an agency's client sites) through console.spurvik.com for AI chat widgets and AI SDKs, and check each frontpage for a visible EU AI Act Article 50(1) notice. Every entry is checked first: if any entry is localhost, a private or reserved IP or an internal host, the whole batch is refused and nothing is sent. Returns JSON: totalDomains, gapsFound and one row per host with detectedWidgets, art50NoticeDetected, gap, reportUrl, a one-line badgeSnippet and statusShieldMarkdown, plus portfolioUrl and upgradeUrls (Team €79/mo, Done-For-You €199 once per site). At most 4 scans run at once, each with an 8-second timeout; a host the service cannot reach returns offlineFallback: true in its row. Heuristic: reads the HTML of one page per domain. Not legal advice.";
+var BATCH_DOMAINS_FIELD = '1 to 10 public http(s) URLs or bare domains, for example ["stepnetwork.dk", "folk.app"]. Duplicate hosts are scanned once.';
 var CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
 var CLASSIFY_DESCRIPTION = "Deterministic, zero-network mapping of one AI use case to an EU AI Act tier: prohibited_art5, high_risk_annex_iii, limited_transparency_art50 or minimal_risk. Returns JSON with the matched signals, obligations with dates, recommended Spurvik controls, interactiveClassifierUrl and upgradeUrls. The use-case text is matched against fixed patterns; it is not stored or echoed. Engineering mapping aid; not legal advice and not a decision under Article 6.";
 var USE_CASE_FIELD = "What the AI system does and for whom, in one or two sentences. Max 4000 characters. Not stored or echoed.";
@@ -22042,6 +22045,8 @@ var RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
 var PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
 var TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
+var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
+var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
@@ -22054,6 +22059,18 @@ function reportUrlFor(host) {
 }
 function sandboxUrlFor(host) {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
+}
+function proSignupUrlFor(host) {
+  return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+}
+function conciergeSignupUrlFor(host) {
+  return `${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+}
+function statusShieldUrlFor(host) {
+  return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
+}
+function statusShieldMarkdownFor(host) {
+  return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
 }
 
 // packages/mcp/src/tools/badge-copy.ts
@@ -22267,6 +22284,397 @@ function generateArt50Badge(input = {}) {
         doneForYouUrl: CONCIERGE_SIGNUP_URL
       },
       note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
+    }
+  };
+}
+
+// packages/mcp/src/version.ts
+var MCP_VERSION = "1.0.6";
+var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
+
+// packages/mcp/src/tools/scan-live-url.ts
+var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
+var SCAN_TIMEOUT_MS = 8e3;
+var MAX_URL_CHARS = 2048;
+var MAX_LIST_ITEMS = 50;
+var MAX_ITEM_CHARS = 120;
+var HOSTNAME_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
+var ScanTargetRejected = class extends Error {
+  code;
+  constructor(code, message) {
+    super(message);
+    this.name = "ScanTargetRejected";
+    this.code = code;
+  }
+};
+var INVALID2 = "The URL is not valid. Pass a public http(s) URL or a bare domain, for example stepnetwork.dk.";
+var BLOCKED = "That host is not a public address. localhost, private or reserved IPs and internal hosts are not scanned.";
+function normalizeHost(value) {
+  let host = value.trim().toLowerCase();
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
+  return host;
+}
+function isBlockedHostname(host) {
+  const suffixes = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
+  return suffixes.some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
+}
+function parseIpv4(value) {
+  const parts = value.split(".");
+  if (parts.length !== 4) return null;
+  let out = 0;
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part) || part.length > 1 && part.startsWith("0")) return null;
+    const num = Number(part);
+    if (num > 255) return null;
+    out = out * 256 + num;
+  }
+  return out;
+}
+var IPV4_PRIVATE = [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4]
+];
+function ipv4Public(ip) {
+  return !IPV4_PRIVATE.some(([literal2, bits]) => {
+    const base = parseIpv4(literal2) ?? 0;
+    const mask = bits === 0 ? 0 : 4294967295 << 32 - bits >>> 0;
+    return (ip >>> 0 & mask) === (base >>> 0 & mask);
+  });
+}
+function parseIpv6Groups(value) {
+  let text2 = value;
+  if (text2.includes(".")) {
+    const lastColon = text2.lastIndexOf(":");
+    if (lastColon === -1) return null;
+    const v4 = parseIpv4(text2.slice(lastColon + 1));
+    if (v4 === null) return null;
+    text2 = `${text2.slice(0, lastColon)}:${(v4 >>> 16 & 65535).toString(16)}:${(v4 & 65535).toString(16)}`;
+  }
+  const halves = text2.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  if (halves.length === 1 && head.length !== 8) return null;
+  const missing = 8 - head.length - tail.length;
+  if (halves.length === 2 && missing < 1) return null;
+  const groups = halves.length === 2 ? [...head, ...Array(missing).fill("0"), ...tail] : head;
+  if (groups.length !== 8) return null;
+  const nums = [];
+  for (const group of groups) {
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
+    nums.push(Number.parseInt(group, 16));
+  }
+  return nums;
+}
+function ipv6Public(groups) {
+  const [g0 = 0, g1 = 0, g2 = 0, g3 = 0, g4 = 0, g5 = 0, g6 = 0, g7 = 0] = groups;
+  const firstFiveZero = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
+  if (firstFiveZero && g5 === 65535) return ipv4Public((g6 << 16 | g7) >>> 0);
+  if (firstFiveZero && g5 === 0) return false;
+  if ((g0 & 65024) === 64512) return false;
+  if ((g0 & 65472) === 65152) return false;
+  if ((g0 & 65280) === 65280) return false;
+  if (g0 === 8193 && g1 === 3512) return false;
+  if (g0 === 100 && g1 === 65435) return false;
+  if (g0 === 8194) return false;
+  if (g0 === 8193 && (g1 & 65024) === 0) return false;
+  if (g0 === 256 && g1 === 0 && g2 === 0 && g3 === 0) return false;
+  return true;
+}
+function isPublicIpLiteral(host) {
+  const normalized = normalizeHost(host);
+  if (!normalized) return null;
+  if (normalized.includes("%")) return false;
+  if (normalized.includes(":")) {
+    const groups = parseIpv6Groups(normalized);
+    return groups ? ipv6Public(groups) : false;
+  }
+  const v4 = parseIpv4(normalized);
+  if (v4 !== null) return ipv4Public(v4);
+  if (/^[0-9.]+$/.test(normalized)) return false;
+  return null;
+}
+function normalizeScanTarget(raw) {
+  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", INVALID2);
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > MAX_URL_CHARS || /[\u0000-\u001f\u007f\s<>"'`\\]/.test(trimmed)) {
+    throw new ScanTargetRejected("invalid_url", INVALID2);
+  }
+  const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(trimmed)?.[1]?.toLowerCase();
+  if (scheme !== void 0 && scheme !== "http" && scheme !== "https") {
+    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
+  }
+  if (scheme === void 0 && /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) && !trimmed.startsWith("[")) {
+    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
+  }
+  let url;
+  try {
+    url = new URL(scheme === void 0 ? `https://${trimmed.replace(/^\/\//, "")}` : trimmed);
+  } catch {
+    throw new ScanTargetRejected("invalid_url", INVALID2);
+  }
+  if (url.username || url.password) {
+    throw new ScanTargetRejected("invalid_url", "Credentials are not allowed in a scan URL.");
+  }
+  const nonDefaultPort = url.port !== "";
+  url.protocol = "https:";
+  url.hash = "";
+  const host = normalizeHost(url.hostname);
+  if (!host) throw new ScanTargetRejected("invalid_url", INVALID2);
+  const ipPublic = isPublicIpLiteral(host);
+  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED);
+  if (ipPublic === null) {
+    if (isBlockedHostname(host)) throw new ScanTargetRejected("blocked_target", BLOCKED);
+    if (!HOSTNAME_RE.test(host)) {
+      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED);
+      throw new ScanTargetRejected("invalid_url", INVALID2);
+    }
+  }
+  if (nonDefaultPort) throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
+  return { url: url.toString(), host };
+}
+function scanLinks(host) {
+  return {
+    reportUrl: reportUrlFor(host),
+    sandboxUrl: sandboxUrlFor(host),
+    portfolioUrl: PORTFOLIO_URL,
+    statusShieldUrl: statusShieldUrlFor(host),
+    statusShieldMarkdown: statusShieldMarkdownFor(host),
+    upgradeUrls: {
+      proWhiteLabelAndAuditVault: proSignupUrlFor(host),
+      doneForYou24hSetup: conciergeSignupUrlFor(host)
+    }
+  };
+}
+function isRecord(value) {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function stringList(value) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const clean = item.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_ITEM_CHARS);
+    if (clean && !out.includes(clean)) out.push(clean);
+    if (out.length >= MAX_LIST_ITEMS) break;
+  }
+  return out;
+}
+function intOrNull(value, min, max) {
+  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max ? value : null;
+}
+function shortCode(value) {
+  return typeof value === "string" && /^[a-z0-9_]{1,40}$/.test(value) ? value : null;
+}
+function readUpstreamScan(body) {
+  if (!isRecord(body)) return null;
+  const scan = isRecord(body.scan) ? body.scan : body;
+  return typeof scan.reachable === "boolean" ? scan : null;
+}
+function baseResult(target) {
+  const locale = inferLocaleFromDomain(target.host);
+  return {
+    tool: "spurvik_scan_live_url",
+    host: target.host,
+    scannedUrl: target.url,
+    httpStatus: null,
+    score: null,
+    detectedWidgets: [],
+    detectedSdks: [],
+    detectedModel: null,
+    art50NoticeDetected: null,
+    markers: null,
+    suggestedLocale: locale,
+    suggestedLanguage: euLanguage(locale).label,
+    badgeSnippet: buildBadgeScript({ systemName: target.host, locale, theme: "dark", position: "bottom-right", attribution: true }),
+    ...scanLinks(target.host)
+  };
+}
+function fallback(target, reason) {
+  return {
+    ...baseResult(target),
+    offlineFallback: true,
+    status: "offline_fallback",
+    reason,
+    note: `The live scan service did not answer, so nothing was measured. Open sandboxUrl to run the scan in the browser, share reportUrl, or paste badgeSnippet before </body> for an Art. 50(1) notice. Not legal advice. ${PRICE_NOTE}`
+  };
+}
+function fromUpstream(target, scan) {
+  const reachable = scan.reachable === true;
+  const measured = scan.measured === true;
+  const markersRaw = isRecord(scan.markers) ? scan.markers : null;
+  const markers = markersRaw ? {
+    art50_1_disclosure: markersRaw.art50_1_disclosure === true,
+    art50_2_provenance: markersRaw.art50_2_provenance === true,
+    art50_4_synthetic: markersRaw.art50_4_synthetic === true,
+    art12_telemetry: markersRaw.art12_telemetry === true
+  } : null;
+  const httpStatus = intOrNull(scan.httpStatus, 100, 599);
+  const pageRead = reachable && httpStatus === null;
+  const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
+  return {
+    ...baseResult(target),
+    offlineFallback: false,
+    status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
+    reason: shortCode(scan.reason),
+    httpStatus,
+    score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
+    detectedWidgets: pageRead ? stringList(scan.detectedWidgets) : [],
+    detectedSdks: pageRead ? stringList(scan.detectedSdks) : [],
+    detectedModel: pageRead ? model : null,
+    art50NoticeDetected: pageRead && markers ? markers.art50_1_disclosure : null,
+    markers: pageRead ? markers : null,
+    note: `Heuristic check of one public page. It can miss a widget or a notice that loads later. Not legal advice. ${PRICE_NOTE}`
+  };
+}
+async function scanLiveUrl(rawUrl, deps = {}) {
+  let target;
+  try {
+    target = normalizeScanTarget(rawUrl);
+  } catch (error2) {
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
+    return { ok: false, error: "invalid_url", message: INVALID2 };
+  }
+  return { ok: true, result: await scanNormalizedTarget(target, deps) };
+}
+async function scanNormalizedTarget(target, deps = {}) {
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") return fallback(target, "fetch_unavailable");
+  let response;
+  try {
+    response = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(target.url)}`, {
+      method: "GET",
+      headers: { "User-Agent": MCP_USER_AGENT, Accept: "application/json" },
+      signal: AbortSignal.timeout(deps.timeoutMs ?? SCAN_TIMEOUT_MS)
+    });
+  } catch (error2) {
+    const name = error2 instanceof Error ? error2.name : "";
+    return fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error");
+  }
+  if (response.status !== 200) return fallback(target, `upstream_http_${response.status}`);
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    return fallback(target, "upstream_invalid_json");
+  }
+  const scan = readUpstreamScan(body);
+  if (!scan) return fallback(target, "upstream_invalid_shape");
+  return fromUpstream(target, scan);
+}
+
+// packages/mcp/src/tools/batch-scan-domains.ts
+var BATCH_MAX_DOMAINS = 10;
+var BATCH_SCAN_CONCURRENCY = 4;
+async function mapPool(items, limit, worker) {
+  const out = new Array(items.length);
+  let next = 0;
+  const lanes = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      out[index] = await worker(items[index]);
+    }
+  });
+  await Promise.all(lanes);
+  return out;
+}
+function isGap(result) {
+  return result.art50NoticeDetected === false && result.detectedWidgets.length + result.detectedSdks.length > 0;
+}
+function toDomainResult(result) {
+  return {
+    host: result.host,
+    scannedUrl: result.scannedUrl,
+    status: result.status,
+    offlineFallback: result.offlineFallback,
+    reason: result.reason,
+    score: result.score,
+    detectedWidgets: result.detectedWidgets,
+    detectedSdks: result.detectedSdks,
+    art50NoticeDetected: result.art50NoticeDetected,
+    gap: isGap(result),
+    suggestedLocale: result.suggestedLocale,
+    reportUrl: result.reportUrl,
+    sandboxUrl: result.sandboxUrl,
+    badgeSnippet: result.badgeSnippet,
+    statusShieldUrl: result.statusShieldUrl,
+    statusShieldMarkdown: result.statusShieldMarkdown
+  };
+}
+function validateDomains(input) {
+  if (!Array.isArray(input)) {
+    return { ok: false, error: "invalid_input", message: "Pass domains as an array of 1 to 10 public domains or URLs." };
+  }
+  if (input.length === 0) return { ok: false, error: "no_domains", message: "Pass at least 1 domain." };
+  if (input.length > BATCH_MAX_DOMAINS) {
+    return { ok: false, error: "too_many_domains", message: `Pass at most ${BATCH_MAX_DOMAINS} domains per batch.` };
+  }
+  const rejected = [];
+  const targets = [];
+  const seen = /* @__PURE__ */ new Set();
+  let duplicatesRemoved = 0;
+  input.forEach((entry, index) => {
+    let target;
+    try {
+      target = normalizeScanTarget(entry);
+    } catch (error2) {
+      rejected.push({ position: index + 1, error: error2 instanceof ScanTargetRejected ? error2.code : "invalid_url" });
+      return;
+    }
+    if (seen.has(target.host)) {
+      duplicatesRemoved += 1;
+      return;
+    }
+    seen.add(target.host);
+    targets.push(target);
+  });
+  if (rejected.length > 0) {
+    const blocked = rejected.some((entry) => entry.error === "blocked_target");
+    const positions = rejected.map((entry) => entry.position).join(", ");
+    const which = rejected.length === 1 ? `Entry ${positions} is not a public http(s) domain.` : `Entries ${positions} are not public http(s) domains.`;
+    return {
+      ok: false,
+      error: blocked ? "blocked_target" : "invalid_url",
+      message: `Nothing was scanned. ${which} localhost, private or reserved IPs, internal hosts, credentials and non-default ports are refused.`,
+      rejected
+    };
+  }
+  return { ok: true, targets, duplicatesRemoved };
+}
+async function batchScanDomains(domains, deps = {}) {
+  const checked = validateDomains(domains);
+  if (!checked.ok) return checked;
+  const scans = await mapPool(checked.targets, BATCH_SCAN_CONCURRENCY, (target) => scanNormalizedTarget(target, deps));
+  const results = scans.map(toDomainResult);
+  const offlineFallbacks = results.filter((result) => result.offlineFallback).length;
+  return {
+    ok: true,
+    result: {
+      tool: "spurvik_batch_scan_domains",
+      totalDomains: results.length,
+      duplicatesRemoved: checked.duplicatesRemoved,
+      scannedDomains: results.length - offlineFallbacks,
+      gapsFound: results.filter((result) => result.gap).length,
+      offlineFallbacks,
+      results,
+      portfolioUrl: PORTFOLIO_URL,
+      upgradeUrls: { teamAgencyPack: TEAM_SIGNUP_URL, doneForYouPerSite: CONCIERGE_SIGNUP_URL },
+      prices: { teamAgencyPack: TEAM_PRICE, doneForYouPerSite: CONCIERGE_PRICE },
+      note: `Heuristic check of one public page per domain. It can miss a widget or a notice that loads later. A row with offlineFallback: true was not measured; rerun it later or open portfolioUrl. Not legal advice. ${PRICE_NOTE}`
     }
   };
 }
@@ -22760,7 +23168,7 @@ function fieldCopy(name) {
       return "Field on the pasted JSON.";
   }
 }
-function isRecord(value) {
+function isRecord2(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function rejectShortSigningInput(secret) {
@@ -22815,16 +23223,16 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   } catch {
     throw new Error(RECEIPT_NOT_JSON);
   }
-  if (!isRecord(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord2(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
   let markedOutput;
   let body = parsed;
   let readFromWrapper = false;
-  if (isRecord(parsed.record)) {
+  if (isRecord2(parsed.record)) {
     body = parsed.record;
     readFromWrapper = true;
     if (typeof parsed.markedOutput === "string") markedOutput = parsed.markedOutput;
   }
-  if (!isRecord(body)) throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord2(body)) throw new Error(RECEIPT_NOT_OBJECT);
   const lines = ["HMAC provenance receipt", ""];
   if (readFromWrapper) {
     lines.push(
@@ -23700,290 +24108,6 @@ function markingHooksText(surface = "both") {
   );
   return `${parts.join("\n\n")}
 `;
-}
-
-// packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.5";
-var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
-
-// packages/mcp/src/tools/scan-live-url.ts
-var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
-var SCAN_TIMEOUT_MS = 8e3;
-var MAX_URL_CHARS = 2048;
-var MAX_LIST_ITEMS = 50;
-var MAX_ITEM_CHARS = 120;
-var HOSTNAME_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])$/;
-var ScanTargetRejected = class extends Error {
-  code;
-  constructor(code, message) {
-    super(message);
-    this.name = "ScanTargetRejected";
-    this.code = code;
-  }
-};
-var INVALID2 = "The URL is not valid. Pass a public http(s) URL or a bare domain, for example stepnetwork.dk.";
-var BLOCKED = "That host is not a public address. localhost, private or reserved IPs and internal hosts are not scanned.";
-function normalizeHost(value) {
-  let host = value.trim().toLowerCase();
-  if (host.endsWith(".")) host = host.slice(0, -1);
-  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
-  return host;
-}
-function isBlockedHostname(host) {
-  const suffixes = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp"];
-  return suffixes.some((suffix) => host === suffix || host.endsWith(`.${suffix}`));
-}
-function parseIpv4(value) {
-  const parts = value.split(".");
-  if (parts.length !== 4) return null;
-  let out = 0;
-  for (const part of parts) {
-    if (!/^\d{1,3}$/.test(part) || part.length > 1 && part.startsWith("0")) return null;
-    const num = Number(part);
-    if (num > 255) return null;
-    out = out * 256 + num;
-  }
-  return out;
-}
-var IPV4_PRIVATE = [
-  ["0.0.0.0", 8],
-  ["10.0.0.0", 8],
-  ["100.64.0.0", 10],
-  ["127.0.0.0", 8],
-  ["169.254.0.0", 16],
-  ["172.16.0.0", 12],
-  ["192.0.0.0", 24],
-  ["192.0.2.0", 24],
-  ["192.168.0.0", 16],
-  ["198.18.0.0", 15],
-  ["198.51.100.0", 24],
-  ["203.0.113.0", 24],
-  ["224.0.0.0", 4],
-  ["240.0.0.0", 4]
-];
-function ipv4Public(ip) {
-  return !IPV4_PRIVATE.some(([literal2, bits]) => {
-    const base = parseIpv4(literal2) ?? 0;
-    const mask = bits === 0 ? 0 : 4294967295 << 32 - bits >>> 0;
-    return (ip >>> 0 & mask) === (base >>> 0 & mask);
-  });
-}
-function parseIpv6Groups(value) {
-  let text2 = value;
-  if (text2.includes(".")) {
-    const lastColon = text2.lastIndexOf(":");
-    if (lastColon === -1) return null;
-    const v4 = parseIpv4(text2.slice(lastColon + 1));
-    if (v4 === null) return null;
-    text2 = `${text2.slice(0, lastColon)}:${(v4 >>> 16 & 65535).toString(16)}:${(v4 & 65535).toString(16)}`;
-  }
-  const halves = text2.split("::");
-  if (halves.length > 2) return null;
-  const head = halves[0] ? halves[0].split(":") : [];
-  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
-  if (halves.length === 1 && head.length !== 8) return null;
-  const missing = 8 - head.length - tail.length;
-  if (halves.length === 2 && missing < 1) return null;
-  const groups = halves.length === 2 ? [...head, ...Array(missing).fill("0"), ...tail] : head;
-  if (groups.length !== 8) return null;
-  const nums = [];
-  for (const group of groups) {
-    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
-    nums.push(Number.parseInt(group, 16));
-  }
-  return nums;
-}
-function ipv6Public(groups) {
-  const [g0 = 0, g1 = 0, g2 = 0, g3 = 0, g4 = 0, g5 = 0, g6 = 0, g7 = 0] = groups;
-  const firstFiveZero = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
-  if (firstFiveZero && g5 === 65535) return ipv4Public((g6 << 16 | g7) >>> 0);
-  if (firstFiveZero && g5 === 0) return false;
-  if ((g0 & 65024) === 64512) return false;
-  if ((g0 & 65472) === 65152) return false;
-  if ((g0 & 65280) === 65280) return false;
-  if (g0 === 8193 && g1 === 3512) return false;
-  if (g0 === 100 && g1 === 65435) return false;
-  if (g0 === 8194) return false;
-  if (g0 === 8193 && (g1 & 65024) === 0) return false;
-  if (g0 === 256 && g1 === 0 && g2 === 0 && g3 === 0) return false;
-  return true;
-}
-function isPublicIpLiteral(host) {
-  const normalized = normalizeHost(host);
-  if (!normalized) return null;
-  if (normalized.includes("%")) return false;
-  if (normalized.includes(":")) {
-    const groups = parseIpv6Groups(normalized);
-    return groups ? ipv6Public(groups) : false;
-  }
-  const v4 = parseIpv4(normalized);
-  if (v4 !== null) return ipv4Public(v4);
-  if (/^[0-9.]+$/.test(normalized)) return false;
-  return null;
-}
-function normalizeScanTarget(raw) {
-  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", INVALID2);
-  const trimmed = raw.trim();
-  if (!trimmed || trimmed.length > MAX_URL_CHARS || /[\u0000-\u001f\u007f\s<>"'`\\]/.test(trimmed)) {
-    throw new ScanTargetRejected("invalid_url", INVALID2);
-  }
-  const scheme = /^([a-z][a-z0-9+.-]*):\/\//i.exec(trimmed)?.[1]?.toLowerCase();
-  if (scheme !== void 0 && scheme !== "http" && scheme !== "https") {
-    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
-  }
-  if (scheme === void 0 && /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) && !trimmed.startsWith("[")) {
-    throw new ScanTargetRejected("invalid_url", "Only http and https URLs can be scanned.");
-  }
-  let url;
-  try {
-    url = new URL(scheme === void 0 ? `https://${trimmed.replace(/^\/\//, "")}` : trimmed);
-  } catch {
-    throw new ScanTargetRejected("invalid_url", INVALID2);
-  }
-  if (url.username || url.password) {
-    throw new ScanTargetRejected("invalid_url", "Credentials are not allowed in a scan URL.");
-  }
-  const nonDefaultPort = url.port !== "";
-  url.protocol = "https:";
-  url.hash = "";
-  const host = normalizeHost(url.hostname);
-  if (!host) throw new ScanTargetRejected("invalid_url", INVALID2);
-  const ipPublic = isPublicIpLiteral(host);
-  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED);
-  if (ipPublic === null) {
-    if (isBlockedHostname(host)) throw new ScanTargetRejected("blocked_target", BLOCKED);
-    if (!HOSTNAME_RE.test(host)) {
-      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED);
-      throw new ScanTargetRejected("invalid_url", INVALID2);
-    }
-  }
-  if (nonDefaultPort) throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
-  return { url: url.toString(), host };
-}
-function scanLinks(host) {
-  return {
-    reportUrl: reportUrlFor(host),
-    sandboxUrl: sandboxUrlFor(host),
-    upgradeUrls: {
-      proWhiteLabelAndAuditVault: PRO_SIGNUP_URL,
-      doneForYou24hSetup: CONCIERGE_SIGNUP_URL
-    }
-  };
-}
-function isRecord2(value) {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-function stringList(value) {
-  if (!Array.isArray(value)) return [];
-  const out = [];
-  for (const item of value) {
-    if (typeof item !== "string") continue;
-    const clean = item.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_ITEM_CHARS);
-    if (clean && !out.includes(clean)) out.push(clean);
-    if (out.length >= MAX_LIST_ITEMS) break;
-  }
-  return out;
-}
-function intOrNull(value, min, max) {
-  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max ? value : null;
-}
-function shortCode(value) {
-  return typeof value === "string" && /^[a-z0-9_]{1,40}$/.test(value) ? value : null;
-}
-function readUpstreamScan(body) {
-  if (!isRecord2(body)) return null;
-  const scan = isRecord2(body.scan) ? body.scan : body;
-  return typeof scan.reachable === "boolean" ? scan : null;
-}
-function baseResult(target) {
-  const locale = inferLocaleFromDomain(target.host);
-  return {
-    tool: "spurvik_scan_live_url",
-    host: target.host,
-    scannedUrl: target.url,
-    httpStatus: null,
-    score: null,
-    detectedWidgets: [],
-    detectedSdks: [],
-    detectedModel: null,
-    art50NoticeDetected: null,
-    markers: null,
-    suggestedLocale: locale,
-    suggestedLanguage: euLanguage(locale).label,
-    badgeSnippet: buildBadgeScript({ systemName: target.host, locale, theme: "dark", position: "bottom-right", attribution: true }),
-    ...scanLinks(target.host)
-  };
-}
-function fallback(target, reason) {
-  return {
-    ...baseResult(target),
-    offlineFallback: true,
-    status: "offline_fallback",
-    reason,
-    note: `The live scan service did not answer, so nothing was measured. Open sandboxUrl to run the scan in the browser, share reportUrl, or paste badgeSnippet before </body> for an Art. 50(1) notice. Not legal advice. ${PRICE_NOTE}`
-  };
-}
-function fromUpstream(target, scan) {
-  const reachable = scan.reachable === true;
-  const measured = scan.measured === true;
-  const markersRaw = isRecord2(scan.markers) ? scan.markers : null;
-  const markers = markersRaw ? {
-    art50_1_disclosure: markersRaw.art50_1_disclosure === true,
-    art50_2_provenance: markersRaw.art50_2_provenance === true,
-    art50_4_synthetic: markersRaw.art50_4_synthetic === true,
-    art12_telemetry: markersRaw.art12_telemetry === true
-  } : null;
-  const httpStatus = intOrNull(scan.httpStatus, 100, 599);
-  const pageRead = reachable && httpStatus === null;
-  const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
-  return {
-    ...baseResult(target),
-    offlineFallback: false,
-    status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
-    reason: shortCode(scan.reason),
-    httpStatus,
-    score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
-    detectedWidgets: pageRead ? stringList(scan.detectedWidgets) : [],
-    detectedSdks: pageRead ? stringList(scan.detectedSdks) : [],
-    detectedModel: pageRead ? model : null,
-    art50NoticeDetected: pageRead && markers ? markers.art50_1_disclosure : null,
-    markers: pageRead ? markers : null,
-    note: `Heuristic check of one public page. It can miss a widget or a notice that loads later. Not legal advice. ${PRICE_NOTE}`
-  };
-}
-async function scanLiveUrl(rawUrl, deps = {}) {
-  let target;
-  try {
-    target = normalizeScanTarget(rawUrl);
-  } catch (error2) {
-    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
-    return { ok: false, error: "invalid_url", message: INVALID2 };
-  }
-  const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function") return { ok: true, result: fallback(target, "fetch_unavailable") };
-  let response;
-  try {
-    response = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(target.url)}`, {
-      method: "GET",
-      headers: { "User-Agent": MCP_USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(deps.timeoutMs ?? SCAN_TIMEOUT_MS)
-    });
-  } catch (error2) {
-    const name = error2 instanceof Error ? error2.name : "";
-    return { ok: true, result: fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error") };
-  }
-  if (response.status !== 200) {
-    return { ok: true, result: fallback(target, `upstream_http_${response.status}`) };
-  }
-  let body;
-  try {
-    body = await response.json();
-  } catch {
-    return { ok: true, result: fallback(target, "upstream_invalid_json") };
-  }
-  const scan = readUpstreamScan(body);
-  if (!scan) return { ok: true, result: fallback(target, "upstream_invalid_shape") };
-  return { ok: true, result: fromUpstream(target, scan) };
 }
 
 // packages/mcp/node_modules/.pnpm/spurvik-sdk@1.0.7_ai@7.0.148_zod@3.25.76_/node_modules/spurvik-sdk/dist/chunk-USMDB5I2.js
@@ -27986,7 +28110,8 @@ function text(value) {
 }
 function json(outcome) {
   if (!outcome.ok) {
-    return { ...text(JSON.stringify({ error: outcome.error, message: outcome.message }, null, 2)), isError: true };
+    const body = outcome.rejected ? { error: outcome.error, message: outcome.message, rejected: outcome.rejected } : { error: outcome.error, message: outcome.message };
+    return { ...text(JSON.stringify(body, null, 2)), isError: true };
   }
   return text(JSON.stringify(outcome.result, null, 2));
 }
@@ -28076,6 +28201,18 @@ function createServer(workspaceRoot, options = {}) {
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
     async ({ url }) => json(await scanLiveUrl(url, options.scan))
+  );
+  server.registerTool(
+    "spurvik_batch_scan_domains",
+    {
+      title: BATCH_TITLE,
+      description: BATCH_DESCRIPTION,
+      inputSchema: {
+        domains: external_exports.array(external_exports.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
+    },
+    async ({ domains }) => json(await batchScanDomains(domains, options.scan))
   );
   server.registerTool(
     "spurvik_classify_ai_act_risk",

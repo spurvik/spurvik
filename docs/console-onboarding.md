@@ -1,6 +1,6 @@
 # Console onboarding
 
-> Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.5`.
+> Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.9`, `spurvik-sdk@1.0.9`, `spurvik-mcp-server@1.0.6`.
 >
 > Not legal advice. This guide describes the hosted console and the packages in this repository. It does not assess your system.
 
@@ -17,7 +17,7 @@ npm install openai spurvik@1.0.9
 ```
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.5
+npm i -D spurvik-mcp-server@1.0.6
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 

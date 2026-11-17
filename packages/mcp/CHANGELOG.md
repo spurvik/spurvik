@@ -1,8 +1,20 @@
 # spurvik-mcp-server
 
-## Unreleased
+## 1.0.6 — 2026-11-17
 
-- `spurvik_setup_snippet` pins `spurvik@1.0.9` and `spurvik-sdk@1.0.9` (`SNIPPET_SDK_VERSION`). The Claude Code plugin bundle `plugins/spurvik/bin/spurvik-mcp.mjs` is rebuilt from this tree.
+Published as `spurvik-mcp-server@1.0.6`. The local stdio server has eight zero-key tools. The hosted MCP server at `https://console.spurvik.com/api/mcp` still lists seven; it does not have `spurvik_batch_scan_domains`.
+
+### Added
+
+- `spurvik_batch_scan_domains` `{ domains }`: scans 1 to 10 public domains or http(s) URLs. Every entry goes through `normalizeScanTarget` first. If any entry is refused (localhost, `.local`/`.internal` hosts, private, loopback, link-local and reserved IP literals, credentials, non-default ports, non-http(s) schemes), the whole batch returns `isError: true` with `rejected: [{ position, error }]` and no request is made. Entry values are not echoed. Duplicate hosts are scanned once (`duplicatesRemoved`). Each host is one `GET https://console.spurvik.com/api/v1/sandbox/scan?url=<encoded>` call (8-second timeout, `User-Agent: spurvik-mcp-server/1.0.6`), at most 4 at once. The console's `POST /api/v1/sandbox/batch-scan` refuses requests that are not same-origin (`403`), so the stdio server does not call it. Returns `totalDomains`, `scannedDomains`, `gapsFound` (page read, AI chat widget or AI SDK found, no Art. 50(1) notice; the same rule as the console `/portfolio`), `offlineFallbacks`, one row per host (`host`, `status`, `detectedWidgets`, `detectedSdks`, `art50NoticeDetected`, `gap`, `reportUrl`, `sandboxUrl`, `badgeSnippet`, `statusShieldUrl`, `statusShieldMarkdown`), `portfolioUrl` (`https://console.spurvik.com/portfolio`) and `upgradeUrls` (`teamAgencyPack`: `https://console.spurvik.com/signup?plan=team`, Team €79/mo; `doneForYouPerSite`: `https://console.spurvik.com/signup?plan=concierge`, €199 once; excl. VAT). A failed, timed-out or rate-limited host gets `offlineFallback: true` in its row and the batch still returns. Nothing is logged. Open-world (`openWorldHint: true`).
+- `spurvik_scan_live_url` returns `portfolioUrl`, `statusShieldUrl` (`https://console.spurvik.com/api/v1/badge/status.svg?domain=<host>`) and `statusShieldMarkdown` (`[![EU AI Act Art. 50](<statusShieldUrl>)](<reportUrl>)`), so a coding agent can offer to add the live Art. 50 status shield to a project `README.md`.
+- `@spurvik/mcp/tools` exports `batchScanDomains`, `BATCH_SCAN_DOMAINS_INPUT_JSON_SCHEMA`, `BATCH_MAX_DOMAINS`, `BATCH_SCAN_CONCURRENCY`, `statusShieldUrlFor`, `statusShieldMarkdownFor`, `proSignupUrlFor`, `conciergeSignupUrlFor` and `PORTFOLIO_URL`.
+
+### Changed
+
+- `spurvik_scan_live_url` `upgradeUrls.proWhiteLabelAndAuditVault` and `upgradeUrls.doneForYou24hSetup` append `&appUrl=<host>`, so the console signup form opens with the scanned domain filled in.
+- `spurvik_setup_snippet` pins `spurvik@1.0.9` and `spurvik-sdk@1.0.9` (`SNIPPET_SDK_VERSION`).
+- Server instructions name both network tools. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), the Claude plugin manifests (`1.0.6`), `spurvik-com-well-known-mcp.json` and the bundled plugin server `plugins/spurvik/bin/spurvik-mcp.mjs` pin `spurvik-mcp-server@1.0.6`.
 
 ## 1.0.5 — 2026-11-13
 

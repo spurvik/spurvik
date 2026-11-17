@@ -151,7 +151,7 @@ describe("scanLiveUrl", () => {
     expect(String(input)).toBe("https://console.spurvik.com/api/v1/sandbox/scan?url=https%3A%2F%2Fstepnetwork.dk%2F");
     expect(init?.method).toBe("GET");
     expect((init?.headers as Record<string, string>)["User-Agent"]).toBe(MCP_USER_AGENT);
-    expect(MCP_USER_AGENT).toBe("spurvik-mcp-server/1.0.5");
+    expect(MCP_USER_AGENT).toBe("spurvik-mcp-server/1.0.6");
     expect(init?.signal).toBeInstanceOf(AbortSignal);
     expect(timeoutSpy).toHaveBeenCalledWith(SCAN_TIMEOUT_MS);
     expect(SCAN_TIMEOUT_MS).toBe(8000);
@@ -172,9 +172,13 @@ describe("scanLiveUrl", () => {
       suggestedLanguage: "Dansk (da)",
       reportUrl: "https://console.spurvik.com/report?domain=stepnetwork.dk",
       sandboxUrl: "https://console.spurvik.com/sandbox?scan=stepnetwork.dk",
+      portfolioUrl: "https://console.spurvik.com/portfolio",
+      statusShieldUrl: "https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk",
+      statusShieldMarkdown:
+        "[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk)](https://console.spurvik.com/report?domain=stepnetwork.dk)",
       upgradeUrls: {
-        proWhiteLabelAndAuditVault: "https://console.spurvik.com/signup?plan=pro",
-        doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge",
+        proWhiteLabelAndAuditVault: "https://console.spurvik.com/signup?plan=pro&appUrl=stepnetwork.dk",
+        doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge&appUrl=stepnetwork.dk",
       },
     });
     expect(result.markers?.art12_telemetry).toBe(true);
@@ -226,8 +230,36 @@ describe("scanLiveUrl", () => {
       art50NoticeDetected: null,
       reportUrl: "https://console.spurvik.com/report?domain=stepnetwork.dk",
       sandboxUrl: "https://console.spurvik.com/sandbox?scan=stepnetwork.dk",
+      portfolioUrl: "https://console.spurvik.com/portfolio",
+      statusShieldUrl: "https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk",
+      upgradeUrls: {
+        proWhiteLabelAndAuditVault: "https://console.spurvik.com/signup?plan=pro&appUrl=stepnetwork.dk",
+        doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge&appUrl=stepnetwork.dk",
+      },
     });
     expect(result.badgeSnippet).toMatch(/^<script src="https:\/\/spurvik\.com\/badge\.js" [^\n]+><\/script>$/);
+  });
+
+  it("encodes the host in the shield, report and signup links (IPv6 and IDN hosts)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ scan: UPSTREAM_SCAN })));
+    const ipv6 = await expectOk(scanLiveUrl("[2606:4700:4700::1111]"));
+    const encoded = encodeURIComponent("2606:4700:4700::1111");
+    expect(encoded).toBe("2606%3A4700%3A4700%3A%3A1111");
+    expect(ipv6.statusShieldUrl).toBe(`https://console.spurvik.com/api/v1/badge/status.svg?domain=${encoded}`);
+    expect(ipv6.statusShieldMarkdown).toBe(
+      `[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=${encoded})](https://console.spurvik.com/report?domain=${encoded})`,
+    );
+    expect(ipv6.upgradeUrls.proWhiteLabelAndAuditVault).toBe(`https://console.spurvik.com/signup?plan=pro&appUrl=${encoded}`);
+    expect(ipv6.upgradeUrls.doneForYou24hSetup).toBe(`https://console.spurvik.com/signup?plan=concierge&appUrl=${encoded}`);
+
+    const idn = await expectOk(scanLiveUrl("https://bücher.de/shop?a=(1)"));
+    expect(idn.host).toBe("xn--bcher-kva.de");
+    expect(idn.statusShieldMarkdown).toBe(
+      "[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=xn--bcher-kva.de)](https://console.spurvik.com/report?domain=xn--bcher-kva.de)",
+    );
+    // Only the host goes into the links, never the path or query of the scanned URL.
+    expect(idn.statusShieldMarkdown).not.toContain("shop");
+    expect(idn.upgradeUrls.proWhiteLabelAndAuditVault).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=xn--bcher-kva.de");
   });
 
   it("returns a fallback when the network fails", async () => {

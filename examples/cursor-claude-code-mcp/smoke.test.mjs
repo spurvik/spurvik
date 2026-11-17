@@ -11,21 +11,21 @@ const root = join(here, "..", "..");
 const serverBin = join(root, "plugins", "spurvik", "bin", "spurvik-mcp.mjs");
 const { withSpurvik, provenanceOf } = await import(join(root, "packages/spurvik/dist/index.js"));
 
-test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.5", () => {
+test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.6", () => {
   const cursorCfg = JSON.parse(readFileSync(join(here, "cursor.mcp.json"), "utf8"));
   assert.equal(cursorCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.5"));
+  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.6"));
 
   const claudeCfg = JSON.parse(readFileSync(join(here, "claude-code.mcp.json"), "utf8"));
   assert.equal(claudeCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.5"));
+  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.6"));
 
   const vscodeCfg = JSON.parse(readFileSync(join(here, "vscode.mcp.json"), "utf8"));
   assert.equal(vscodeCfg.servers.spurvik.command, "npx");
-  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.5"));
+  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.6"));
 });
 
-test("Stdio MCP server exposes all 7 read-only tools and executes the core tools over JSON-RPC", async () => {
+test("Stdio MCP server exposes all 8 read-only tools and executes the core tools over JSON-RPC", async () => {
   const workDir = mkdtempSync(join(tmpdir(), "spurvik-mcp-stdio-"));
   writeFileSync(join(workDir, "package.json"), JSON.stringify({ name: "mcp-demo", private: true }));
   writeFileSync(
@@ -96,6 +96,7 @@ test("Stdio MCP server exposes all 7 read-only tools and executes the core tools
     const listRes = await waitId(2);
     const toolNames = (listRes?.result?.tools ?? []).map((t) => t.name).sort();
     assert.deepEqual(toolNames, [
+      "spurvik_batch_scan_domains",
       "spurvik_classify_ai_act_risk",
       "spurvik_explain_receipt",
       "spurvik_find_unwrapped_calls",

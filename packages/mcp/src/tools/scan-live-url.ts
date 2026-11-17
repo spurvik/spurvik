@@ -1,10 +1,13 @@
 import {
-  CONCIERGE_SIGNUP_URL,
+  conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
+  PORTFOLIO_URL,
   PRICE_NOTE,
-  PRO_SIGNUP_URL,
+  proSignupUrlFor,
   reportUrlFor,
   sandboxUrlFor,
+  statusShieldMarkdownFor,
+  statusShieldUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -53,6 +56,13 @@ export class ScanTargetRejected extends Error {
 export interface ScanLiveUrlLinks {
   reportUrl: string;
   sandboxUrl: string;
+  /** Multi-domain cockpit for agencies (up to 10 domains per batch). */
+  portfolioUrl: string;
+  /** Live Art. 50 status shield SVG for this host. */
+  statusShieldUrl: string;
+  /** README Markdown: the status shield linked to reportUrl. */
+  statusShieldMarkdown: string;
+  /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: { proWhiteLabelAndAuditVault: string; doneForYou24hSetup: string };
 }
 
@@ -248,9 +258,12 @@ function scanLinks(host: string): ScanLiveUrlLinks {
   return {
     reportUrl: reportUrlFor(host),
     sandboxUrl: sandboxUrlFor(host),
+    portfolioUrl: PORTFOLIO_URL,
+    statusShieldUrl: statusShieldUrlFor(host),
+    statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
-      proWhiteLabelAndAuditVault: PRO_SIGNUP_URL,
-      doneForYou24hSetup: CONCIERGE_SIGNUP_URL,
+      proWhiteLabelAndAuditVault: proSignupUrlFor(host),
+      doneForYou24hSetup: conciergeSignupUrlFor(host),
     },
   };
 }
@@ -360,8 +373,16 @@ export async function scanLiveUrl(rawUrl: unknown, deps: ScanLiveUrlDeps = {}): 
     if (error instanceof ScanTargetRejected) return { ok: false, error: error.code, message: error.message };
     return { ok: false, error: "invalid_url", message: INVALID };
   }
+  return { ok: true, result: await scanNormalizedTarget(target, deps) };
+}
+
+/**
+ * One console scan for a target that already passed `normalizeScanTarget`.
+ * Never throws for network trouble and logs nothing, like `scanLiveUrl`.
+ */
+export async function scanNormalizedTarget(target: ScanTarget, deps: ScanLiveUrlDeps = {}): Promise<ScanLiveUrlResult> {
   const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function") return { ok: true, result: fallback(target, "fetch_unavailable") };
+  if (typeof fetchImpl !== "function") return fallback(target, "fetch_unavailable");
   let response: Response;
   try {
     response = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(target.url)}`, {
@@ -371,18 +392,16 @@ export async function scanLiveUrl(rawUrl: unknown, deps: ScanLiveUrlDeps = {}): 
     });
   } catch (error) {
     const name = error instanceof Error ? error.name : "";
-    return { ok: true, result: fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error") };
+    return fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error");
   }
-  if (response.status !== 200) {
-    return { ok: true, result: fallback(target, `upstream_http_${response.status}`) };
-  }
+  if (response.status !== 200) return fallback(target, `upstream_http_${response.status}`);
   let body: unknown;
   try {
     body = await response.json();
   } catch {
-    return { ok: true, result: fallback(target, "upstream_invalid_json") };
+    return fallback(target, "upstream_invalid_json");
   }
   const scan = readUpstreamScan(body);
-  if (!scan) return { ok: true, result: fallback(target, "upstream_invalid_shape") };
-  return { ok: true, result: fromUpstream(target, scan) };
+  if (!scan) return fallback(target, "upstream_invalid_shape");
+  return fromUpstream(target, scan);
 }
