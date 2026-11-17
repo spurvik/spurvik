@@ -177,7 +177,7 @@ if (description) {
     const credential = node.credentials?.spurvikApi;
     const credentialUsed = shownFor(credentialSpec, node.parameters, description.properties);
     if (!credentialUsed) {
-      // scanDomain needs no credential: the descriptor hides spurvikApi for it.
+      // scanDomain and batchScanDomains need no credential: the descriptor hides spurvikApi for them.
       if (credential) fail(`${node.name} references spurvikApi, but operation ${node.parameters?.operation} uses no credential`);
     } else if (!credential || typeof credential.id !== "string" || !credential.id || typeof credential.name !== "string" || !credential.name) {
       fail(`${node.name} is missing a spurvikApi credential reference`);
@@ -210,6 +210,7 @@ if (description) {
       art12_hmac_log: ["inputField"],
       art14_ask_human: ["channel", "callbackBaseUrl", "actionName", "actionSummary"],
       scanDomain: ["domainOrUrl"],
+      batchScanDomains: ["domainsList"],
     };
     for (const name of operationFields[operation] ?? []) {
       if (node.parameters?.[name] === undefined || node.parameters[name] === "") {

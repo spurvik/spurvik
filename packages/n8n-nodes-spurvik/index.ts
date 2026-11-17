@@ -9,10 +9,14 @@ export type {
   SpurvikWorkflowOperation,
 } from "./workflow";
 export {
+  batchScanSpurvikDomains,
   normalizeScanDomain,
+  parseBatchDomains,
   scanSpurvikDomain,
 } from "./scan-domain";
 export type {
+  SpurvikBatchScanInput,
+  SpurvikBatchScanOutput,
   SpurvikScanDomainInput,
   SpurvikScanDomainOutput,
   SpurvikScanMarkers,

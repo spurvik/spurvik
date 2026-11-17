@@ -344,7 +344,7 @@ check() {
   mkdir -p /tmp/spurvik-registry-check
   cd /tmp/spurvik-registry-check || exit 1
   npm init -y
-  npm install spurvik@1.0.9 spurvik-sdk@1.0.9 n8n-nodes-spurvik@1.0.5
+  npm install spurvik@1.0.9 spurvik-sdk@1.0.9 n8n-nodes-spurvik@1.0.6
 )
 ```
 
@@ -578,9 +578,9 @@ rm -rf "$work"
 )
 ```
 
-## Releasing n8n-nodes-spurvik@1.0.5
+## Releasing n8n-nodes-spurvik@1.0.6
 
-`n8n-nodes-spurvik@1.0.5` adds the zero-key Scan Live Domain operation (`scanDomain`). It still depends on `spurvik-sdk@^1.0.8` from the registry. `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server` are not bumped by this release. Never republish an existing version, and do not pass `--provenance`.
+`n8n-nodes-spurvik@1.0.6` adds the zero-key Batch Scan operation (`batchScanDomains`, 1 to 10 domains) and `portfolioUrl`, `statusShieldUrl`, and `statusShieldMarkdown` on Scan Live Domain. 1.0.5 added `scanDomain`. It still depends on `spurvik-sdk@^1.0.8` from the registry. `spurvik`, `spurvik-sdk`, and `spurvik-mcp-server` are not bumped by this release. Never republish an existing version, and do not pass `--provenance`.
 
 Build, test, and pack from a clean detached worktree of the QA-passed commit with the same script used for the other packages. It runs `npm install --no-package-lock --legacy-peer-deps`, `npm run build`, `npm test`, and `bash scripts/ci/no-default-keys.sh` before `npm pack`, and prints the `.tgz` sha1 and the uncompressed tar sha1:
 
@@ -591,12 +591,12 @@ node /Users/nate/Terra/terra-core/scripts/mac-clean-release.mjs --sha "$QA_SHA" 
 ```
 
 ```bash
-# n8n 1.0.5 registry install check. Run only after n8n-nodes-spurvik@1.0.5 is on the registry.
+# n8n 1.0.6 registry install check. Run only after n8n-nodes-spurvik@1.0.6 is on the registry.
 (
   rm -rf /tmp/spurvik-n8n-registry-check
   mkdir -p /tmp/spurvik-n8n-registry-check
   cd /tmp/spurvik-n8n-registry-check || exit 1
   npm init -y
-  npm install n8n-nodes-spurvik@1.0.5
+  npm install n8n-nodes-spurvik@1.0.6
 )
 ```

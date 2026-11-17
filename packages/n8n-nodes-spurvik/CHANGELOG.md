@@ -1,3 +1,12 @@
+## n8n-nodes-spurvik 1.0.6 — 2026-11-17
+
+- Added the **Batch Scan up to 10 Domains (Agency Roster)** operation (`batchScanDomains`). It needs no credential and no API key: `spurvikApi` is hidden for `scanDomain` and `batchScanDomains`, and both never read it. New parameter `domainsList` (shown only for `batchScanDomains`, 3 rows): 1 to 10 domains or http(s) URLs separated by commas, spaces, or new lines, or an array of strings from an expression.
+- Every batch entry and `consoleBaseUrl` are validated before the first request. An empty list, more than 10 entries, or one entry that Scan Live Domain would refuse (localhost, IP literals, internal names, `user@`, non-default ports, non-http schemes, non-strings) throws with the entry position only and sends nothing. Duplicate hosts are scanned once.
+- Hosts are scanned with the Scan Live Domain call, at most 4 in flight. Output: `totalDomains`, `gapsFound` (reachable hosts with a detected widget and no Art. 50 notice), `results` (one Scan Live Domain row per host, input order), `portfolioUrl`, `agencyCalculatorUrl`, and plan `upgradeUrls` (Pro €19/mo, Team €79/mo, Done-For-You €199 once). A failing host returns its own `scanStatus: "offline"` row. Nothing from the incoming item is copied.
+- Scan Live Domain output adds `portfolioUrl`, `statusShieldUrl` (`/api/v1/badge/status.svg?domain=<host>`), and `statusShieldMarkdown` (the shield linked to `reportUrl`), live and offline. All three `upgradeUrls` keep `appUrl=<host>`.
+- `systemName` and `passThroughFields` are hidden for both scan operations. The existing operations, their parameters, and the default (`art50_disclosure`) are unchanged.
+- `index.ts` also exports `batchScanSpurvikDomains` and `parseBatchDomains`.
+
 ## n8n-nodes-spurvik 1.0.5 — 2026-11-13
 
 - Added the **Scan Live Domain (Art. 50 & Client Brief)** operation (`scanDomain`). It needs no credential and no API key: the `spurvikApi` credential is hidden for this operation (`displayOptions.hide`) and is still required for `art50_disclosure`, `art12_hmac_log`, and `art14_ask_human`. The operation never reads the credential and sends no `Authorization` header.

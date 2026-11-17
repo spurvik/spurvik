@@ -10,8 +10,13 @@
 export const SPURVIK_CONSOLE_ORIGIN = "https://console.spurvik.com";
 export const SPURVIK_BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
 export const SPURVIK_AGENCY_CALCULATOR_URL = "https://spurvik.com/eu-ai-act-for-agencies";
+export const SPURVIK_PORTFOLIO_URL = `${SPURVIK_CONSOLE_ORIGIN}/portfolio`;
+export const SPURVIK_STATUS_SHIELD_URL = `${SPURVIK_CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 export const SPURVIK_SCAN_PATH = "/api/v1/sandbox/scan";
 export const SPURVIK_SCAN_TIMEOUT_MS = 8000;
+/** Same cap as the console /portfolio batch and the MCP server's batch tool. */
+export const SPURVIK_BATCH_MAX_DOMAINS = 10;
+export const SPURVIK_BATCH_CONCURRENCY = 4;
 
 const MAX_INPUT_CHARS = 2048;
 const MAX_HOST_CHARS = 253;
@@ -79,7 +84,14 @@ export interface SpurvikScanDomainOutput {
   badgeSnippet: string;
   reportUrl: string;
   sandboxUrl: string;
+  /** Multi-domain agency cockpit on the console (up to 10 domains per batch). */
+  portfolioUrl: string;
+  /** Live SVG status shield for this host. */
+  statusShieldUrl: string;
+  /** README Markdown: the status shield linked to `reportUrl`. */
+  statusShieldMarkdown: string;
   agencyCalculatorUrl: string;
+  /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: SpurvikScanUpgradeUrls;
   /** `offline` when the console could not be reached or did not answer with a scan. */
   scanStatus: "measured" | "not_measured" | "unreachable" | "offline";
@@ -211,6 +223,8 @@ type ScanFacts = Pick<
 /** Output in a fixed key order. Links use the public console origin and the encoded host only. */
 function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
   const encoded = encodeURIComponent(host);
+  const reportUrl = `${SPURVIK_CONSOLE_ORIGIN}/report?domain=${encoded}`;
+  const statusShieldUrl = `${SPURVIK_STATUS_SHIELD_URL}?domain=${encoded}`;
   return {
     domain: host,
     reachable: facts.reachable,
@@ -218,8 +232,11 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     detectedSdks: facts.detectedSdks,
     art50NoticeDetected: facts.art50NoticeDetected,
     badgeSnippet: badgeSnippetForDomain(host),
-    reportUrl: `${SPURVIK_CONSOLE_ORIGIN}/report?domain=${encoded}`,
+    reportUrl,
     sandboxUrl: `${SPURVIK_CONSOLE_ORIGIN}/sandbox?scan=${encoded}`,
+    portfolioUrl: SPURVIK_PORTFOLIO_URL,
+    statusShieldUrl,
+    statusShieldMarkdown: `[![EU AI Act Art. 50](${statusShieldUrl})](${reportUrl})`,
     agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
     upgradeUrls: {
       proWhiteLabelEur19: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro&appUrl=${encoded}`,
@@ -310,4 +327,108 @@ export async function scanSpurvikDomain(
   const scan = readUpstreamScan(body);
   if (!scan) return offline(host, "upstream_invalid_shape");
   return fromUpstream(host, scan);
+}
+
+export interface SpurvikBatchScanInput {
+  /** Comma-, newline- or space-separated string, or an array of strings. 1 to 10 entries. */
+  domainsList: unknown;
+  /** Console base URL. Empty means https://console.spurvik.com. */
+  consoleBaseUrl?: unknown;
+}
+
+export interface SpurvikBatchScanOutput {
+  /** Distinct hosts scanned (duplicates after normalization are scanned once). */
+  totalDomains: number;
+  /** Reachable hosts with at least one detected widget and no Art. 50 notice detected. */
+  gapsFound: number;
+  /** One Scan Live Domain result per distinct host, in input order. */
+  results: SpurvikScanDomainOutput[];
+  portfolioUrl: string;
+  agencyCalculatorUrl: string;
+  /** Plan signup links (no single host to prefill; each row carries its own `appUrl` links). */
+  upgradeUrls: SpurvikScanUpgradeUrls;
+}
+
+const BATCH_COUNT = `Batch Scan needs 1 to ${SPURVIK_BATCH_MAX_DOMAINS} public domains, separated by commas, spaces or new lines.`;
+
+/** Splits the list into trimmed, non-empty entries. Non-string array items stay in place so they fail validation. */
+function splitDomainsList(raw: unknown): unknown[] {
+  if (typeof raw === "string") return raw.split(/[\s,]+/).filter((entry) => entry.length > 0);
+  if (Array.isArray(raw)) {
+    return raw
+      .map((entry) => (typeof entry === "string" ? entry.trim() : entry))
+      .filter((entry) => entry !== "");
+  }
+  throw new Error(BATCH_COUNT);
+}
+
+/**
+ * Checks the whole list before anything leaves n8n: the entry count and every entry, then dedupes the
+ * normalized hosts in input order. One refused entry refuses the batch. Errors name 1-based positions only and never repeat the input.
+ */
+export function parseBatchDomains(raw: unknown): string[] {
+  const entries = splitDomainsList(raw);
+  if (entries.length === 0 || entries.length > SPURVIK_BATCH_MAX_DOMAINS) throw new Error(BATCH_COUNT);
+  const hosts: string[] = [];
+  const refused: number[] = [];
+  let firstReason = "";
+  entries.forEach((entry, index) => {
+    try {
+      const host = normalizeScanDomain(entry);
+      if (!hosts.includes(host)) hosts.push(host);
+    } catch (error) {
+      refused.push(index + 1);
+      if (!firstReason) firstReason = error instanceof Error ? error.message : INVALID;
+    }
+  });
+  if (refused.length > 0) {
+    const which = refused.length === 1 ? `Entry ${refused[0]} was` : `Entries ${refused.join(", ")} were`;
+    throw new Error(`Batch Scan scanned nothing: ${which} refused. ${firstReason}`);
+  }
+  return hosts;
+}
+
+/** Runs `worker` over `items` with at most `limit` in flight, keeping input order. */
+async function mapPool<T, R>(items: readonly T[], limit: number, worker: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const lanes = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      out[index] = await worker(items[index] as T);
+    }
+  });
+  await Promise.all(lanes);
+  return out;
+}
+
+/**
+ * Scans up to 10 public sites (agency roster) through the console's public sandbox scan, at most 4 in
+ * flight. Every entry and the consoleBaseUrl are validated before the first request, so one localhost,
+ * private or invalid entry throws with zero outbound requests. Per-host trouble returns that row as
+ * `scanStatus: "offline"`; the batch itself only throws for invalid input. Nothing is logged.
+ */
+export async function batchScanSpurvikDomains(
+  input: SpurvikBatchScanInput,
+  opts: SpurvikScanDomainOptions = {},
+): Promise<SpurvikBatchScanOutput> {
+  const hosts = parseBatchDomains(input.domainsList);
+  const consoleBaseUrl = resolveScanBaseUrl(input.consoleBaseUrl);
+  const results = await mapPool(hosts, SPURVIK_BATCH_CONCURRENCY, (host) =>
+    scanSpurvikDomain({ domainOrUrl: host, consoleBaseUrl }, opts),
+  );
+  return {
+    totalDomains: results.length,
+    gapsFound: results.filter((row) => row.reachable && row.detectedWidgets.length > 0 && !row.art50NoticeDetected)
+      .length,
+    results,
+    portfolioUrl: SPURVIK_PORTFOLIO_URL,
+    agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
+    upgradeUrls: {
+      proWhiteLabelEur19: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro`,
+      teamAgencyEur79: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team`,
+      doneForYou24hEur199: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=concierge`,
+    },
+  };
 }

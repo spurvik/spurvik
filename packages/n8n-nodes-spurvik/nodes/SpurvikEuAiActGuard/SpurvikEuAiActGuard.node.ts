@@ -6,15 +6,18 @@ import type {
   INodeTypeDescription,
 } from "n8n-workflow";
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
-import { scanSpurvikDomain } from "../../scan-domain";
+import { batchScanSpurvikDomains, scanSpurvikDomain } from "../../scan-domain";
 import {
   executeSpurvikWorkflowStep,
   type SpurvikWorkflowNodeInput,
   type SpurvikWorkflowOperation,
 } from "../../workflow";
 
-/** Zero-key operation: reads no credential and copies nothing from the incoming item. */
+/** Zero-key operations: they read no credential and copy nothing from the incoming item. */
 const SCAN_DOMAIN_OPERATION = "scanDomain";
+const BATCH_SCAN_DOMAINS_OPERATION = "batchScanDomains";
+const ZERO_KEY_OPERATIONS: readonly string[] = [SCAN_DOMAIN_OPERATION, BATCH_SCAN_DOMAINS_OPERATION];
+const DEFAULT_CONSOLE_BASE_URL = "https://console.spurvik.com";
 
 const PROMPT_FIELD_NAMES = new Set(["prompttext", "prompt", "chatinput", "query", "input"]);
 
@@ -54,7 +57,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
     {
       name: "spurvikApi",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
     },
   ],
   properties: [
@@ -84,7 +87,13 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           name: "Scan Live Domain (Art. 50 & Client Brief)",
           value: "scanDomain",
           description:
-            "Check one public site for AI chat widgets and an Art. 50 notice, and return a badge snippet plus report and upgrade links. Needs no credential or API key.",
+            "Check one public site for AI chat widgets and an Art. 50 notice, and return a badge snippet, status shield, plus report and upgrade links. Needs no credential or API key.",
+        },
+        {
+          name: "Batch Scan up to 10 Domains (Agency Roster)",
+          value: "batchScanDomains",
+          description:
+            "Scan 1 to 10 public client sites in one step and count the Art. 50 notice gaps. Every entry is checked before any request. Needs no credential or API key.",
         },
       ],
     },
@@ -100,12 +109,24 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         "Public domain or http(s) URL of the site to scan, for example stepnetwork.dk. Only the hostname is sent to the console. localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa), single-label hosts, user:password@ and non-default ports are refused.",
     },
     {
+      displayName: "Domains",
+      name: "domainsList",
+      type: "string",
+      typeOptions: { rows: 3 },
+      default: "",
+      required: true,
+      placeholder: "folk.app, stepnetwork.dk",
+      displayOptions: { show: { operation: ["batchScanDomains"] } },
+      description:
+        "1 to 10 public domains or http(s) URLs, separated by commas, spaces or new lines (an expression may also return an array of strings). Every entry is checked before any request: one localhost, IP address, internal name, user:password@ or non-default port refuses the whole batch. Only hostnames are sent to the console, and duplicates are scanned once.",
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
       default: "AI system",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
     },
     {
       displayName: "Input Field",
@@ -215,14 +236,14 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       type: "string",
       default: "https://console.spurvik.com",
       description:
-        "Spurvik console base URL. Scan Live Domain calls its public scan endpoint without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
+        "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint without a key. The other operations use it only when Spurvik Console API Key is set on the spurvikApi credential.",
     },
     {
       displayName: "Pass-through Fields",
       name: "passThroughFields",
       type: "string",
       default: "",
-      displayOptions: { hide: { operation: ["scanDomain"] } },
+      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains"] } },
       description:
         "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
@@ -323,11 +344,11 @@ export class SpurvikEuAiActGuard implements INodeType {
     const operationAt = (index: number): string =>
       String(this.getNodeParameter("operation", index, "art50_disclosure"));
     const operations = items.map((_, index) => operationAt(index));
-    // scanDomain never reads the credential, so a node set to it works with no credential at all.
+    // The scan operations never read the credential, so a node set to one of them works with no credential at all.
     const needsCredentials =
       items.length === 0
-        ? operationAt(0) !== SCAN_DOMAIN_OPERATION
-        : operations.some((operation) => operation !== SCAN_DOMAIN_OPERATION);
+        ? !ZERO_KEY_OPERATIONS.includes(operationAt(0))
+        : operations.some((operation) => !ZERO_KEY_OPERATIONS.includes(operation));
 
     let credentials: Record<string, unknown> = {};
     let signingSecret = "";
@@ -362,16 +383,24 @@ export class SpurvikEuAiActGuard implements INodeType {
       if (operations[i] === SCAN_DOMAIN_OPERATION) {
         const scan = await scanSpurvikDomain({
           domainOrUrl: this.getNodeParameter("domainOrUrl", i, ""),
-          consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, "https://console.spurvik.com"),
+          consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL),
         });
         returnData.push({ json: scan as unknown as IDataObject });
+        continue;
+      }
+      if (operations[i] === BATCH_SCAN_DOMAINS_OPERATION) {
+        const batch = await batchScanSpurvikDomains({
+          domainsList: this.getNodeParameter("domainsList", i, ""),
+          consoleBaseUrl: this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL),
+        });
+        returnData.push({ json: batch as unknown as IDataObject });
         continue;
       }
       const item = items[i]?.json ?? {};
       const operation = operations[i] as SpurvikWorkflowOperation;
       const systemName = String(this.getNodeParameter("systemName", i, "AI system"));
       const inputField = String(this.getNodeParameter("inputField", i, "promptText"));
-      const consoleBaseUrl = String(this.getNodeParameter("consoleBaseUrl", i, "https://console.spurvik.com"));
+      const consoleBaseUrl = String(this.getNodeParameter("consoleBaseUrl", i, DEFAULT_CONSOLE_BASE_URL));
 
       let stepInput: SpurvikWorkflowNodeInput;
       if (operation === "art50_disclosure") {

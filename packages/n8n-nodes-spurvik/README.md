@@ -1,13 +1,14 @@
 # n8n-nodes-spurvik
 
-n8n community node designed to support four separate workflow steps:
+n8n community node designed to support five separate workflow steps:
 
 1. Add an AI interaction notice to one text field.
 2. Record the call as an HMAC-SHA256 digest instead of the raw prompt text. The digest is `spurvik:workflow:input:v1|` plus the input field. This is designed to support Article 12 record-keeping for high-risk AI systems. The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The field value is not returned, including when that name is listed in passThroughFields. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
 3. Send an `ask_human()` approval request. This is designed to support Article 14 human oversight for high-risk AI systems.
 4. Scan a live client site for AI chat widgets and an Art. 50 notice, with no API key. See [Scan Live Domain](#scan-live-domain-art-50--client-brief).
+5. Scan an agency roster of up to 10 client sites in one step, with no API key. See [Batch Scan](#batch-scan-up-to-10-domains-agency-roster).
 
-The node does not mark content. Using it does not by itself mean anyone meets the AI Act.
+The node does not mark content.
 
 n8n keeps each node's input and output on the execution. The Spurvik node output does not copy prompt text, but the incoming item is still that node's input. Set the instance's execution data retention yourself: `EXECUTIONS_DATA_SAVE_ON_SUCCESS`, `EXECUTIONS_DATA_SAVE_ON_ERROR`, `EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS`, `EXECUTIONS_DATA_PRUNE`, `EXECUTIONS_DATA_MAX_AGE`, and `EXECUTIONS_DATA_PRUNE_MAX_COUNT`. n8n's execution history keeps those inputs and outputs until you change those retention settings.
 
@@ -42,6 +43,9 @@ The output item holds only the scan. Nothing from the incoming item is copied, a
   "badgeSnippet": "<script src=\"https://spurvik.com/badge.js\" data-system=\"stepnetwork.dk\" data-locale=\"da\" data-theme=\"dark\" data-attribution=\"true\" defer></script>",
   "reportUrl": "https://console.spurvik.com/report?domain=stepnetwork.dk",
   "sandboxUrl": "https://console.spurvik.com/sandbox?scan=stepnetwork.dk",
+  "portfolioUrl": "https://console.spurvik.com/portfolio",
+  "statusShieldUrl": "https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk",
+  "statusShieldMarkdown": "[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=stepnetwork.dk)](https://console.spurvik.com/report?domain=stepnetwork.dk)",
   "agencyCalculatorUrl": "https://spurvik.com/eu-ai-act-for-agencies",
   "upgradeUrls": {
     "proWhiteLabelEur19": "https://console.spurvik.com/signup?plan=pro&appUrl=stepnetwork.dk",
@@ -63,13 +67,42 @@ The output item holds only the scan. Nothing from the incoming item is copied, a
 - `detectedWidgets` and `detectedSdks` are strings only, at most 20 each.
 - `badgeSnippet` is the same `badge.js` tag the MCP server's scan tool returns: the host as `data-system`, a locale from the country-code TLD (`.dk` gives `da`, otherwise `en`), dark theme, and the free "Art. 50 · Spurvik" attribution link. Paste it before `</body>`.
 - `reportUrl` and `sandboxUrl` are shareable client-brief links. `upgradeUrls` open console signup with the domain prefilled (`appUrl`): Pro €19/mo (white-label badge), Team €79/mo (for agencies), and Done-For-You €199 once (24h setup). Prices excl. VAT, B2B only.
+- `portfolioUrl` opens the console's multi-domain agency cockpit. `statusShieldUrl` is a live SVG status shield for the host, and `statusShieldMarkdown` is that shield linked to `reportUrl`, ready to paste into a client README.
 - `agencyCalculatorUrl` links the EU AI Act calculator for agencies.
 
 The scan is a heuristic check of one public page. It can miss a widget or a notice that loads later.
 
+## Batch Scan up to 10 Domains (Agency Roster)
+
+Operation value `batchScanDomains`. Like Scan Live Domain it needs **no credential and no API key**, reads nothing from the incoming item, and sends only hostnames.
+
+- **Domains** (`domainsList`, required): 1 to 10 public domains or http(s) URLs separated by commas, spaces, or new lines (`folk.app, stepnetwork.dk`). An expression may also return an array of strings. Hosts that normalize to the same name are scanned once.
+- Every entry and `consoleBaseUrl` are checked **before any request**. An empty list, more than 10 entries, or a single entry that Scan Live Domain would refuse (localhost, an IP address, an internal name, `user@`, a non-default port) stops the node with an error that names the entry position only, and nothing is sent.
+- Hosts are scanned through the same `GET {consoleBaseUrl}/api/v1/sandbox/scan` call, at most 4 at a time, 8 seconds each. A host that times out or fails comes back as its own `scanStatus: "offline"` row; the batch keeps going.
+
+Output (one item per incoming item):
+
+```json
+{
+  "totalDomains": 2,
+  "gapsFound": 1,
+  "results": [{ "domain": "folk.app", "reachable": true, "detectedWidgets": ["Intercom"], "art50NoticeDetected": false, "...": "same fields as Scan Live Domain" }],
+  "portfolioUrl": "https://console.spurvik.com/portfolio",
+  "agencyCalculatorUrl": "https://spurvik.com/eu-ai-act-for-agencies",
+  "upgradeUrls": {
+    "proWhiteLabelEur19": "https://console.spurvik.com/signup?plan=pro",
+    "teamAgencyEur79": "https://console.spurvik.com/signup?plan=team",
+    "doneForYou24hEur199": "https://console.spurvik.com/signup?plan=concierge"
+  }
+}
+```
+
+- `totalDomains` counts distinct hosts scanned. `gapsFound` counts reachable hosts with at least one detected widget and no Art. 50 notice detected. Offline and unreachable hosts are never counted as gaps.
+- Each row in `results` is a full Scan Live Domain result, including its own `badgeSnippet`, `statusShieldMarkdown`, and `upgradeUrls` with `appUrl` prefilled. The batch-level `upgradeUrls` are plan links: Pro €19/mo, Team €79/mo (for agencies), and Done-For-You €199 once. Prices excl. VAT, B2B only.
+
 ## Credential
 
-`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain does not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
+`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain and Batch Scan do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
 
 ## Layout
 
@@ -85,3 +118,7 @@ The node type id stays `spurvikEuAiActGuard`, the same id as 1.0.1.
 ## Make.com
 
 `make-com-blueprint.json` in this repository posts `actionName` and `payloadSummary` to the hosted HITL create route. The bearer token in the file is `{{var.organization.spurvikApiKey}}`. Make organization variables and scenario inputs are plain text, not secret storage. [Make's custom-variables page](https://help.make.com/custom-variables) states that organization variables need Make Pro, Teams, or Enterprise, and that the values are stored in plain text and are not for secrets. The [Make API organizations reference](https://developers.make.com/api-documentation/api-reference/organizations) states that creating an organization variable returns 404 when the organization license does not include `customVariables`. This blueprint has not been test-imported in Make. The `{{var.input.spurvikApiKey}}` option needs scenario inputs (Pro+ and on-demand scheduling). A webhook-triggered blueprint is not started with scenario inputs, so that mapping likely won't work there. [Make's scenario-input page](https://help.make.com/use-scenario-inputs) shows the scenario editor inserts `{{var.input.<name>}}` for a scenario input. Enabling inputs requires on-demand scheduling; the [scenario update API](https://developers.make.com/api-documentation/api-reference/scenarios) returns 422 (IM016) otherwise, and an older sentence on that page still says Pro or higher, while [a later Make release note](https://help.make.com/scenario-inputs-now-available-for-all-users) says scenario inputs were opened to all plans. For production, use a Make keychain or connection. Do not map the API key from the webhook payload. Free workspaces sign up at https://console.spurvik.com/signup; paid plans (`Pro €19/mo · Team €79/mo`, excl. VAT · B2B only) upgrade through Stripe Checkout.
+
+## Scope
+
+Designed to support EU AI Act Art. 50 notices and Art. 12 and Art. 14 workflows for high-risk AI systems. Using this node does not by itself mean anyone meets the AI Act, and nothing here is legal advice.

@@ -4,7 +4,8 @@ import { createRequire } from "node:module";
 import { describe, it } from "node:test";
 import { SpurvikEuAiActGuard, SpurvikN8nNodeDescription } from "../dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js";
 import { SpurvikApi } from "../dist/credentials/SpurvikApi.credentials.js";
-import { scanSpurvikDomain } from "../dist/scan-domain.js";
+import { batchScanSpurvikDomains, scanSpurvikDomain } from "../dist/scan-domain.js";
+import * as packageIndex from "../dist/index.js";
 
 const SECRET = "spurvik-n8n-test-secret-2026";
 const PROMPT = "RAW_PROMPT_SHOULD_NOT_LEAK_1105";
@@ -432,6 +433,9 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     "badgeSnippet",
     "reportUrl",
     "sandboxUrl",
+    "portfolioUrl",
+    "statusShieldUrl",
+    "statusShieldMarkdown",
     "agencyCalculatorUrl",
     "upgradeUrls",
     "scanStatus",
@@ -444,6 +448,9 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     return {
       reportUrl: `${CONSOLE}/report?domain=${encoded}`,
       sandboxUrl: `${CONSOLE}/sandbox?scan=${encoded}`,
+      portfolioUrl: `${CONSOLE}/portfolio`,
+      statusShieldUrl: `${CONSOLE}/api/v1/badge/status.svg?domain=${encoded}`,
+      statusShieldMarkdown: `[![EU AI Act Art. 50](${CONSOLE}/api/v1/badge/status.svg?domain=${encoded})](${CONSOLE}/report?domain=${encoded})`,
       agencyCalculatorUrl: "https://spurvik.com/eu-ai-act-for-agencies",
       upgradeUrls: {
         proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro&appUrl=${encoded}`,
@@ -501,7 +508,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
   const json = (body, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-  it("keeps art50_disclosure as the default and the three existing operations unchanged", () => {
+  it("keeps art50_disclosure as the default, the existing operations unchanged, and adds batchScanDomains last", () => {
     const operation = SpurvikN8nNodeDescription.properties.find((property) => property.name === "operation");
     assert.equal(operation.default, "art50_disclosure");
     assert.deepEqual(
@@ -511,6 +518,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
         ["art12_hmac_log", "Record an HMAC-SHA256 digest"],
         ["art14_ask_human", "Send an ask_human() approval request"],
         ["scanDomain", "Scan Live Domain (Art. 50 & Client Brief)"],
+        ["batchScanDomains", "Batch Scan up to 10 Domains (Agency Roster)"],
       ],
     );
     const domainOrUrl = SpurvikN8nNodeDescription.properties.find((property) => property.name === "domainOrUrl");
@@ -522,12 +530,12 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     assert.equal(consoleBaseUrl.displayOptions, undefined);
   });
 
-  it("keeps spurvikApi required for the existing operations and not for scanDomain (n8n-workflow rules)", () => {
+  it("keeps spurvikApi required for the existing operations and not for scanDomain or batchScanDomains (n8n-workflow rules)", () => {
     const [credential] = SpurvikN8nNodeDescription.credentials;
     assert.equal(SpurvikN8nNodeDescription.credentials.length, 1);
     assert.equal(credential.name, "spurvikApi");
     assert.equal(credential.required, true);
-    assert.deepEqual(credential.displayOptions, { hide: { operation: ["scanDomain"] } });
+    assert.deepEqual(credential.displayOptions, { hide: { operation: ["scanDomain", "batchScanDomains"] } });
 
     const { validateNodeCredentials, NodeHelpers } = require("n8n-workflow");
     const nodeFor = (parameters) => ({
@@ -545,16 +553,19 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       assert.deepEqual(missing(parameters), ["missing:spurvikApi"], JSON.stringify(parameters));
     }
     assert.deepEqual(missing({ operation: "scanDomain", domainOrUrl: "stepnetwork.dk" }), []);
+    assert.deepEqual(missing({ operation: "batchScanDomains", domainsList: "folk.app, stepnetwork.dk" }), []);
 
     const resolved = (parameters) =>
       Object.keys(NodeHelpers.getNodeParameters(node.description.properties, parameters, true, false, nodeFor(parameters), node.description));
     assert.deepEqual(resolved({ operation: "scanDomain", domainOrUrl: "stepnetwork.dk" }), ["operation", "domainOrUrl", "consoleBaseUrl"]);
+    assert.deepEqual(resolved({ operation: "batchScanDomains", domainsList: "folk.app" }), ["operation", "domainsList", "consoleBaseUrl"]);
     for (const operation of ["art50_disclosure", "art12_hmac_log", "art14_ask_human"]) {
       const keys = resolved({ operation });
       assert.ok(keys.includes("systemName"), operation);
       assert.ok(keys.includes("passThroughFields"), operation);
       assert.ok(keys.includes("consoleBaseUrl"), operation);
       assert.equal(keys.includes("domainOrUrl"), false, operation);
+      assert.equal(keys.includes("domainsList"), false, operation);
     }
   });
 
@@ -835,8 +846,395 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
           const [out] = await node.execute.call(scanCtx({ domainOrUrl: "stepnetwork.dk", consoleBaseUrl }));
           assert.equal(calls[0].url, expected);
           assert.equal(out[0].json.reportUrl, `${CONSOLE}/report?domain=stepnetwork.dk`);
+          assert.equal(out[0].json.portfolioUrl, `${CONSOLE}/portfolio`);
+          assert.ok(out[0].json.statusShieldMarkdown.startsWith(`[![EU AI Act Art. 50](${CONSOLE}/api/v1/badge/status.svg?`));
         },
       );
     }
+  });
+
+  it("adds portfolioUrl, the status shield, and appUrl on every upgrade link (live and offline)", async () => {
+    for (const impl of [async () => json(LIVE_SCAN), async () => new Response("down", { status: 503 })]) {
+      await withFetch(impl, async () => {
+        const [out] = await node.execute.call(scanCtx({ domainOrUrl: "https://Shop.Example.co.uk/basket" }));
+        const result = out[0].json;
+        const host = "shop.example.co.uk";
+        assert.equal(result.portfolioUrl, "https://console.spurvik.com/portfolio");
+        assert.equal(result.statusShieldUrl, `https://console.spurvik.com/api/v1/badge/status.svg?domain=${host}`);
+        assert.equal(
+          result.statusShieldMarkdown,
+          `[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=${host})](https://console.spurvik.com/report?domain=${host})`,
+        );
+        assert.deepEqual(Object.keys(result.upgradeUrls), ["proWhiteLabelEur19", "teamAgencyEur79", "doneForYou24hEur199"]);
+        for (const [key, link] of Object.entries(result.upgradeUrls)) {
+          assert.ok(link.endsWith(`&appUrl=${encodeURIComponent(host)}`), key);
+          assert.equal(new URL(link).searchParams.get("appUrl"), host, key);
+        }
+        assert.deepEqual(Object.keys(result), OUTPUT_KEYS);
+      });
+    }
+  });
+
+  describe("batchScanDomains (zero-key Batch Scan, agency roster)", () => {
+    const BATCH_KEYS = ["totalDomains", "gapsFound", "results", "portfolioUrl", "agencyCalculatorUrl", "upgradeUrls"];
+    const BATCH_UPGRADES = {
+      proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro`,
+      teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+      doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge`,
+    };
+
+    function batchCtx(params, items = [{ json: { promptText: PROMPT, ticketId: "T-88" } }]) {
+      return scanCtx({ operation: "batchScanDomains", ...params }, items);
+    }
+
+    function scanFor(host, { widgets = [], sdks = [], notice = false, reachable = true, httpStatus = null } = {}) {
+      return {
+        ok: true,
+        scan: {
+          domain: host,
+          reachable,
+          measured: reachable && httpStatus === null,
+          reason: null,
+          httpStatus,
+          detectedWidgets: widgets,
+          detectedSdks: sdks,
+          markers: { art50_1_disclosure: notice, art50_2_provenance: false, art50_4_synthetic: false, art12_telemetry: false },
+        },
+      };
+    }
+
+    const hostOf = (url) => new URL(url).searchParams.get("url");
+
+    it("describes domainsList for batchScanDomains only and hides every non-scan field", () => {
+      const byName = (name) => SpurvikN8nNodeDescription.properties.find((property) => property.name === name);
+      const domainsList = byName("domainsList");
+      assert.equal(domainsList.type, "string");
+      assert.deepEqual(domainsList.typeOptions, { rows: 3 });
+      assert.equal(domainsList.placeholder, "folk.app, stepnetwork.dk");
+      assert.equal(domainsList.required, true);
+      assert.deepEqual(domainsList.displayOptions, { show: { operation: ["batchScanDomains"] } });
+      for (const name of ["systemName", "passThroughFields"]) {
+        assert.deepEqual(byName(name).displayOptions, { hide: { operation: ["scanDomain", "batchScanDomains"] } }, name);
+      }
+      const shownFor = (operation) =>
+        SpurvikN8nNodeDescription.properties
+          .filter((property) => {
+            const show = property.displayOptions?.show;
+            const hide = property.displayOptions?.hide;
+            const params = { operation, channel: "jira" };
+            if (show && !Object.entries(show).every(([key, allowed]) => allowed.includes(params[key]))) return false;
+            if (hide && Object.entries(hide).some(([key, hidden]) => hidden.includes(params[key]))) return false;
+            return true;
+          })
+          .map((property) => property.name);
+      assert.deepEqual(shownFor("batchScanDomains"), ["operation", "domainsList", "consoleBaseUrl"]);
+      assert.deepEqual(shownFor("scanDomain"), ["operation", "domainOrUrl", "consoleBaseUrl"]);
+    });
+
+    it("exports batchScanSpurvikDomains from the package index", () => {
+      assert.equal(packageIndex.batchScanSpurvikDomains, batchScanSpurvikDomains);
+      assert.equal(typeof packageIndex.scanSpurvikDomain, "function");
+    });
+
+    it("scans a comma, space and newline list with no credential, dedupes, keeps order, and counts gaps", async () => {
+      await withFetch(
+        async (url) => {
+          const host = hostOf(url);
+          if (host === "folk.app") return json(scanFor(host, { widgets: ["Intercom"] }));
+          if (host === "trengo.com") return json(scanFor(host, { widgets: ["Trengo"], notice: true }));
+          if (host === "stepnetwork.dk") return json(scanFor(host));
+          return json(scanFor(host, { widgets: ["Drift"] }));
+        },
+        async (calls) => {
+          const context = batchCtx({
+            domainsList: " folk.app,https://Trengo.com/pricing\nstepnetwork.dk  FOLK.APP,, http://www.example.org/x ",
+            passThroughFields: "ticketId,promptText",
+          });
+          const [out] = await node.execute.call(context);
+          assert.equal(context.credentialCalls, 0);
+          assert.equal(out.length, 1);
+          const batch = out[0].json;
+          assert.deepEqual(Object.keys(batch), BATCH_KEYS);
+          assert.equal(batch.totalDomains, 4);
+          assert.equal(batch.gapsFound, 2);
+          assert.deepEqual(
+            batch.results.map((row) => row.domain),
+            ["folk.app", "trengo.com", "stepnetwork.dk", "www.example.org"],
+          );
+          assert.deepEqual(
+            calls.map((call) => hostOf(call.url)).sort(),
+            ["folk.app", "stepnetwork.dk", "trengo.com", "www.example.org"],
+          );
+          assert.equal(batch.portfolioUrl, `${CONSOLE}/portfolio`);
+          assert.equal(batch.agencyCalculatorUrl, "https://spurvik.com/eu-ai-act-for-agencies");
+          assert.deepEqual(batch.upgradeUrls, BATCH_UPGRADES);
+          for (const row of batch.results) {
+            assert.deepEqual(Object.keys(row), OUTPUT_KEYS);
+            assert.deepEqual({ ...row, ...links(row.domain) }, row, row.domain);
+            assert.equal(row.badgeSnippet, badge(row.domain, row.domain.endsWith(".dk") ? "da" : "en"));
+          }
+          assert.equal(batch.results[0].scanStatus, "measured");
+          for (const call of calls) {
+            assert.equal(call.url, `${CONSOLE}/api/v1/sandbox/scan?url=${hostOf(call.url)}`);
+            assert.equal(call.init.method, "GET");
+            assert.equal(call.init.redirect, "error");
+            assert.deepEqual(call.init.headers, { accept: "application/json" });
+            assert.equal(call.init.body, undefined);
+          }
+          const body = JSON.stringify(out);
+          assert.equal(body.includes(PROMPT), false);
+          assert.equal(body.includes("T-88"), false);
+        },
+      );
+    });
+
+    it("accepts an array of strings from an n8n expression", async () => {
+      await withFetch(
+        async (url) => json(scanFor(hostOf(url))),
+        async (calls) => {
+          const [out] = await node.execute.call(batchCtx({ domainsList: ["  folk.app ", "", "stepnetwork.dk"] }));
+          assert.deepEqual(out[0].json.results.map((row) => row.domain), ["folk.app", "stepnetwork.dk"]);
+          assert.equal(out[0].json.totalDomains, 2);
+          assert.equal(out[0].json.gapsFound, 0);
+          assert.equal(calls.length, 2);
+        },
+      );
+    });
+
+    it("counts a gap only for a reachable host with a widget and no Art. 50 notice", async () => {
+      const cases = {
+        "gap.example.com": json(scanFor("gap.example.com", { widgets: ["Intercom"] })),
+        "noticed.example.com": json(scanFor("noticed.example.com", { widgets: ["Intercom"], notice: true })),
+        "quiet.example.com": json(scanFor("quiet.example.com")),
+        "sdk-only.example.com": json(scanFor("sdk-only.example.com", { sdks: ["openai"] })),
+        "down.example.com": json(scanFor("down.example.com", { widgets: ["Intercom"], reachable: false })),
+        "error-page.example.com": json(scanFor("error-page.example.com", { widgets: ["Intercom"], httpStatus: 403 })),
+        "offline.example.com": new Response("SECRET_BODY_MARKER", { status: 502 }),
+      };
+      await withFetch(
+        async (url) => cases[hostOf(url)],
+        async () => {
+          const [out] = await node.execute.call(batchCtx({ domainsList: Object.keys(cases).join("\n") }));
+          const batch = out[0].json;
+          assert.equal(batch.totalDomains, 7);
+          assert.equal(batch.gapsFound, 1);
+          const byHost = Object.fromEntries(batch.results.map((row) => [row.domain, row]));
+          assert.deepEqual(byHost["offline.example.com"], offlineOutput("offline.example.com", "en", "upstream_http_502"));
+          assert.equal(byHost["down.example.com"].scanStatus, "unreachable");
+          assert.equal(byHost["error-page.example.com"].scanStatus, "not_measured");
+          assert.equal(JSON.stringify(out).includes("SECRET_"), false);
+        },
+      );
+    });
+
+    it("keeps the batch going when hosts fail, and never throws for upstream trouble", async () => {
+      await withFetch(
+        async (url) => {
+          const host = hostOf(url);
+          if (host === "a.example.com") throw new TypeError("fetch failed SECRET_ERROR_MARKER");
+          if (host === "b.example.com") throw new DOMException("SECRET_ERROR_MARKER", "TimeoutError");
+          if (host === "c.example.com") return new Response("<html>SECRET_BODY_MARKER", { status: 200 });
+          return json(scanFor(host, { widgets: ["Intercom"] }));
+        },
+        async (calls) => {
+          const [out] = await node.execute.call(batchCtx({ domainsList: "a.example.com b.example.com c.example.com folk.app" }));
+          const batch = out[0].json;
+          assert.equal(calls.length, 4);
+          assert.deepEqual(
+            batch.results.map((row) => [row.domain, row.scanStatus, row.reason]),
+            [
+              ["a.example.com", "offline", "network_error"],
+              ["b.example.com", "offline", "timeout"],
+              ["c.example.com", "offline", "upstream_invalid_json"],
+              ["folk.app", "measured", null],
+            ],
+          );
+          assert.equal(batch.gapsFound, 1);
+          assert.equal(JSON.stringify(out).includes("SECRET_"), false);
+        },
+      );
+    });
+
+    it("keeps at most 4 requests in flight for 10 domains", async () => {
+      let inFlight = 0;
+      let peak = 0;
+      await withFetch(
+        async (url) => {
+          inFlight += 1;
+          peak = Math.max(peak, inFlight);
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          inFlight -= 1;
+          return json(scanFor(hostOf(url), { widgets: ["Intercom"] }));
+        },
+        async (calls) => {
+          const domains = Array.from({ length: 10 }, (_, n) => `site${n}.example.com`);
+          const [out] = await node.execute.call(batchCtx({ domainsList: domains.join(",") }));
+          assert.equal(calls.length, 10);
+          assert.equal(peak, 4);
+          assert.equal(out[0].json.totalDomains, 10);
+          assert.equal(out[0].json.gapsFound, 10);
+          assert.deepEqual(out[0].json.results.map((row) => row.domain), domains);
+        },
+      );
+    });
+
+    const countErrors = [
+      ["an empty string", ""],
+      ["only separators", " ,\n , "],
+      ["an empty array", []],
+      ["an array of blanks", ["", "   "]],
+      ["11 entries", Array.from({ length: 11 }, (_, n) => `site${n}.example.com`).join(",")],
+      ["11 entries that dedupe to 1", Array.from({ length: 11 }, () => "folk.app")],
+      ["a number", 42],
+      ["an object", { domains: ["folk.app"] }],
+      ["null", null],
+    ];
+    for (const [label, domainsList] of countErrors) {
+      it(`refuses ${label} with zero requests`, async () => {
+        await withFetch(
+          async () => json(LIVE_SCAN),
+          async (calls) => {
+            const context = batchCtx({ domainsList });
+            await assert.rejects(() => node.execute.call(context), /^Error: Batch Scan needs 1 to 10 public domains/);
+            assert.equal(calls.length, 0);
+            assert.equal(context.credentialCalls, 0);
+          },
+        );
+      });
+    }
+
+    const poisoned = [
+      ["localhost", "folk.app, localhost, stepnetwork.dk", "Entry 2 was"],
+      ["a private IPv4", "folk.app\n10.0.0.1", "Entry 2 was"],
+      ["cloud metadata", "http://169.254.169.254/latest/meta-data stepnetwork.dk", "Entry 1 was"],
+      ["an IPv6 literal", "folk.app,[::1]", "Entry 2 was"],
+      ["an internal name", "folk.app nas.home.arpa printer.lan", "Entries 2, 3 were"],
+      ["a user@host", "folk.app,user@example.com", "Entry 2 was"],
+      ["a non-default port", "folk.app,example.com:8080", "Entry 2 was"],
+      ["a non-http scheme", "folk.app,ftp://example.com", "Entry 2 was"],
+      ["a non-string array item", ["folk.app", 7, "stepnetwork.dk"], "Entry 2 was"],
+      ["the raw prompt", `folk.app,${PROMPT}`, "Entry 2 was"],
+    ];
+    for (const [label, domainsList, which] of poisoned) {
+      it(`refuses the whole batch with zero requests when one entry is ${label}`, async () => {
+        await withFetch(
+          async () => json(LIVE_SCAN),
+          async (calls) => {
+            const context = batchCtx({ domainsList });
+            await assert.rejects(() => node.execute.call(context), (error) => {
+              assert.ok(error.message.startsWith(`Batch Scan scanned nothing: ${which} refused. Scan Live Domain `), error.message);
+              // The refused entry is never echoed. (stepnetwork.dk is also the example in the standard message.)
+              for (const entry of Array.isArray(domainsList) ? domainsList : domainsList.split(/[\s,]+/)) {
+                if (typeof entry !== "string" || entry === "folk.app" || entry === "stepnetwork.dk") continue;
+                if (entry.length > 9) assert.equal(error.message.includes(entry), false, entry);
+              }
+              assert.equal(error.message.includes(PROMPT), false);
+              return true;
+            });
+            assert.equal(calls.length, 0);
+            assert.equal(context.credentialCalls, 0);
+          },
+        );
+      });
+    }
+
+    it("validates consoleBaseUrl before any request and keeps public links for a localhost base", async () => {
+      await withFetch(
+        async () => json(LIVE_SCAN),
+        async (calls) => {
+          await assert.rejects(
+            () => node.execute.call(batchCtx({ domainsList: "folk.app,stepnetwork.dk", consoleBaseUrl: "http://console.spurvik.com" })),
+            /consoleBaseUrl/,
+          );
+          assert.equal(calls.length, 0);
+        },
+      );
+      await withFetch(
+        async (url) => json(scanFor(hostOf(url))),
+        async (calls) => {
+          const [out] = await node.execute.call(
+            batchCtx({ domainsList: "folk.app,stepnetwork.dk", consoleBaseUrl: "http://localhost:4010/" }),
+          );
+          assert.deepEqual(
+            calls.map((call) => call.url),
+            [
+              "http://localhost:4010/api/v1/sandbox/scan?url=folk.app",
+              "http://localhost:4010/api/v1/sandbox/scan?url=stepnetwork.dk",
+            ],
+          );
+          assert.equal(JSON.stringify(out).includes("localhost"), false);
+          assert.equal(out[0].json.portfolioUrl, `${CONSOLE}/portfolio`);
+        },
+      );
+    });
+
+    it("returns one batch per incoming item and never reads the credential", async () => {
+      await withFetch(
+        async (url) => json(scanFor(hostOf(url))),
+        async (calls) => {
+          const context = batchCtx({ domainsList: "folk.app" }, [
+            { json: { promptText: PROMPT } },
+            { json: { chatInput: PROMPT, ticketId: "T-1" } },
+          ]);
+          const [out] = await node.execute.call(context);
+          assert.equal(out.length, 2);
+          assert.equal(calls.length, 2);
+          assert.equal(context.credentialCalls, 0);
+          for (const entry of out) assert.deepEqual(Object.keys(entry.json), BATCH_KEYS);
+          assert.equal(JSON.stringify(out).includes(PROMPT), false);
+        },
+      );
+    });
+
+    it("still reads the credential when another item in the same run needs it", async () => {
+      const items = [{ json: { promptText: PROMPT } }, { json: { promptText: PROMPT } }];
+      const context = ctx({ operation: "batchScanDomains", domainsList: "folk.app" }, undefined, items);
+      const operations = ["batchScanDomains", "art12_hmac_log"];
+      const getNodeParameter = context.getNodeParameter;
+      context.getNodeParameter = (name, index, fallback) =>
+        name === "operation" ? operations[index] : getNodeParameter(name, index, fallback);
+      await withFetch(
+        async () => json(LIVE_SCAN),
+        async (calls) => {
+          await assert.rejects(() => node.execute.call(context), /No credentials of type spurvikApi/);
+          assert.equal(calls.length, 0);
+        },
+      );
+    });
+
+    // Isolated: injects fetchImpl (globalThis.fetch is untouched) and every mock request holds a ref'd timer that
+    // the abort clears. AbortSignal.timeout alone is unref'd, and on Node 22 an idle event loop makes node:test
+    // cancel the pending test and its siblings.
+    it("aborts hanging hosts through AbortSignal.timeout and returns them offline", async () => {
+      const started = Date.now();
+      const timers = new Set();
+      const batch = await batchScanSpurvikDomains(
+        { domainsList: "folk.app, stepnetwork.dk" },
+        {
+          timeoutMs: 40,
+          fetchImpl: (_url, init) =>
+            new Promise((_resolve, reject) => {
+              const keepAlive = setTimeout(() => reject(new Error("mock fetch was never aborted")), 10_000);
+              timers.add(keepAlive);
+              init.signal.addEventListener(
+                "abort",
+                () => {
+                  clearTimeout(keepAlive);
+                  timers.delete(keepAlive);
+                  reject(init.signal.reason);
+                },
+                { once: true },
+              );
+            }),
+        },
+      );
+      assert.equal(timers.size, 0);
+      assert.deepEqual(batch.results, [
+        offlineOutput("folk.app", "en", "timeout"),
+        offlineOutput("stepnetwork.dk", "da", "timeout"),
+      ]);
+      assert.equal(batch.gapsFound, 0);
+      assert.ok(Date.now() - started < 5000);
+    });
   });
 });
