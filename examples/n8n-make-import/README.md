@@ -1,6 +1,6 @@
 # n8n and Make.com import guide (`n8n-nodes-spurvik`)
 
-> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.9` is the repo manifest version (MIT). `0.0.0-stage` is a placeholder.
+> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.9` is the repo manifest version and npm `latest` (MIT). `0.0.0-stage` is a placeholder.
 
 Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.
 
@@ -13,7 +13,7 @@ This folder is an import guide for the files that are actually in `packages/n8n-
 | Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.9`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
 | Runtime | `nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts` exports `class SpurvikEuAiActGuard` and `SpurvikN8nNodeDescription`. `workflow.ts` exports `executeSpurvikWorkflowStep`. `index.ts` re-exports both. |
 | Build output | `npm run build` writes `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which `n8n-nodes-spurvik@1.0.9` ships. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js`. |
-| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.8` until `1.0.9` is published). `0.0.0-stage` is a placeholder. |
+| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.9`). `0.0.0-stage` is a placeholder. |
 | Make file already in the package | `packages/n8n-nodes-spurvik/make-com-blueprint.json`. See [Make.com](#makecom) before importing it. |
 
 `SpurvikN8nNodeDescription` fields n8n would read:
