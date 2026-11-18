@@ -60,7 +60,7 @@
       "headers": [
         {
           "name": "Authorization",
-          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 9 zero-key read-only tools).",
+          "description": "Optional Bearer spurvik_live_... token for project-linked console calls (not required for the 10 zero-key read-only tools).",
           "isRequired": false,
           "isSecret": true,
           "placeholder": "Bearer spurvik_live_..."

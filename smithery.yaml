@@ -1,6 +1,6 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 # Repository: https://github.com/spurvik/spurvik (MIT)
-# Packages: spurvik@1.0.11, spurvik-sdk@1.0.11, spurvik-mcp-server@1.0.8
+# Packages: spurvik@1.0.11, spurvik-sdk@1.0.11, spurvik-mcp-server@1.0.8, n8n-nodes-spurvik@1.0.8
 # Docs: https://spurvik.com/docs
 # Interactive Sandbox: https://console.spurvik.com/sandbox?scan=https://your-app.com
 # Remote Streamable HTTP MCP: https://console.spurvik.com/api/mcp (protocolVersion: "2025-06-18")
@@ -18,7 +18,7 @@ startCommand:
         default: "."
       spurvikApiKey:
         type: string
-        description: "Optional Spurvik API key (spurvik_live_...) for project-linked control-plane calls. Not required for the 4 read-only tools."
+        description: "Optional Spurvik API key (spurvik_live_...) for project-linked control-plane calls. Not required for the 10 zero-key read-only tools."
       spurvikHmacSecret:
         type: string
         description: "Optional server-side HMAC-SHA256 secret (>= 16 characters) for local receipt signature inspection."

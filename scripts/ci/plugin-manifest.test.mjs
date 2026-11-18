@@ -35,11 +35,11 @@ test("spurvik.com well-known MCP manifest versions", () => {
   assert.ok(body.localStdio.tools.includes("spurvik_check_image_c2pa_url"), "localStdio.tools lists the 1.0.7 C2PA image check tool");
   assert.ok(body.localStdio.tools.includes("spurvik_vendor_questionnaire_answers"), "localStdio.tools lists the 1.0.8 vendor questionnaire tool");
   assert.equal(body.localStdio.tools.length, 10);
-  assert.equal(body.endpoints[0].tools.length, 9, "hosted /api/mcp lists 9 tools");
+  assert.equal(body.endpoints[0].tools.length, 10, "hosted /api/mcp lists all 10 zero-key tools");
   assert.deepEqual(
-    body.localStdio.tools.filter((tool) => tool !== "spurvik_vendor_questionnaire_answers"),
+    body.localStdio.tools,
     body.endpoints[0].tools,
-    "the stdio server lists the 9 hosted tools plus spurvik_vendor_questionnaire_answers",
+    "both local stdio and hosted /api/mcp list all 10 zero-key tools including spurvik_vendor_questionnaire_answers",
   );
   assert.equal(body.autoDiscovery.mcpRegistry, "https://github.com/spurvik/spurvik/blob/main/server.json");
   assert.equal(body.autoDiscovery.smithery, "https://github.com/spurvik/spurvik/blob/main/smithery.yaml");

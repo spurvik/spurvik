@@ -30,7 +30,8 @@
         "spurvik_batch_scan_domains",
         "spurvik_classify_ai_act_risk",
         "spurvik_generate_art50_badge",
-        "spurvik_check_image_c2pa_url"
+        "spurvik_check_image_c2pa_url",
+        "spurvik_vendor_questionnaire_answers"
       ],
       "description": "Spurvik EU AI Act SDK (1.0.11) & MCP control plane (1.0.8, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
@@ -78,7 +79,8 @@
   "packages": {
     "sdk": "spurvik@1.0.11",
     "sdkAlias": "spurvik-sdk@1.0.11",
-    "mcpServer": "spurvik-mcp-server@1.0.8"
+    "mcpServer": "spurvik-mcp-server@1.0.8",
+    "n8nNodes": "n8n-nodes-spurvik@1.0.8"
   },
   "autoDiscovery": {
     "mcpRegistry": "https://github.com/spurvik/spurvik/blob/main/server.json",
