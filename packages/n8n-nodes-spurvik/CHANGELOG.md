@@ -1,6 +1,8 @@
-## Unreleased
+## n8n-nodes-spurvik 1.0.9 — 2026-11-18
 
-- Scan Live Domain, Batch Scan Domains, and console sync (`/api/v1/disclosure`, `/api/v1/telemetry`, `/api/v1/hitl`) now send `User-Agent: n8n-nodes-spurvik/<version>`, like Check Image C2PA. No other header, URL, or output field changes. `N8N_NODES_SPURVIK_VERSION` and `N8N_NODES_SPURVIK_USER_AGENT` now live in `scan-domain.ts`; the package index exports them as before.
+- **Scan Live Domain** (`scanDomain`) and **Batch Scan** (`batchScanDomains`): honour the upstream page's `<html lang>` code returned by `/api/v1/sandbox/scan` (`pageLocale` / `detectedLocale` / `htmlLang` / `lang`, reduced to one of the 24 official EU languages, e.g. `fr-FR` → `fr` on `.com`/`.ai`/`.app` hosts) when generating `badgeSnippet`, falling back to the country-code TLD and `en`.
+- **Check Image C2PA & CDN Strip** (`checkImageC2paUrl`): detects Shopify CDN (`cdn.shopify.com` and `/cdn/shop/`), WordPress Jetpack Photon (`i0.wp.com`–`i3.wp.com`), and Webflow Image CDN (`*.website-files.com` / `*.webflow.com`) C2PA JUMBF stripping alongside `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, and imgix, with platform-specific remediation advice in `diagnosis`. Shared CDN hosts (`cdn.shopify.com`, `i*.wp.com`, `*.website-files.com`, `*.webflow.com`, Cloudinary, imgix) omit `appUrl` on `upgradeUrls` and use `en` in `art50GeneratedBadgeSnippet`.
+- Scan Live Domain, Batch Scan Domains, and console sync (`/api/v1/disclosure`, `/api/v1/telemetry`, `/api/v1/hitl`) now send `User-Agent: n8n-nodes-spurvik/1.0.9`, matching Check Image C2PA. No other header, URL, or output field changes. `N8N_NODES_SPURVIK_VERSION` and `N8N_NODES_SPURVIK_USER_AGENT` live in `scan-domain.ts`; `index.ts` and `check-image-c2pa-url.ts` export them as before. Still depends on `spurvik-sdk@^1.0.8`.
 
 ## n8n-nodes-spurvik 1.0.8 — 2026-11-17
 

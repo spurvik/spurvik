@@ -1,8 +1,8 @@
 # LangGraph Quickstart (`spurvik/langgraph`, `spurvik`, and `spurvik/react`)
 
-> LangGraph quickstart for the published packages `spurvik@1.0.11`, `spurvik-sdk@1.0.11`, and `spurvik-mcp-server@1.0.8`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Not legal advice.
+> LangGraph quickstart for the published packages `spurvik@1.0.12`, `spurvik-sdk@1.0.12`, and `spurvik-mcp-server@1.0.9`. The hosted console at https://console.spurvik.com is a hosted service. Its source is not in this repository. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.11`, `spurvik-sdk@1.0.11`, `spurvik-mcp-server@1.0.8`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.12`, `spurvik-sdk@1.0.12`, `spurvik-mcp-server@1.0.9`.*
 
 ---
 
@@ -24,7 +24,7 @@ In about 5 minutes, this guide walks through connecting a LangGraph (`@langchain
 Install the live MIT packages first:
 
 ```bash
-npm install @langchain/langgraph spurvik@1.0.11 spurvik-sdk@1.0.11
+npm install @langchain/langgraph spurvik@1.0.12 spurvik-sdk@1.0.12
 ```
 
 Set your project credentials in the environment (the SDK never reads `process.env` implicitly; pass each field in `SpurvikConfig`):

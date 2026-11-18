@@ -1,6 +1,19 @@
 # spurvik-sdk
 
-## Unreleased
+## 1.0.12 — 2026-11-18
+
+Published as `spurvik@1.0.12` and `spurvik-sdk@1.0.12` (same build). Library exports are unchanged.
+
+### Added
+
+- `spurvik scan <domain-1> <domain-2> ... [<domain-10>] [--json] [--fail-on-gap]`: multi-domain agency portfolio scanning for 2 to 10 public domains in a single command (at most 4 in flight, duplicate hosts scanned once, whole batch refused before any request if any entry is not a public host). Prints an Agency Portfolio Matrix (`COVERED` / `GAP` / `NO PUBLIC WIDGET` / `OFFLINE`), `portfolioUrl` (`https://console.spurvik.com/portfolio?domains=...`), Team €79/mo and Done-For-You €199 links; `--json` returns `{ totalDomains, scannedDomains, gapsFound, offlineFallbacks, duplicatesRemoved, results, portfolioUrl, agencyCalculatorUrl, upgradeUrls }`, and `--fail-on-gap` exits `1` when `gapsFound > 0`. Single-domain `spurvik scan <domain>` output and JSON shape are unchanged.
+- `spurvik badge [domain] [--lang <eu-locale>]`: `--lang` now accepts all 24 official EU language codes (`bg`, `cs`, `da`, `de`, `el`, `en`, `es`, `et`, `fi`, `fr`, `ga`, `hr`, `hu`, `it`, `lt`, `lv`, `mt`, `nl`, `pl`, `pt`, `ro`, `sk`, `sl`, `sv`), matching `spurvik/react` and `badge.js`.
+
+### Changed
+
+- `spurvik scan`: honours the upstream page's `<html lang>` code returned by `/api/v1/sandbox/scan` (`pageLocale` / `detectedLocale` / `htmlLang` / `lang`, e.g. `fr-FR` → `fr` on `.com`/`.ai`/`.app` domains) when generating `badgeSnippet`, falling back to the country-code TLD and `en`.
+- `spurvik c2pa`: detects Shopify CDN (`cdn.shopify.com` and `/cdn/shop/`), WordPress Jetpack Photon (`i0.wp.com`–`i3.wp.com`), and Webflow Image CDN (`*.website-files.com` / `*.webflow.com`) C2PA manifest stripping alongside `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, and imgix, and omits `&appUrl=` on shared CDN hosts so console signup links never prefill a third-party CDN hostname.
+- `User-Agent` for `scan` and `c2pa` is now `spurvik-cli/1.0.12`.
 
 ### Fixed
 

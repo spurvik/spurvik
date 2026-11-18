@@ -69,7 +69,7 @@ The output item holds only the scan. Nothing from the incoming item is copied, a
 
 - `art50NoticeDetected` is `markers.art50_1_disclosure` from the console scan. It is `false` when the page could not be read.
 - `detectedWidgets` and `detectedSdks` are strings only, at most 20 each.
-- `badgeSnippet` is the same `badge.js` tag the MCP server's scan tool returns: the host as `data-system`, a locale from the country-code TLD (`.dk` gives `da`, otherwise `en`), dark theme, and the free "Art. 50 · Spurvik" attribution link. Paste it before `</body>`.
+- `badgeSnippet` is the same `badge.js` tag the MCP server's scan tool returns: the host as `data-system`, a locale from the upstream `<html lang>` when recognized among the 24 EU languages or from the country-code TLD (`.dk` gives `da`, otherwise `en`), dark theme, and the free "Art. 50 · Spurvik" attribution link. Paste it before `</body>`.
 - `reportUrl` and `sandboxUrl` are shareable client-brief links. `upgradeUrls` open console signup with the domain prefilled (`appUrl`): Pro €19/mo (white-label badge), Team €79/mo (for agencies), and Done-For-You €199 once (24h setup). Prices excl. VAT, B2B only.
 - `portfolioUrl` opens the console's multi-domain agency cockpit. `statusShieldUrl` is a live SVG status shield for the host, and `statusShieldMarkdown` is that shield linked to `reportUrl`, ready to paste into a client README.
 - `agencyCalculatorUrl` links the EU AI Act calculator for agencies.
@@ -109,7 +109,7 @@ Output (one item per incoming item):
 Operation value `checkImageC2paUrl`. A read-only **C2PA JUMBF manifest & CDN-strip checker** for one public image, ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). It reads the manifest; it **never signs or adds one**. Like the scans it needs **no credential and no API key**, reads nothing from the incoming item, and sends no `Authorization` header.
 
 - **Image URL** (`imageUrl`, required): the public https URL of a PNG, JPEG, or WebP image up to 4 MB, for example `https://example.com/hero.png`. It is checked **before any request**: `http` and other schemes, ports other than 443, `user:password@`, localhost, `.local`, `.internal`, `.lan`, `.home.arpa`, single-label hosts, and every IP address literal are refused with an error, and nothing is sent. The `#fragment` is dropped.
-- The node calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `{ "url": "<imageUrl>" }` and `User-Agent: n8n-nodes-spurvik/1.0.8` (15 second timeout, redirects refused). The console fetches the image once through its own SSRF gate and reads the manifest in memory. The console allows 10 checks per minute per address, shared with https://console.spurvik.com/c2pa.
+- The node calls `POST {consoleBaseUrl}/api/v1/provenance/public-check-url` with `{ "url": "<imageUrl>" }` and `User-Agent: n8n-nodes-spurvik/1.0.9` (15 second timeout, redirects refused). The console fetches the image once through its own SSRF gate and reads the manifest in memory. The console allows 10 checks per minute per address, shared with https://console.spurvik.com/c2pa.
 
 If the check cannot run (timeout, network error, `rate_limited`, `image_too_large`, `unsupported_media`, an unreadable answer, ...), the node does not fail the workflow. It returns `checkStatus: "not_checked"`, a short `reason` code, and `null` for every C2PA field, so a failed check never reads as "no manifest". The console's error text is never copied.
 
@@ -145,9 +145,9 @@ Example for a signed image behind the Next.js image optimizer:
 
 - `checkStatus` is `manifest_valid` (a manifest whose signature matches), `signature_mismatch` (a manifest whose bytes or claim changed after signing), `no_manifest`, or `not_checked`.
 - `claimGenerator` is unverified text from the manifest, reduced to letters, digits, spaces, and `._()/+:@-` (at most 100 characters). `validationCodes` keeps dotted identifiers only (at most 20). `fileName` keeps `A-Z a-z 0-9 . _ -` only.
-- `cdnRewriteSuspected` is `true` when the URL goes through an optimizer that re-encodes images and strips C2PA: `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, or imgix. `diagnosis` explains the result and the fix.
+- `cdnRewriteSuspected` is `true` when the URL goes through an optimizer that re-encodes images and strips C2PA: `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, imgix, Shopify CDN, WordPress Jetpack Photon, or Webflow Image CDN. `diagnosis` explains the result and the fix.
 - `art50GeneratedBadgeSnippet` is a visible "AI-generated" notice (`badge.js` with `data-notice="generated"`), with the locale from the image host's country-code TLD.
-- `upgradeUrls` open console signup with the image host prefilled (`appUrl`): Pro €19/mo, Team €79/mo, and Done-For-You €199 once. Prices excl. VAT, B2B only. On a shared image CDN host (Cloudinary, imgix) `appUrl` is left out, because that host is not your site.
+- `upgradeUrls` open console signup with the image host prefilled (`appUrl`): Pro €19/mo, Team €79/mo, and Done-For-You €199 once. Prices excl. VAT, B2B only. On a shared image CDN host (Cloudinary, imgix, Shopify CDN, Jetpack Photon, Webflow CDN) `appUrl` is left out, because that host is not your site.
 
 A matching signature is a check of that manifest. It does not mean the image or a site meets the AI Act.
 

@@ -1,8 +1,15 @@
 # spurvik-mcp-server
 
-## Unreleased
+## 1.0.9 — 2026-11-18
 
-- `spurvik_setup_snippet` pins `spurvik@1.0.11` and `spurvik-sdk@1.0.11` (`SNIPPET_SDK_VERSION`), which ship the `spurvik rfp` CLI. The Claude Code plugin bundle (`plugins/spurvik/bin/spurvik-mcp.mjs`) is rebuilt with it. The published `spurvik-mcp-server@1.0.8` still pins `1.0.10`.
+Published as `spurvik-mcp-server@1.0.9`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
+
+### Changed
+
+- `spurvik_scan_live_url` and `spurvik_batch_scan_domains`: honour the upstream page's `<html lang>` code returned by `/api/v1/sandbox/scan` (`pageLocale` / `detectedLocale` / `htmlLang` / `lang`, normalized to one of the 24 official EU languages, e.g. `fr-FR` → `fr` on `.com`/`.ai`/`.app` domains) when building `badgeSnippet`, falling back to the country-code TLD and `en`.
+- `spurvik_check_image_c2pa_url`: detects Shopify CDN (`cdn.shopify.com` and `/cdn/shop/`), WordPress Jetpack Photon (`i0.wp.com`–`i3.wp.com`), and Webflow Image CDN (`*.website-files.com` / `*.webflow.com`) C2PA manifest stripping alongside `/_next/image`, Cloudflare `/cdn-cgi/image/`, Cloudinary, and imgix, and omits `&appUrl=` on shared CDN hosts so `links.pro` and `links.concierge` never prefill a third-party CDN hostname.
+- `spurvik_setup_snippet` pins `spurvik@1.0.11` (`SNIPPET_SDK_VERSION`, bumped to `1.0.12` once `spurvik@1.0.12` is live on npm).
+- `User-Agent` is now `spurvik-mcp-server/1.0.9`. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.9`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.9`.
 
 ## 1.0.8 — 2026-11-17
 

@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.8, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.9, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -22088,7 +22088,7 @@ function statusShieldMarkdownFor(host) {
 }
 
 // packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.8";
+var MCP_VERSION = "1.0.9";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/badge-copy.ts
