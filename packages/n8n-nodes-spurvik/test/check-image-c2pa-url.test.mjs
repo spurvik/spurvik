@@ -353,6 +353,16 @@ describe("checkImageC2paUrl execute", () => {
       "www.example.fr",
       "fr",
     ],
+    [
+      "Shopify /cdn/shop/ on customer storefront (appUrl kept)",
+      "https://myrqvist.se/cdn/shop/files/hero.webp",
+      "Shopify CDN (/cdn/shop/)",
+      "myrqvist.se",
+      "sv",
+    ],
+    ["Shopify shared CDN (appUrl omitted)", "https://cdn.shopify.com/s/files/1/0001/hero.webp", "Shopify CDN (/cdn/shop/)", null, "en"],
+    ["WordPress Jetpack Photon CDN (appUrl omitted)", "https://i0.wp.com/acme.eu/wp-content/uploads/hero.jpg", "WordPress Jetpack Photon CDN (i*.wp.com)", null, "en"],
+    ["Webflow Image CDN (appUrl omitted)", "https://cdn.prod.website-files.com/65a/hero.webp", "Webflow Image CDN", null, "en"],
     ["Cloudinary (shared CDN host: appUrl omitted)", "https://res.cloudinary.com/demo/image/upload/hero.png", "Cloudinary", null, "en"],
     ["imgix (shared CDN host: appUrl omitted)", "https://acme.imgix.net/hero.png?w=800", "imgix", null, "en"],
   ];

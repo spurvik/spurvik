@@ -22865,19 +22865,27 @@ function detectImageProxy(rawUrl) {
     return null;
   }
   const host = url.hostname.toLowerCase();
-  if (url.pathname.startsWith("/_next/image")) {
+  const path4 = url.pathname.toLowerCase();
+  if (path4.startsWith("/_next/image")) {
     return {
       name: "Next.js image optimizer (/_next/image)",
       fix: "Set `unoptimized` on that next/image <Image> (or `images.unoptimized` in next.config) so the original signed bytes are served."
     };
   }
-  if (url.pathname.includes("/cdn-cgi/image/")) return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
+  if (path4.includes("/cdn-cgi/image/")) return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
+  if (host === "cdn.shopify.com" || host.endsWith(".shopify.com") || path4.startsWith("/cdn/shop/")) {
+    return { name: "Shopify CDN (/cdn/shop/)", fix: REENCODE_FIX };
+  }
+  if (/^i\d\.wp\.com$/i.test(host)) return { name: "WordPress Jetpack Photon CDN (i*.wp.com)", fix: REENCODE_FIX };
+  if (host.endsWith(".website-files.com") || host.endsWith(".webflow.com")) {
+    return { name: "Webflow Image CDN", fix: REENCODE_FIX };
+  }
   if (host === "cloudinary.com" || host.endsWith(".cloudinary.com")) return { name: "Cloudinary", fix: REENCODE_FIX };
   if (host === "imgix.net" || host.endsWith(".imgix.net")) return { name: "imgix", fix: REENCODE_FIX };
   return null;
 }
 function isImageCdnHost(host) {
-  return /(?:^|\.)(?:cloudinary\.com|imgix\.net)$/i.test(host);
+  return /(?:^|\.)(?:cloudinary\.com|imgix\.net|shopify\.com|wp\.com|website-files\.com|(?:uploads-ssl|assets)\.webflow\.com)$/i.test(host);
 }
 function safeClaimGenerator(value) {
   if (typeof value !== "string") return null;

@@ -474,6 +474,10 @@ describe("spurvik c2pa", () => {
     expect(normalizeImageUrl("HTTPS://Example.COM.:443/a.png#x")).toEqual({ url: "https://example.com/a.png", host: "example.com" });
     expect(() => normalizeImageUrl("https://2130706433/a.png")).toThrow(ScanTargetError);
     expect(detectImageProxy("https://res.cloudinary.com/demo/image/upload/a.jpg")?.name).toBe("Cloudinary");
+    expect(detectImageProxy("https://myrqvist.com/cdn/shop/files/hero.webp")?.name).toBe("Shopify CDN (/cdn/shop/)");
+    expect(detectImageProxy("https://cdn.shopify.com/s/files/1/0001/hero.webp")?.name).toBe("Shopify CDN (/cdn/shop/)");
+    expect(detectImageProxy("https://i0.wp.com/acme.eu/wp-content/uploads/hero.jpg")?.name).toBe("WordPress Jetpack Photon CDN (i*.wp.com)");
+    expect(detectImageProxy("https://cdn.prod.website-files.com/65a/hero.webp")?.name).toBe("Webflow Image CDN");
     expect(detectImageProxy("https://example.com/a.png")).toBeNull();
     expect(safeClaimGenerator("x".repeat(300))).toHaveLength(100);
     expect(safeValidationCodes(Array.from({ length: 30 }, (_, i) => `c.${i}`))).toHaveLength(20);

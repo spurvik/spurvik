@@ -163,6 +163,10 @@ describe("detectImageProxy", () => {
   it.each([
     ["https://example.com/_next/image?url=%2Fhero.png&w=1080&q=75", "Next.js image optimizer (/_next/image)", "unoptimized"],
     ["https://example.com/cdn-cgi/image/width=800/hero.png", "Cloudflare image resizing (/cdn-cgi/image/)", "untransformed original"],
+    ["https://myrqvist.com/cdn/shop/files/hero.webp", "Shopify CDN (/cdn/shop/)", "untransformed original"],
+    ["https://cdn.shopify.com/s/files/1/0001/hero.webp", "Shopify CDN (/cdn/shop/)", "untransformed original"],
+    ["https://i0.wp.com/acme.eu/wp-content/uploads/hero.jpg", "WordPress Jetpack Photon CDN (i*.wp.com)", "untransformed original"],
+    ["https://cdn.prod.website-files.com/65a/hero.webp", "Webflow Image CDN", "untransformed original"],
     ["https://res.cloudinary.com/demo/image/upload/sample.jpg", "Cloudinary", "untransformed original"],
     ["https://cloudinary.com/x.png", "Cloudinary", "untransformed original"],
     ["https://assets.imgix.net/hero.png?w=400", "imgix", "untransformed original"],
@@ -179,9 +183,14 @@ describe("detectImageProxy", () => {
     },
   );
 
-  it("treats only Cloudinary and imgix as image CDN hosts", () => {
+  it("treats shared image CDN hosts as non-customer hosts while keeping custom storefronts", () => {
     expect(isImageCdnHost("res.cloudinary.com")).toBe(true);
     expect(isImageCdnHost("assets.imgix.net")).toBe(true);
+    expect(isImageCdnHost("cdn.shopify.com")).toBe(true);
+    expect(isImageCdnHost("i0.wp.com")).toBe(true);
+    expect(isImageCdnHost("cdn.prod.website-files.com")).toBe(true);
+    expect(isImageCdnHost("myrqvist.com")).toBe(false);
+    expect(isImageCdnHost("acme.webflow.io")).toBe(false);
     expect(isImageCdnHost("example.com")).toBe(false);
     expect(isImageCdnHost("cloudinary.com.evil.example")).toBe(false);
   });
