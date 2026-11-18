@@ -898,6 +898,18 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     }
   });
 
+  it("uses upstream htmlLocale on generic TLDs while preserving explicit EU ccTLDs and OUTPUT_KEYS", async () => {
+    await withFetch(async () => json({ ok: true, scan: { ...LIVE_SCAN.scan, domain: "charlie-paris.com", htmlLocale: "fr" } }), async () => {
+      const [out] = await node.execute.call(scanCtx({ domainOrUrl: "charlie-paris.com" }));
+      assert.ok(out[0].json.badgeSnippet.includes('data-locale="fr"'));
+      assert.deepEqual(Object.keys(out[0].json), OUTPUT_KEYS);
+    });
+    await withFetch(async () => json({ ok: true, scan: { ...LIVE_SCAN.scan, domain: "stepnetwork.dk", htmlLocale: "fr" } }), async () => {
+      const [out] = await node.execute.call(scanCtx({ domainOrUrl: "stepnetwork.dk" }));
+      assert.ok(out[0].json.badgeSnippet.includes('data-locale="da"'));
+    });
+  });
+
   describe("batchScanDomains (zero-key Batch Scan, agency roster)", () => {
     const BATCH_KEYS = ["totalDomains", "gapsFound", "results", "portfolioUrl", "agencyCalculatorUrl", "upgradeUrls"];
     const BATCH_UPGRADES = {

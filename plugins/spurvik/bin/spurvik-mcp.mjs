@@ -22382,8 +22382,15 @@ function readUpstreamScan(body) {
   const scan = isRecord(body.scan) ? body.scan : body;
   return typeof scan.reachable === "boolean" ? scan : null;
 }
-function baseResult(target) {
-  const locale = inferLocaleFromDomain(target.host);
+function resolveScannedLocale(host, pageRead, htmlLocale) {
+  const tldLocale = inferLocaleFromDomain(host);
+  if (tldLocale !== "en") return tldLocale;
+  if (pageRead && typeof htmlLocale === "string" && htmlLocale !== "en" && EU_LOCALE_CODES.includes(htmlLocale)) {
+    return htmlLocale;
+  }
+  return tldLocale;
+}
+function baseResult(target, locale = inferLocaleFromDomain(target.host)) {
   return {
     tool: "spurvik_scan_live_url",
     host: target.host,
@@ -22423,8 +22430,9 @@ function fromUpstream(target, scan) {
   const httpStatus = intOrNull(scan.httpStatus, 100, 599);
   const pageRead = reachable && httpStatus === null;
   const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
+  const locale = resolveScannedLocale(target.host, pageRead, scan.htmlLocale);
   return {
-    ...baseResult(target),
+    ...baseResult(target, locale),
     offlineFallback: false,
     status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
     reason: shortCode(scan.reason),

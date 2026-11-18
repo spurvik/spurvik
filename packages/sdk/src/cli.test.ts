@@ -174,6 +174,16 @@ describe("spurvik scan", () => {
     expect(await runCli(["stepnetwork.dk", "--fail-on-gap"], none.deps)).toBe(EXIT_OK);
     expect(none.out()).toContain("NO PUBLIC WIDGET DETECTED");
     expect(none.out()).toContain('data-locale="da"');
+
+    const frHtml = harness(
+      (async () =>
+        jsonResponse({
+          ok: true,
+          scan: { ...FOLK_GAP.scan, domain: "charlie-paris.com", scannedUrl: "https://charlie-paris.com/", htmlLocale: "fr" },
+        })) as unknown as typeof fetch,
+    );
+    expect(await runCli(["scan", "charlie-paris.com"], frHtml.deps)).toBe(EXIT_OK);
+    expect(frHtml.out()).toContain('data-locale="fr"');
   });
 
   it("network errors and timeouts exit 2 with a short message and no stack", async () => {
@@ -612,11 +622,17 @@ describe("spurvik audit", () => {
 });
 
 describe("spurvik badge", () => {
-  it("localizes by TLD: .dk -> da, .de/.at -> de, else en", async () => {
+  it("localizes across all EU ccTLDs (.dk -> da, .de/.at -> de, .fr/.be -> fr, .nl -> nl, .se -> sv, else en)", async () => {
     for (const [domain, lang] of [
       ["stepnetwork.dk", "da"],
       ["example.de", "de"],
       ["shop.example.at", "de"],
+      ["charlie-paris.fr", "fr"],
+      ["qollabi.be", "fr"],
+      ["shop.example.nl", "nl"],
+      ["petgood.se", "sv"],
+      ["example.es", "es"],
+      ["example.it", "it"],
       ["example.com", "en"],
     ] as const) {
       const h = harness();
@@ -630,13 +646,18 @@ describe("spurvik badge", () => {
     expect(langForHost("www.example.co.uk")).toBe("en");
   });
 
-  it("--lang overrides the TLD, rejects other values, and the system name cannot break the attribute", async () => {
+  it("--lang accepts all 24 official EU locales, rejects non-EU codes, and the system name cannot break the attribute", async () => {
     const h = harness();
     expect(await runCli(["badge", "example.dk", "--lang", "en"], h.deps)).toBe(EXIT_OK);
     expect(h.out()).toContain('data-locale="en"');
 
+    const fr = harness();
+    expect(await runCli(["badge", "charlie-paris.com", "--lang=fr"], fr.deps)).toBe(EXIT_OK);
+    expect(fr.out()).toContain('data-locale="fr"');
+    expect(fr.out()).toContain('locale="fr"');
+
     const bad = harness();
-    expect(await runCli(["badge", "--lang=fr"], bad.deps)).toBe(EXIT_ERROR);
+    expect(await runCli(["badge", "--lang=zz"], bad.deps)).toBe(EXIT_ERROR);
 
     const noDomain = harness();
     expect(await runCli(["badge"], noDomain.deps)).toBe(EXIT_OK);
@@ -863,7 +884,7 @@ describe("spurvik --version / --help", () => {
       expect(await runCli(argv, h.deps)).toBe(EXIT_OK);
       expect(h.out()).toContain("spurvik scan <domain-or-url> [--json] [--fail-on-gap]");
       expect(h.out()).toContain("spurvik audit [dir]");
-      expect(h.out()).toContain("spurvik badge [domain] [--lang da|de|en]");
+      expect(h.out()).toContain("spurvik badge [domain] [--lang <eu-locale>]");
       expect(h.out()).toContain("spurvik c2pa <image-url> [--json] [--fail-on-missing]");
       expect(h.out()).toContain("spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]");
       expect(h.out()).toContain("--plan free|pro|team|concierge (default pro)");

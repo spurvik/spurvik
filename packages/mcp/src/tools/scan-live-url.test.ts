@@ -339,6 +339,40 @@ describe("scanLiveUrl", () => {
     expect(result.detectedSdks).toEqual([]);
   });
 
+  it("uses upstream htmlLocale on generic TLDs (.com/.io/.store) while preserving explicit EU ccTLDs and ignoring invalid codes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
+          scan: { ...UPSTREAM_SCAN, domain: "charlie-paris.com", scannedUrl: "https://charlie-paris.com/", htmlLocale: "fr" },
+        }),
+      ),
+    );
+    const frOnCom = await expectOk(scanLiveUrl("charlie-paris.com"));
+    expect(frOnCom.suggestedLocale).toBe("fr");
+    expect(frOnCom.suggestedLanguage).toBe("Français (fr)");
+    expect(frOnCom.badgeSnippet).toContain('data-locale="fr"');
+
+    // Explicit EU ccTLD (.dk -> da) takes precedence over htmlLocale.
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ ok: true, scan: { ...UPSTREAM_SCAN, htmlLocale: "fr" } })));
+    const dkSite = await expectOk(scanLiveUrl("stepnetwork.dk"));
+    expect(dkSite.suggestedLocale).toBe("da");
+    expect(dkSite.badgeSnippet).toContain('data-locale="da"');
+
+    // Non-EU or malformed htmlLocale or unread HTTP 503 page falls back to "en" on .com.
+    for (const badScan of [
+      { ...UPSTREAM_SCAN, htmlLocale: "<script>" },
+      { ...UPSTREAM_SCAN, htmlLocale: "zh" },
+      { ...UPSTREAM_SCAN, htmlLocale: "fr", httpStatus: 503, measured: false },
+    ]) {
+      vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ ok: true, scan: badScan })));
+      const fallbackEn = await expectOk(scanLiveUrl("example.com"));
+      expect(fallbackEn.suggestedLocale).toBe("en");
+      expect(fallbackEn.badgeSnippet).toContain('data-locale="en"');
+    }
+  });
+
   it("never logs the URL or the response", async () => {
     const spies = (["log", "info", "warn", "error", "debug"] as const).map((method) => vi.spyOn(console, method));
     const writeSpy = vi.spyOn(process.stderr, "write");

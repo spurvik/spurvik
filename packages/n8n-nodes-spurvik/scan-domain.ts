@@ -11,7 +11,7 @@
 export const N8N_NODES_SPURVIK_VERSION = "1.0.8";
 /**
  * First-party client User-Agent, sent on every console request (scan, C2PA check, console sync).
- * Console sync (pending): add the `n8n-nodes-spurvik/` prefix to the console's FIRST_PARTY_CLIENT_USER_AGENT_RE.
+ * Recognised by the console's `FIRST_PARTY_CLIENT_USER_AGENT_RE`.
  */
 export const N8N_NODES_SPURVIK_USER_AGENT = `n8n-nodes-spurvik/${N8N_NODES_SPURVIK_VERSION}`;
 
@@ -184,6 +184,33 @@ export function resolveScanBaseUrl(raw: unknown): string {
   return `${parsed.origin}${parsed.pathname.replace(/\/+$/, "")}`;
 }
 
+const EU_LOCALE_CODES: readonly string[] = [
+  "en",
+  "da",
+  "de",
+  "fr",
+  "es",
+  "nl",
+  "sv",
+  "pl",
+  "it",
+  "pt",
+  "fi",
+  "cs",
+  "bg",
+  "el",
+  "et",
+  "ga",
+  "hr",
+  "hu",
+  "lt",
+  "lv",
+  "mt",
+  "ro",
+  "sk",
+  "sl",
+];
+
 /** badge.js locale from the host's country-code TLD (`stepnetwork.dk` gives `da`). Anything else is `en`. */
 export function localeForHost(host: string): string {
   const tld = host.slice(host.lastIndexOf(".") + 1);
@@ -191,8 +218,12 @@ export function localeForHost(host: string): string {
 }
 
 /** One-line badge.js tag, the same shape the MCP server's scan tool returns (dark, bottom-right, attribution on). */
-export function badgeSnippetForDomain(host: string): string {
-  const locale = localeForHost(host);
+export function badgeSnippetForDomain(host: string, htmlLocale?: unknown): string {
+  const tldLocale = localeForHost(host);
+  const locale =
+    tldLocale === "en" && typeof htmlLocale === "string" && htmlLocale !== "en" && EU_LOCALE_CODES.includes(htmlLocale)
+      ? htmlLocale
+      : tldLocale;
   const systemName = host.replace(/[^a-z0-9.-]/g, "").slice(0, MAX_BADGE_SYSTEM_CHARS) || "Support Assistant";
   return `<script src="${SPURVIK_BADGE_SCRIPT_SRC}" data-system="${systemName}" data-locale="${locale}" data-theme="dark" data-attribution="true" defer></script>`;
 }
@@ -231,7 +262,7 @@ function readUpstreamScan(body: unknown): Record<string, unknown> | null {
 type ScanFacts = Pick<
   SpurvikScanDomainOutput,
   "reachable" | "detectedWidgets" | "detectedSdks" | "art50NoticeDetected" | "scanStatus" | "reason" | "markers"
->;
+> & { htmlLocale?: unknown };
 
 /** Output in a fixed key order. Links use the public console origin and the encoded host only. */
 function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
@@ -244,7 +275,7 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     detectedWidgets: facts.detectedWidgets,
     detectedSdks: facts.detectedSdks,
     art50NoticeDetected: facts.art50NoticeDetected,
-    badgeSnippet: badgeSnippetForDomain(host),
+    badgeSnippet: badgeSnippetForDomain(host, facts.htmlLocale),
     reportUrl,
     sandboxUrl: `${SPURVIK_CONSOLE_ORIGIN}/sandbox?scan=${encoded}`,
     portfolioUrl: SPURVIK_PORTFOLIO_URL,
@@ -295,6 +326,7 @@ function fromUpstream(host: string, scan: Record<string, unknown>): SpurvikScanD
     scanStatus: !reachable ? "unreachable" : scan.measured === true ? "measured" : "not_measured",
     reason: shortCode(scan.reason),
     markers,
+    htmlLocale: pageRead ? scan.htmlLocale : undefined,
   });
 }
 

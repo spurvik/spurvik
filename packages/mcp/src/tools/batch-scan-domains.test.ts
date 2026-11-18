@@ -287,6 +287,21 @@ describe("batchScanDomains", () => {
     expect(result).toMatchObject({ scannedDomains: 0, offlineFallbacks: 2, gapsFound: 0 });
   });
 
+  it("propagates upstream htmlLocale to suggestedLocale and badgeSnippet for generic TLDs in a batch", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const u = String(input);
+      if (u.includes("charlie-paris.com")) {
+        return jsonResponse({ scan: { ...pageScan({ detectedWidgets: ["Gorgias"] }), domain: "charlie-paris.com", htmlLocale: "fr" } });
+      }
+      return jsonResponse({ scan: { ...pageScan({ detectedWidgets: ["Intercom"] }), domain: "petgood.com", htmlLocale: "sv" } });
+    });
+    const result = await expectOk(batchScanDomains(["charlie-paris.com", "petgood.com"], { fetch: fetchMock as unknown as typeof fetch }));
+    expect(result.results[0]?.suggestedLocale).toBe("fr");
+    expect(result.results[0]?.badgeSnippet).toContain('data-locale="fr"');
+    expect(result.results[1]?.suggestedLocale).toBe("sv");
+    expect(result.results[1]?.badgeSnippet).toContain('data-locale="sv"');
+  });
+
   it("never logs the domains or the responses", async () => {
     const spies = (["log", "info", "warn", "error", "debug"] as const).map((method) => vi.spyOn(console, method));
     const writeSpy = vi.spyOn(process.stderr, "write");

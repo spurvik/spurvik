@@ -203,15 +203,44 @@ export function looksLikeDomainOrUrl(arg: string): boolean {
 // Badge helpers
 // ---------------------------------------------------------------------------------------------------------------
 
-export type BadgeLang = "da" | "de" | "en";
-const BADGE_LANGS: readonly BadgeLang[] = ["da", "de", "en"];
+export const BADGE_LANGS = [
+  "en",
+  "da",
+  "de",
+  "fr",
+  "es",
+  "nl",
+  "sv",
+  "pl",
+  "it",
+  "pt",
+  "fi",
+  "cs",
+  "bg",
+  "el",
+  "et",
+  "ga",
+  "hr",
+  "hu",
+  "lt",
+  "lv",
+  "mt",
+  "ro",
+  "sk",
+  "sl",
+] as const;
+export type BadgeLang = (typeof BADGE_LANGS)[number];
 
-/** `.dk` -> da, `.de`/`.at` -> de, anything else -> en. */
+/** ccTLD -> one of the 24 official EU languages (same table as spurvik-mcp-server and the console). */
+const CCTLD_LOCALES: Readonly<Record<string, BadgeLang>> = {
+  dk: "da", de: "de", at: "de", se: "sv", nl: "nl", fr: "fr", be: "fr", es: "es", it: "it", pl: "pl", pt: "pt", fi: "fi",
+  gr: "el", cz: "cs", ro: "ro", hu: "hu", bg: "bg", hr: "hr", sk: "sk", si: "sl", lt: "lt", lv: "lv", ee: "et",
+};
+
+/** Maps EU country-code TLDs (.dk -> da, .de/.at -> de, .fr/.be -> fr, .nl -> nl, .se -> sv, ...) or falls back to en. */
 export function langForHost(host: string | undefined): BadgeLang {
   const tld = (host ?? "").toLowerCase().replace(/\.$/, "").split(".").pop() ?? "";
-  if (tld === "dk") return "da";
-  if (tld === "de" || tld === "at") return "de";
-  return "en";
+  return Object.prototype.hasOwnProperty.call(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld]! : "en";
 }
 
 /** Strips attribute-breaking and control/bidi characters; caps at 64 chars. Safe inside a double-quoted HTML/JSX attribute. */
@@ -329,6 +358,11 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
   const widgets = pageRead ? cleanList(scan.detectedWidgets, scan.detectedSdks) : [];
   const status: ScanStatus = !pageRead ? "unreachable" : disclosure ? "covered" : widgets.length > 0 ? "gap" : "no_widget_detected";
   const scannedUrl = cleanText(scan.scannedUrl, 2048);
+  const tldLang = langForHost(target.host);
+  const resolvedLang: BadgeLang =
+    tldLang === "en" && pageRead && typeof scan.htmlLocale === "string" && scan.htmlLocale !== "en" && (BADGE_LANGS as readonly string[]).includes(scan.htmlLocale)
+      ? (scan.htmlLocale as BadgeLang)
+      : tldLang;
   return {
     domain: target.host,
     scannedUrl: /^https:\/\//.test(scannedUrl) ? scannedUrl : target.url,
@@ -337,7 +371,7 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
     httpStatus,
     detectedWidgets: widgets,
     covered: pageRead ? disclosure : null,
-    badgeSnippet: badgeScriptTag(target.host, langForHost(target.host)),
+    badgeSnippet: badgeScriptTag(target.host, resolvedLang),
     links: scanLinks(target.host),
   };
 }
@@ -665,7 +699,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 
 function cmdBadge(args: ParsedArgs, io: Io): number {
   if (args.positionals.length > 1) {
-    io.err("Usage: spurvik badge [domain] [--lang da|de|en]");
+    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>]");
     return EXIT_ERROR;
   }
   if (args.lang !== undefined && !BADGE_LANGS.includes(args.lang as BadgeLang)) {
@@ -783,15 +817,8 @@ function isImageCdnHost(host: string): boolean {
   return /(?:^|\.)(?:cloudinary\.com|imgix\.net)$/i.test(host);
 }
 
-/** ccTLD -> one of the 24 official EU languages (same table as spurvik-mcp-server and the console). */
-const CCTLD_LOCALES: Readonly<Record<string, string>> = {
-  dk: "da", de: "de", at: "de", se: "sv", nl: "nl", fr: "fr", be: "fr", es: "es", it: "it", pl: "pl", pt: "pt", fi: "fi",
-  gr: "el", cz: "cs", ro: "ro", hu: "hu", bg: "bg", hr: "hr", sk: "sk", si: "sl", lt: "lt", lv: "lv", ee: "et",
-};
-
 export function noticeLocaleForHost(host: string | null): string {
-  const tld = (host ?? "").toLowerCase().replace(/\.$/, "").split(".").pop() ?? "";
-  return Object.hasOwn(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld]! : "en";
+  return langForHost(host ?? undefined);
 }
 
 /** Manifest text is attacker-controllable: letters, digits and ` ._()/+:@-` only, single spaces, at most 100 chars. */
@@ -1167,7 +1194,7 @@ export function helpText(): string {
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
     "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check of a public https image",
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped OpenAI/Anthropic/Gemini/AI SDK calls",
-    "  spurvik badge [domain] [--lang da|de|en]                 badge.js tag + React snippet",
+    "  spurvik badge [domain] [--lang <eu-locale>]              24-language badge.js tag + React snippet",
     "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
     "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
     "      --plan free|pro|team|concierge (default pro)",

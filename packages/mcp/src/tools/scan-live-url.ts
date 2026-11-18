@@ -10,7 +10,7 @@ import {
   statusShieldUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
-import { buildBadgeScript, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
+import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
 
 /** Upstream scan endpoint on the hosted console. The origin is fixed; only the `url` query value varies. */
 export const SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
@@ -299,8 +299,19 @@ function readUpstreamScan(body: unknown): Record<string, unknown> | null {
   return typeof scan.reachable === "boolean" ? scan : null;
 }
 
-function baseResult(target: ScanTarget): Omit<ScanLiveUrlResult, "offlineFallback" | "status" | "reason" | "note"> {
-  const locale = inferLocaleFromDomain(target.host);
+function resolveScannedLocale(host: string, pageRead: boolean, htmlLocale: unknown): string {
+  const tldLocale = inferLocaleFromDomain(host);
+  if (tldLocale !== "en") return tldLocale;
+  if (pageRead && typeof htmlLocale === "string" && htmlLocale !== "en" && EU_LOCALE_CODES.includes(htmlLocale)) {
+    return htmlLocale;
+  }
+  return tldLocale;
+}
+
+function baseResult(
+  target: ScanTarget,
+  locale = inferLocaleFromDomain(target.host),
+): Omit<ScanLiveUrlResult, "offlineFallback" | "status" | "reason" | "note"> {
   return {
     tool: "spurvik_scan_live_url",
     host: target.host,
@@ -344,8 +355,9 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
   const httpStatus = intOrNull(scan.httpStatus, 100, 599);
   const pageRead = reachable && httpStatus === null;
   const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
+  const locale = resolveScannedLocale(target.host, pageRead, scan.htmlLocale);
   return {
-    ...baseResult(target),
+    ...baseResult(target, locale),
     offlineFallback: false,
     status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
     reason: shortCode(scan.reason),
