@@ -237,6 +237,60 @@ describe("spurvik scan", () => {
     expect(h.out()).toContain("Intercom[2J Fin");
     expect(h.out()).not.toMatch(/[\u0000-\u0008\u001b]/);
   });
+
+  it("batch-scans 2 to 10 domains concurrently, links /portfolio?domains=..., supports --fail-on-gap & --json, and refuses >10 or private hosts up front", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("charlie-paris.com")) {
+        return jsonResponse({
+          ok: true,
+          scan: { ...FOLK_GAP.scan, domain: "charlie-paris.com", scannedUrl: "https://charlie-paris.com/", htmlLocale: "fr" },
+        });
+      }
+      return jsonResponse({
+        ok: true,
+        scan: {
+          ...FOLK_GAP.scan,
+          domain: "spurvik.com",
+          scannedUrl: "https://spurvik.com/",
+          detectedWidgets: [],
+          markers: { ...FOLK_GAP.scan.markers, art50_1_disclosure: true },
+        },
+      });
+    });
+    const tty = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["scan", "charlie-paris.com", "spurvik.com", "CHARLIE-PARIS.COM", "--fail-on-gap"], tty.deps)).toBe(EXIT_GAP);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(tty.out()).toContain("batch portfolio scan");
+    expect(tty.out()).toContain("https://console.spurvik.com/portfolio?domains=charlie-paris.com,spurvik.com");
+    expect(tty.out()).toContain("https://console.spurvik.com/signup?plan=team");
+    expect(tty.out()).not.toContain("€49");
+
+    const json = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["scan", "charlie-paris.com", "spurvik.com", "--json"], json.deps)).toBe(EXIT_OK);
+    const body = JSON.parse(json.out());
+    expect(body).toMatchObject({
+      totalDomains: 2,
+      duplicatesRemoved: 0,
+      gapsFound: 1,
+      links: {
+        portfolioUrl: "https://console.spurvik.com/portfolio?domains=charlie-paris.com,spurvik.com",
+        teamUpgradeUrl: "https://console.spurvik.com/signup?plan=team",
+        doneForYouUrl: "https://console.spurvik.com/signup?plan=concierge",
+      },
+    });
+
+    // Any private host aborts before making any network call
+    fetchMock.mockClear();
+    const blocked = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["scan", "spurvik.com", "127.0.0.1"], blocked.deps)).toBe(EXIT_ERROR);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // > 10 domains refused cleanly
+    const eleven = Array.from({ length: 11 }, (_, i) => `site-${i}.eu`);
+    const tooMany = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["scan", ...eleven], tooMany.deps)).toBe(EXIT_ERROR);
+    expect(tooMany.err()).toContain("1 to 10 domains");
+  });
 });
 
 // Shape copied from POST https://console.spurvik.com/api/v1/provenance/public-check-url on 2026-11-17.

@@ -459,39 +459,149 @@ function printScan(report: ScanReport, io: Io): void {
   out();
 }
 
+export const BATCH_SCAN_MAX_DOMAINS = 10;
+const BATCH_SCAN_CONCURRENCY = 4;
+
+export interface BatchScanReport {
+  totalDomains: number;
+  duplicatesRemoved: number;
+  gapsFound: number;
+  results: ScanReport[];
+  links: {
+    portfolioUrl: string;
+    teamUpgradeUrl: string;
+    doneForYouUrl: string;
+  };
+}
+
+async function mapPool<T, R>(items: readonly T[], limit: number, worker: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const lanes = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++;
+      out[index] = await worker(items[index]!);
+    }
+  });
+  await Promise.all(lanes);
+  return out;
+}
+
+function printBatchScan(batch: BatchScanReport, io: Io): void {
+  const { c, out } = io;
+  out();
+  out(`  ${c.bold("Spurvik · EU AI Act Art. 50(1) batch portfolio scan")} ${c.dim(`(${batch.totalDomains} domains)`)}`);
+  out();
+  for (const r of batch.results) {
+    const tag =
+      r.status === "covered"
+        ? c.green("COVERED")
+        : r.status === "gap"
+          ? c.red("GAP")
+          : r.status === "unreachable"
+            ? c.yellow("UNREACHABLE")
+            : c.cyan("NO WIDGET");
+    const widgets = r.detectedWidgets.length ? r.detectedWidgets.join(", ") : "none";
+    out(`  ${tag.padEnd(14)} ${r.domain.padEnd(26)} ${c.dim(`widgets: ${widgets}`)} · ${c.cyan(r.links.reportUrl)}`);
+  }
+  out();
+  out(
+    `  ${batch.gapsFound > 0 ? c.yellow(`⚠ ${batch.gapsFound} of ${batch.totalDomains} domain(s) missing a visible Art. 50(1) AI notice.`) : c.green("✓ Zero Art. 50(1) notice gaps detected across scanned domains.")}`,
+  );
+  out();
+  out(`  ${c.bold("Next steps")} ${c.dim("(prices excl. VAT)")}`);
+  out(`  › Interactive portfolio matrix & CSV/Markdown export`);
+  out(`    ${c.cyan(batch.links.portfolioUrl)}`);
+  out(`  › Multi-Client Agency Team (€79/mo, incl. 12mo Frankfurt logs & Annex IV draft)`);
+  out(`    ${c.cyan(batch.links.teamUpgradeUrl)}`);
+  out(`  › 24h engineer Done-For-You setup (€199/site, incl. 1 year of Pro)`);
+  out(`    ${c.cyan(batch.links.doneForYouUrl)}`);
+  out();
+}
+
 async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number> {
-  const raw = args.positionals[0];
-  if (!raw) {
-    io.err("Usage: spurvik scan <domain-or-url> [--json] [--fail-on-gap]");
+  if (args.positionals.length === 0) {
+    io.err("Usage: spurvik scan <domain-or-url> [...up to 10 domains] [--json] [--fail-on-gap]");
     return EXIT_ERROR;
   }
-  if (args.positionals.length > 1) {
-    io.err("spurvik scan takes one domain. For many domains use https://console.spurvik.com/portfolio");
+  if (args.positionals.length > BATCH_SCAN_MAX_DOMAINS) {
+    io.err(`spurvik scan takes 1 to ${BATCH_SCAN_MAX_DOMAINS} domains per run.`);
     return EXIT_ERROR;
   }
-  let target: ScanTarget;
+  if (args.positionals.length === 1) {
+    let target: ScanTarget;
+    try {
+      target = normalizeScanTarget(args.positionals[0]!);
+    } catch (error) {
+      io.err(error instanceof ScanTargetError ? error.message : INVALID);
+      return EXIT_ERROR;
+    }
+    let report: ScanReport;
+    try {
+      report = await fetchScan(target, deps);
+    } catch (error) {
+      const message = error instanceof ScanFailed ? error.message : "The scan failed.";
+      if (args.json) {
+        io.out(JSON.stringify({ domain: target.host, status: "error", error: message, links: scanLinks(target.host) }, null, 2));
+      } else {
+        io.err(`spurvik scan: ${message}`);
+        io.err(`Run it in the browser instead: ${scanLinks(target.host).sandboxUrl}`);
+      }
+      return EXIT_ERROR;
+    }
+    if (args.json) io.out(JSON.stringify(report, null, 2));
+    else printScan(report, io);
+    return args.failOnGap && report.status === "gap" ? EXIT_GAP : EXIT_OK;
+  }
+
+  // Multi-domain batch scan (2..10 domains): validate all targets before any network call.
+  const targets: ScanTarget[] = [];
+  const seen = new Set<string>();
+  let duplicatesRemoved = 0;
+  for (const raw of args.positionals) {
+    let target: ScanTarget;
+    try {
+      target = normalizeScanTarget(raw);
+    } catch (error) {
+      io.err(error instanceof ScanTargetError ? error.message : INVALID);
+      return EXIT_ERROR;
+    }
+    if (seen.has(target.host)) {
+      duplicatesRemoved += 1;
+      continue;
+    }
+    seen.add(target.host);
+    targets.push(target);
+  }
+  let results: ScanReport[];
   try {
-    target = normalizeScanTarget(raw);
+    results = await mapPool(targets, BATCH_SCAN_CONCURRENCY, (target) => fetchScan(target, deps));
   } catch (error) {
-    io.err(error instanceof ScanTargetError ? error.message : INVALID);
-    return EXIT_ERROR;
-  }
-  let report: ScanReport;
-  try {
-    report = await fetchScan(target, deps);
-  } catch (error) {
-    const message = error instanceof ScanFailed ? error.message : "The scan failed.";
+    const message = error instanceof ScanFailed ? error.message : "The batch scan failed.";
     if (args.json) {
-      io.out(JSON.stringify({ domain: target.host, status: "error", error: message, links: scanLinks(target.host) }, null, 2));
+      io.out(JSON.stringify({ status: "error", error: message, links: { portfolioUrl: PORTFOLIO_URL } }, null, 2));
     } else {
       io.err(`spurvik scan: ${message}`);
-      io.err(`Run it in the browser instead: ${scanLinks(target.host).sandboxUrl}`);
+      io.err(`Run it in the browser instead: ${PORTFOLIO_URL}`);
     }
     return EXIT_ERROR;
   }
-  if (args.json) io.out(JSON.stringify(report, null, 2));
-  else printScan(report, io);
-  return args.failOnGap && report.status === "gap" ? EXIT_GAP : EXIT_OK;
+  const gapsFound = results.filter((r) => r.status === "gap").length;
+  const portfolioUrl = `${PORTFOLIO_URL}?domains=${targets.map((t) => encodeURIComponent(t.host)).join(",")}`;
+  const batch: BatchScanReport = {
+    totalDomains: results.length,
+    duplicatesRemoved,
+    gapsFound,
+    results,
+    links: {
+      portfolioUrl,
+      teamUpgradeUrl: TEAM_SIGNUP_URL,
+      doneForYouUrl: CONCIERGE_SIGNUP_URL,
+    },
+  };
+  if (args.json) io.out(JSON.stringify(batch, null, 2));
+  else printBatchScan(batch, io);
+  return args.failOnGap && gapsFound > 0 ? EXIT_GAP : EXIT_OK;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
