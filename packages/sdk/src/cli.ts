@@ -633,6 +633,8 @@ const CALL_PATTERNS: readonly CallPattern[] = [
   { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?OpenAI\s*\(/, provider: "OpenAI", python: true },
   { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?Anthropic\s*\(/, provider: "Anthropic", python: true },
   { re: /\bgenai\.Client\s*\(/, provider: "Google GenAI", python: true },
+  { re: /\bChatOpenAI\s*\(/, provider: "LangChain ChatOpenAI", python: true },
+  { re: /\bChatAnthropic\s*\(/, provider: "LangChain ChatAnthropic", python: true },
 ];
 
 export interface AuditFinding {
@@ -731,6 +733,12 @@ const AI_SDK_SNIPPET = [
   "await generateText({ model, ... });            // same config as withSpurvik",
 ];
 
+const PYTHON_WRAP_SNIPPET = [
+  "curl -fsSLO https://spurvik.com/r/spurvik_guard.py",
+  "from spurvik_guard import send_telemetry_event, request_human_approval",
+  'send_telemetry_event("openai", "gpt-4o", prompt, reply, latency_ms=140) # 0B raw prompt text',
+];
+
 const AUDIT_NEXT_STEPS: ReadonlyArray<readonly [string, string]> = [
   ["Free SPURVIK_API_KEY in 10s (€0, 10,000 events/mo, no card)", SIGNUP_URL],
   ["White-label badge + 90d Frankfurt vault + HITL queue (Pro €19/mo)", PRO_SIGNUP_URL],
@@ -793,6 +801,11 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
         out(`  ${c.bold("Vercel AI SDK")}`);
         for (const line of AI_SDK_SNIPPET) out(`    ${line}`);
       }
+      if (report.unwrapped.some((f) => f.file.endsWith(".py"))) {
+        out();
+        out(`  ${c.bold("Python / FastAPI / LangChain")} ${c.dim("(Python 3.10+ stdlib only)")}`);
+        for (const line of PYTHON_WRAP_SNIPPET) out(`    ${line}`);
+      }
       out(`  ${c.dim("config fields:")} ${QUICKSTART_URL}`);
     }
     out();
@@ -807,31 +820,62 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
+export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "html", "react"] as const;
+export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
+
 function cmdBadge(args: ParsedArgs, io: Io): number {
   if (args.positionals.length > 1) {
-    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>]");
+    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>] [--cms shopify|wordpress|webflow|html|react]");
     return EXIT_ERROR;
   }
   if (args.lang !== undefined && !BADGE_LANGS.includes(args.lang as BadgeLang)) {
     io.err(`spurvik badge: --lang must be one of ${BADGE_LANGS.join(", ")}`);
     return EXIT_ERROR;
   }
+  if (args.cms !== undefined && !BADGE_CMS_TARGETS.includes(args.cms as BadgeCmsTarget)) {
+    io.err(`spurvik badge: --cms must be one of ${BADGE_CMS_TARGETS.join(", ")}`);
+    return EXIT_ERROR;
+  }
   const host = hostForSnippet(args.positionals[0]);
   const lang = (args.lang as BadgeLang | undefined) ?? langForHost(host);
   const systemName = sanitizeSystemName(host);
   const proUrl = host ? scanLinks(host).proUpgradeUrl : PRO_SIGNUP_URL;
+  const conciergeUrl = host ? scanLinks(host).doneForYouUrl : CONCIERGE_SIGNUP_URL;
+  const tag = badgeScriptTag(systemName, lang);
+  const cms = args.cms as BadgeCmsTarget | undefined;
   const { c, out } = io;
   out();
-  out(`  ${c.bold("Spurvik · Art. 50(1) AI notice")} ${c.dim(`(${systemName}, ${lang})`)}`);
+  out(`  ${c.bold("Spurvik · Art. 50(1) AI notice")} ${c.dim(`(${systemName}, ${lang}${cms ? `, ${cms}` : ""})`)}`);
   out();
-  out(`  ${c.bold("Any site")} ${c.dim("(paste before </body>)")}`);
-  out(`  ${badgeScriptTag(systemName, lang)}`);
-  out();
-  out(`  ${c.bold("React / Next.js")} ${c.dim("(npm i spurvik)")}`);
-  out(`  import { AIDisclosureLabel } from "spurvik/react";`);
-  out(`  <AIDisclosureLabel notice="interaction" locale="${lang}" systemName="${systemName}" />`);
+  if (cms === "shopify") {
+    out(`  ${c.bold("Shopify Online Store 2.0")} ${c.dim("(layout/theme.liquid before </body>)")}`);
+    out(`  ${tag}`);
+    out(`  ${c.dim("Section file (.liquid):")} https://spurvik.com/r/spurvik-shopify-art50.liquid`);
+  } else if (cms === "wordpress") {
+    out(`  ${c.bold("WordPress / WooCommerce")} ${c.dim("(wp_footer hook or 1-click .zip plugin)")}`);
+    out(`  add_action('wp_footer', function () { echo '${tag}'; });`);
+    out(`  ${c.dim("Plugin (.zip):")} https://spurvik.com/r/spurvik-eu-ai-act-wp.zip`);
+  } else if (cms === "webflow") {
+    out(`  ${c.bold("Webflow")} ${c.dim("(Site Settings -> Custom Code -> Footer Code)")}`);
+    out(`  ${tag}`);
+  } else if (cms === "html") {
+    out(`  ${c.bold("Static HTML")} ${c.dim("(paste before </body>)")}`);
+    out(`  ${tag}`);
+  } else if (cms === "react") {
+    out(`  ${c.bold("React / Next.js")} ${c.dim("(npm i spurvik)")}`);
+    out(`  import { AIDisclosureLabel } from "spurvik/react";`);
+    out(`  <AIDisclosureLabel notice="interaction" locale="${lang}" systemName="${systemName}" />`);
+  } else {
+    out(`  ${c.bold("Any site")} ${c.dim("(paste before </body>)")}`);
+    out(`  ${tag}`);
+    out();
+    out(`  ${c.bold("React / Next.js")} ${c.dim("(npm i spurvik)")}`);
+    out(`  import { AIDisclosureLabel } from "spurvik/react";`);
+    out(`  <AIDisclosureLabel notice="interaction" locale="${lang}" systemName="${systemName}" />`);
+  }
   out();
   out(`  ${c.bold("White-label")} ${c.dim('(data-attribution="false") — Pro €19/mo:')} ${proUrl}`);
+  out(`  ${c.bold("24h Setup")} ${c.dim("(engineer installs in PR or CMS, €199 once):")} ${conciergeUrl}`);
   out();
   return EXIT_OK;
 }
@@ -1381,6 +1425,7 @@ interface ParsedArgs {
   help: boolean;
   version: boolean;
   lang?: string;
+  cms?: string;
   plan?: string;
   provider?: string;
   generatesMedia: boolean;
@@ -1388,7 +1433,7 @@ interface ParsedArgs {
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "c2pa", "audit", "badge", "rfp", "help", "version"]);
+const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "rfp", "help", "version"]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -1417,6 +1462,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (arg === "-v" || arg === "--version") parsed.version = true;
     else if (arg === "--lang") parsed.lang = argv[++i] ?? "";
     else if (arg.startsWith("--lang=")) parsed.lang = arg.slice("--lang=".length);
+    else if (arg === "--cms") parsed.cms = argv[++i] ?? "";
+    else if (arg.startsWith("--cms=")) parsed.cms = arg.slice("--cms=".length);
     else if (arg === "--plan") parsed.plan = argv[++i] ?? "";
     else if (arg.startsWith("--plan=")) parsed.plan = arg.slice("--plan=".length);
     else if (arg === "--provider") parsed.provider = argv[++i] ?? "";
@@ -1445,15 +1492,16 @@ export function helpText(): string {
     `spurvik ${CLI_VERSION} — EU AI Act checks from the terminal. No API key needed.`,
     "",
     "Usage:",
-    "  spurvik scan <domain-or-url> [--json] [--fail-on-gap]   Art. 50(1) notice check of a live site",
+    "  spurvik scan <domain-or-url> [--json] [--fail-on-gap]   Art. 50(1) notice check of 1 to 10 live sites",
+    "  spurvik portfolio <domain...> [--json] [--fail-on-gap]  Agency batch Art. 50(1) check (up to 10 domains)",
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
-    "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check of a public https image",
-    "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped OpenAI/Anthropic/Gemini/AI SDK calls",
-    "  spurvik badge [domain] [--lang <eu-locale>]              24-language badge.js tag + React snippet",
+    "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check (image URL or domain)",
+    "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped TS/JS & Python AI model calls",
+    "  spurvik badge [domain] [--lang <eu-locale>] [--cms <c>]  24-language badge.js, Shopify, WP, Webflow & React snippets",
     "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
     "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
     "      --plan free|pro|team|concierge (default pro)",
-    "      --provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|custom (default openai)",
+    "      --provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|custom (default openai)",
     "      --generates-media, --no-high-risk-actions",
     "  spurvik --version | --help",
     "",
@@ -1495,8 +1543,8 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err(`spurvik: unknown option ${escapeForTerminal(args.unknown[0]!)}. Run spurvik --help.`);
     return EXIT_ERROR;
   }
-  if (args.lang !== undefined && args.command !== "badge") {
-    io.err("spurvik: --lang applies to the badge command only.");
+  if ((args.lang !== undefined || args.cms !== undefined) && args.command !== "badge") {
+    io.err("spurvik: --lang and --cms apply to the badge command only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {
@@ -1520,6 +1568,7 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
   }
   switch (args.command) {
     case "scan":
+    case "portfolio":
       return cmdScan(args, deps, io);
     case "c2pa":
       return cmdC2pa(args, deps, io);

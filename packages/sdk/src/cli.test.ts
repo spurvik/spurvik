@@ -740,6 +740,15 @@ describe("spurvik audit", () => {
     expect(h.err()).toContain("not a readable directory: ./nope\\u001b[2J\\u009b31m\\u202e");
     expect(h.err()).not.toMatch(/[\u001b\u009b‮]/);
   });
+
+  it("detects LangChain ChatOpenAI in .py files and prints the spurvik_guard.py stdlib snippet", async () => {
+    writeFileSync(path.join(dir, "chain.py"), "from langchain_openai import ChatOpenAI\nllm = ChatOpenAI(model='gpt-4o')\n");
+    const h = harness(undefined, { cwd: dir });
+    expect(await runCli(["audit", "."], h.deps)).toBe(EXIT_OK);
+    expect(h.out()).toContain("chain.py:2 — LangChain ChatOpenAI");
+    expect(h.out()).toContain("https://spurvik.com/r/spurvik_guard.py");
+    expect(h.out()).toContain("send_telemetry_event");
+  });
 });
 
 describe("spurvik badge", () => {
@@ -788,6 +797,52 @@ describe("spurvik badge", () => {
     await runCli(["badge", 'x"><img src=x onerror=alert(1)>'], evil.deps);
     expect(evil.out()).not.toContain("<img");
     expect(evil.out()).not.toMatch(/data-system="[^"]*"[^ ]/);
+  });
+
+  it("--cms tailors snippets for shopify, wordpress, webflow, html and react, and portfolio aliases multi-domain scan", async () => {
+    const shopify = harness();
+    expect(await runCli(["badge", "charlie-paris.com", "--lang=fr", "--cms", "shopify"], shopify.deps)).toBe(EXIT_OK);
+    expect(shopify.out()).toContain("Shopify Online Store 2.0");
+    expect(shopify.out()).toContain("https://spurvik.com/r/spurvik-shopify-art50.liquid");
+    expect(shopify.out()).toContain('data-locale="fr"');
+    expect(shopify.out()).toContain("€199 once");
+
+    const wp = harness();
+    expect(await runCli(["badge", "example.de", "--cms=wordpress"], wp.deps)).toBe(EXIT_OK);
+    expect(wp.out()).toContain("wp_footer");
+    expect(wp.out()).toContain("https://spurvik.com/r/spurvik-eu-ai-act-wp.zip");
+
+    const badCms = harness();
+    expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
+    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, html, react");
+
+    const wrongCmd = harness();
+    expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);
+
+    const portfolioFetch = vi.fn(async (input: RequestInfo | URL) => {
+      const u = new URL(String(input));
+      const scanned = new URL(u.searchParams.get("url")!).hostname;
+      return new Response(
+        JSON.stringify({
+          scan: {
+            domain: scanned,
+            reachable: true,
+            measured: true,
+            reason: "no_markers",
+            detectedWidgets: ["Gorgias"],
+            detectedSdks: [],
+            markers: { art50_1_disclosure: false },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    });
+    const pf = harness(portfolioFetch as unknown as typeof fetch);
+    expect(await runCli(["portfolio", "charlie-paris.com", "folk.app", "--json"], pf.deps)).toBe(EXIT_OK);
+    const batch = JSON.parse(pf.out());
+    expect(batch.totalDomains).toBe(2);
+    expect(batch.gapsFound).toBe(2);
+    expect(batch.links.portfolioUrl).toBe("https://console.spurvik.com/portfolio?domains=charlie-paris.com,folk.app");
   });
 });
 
