@@ -31,7 +31,7 @@ export const FIND_TITLE = "Find unwrapped AI calls";
 export const ENV_SKIP_SENTENCE =
   "The scanner skips files named .env or .env.* (any case), including through symlinks and hard links.";
 export const FIND_DESCRIPTION =
-  "Heuristic static scan of one directory inside the workspace root for AI client calls that are not passed through withSpurvik, spurvikMiddleware, withSpurvikMastra, withSpurvikModel, withSpurvikModelProvider, withSpurvikLangGraph, or spurvikInterrupt. A StateGraph constructor is reported when the file does not call withSpurvikLangGraph. A bare interrupt() call is reported when the file does not call spurvikInterrupt or resolveLangGraphInterrupts. The scan reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, and .cts files. It does not read .md or .mdc files. Results are file:line. The line number is 1-based and counts every newline, including comments and strings. This is a heuristic, so it can miss a call or report one that is already wrapped. The scan does not change files and does not use the network. Paths that leave the workspace, including '..', are rejected. " +
+  "Heuristic static scan of one directory inside the workspace root for AI client calls that are not passed through withSpurvik, spurvikMiddleware, withSpurvikMastra, withSpurvikModel, withSpurvikModelProvider, withSpurvikLangGraph, spurvikInterrupt, or spurvik_guard.py (send_telemetry_event / build_telemetry_event). A StateGraph constructor is reported when the file does not call withSpurvikLangGraph. A bare interrupt() call is reported when the file does not call spurvikInterrupt or resolveLangGraphInterrupts. The scan reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts, and .py files. It does not read .md or .mdc files. Results are file:line. The line number is 1-based and counts every newline, including comments and strings. This is a heuristic, so it can miss a call or report one that is already wrapped. The scan does not change files and does not use the network. Paths that leave the workspace, including '..', are rejected. " +
   ENV_SKIP_SENTENCE;
 export const DIRECTORY_FIELD =
   "Directory inside the workspace root passed with --root or SPURVIK_MCP_ROOT. Relative paths are resolved from that root. '..' is rejected.";
@@ -43,13 +43,13 @@ export const PATH_MISSING = "The directory does not exist.";
 export const PATH_OUTSIDE = "That path resolves outside the workspace root.";
 export const PATH_NOT_DIRECTORY = "That path is not a directory.";
 export const PATH_EXCLUDED =
-  "That directory resolves inside node_modules, .git, dist, build, or .next.";
+  "That directory resolves inside node_modules, .git, dist, build, .next, .venv, venv, or __pycache__.";
 export const PATH_SENSITIVE = "That path is not scanned.";
 export const MISSING_ROOT = "Missing workspace root. Pass --root or set SPURVIK_MCP_ROOT.";
 export const ROOT_NOT_ALLOWED =
   "That workspace root is not allowed. Pass a project directory, not /, a home directory, or a system directory.";
 export const ROOT_NOT_PROJECT =
-  "The workspace root must contain package.json, .git, or pnpm-workspace.yaml.";
+  "The workspace root must contain package.json, pyproject.toml, requirements.txt, .git, or pnpm-workspace.yaml.";
 export const ROOT_MISSING_DIR = "That workspace root does not exist.";
 export const SCAN_TIME_LIMIT = "The scan stopped at its time limit.";
 export const SCAN_COUNT_LIMIT = "The scan stopped at its file or finding limit.";

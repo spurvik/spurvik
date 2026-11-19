@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -416,7 +416,7 @@ describe("createServer", () => {
     await client.close();
   });
 
-  it("spurvik_find_unwrapped_calls ends with wrap and signup Next steps", async () => {
+  it("spurvik_find_unwrapped_calls ends with wrap and signup Next steps and scans Python (.py) files while skipping .venv", async () => {
     const client = await connect();
     const result = await client.callTool({ name: "spurvik_find_unwrapped_calls", arguments: { directory: "." } });
     const text = textOf(result);
@@ -426,6 +426,46 @@ describe("createServer", () => {
     expect(steps).toContain("https://console.spurvik.com/signup\n");
     expect(steps).toContain("https://console.spurvik.com/signup?plan=pro\n");
     expect(steps).toContain("https://console.spurvik.com/signup?plan=concierge\n");
+
+    const pyDir = mkdtempSync(join(tmpdir(), "spurvik-mcp-py-test-"));
+    try {
+      writeFileSync(join(pyDir, "pyproject.toml"), '[project]\nname = "fastapi-demo"\nversion = "0.1.0"\n');
+      writeFileSync(
+        join(pyDir, "assistant.py"),
+        [
+          "from openai import AsyncOpenAI",
+          "from langchain_openai import ChatOpenAI",
+          "# AsyncOpenAI() inside a comment should be ignored",
+          "client = AsyncOpenAI()",
+          'llm = ChatOpenAI(model="gpt-4o")',
+        ].join("\n"),
+      );
+      const venvDir = join(pyDir, ".venv");
+      mkdirSync(venvDir, { recursive: true });
+      writeFileSync(join(venvDir, "ignored.py"), "from openai import OpenAI\nc = OpenAI()\n");
+      writeFileSync(
+        join(pyDir, "wrapped.py"),
+        [
+          "from openai import OpenAI",
+          "from spurvik_guard import send_telemetry_event",
+          "client = OpenAI()",
+        ].join("\n"),
+      );
+
+      const pyServer = createServer(pyDir);
+      const [pyClientTransport, pyServerTransport] = InMemoryTransport.createLinkedPair();
+      const pyClient = new Client({ name: "spurvik-py-test", version: "0.0.0" });
+      await Promise.all([pyServer.connect(pyServerTransport), pyClient.connect(pyClientTransport)]);
+      const pyScan = textOf(await pyClient.callTool({ name: "spurvik_find_unwrapped_calls", arguments: { directory: "." } }));
+      expect(pyScan).toContain("Files scanned: 2");
+      expect(pyScan).toContain("Findings: 2");
+      expect(pyScan).toContain("assistant.py:4 OpenAI()");
+      expect(pyScan).toContain("assistant.py:5 LangChain ChatModel()");
+      expect(pyScan).not.toContain("wrapped.py");
+      await pyClient.close();
+    } finally {
+      rmSync(pyDir, { recursive: true, force: true });
+    }
     await client.close();
   });
 

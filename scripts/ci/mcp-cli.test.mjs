@@ -70,6 +70,39 @@ test("spurvik-mcp CLI check scans workspaces, supports --json, and enforces --ci
     const dirtyJson = JSON.parse(dirtyCi.stdout);
     assert.equal(dirtyJson.status, "unwrapped_calls_found");
     assert.equal(dirtyJson.unwrappedCount, 1);
+
+    const pyDir = mkdtempSync(join(tmpdir(), "spurvik-cli-python-"));
+    try {
+      writeFileSync(join(pyDir, "pyproject.toml"), '[project]\nname = "py-agent"\nversion = "0.1.0"\n');
+      writeFileSync(
+        join(pyDir, "main.py"),
+        [
+          "from openai import OpenAI",
+          "from google import genai",
+          "client = OpenAI()",
+          "gem = genai.Client()",
+        ].join("\n"),
+      );
+      const pyDirty = runMcp(["check", pyDir, "--ci", "--json"]);
+      assert.equal(pyDirty.status, 1, `Expected exit 1 for unwrapped Python repo, stderr=${pyDirty.stderr}`);
+      const pyDirtyJson = JSON.parse(pyDirty.stdout);
+      assert.equal(pyDirtyJson.status, "unwrapped_calls_found");
+      assert.equal(pyDirtyJson.unwrappedCount, 2);
+
+      writeFileSync(
+        join(pyDir, "main.py"),
+        [
+          "from openai import OpenAI",
+          "from spurvik_guard import send_telemetry_event",
+          "client = OpenAI()",
+        ].join("\n"),
+      );
+      const pyClean = runMcp(["check", pyDir, "--ci", "--json"]);
+      assert.equal(pyClean.status, 0, `Expected exit 0 for guarded Python repo, stderr=${pyClean.stderr}`);
+      assert.equal(JSON.parse(pyClean.stdout).unwrappedCount, 0);
+    } finally {
+      rmSync(pyDir, { recursive: true, force: true });
+    }
   } finally {
     rmSync(cleanDir, { recursive: true, force: true });
     rmSync(dirtyDir, { recursive: true, force: true });

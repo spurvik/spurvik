@@ -369,6 +369,8 @@ export function isForbiddenRoot(real: string): boolean {
 export function hasProjectMarker(real: string): boolean {
   return (
     existsSync(path.join(real, "package.json")) ||
+    existsSync(path.join(real, "pyproject.toml")) ||
+    existsSync(path.join(real, "requirements.txt")) ||
     existsSync(path.join(real, ".git")) ||
     existsSync(path.join(real, "pnpm-workspace.yaml"))
   );

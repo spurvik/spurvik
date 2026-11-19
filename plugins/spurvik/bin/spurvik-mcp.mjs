@@ -13513,7 +13513,7 @@ var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, 
 var UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 var FIND_TITLE = "Find unwrapped AI calls";
 var ENV_SKIP_SENTENCE = "The scanner skips files named .env or .env.* (any case), including through symlinks and hard links.";
-var FIND_DESCRIPTION = "Heuristic static scan of one directory inside the workspace root for AI client calls that are not passed through withSpurvik, spurvikMiddleware, withSpurvikMastra, withSpurvikModel, withSpurvikModelProvider, withSpurvikLangGraph, or spurvikInterrupt. A StateGraph constructor is reported when the file does not call withSpurvikLangGraph. A bare interrupt() call is reported when the file does not call spurvikInterrupt or resolveLangGraphInterrupts. The scan reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, and .cts files. It does not read .md or .mdc files. Results are file:line. The line number is 1-based and counts every newline, including comments and strings. This is a heuristic, so it can miss a call or report one that is already wrapped. The scan does not change files and does not use the network. Paths that leave the workspace, including '..', are rejected. " + ENV_SKIP_SENTENCE;
+var FIND_DESCRIPTION = "Heuristic static scan of one directory inside the workspace root for AI client calls that are not passed through withSpurvik, spurvikMiddleware, withSpurvikMastra, withSpurvikModel, withSpurvikModelProvider, withSpurvikLangGraph, spurvikInterrupt, or spurvik_guard.py (send_telemetry_event / build_telemetry_event). A StateGraph constructor is reported when the file does not call withSpurvikLangGraph. A bare interrupt() call is reported when the file does not call spurvikInterrupt or resolveLangGraphInterrupts. The scan reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts, and .py files. It does not read .md or .mdc files. Results are file:line. The line number is 1-based and counts every newline, including comments and strings. This is a heuristic, so it can miss a call or report one that is already wrapped. The scan does not change files and does not use the network. Paths that leave the workspace, including '..', are rejected. " + ENV_SKIP_SENTENCE;
 var DIRECTORY_FIELD = "Directory inside the workspace root passed with --root or SPURVIK_MCP_ROOT. Relative paths are resolved from that root. '..' is rejected.";
 var PATH_TRAVERSAL = "Path traversal is rejected. Pass a directory inside the workspace root.";
 var PATH_EMPTY = "Pass a directory inside the workspace root.";
@@ -13521,11 +13521,11 @@ var PATH_INVALID = "That directory path is not valid.";
 var PATH_MISSING = "The directory does not exist.";
 var PATH_OUTSIDE = "That path resolves outside the workspace root.";
 var PATH_NOT_DIRECTORY = "That path is not a directory.";
-var PATH_EXCLUDED = "That directory resolves inside node_modules, .git, dist, build, or .next.";
+var PATH_EXCLUDED = "That directory resolves inside node_modules, .git, dist, build, .next, .venv, venv, or __pycache__.";
 var PATH_SENSITIVE = "That path is not scanned.";
 var MISSING_ROOT = "Missing workspace root. Pass --root or set SPURVIK_MCP_ROOT.";
 var ROOT_NOT_ALLOWED = "That workspace root is not allowed. Pass a project directory, not /, a home directory, or a system directory.";
-var ROOT_NOT_PROJECT = "The workspace root must contain package.json, .git, or pnpm-workspace.yaml.";
+var ROOT_NOT_PROJECT = "The workspace root must contain package.json, pyproject.toml, requirements.txt, .git, or pnpm-workspace.yaml.";
 var ROOT_MISSING_DIR = "That workspace root does not exist.";
 var SCAN_TIME_LIMIT = "The scan stopped at its time limit.";
 var SCAN_COUNT_LIMIT = "The scan stopped at its file or finding limit.";
@@ -13844,7 +13844,7 @@ function isForbiddenRoot(real) {
   return false;
 }
 function hasProjectMarker(real) {
-  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml"));
+  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, "pyproject.toml")) || existsSync(path.join(real, "requirements.txt")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml"));
 }
 function validateWorkspaceRoot(requested) {
   const trimmed = requested.trim();
@@ -23780,8 +23780,19 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
 // packages/mcp/src/tools/find-unwrapped.ts
 import * as fs from "node:fs";
 import path2 from "node:path";
-var SOURCE_EXT = /* @__PURE__ */ new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]);
-var EXCLUDED_DIRS = /* @__PURE__ */ new Set(["node_modules", ".git", "dist", "build", ".next"]);
+var SOURCE_EXT = /* @__PURE__ */ new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".py"]);
+var EXCLUDED_DIRS = /* @__PURE__ */ new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  ".venv",
+  "venv",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache"
+]);
 var DEFAULT_MAX_FILES = 4e3;
 var DEFAULT_MAX_FINDINGS = 200;
 var MAX_FILE_BYTES = 512 * 1024;
@@ -24309,6 +24320,40 @@ function findUnwrappedInSource(source, control) {
   findings.sort((left, right) => left.line - right.line || left.call.localeCompare(right.call));
   return findings;
 }
+var PYTHON_AI_CALL_PATTERNS = [
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?OpenAI\s*\(/, call: "OpenAI()" },
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?Anthropic\s*\(/, call: "Anthropic()" },
+  { re: /\bChat(?:OpenAI|Anthropic|GoogleGenerativeAI|MistralAI)\s*\(/, call: "LangChain ChatModel()" },
+  { re: /\bgenai\.Client\s*\(/, call: "genai.Client()" },
+  { re: /\bAgent\s*\(\s*["'](?:openai|anthropic|google-gla|gemini|mistral):/, call: "pydantic_ai.Agent()" }
+];
+function findUnwrappedPythonInSource(source, pathHint, control) {
+  const looksPython = (pathHint ? /\.pyw?$/i.test(pathHint) : false) || /^\s*(?:from\s+[\w.]+\s+import\s+|import\s+(?:openai|anthropic|langchain|pydantic_ai|google\.genai)|def\s+\w+\s*\(|async\s+def\s+\w+\s*\()/m.test(
+    source
+  );
+  if (!looksPython) return [];
+  if (/\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(
+    source
+  )) {
+    return [];
+  }
+  const findings = [];
+  const lines = source.split("\n");
+  for (let idx = 0; idx < lines.length; idx += 1) {
+    if (idx > 0 && idx % 128 === 0 && control?.shouldStop?.()) {
+      if (control.stopped) control.stopped.value = true;
+      break;
+    }
+    const line = lines[idx] ?? "";
+    if (/^\s*#/.test(line)) continue;
+    for (const pattern of PYTHON_AI_CALL_PATTERNS) {
+      if (pattern.re.test(line)) {
+        findings.push({ line: idx + 1, call: pattern.call });
+      }
+    }
+  }
+  return findings;
+}
 function toPosix(relative) {
   return relative.split(path2.sep).join("/");
 }
@@ -24484,7 +24529,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       if (text2.includes("\0")) continue;
       filesScanned += 1;
       const relative = toPosix(path2.relative(root, real));
-      const found = findUnwrappedInSource(text2, { shouldStop: stopForTime });
+      const found = extension === ".py" ? findUnwrappedPythonInSource(text2, relative, { shouldStop: stopForTime }) : findUnwrappedInSource(text2, { shouldStop: stopForTime });
       for (const finding of found) {
         findings.push({ file: relative, line: finding.line, call: finding.call });
         if (findings.length >= maxFindings) {
@@ -24517,7 +24562,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
 }
 function formatScanReport(report) {
   const lines = [
-    "Heuristic scan of AI client calls. This can miss a wrapped call or report one that is already wrapped. It does not change files and it does not use the network. It reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, and .cts files, not .md or .mdc. Line numbers are 1-based and count every newline, including comments and strings.",
+    "Heuristic scan of AI client calls. This can miss a wrapped call or report one that is already wrapped. It does not change files and it does not use the network. It reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts, and .py files, not .md or .mdc. Line numbers are 1-based and count every newline, including comments and strings.",
     "",
     `Directory: ${report.directory}`,
     `Files scanned: ${report.filesScanned}`,
@@ -29370,6 +29415,7 @@ function tryRunCli(argv, io = DEFAULT_IO) {
           "",
           "Next steps:",
           "- Wrap model clients with `withSpurvik(client, config)` (`npm i spurvik`)",
+          "- Python (FastAPI / LangChain / PydanticAI): `spurvik-mcp-server snippet fastapi` (`https://spurvik.com/r/spurvik_guard.py`)",
           "- Test in the interactive 2x2 browser sandbox (0 login): https://console.spurvik.com/sandbox",
           "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro",
           ""

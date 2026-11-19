@@ -19,8 +19,19 @@ import { validateWorkspaceRoot, WorkspacePathError } from "../root.js";
 
 export { DIRECTORY_FIELD, FIND_DESCRIPTION, PATH_OUTSIDE, PATH_TRAVERSAL, WorkspacePathError };
 
-const SOURCE_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]);
-const EXCLUDED_DIRS = new Set(["node_modules", ".git", "dist", "build", ".next"]);
+const SOURCE_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".py"]);
+const EXCLUDED_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  ".venv",
+  "venv",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+]);
 export const DEFAULT_MAX_FILES = 4_000;
 export const DEFAULT_MAX_FINDINGS = 200;
 export const MAX_FILE_BYTES = 512 * 1024;
@@ -694,6 +705,54 @@ export function findUnwrappedInSource(
   return findings;
 }
 
+const PYTHON_AI_CALL_PATTERNS: ReadonlyArray<{ re: RegExp; call: string }> = [
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?OpenAI\s*\(/, call: "OpenAI()" },
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?Anthropic\s*\(/, call: "Anthropic()" },
+  { re: /\bChat(?:OpenAI|Anthropic|GoogleGenerativeAI|MistralAI)\s*\(/, call: "LangChain ChatModel()" },
+  { re: /\bgenai\.Client\s*\(/, call: "genai.Client()" },
+  { re: /\bAgent\s*\(\s*["'](?:openai|anthropic|google-gla|gemini|mistral):/, call: "pydantic_ai.Agent()" },
+];
+
+/**
+ * Heuristic Python (.py) unwrapped AI client scanner matching hosted /api/mcp.
+ * Clears findings when the file already imports or calls spurvik_guard helpers.
+ */
+export function findUnwrappedPythonInSource(
+  source: string,
+  pathHint?: string,
+  control?: MatchControl,
+): Array<{ line: number; call: string }> {
+  const looksPython =
+    (pathHint ? /\.pyw?$/i.test(pathHint) : false) ||
+    /^\s*(?:from\s+[\w.]+\s+import\s+|import\s+(?:openai|anthropic|langchain|pydantic_ai|google\.genai)|def\s+\w+\s*\(|async\s+def\s+\w+\s*\()/m.test(
+      source,
+    );
+  if (!looksPython) return [];
+  if (
+    /\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(
+      source,
+    )
+  ) {
+    return [];
+  }
+  const findings: Array<{ line: number; call: string }> = [];
+  const lines = source.split("\n");
+  for (let idx = 0; idx < lines.length; idx += 1) {
+    if (idx > 0 && idx % 128 === 0 && control?.shouldStop?.()) {
+      if (control.stopped) control.stopped.value = true;
+      break;
+    }
+    const line = lines[idx] ?? "";
+    if (/^\s*#/.test(line)) continue;
+    for (const pattern of PYTHON_AI_CALL_PATTERNS) {
+      if (pattern.re.test(line)) {
+        findings.push({ line: idx + 1, call: pattern.call });
+      }
+    }
+  }
+  return findings;
+}
+
 function toPosix(relative: string): string {
   return relative.split(path.sep).join("/");
 }
@@ -874,7 +933,10 @@ export function scanForUnwrappedCalls(workspaceRoot: string, directory: string, 
       if (text.includes("\0")) continue;
       filesScanned += 1;
       const relative = toPosix(path.relative(root, real));
-      const found = findUnwrappedInSource(text, { shouldStop: stopForTime });
+      const found =
+        extension === ".py"
+          ? findUnwrappedPythonInSource(text, relative, { shouldStop: stopForTime })
+          : findUnwrappedInSource(text, { shouldStop: stopForTime });
       for (const finding of found) {
         findings.push({ file: relative, line: finding.line, call: finding.call });
         if (findings.length >= maxFindings) {
@@ -909,7 +971,7 @@ export function scanForUnwrappedCalls(workspaceRoot: string, directory: string, 
 
 export function formatScanReport(report: ScanReport): string {
   const lines = [
-    "Heuristic scan of AI client calls. This can miss a wrapped call or report one that is already wrapped. It does not change files and it does not use the network. It reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, and .cts files, not .md or .mdc. Line numbers are 1-based and count every newline, including comments and strings.",
+    "Heuristic scan of AI client calls. This can miss a wrapped call or report one that is already wrapped. It does not change files and it does not use the network. It reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts, and .py files, not .md or .mdc. Line numbers are 1-based and count every newline, including comments and strings.",
     "",
     `Directory: ${report.directory}`,
     `Files scanned: ${report.filesScanned}`,

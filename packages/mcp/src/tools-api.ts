@@ -16,7 +16,7 @@ export {
   resolveSigningSecret,
   scrubSecrets,
 } from "./tools/explain-receipt.js";
-export { findUnwrappedInSource } from "./tools/find-unwrapped.js";
+export { findUnwrappedInSource, findUnwrappedPythonInSource } from "./tools/find-unwrapped.js";
 export { markingHooksText } from "./tools/marking-hooks.js";
 export { setupSnippet } from "./tools/setup-snippet.js";
 export {
