@@ -18,14 +18,14 @@ export const READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, open
 
 export const SETUP_TITLE = "Spurvik setup snippet";
 export const SETUP_DESCRIPTION =
-  "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph. Provider clients are wrapped with withSpurvik. The Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel. The Mastra snippet calls withSpurvikMastra. The OpenAI Agents snippet calls withSpurvikModelProvider. The LangGraph snippet calls withSpurvikLangGraph and spurvikInterrupt. The snippet is built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
+  "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
 export const FRAMEWORK_FIELD =
-  "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
+  "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
 export const RUNTIME_FIELD =
-  "Where the process runs: node, next, vercel, or supabase-edge. This chooses the flush call.";
+  "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
 export const UNKNOWN_FRAMEWORK =
-  "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
-export const UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, or supabase-edge.";
+  "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+export const UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 
 export const FIND_TITLE = "Find unwrapped AI calls";
 export const ENV_SKIP_SENTENCE =
@@ -106,8 +106,9 @@ export const BATCH_DOMAINS_FIELD =
 
 export const C2PA_TITLE = "Check an image URL for a C2PA manifest (CDN-strip check)";
 export const C2PA_DESCRIPTION =
-  "C2PA JUMBF manifest & CDN-strip checker for one public https image URL (PNG, JPEG or WebP, up to 4 MB), ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). console.spurvik.com fetches the image once through its SSRF gate and reads the manifest in memory; nothing is stored. Returns JSON: status, mediaType, byteLength, fileName, c2pa { manifestFound, embedded, claimGenerator, signatureMatches, trustAnchor, validationCodes }, whether the URL goes through an image optimizer that strips C2PA (/_next/image, Cloudinary, imgix, Cloudflare /cdn-cgi/image/) with a fix, a visible \"AI-generated\" notice (<AIDisclosureLabel notice=\"generated\" /> and badge.js data-notice=\"generated\"), and links: the interactive checker, Pro (€19/mo) and Done-For-You (€199 once) with appUrl prefilled. Read-only: it never signs or adds a manifest. Only https on port 443, no credentials; localhost, .local, .internal and private or reserved IPs are refused before any request. 15-second timeout; 10 checks per minute per address, shared with console.spurvik.com/c2pa. Not legal advice.";
-export const C2PA_URL_FIELD = "Public https URL of a PNG, JPEG or WebP image up to 4 MB, for example https://example.com/hero.png.";
+  "C2PA JUMBF manifest & CDN-strip checker for one public https image URL (PNG, JPEG or WebP, up to 4 MB) — or a bare public domain / https store page URL, which auto-discovers the frontpage og:image / hero image in 1 hop — ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). console.spurvik.com fetches the image once through its SSRF gate and reads the manifest in memory; nothing is stored. Returns JSON: status, mediaType, byteLength, fileName, c2pa { manifestFound, embedded, claimGenerator, signatureMatches, trustAnchor, validationCodes }, whether the URL goes through an image optimizer that strips C2PA (/_next/image, Cloudinary, imgix, Cloudflare /cdn-cgi/image/, Shopify CDN, Jetpack Photon, Webflow CDN) with a fix, a visible \"AI-generated\" notice (<AIDisclosureLabel notice=\"generated\" /> and badge.js data-notice=\"generated\"), and links: the interactive checker, Pro (€19/mo) and Done-For-You (€199 once) with appUrl prefilled. Read-only: it never signs or adds a manifest. Only https on port 443, no credentials; localhost, .local, .internal and private or reserved IPs are refused before any request. 15-second timeout; 10 checks per minute per address, shared with console.spurvik.com/c2pa. Not legal advice.";
+export const C2PA_URL_FIELD =
+  "Public https URL of a PNG, JPEG or WebP image up to 4 MB (e.g. https://example.com/hero.png), or a bare public store domain / https page URL (e.g. charlie-paris.com) to auto-discover its hero image.";
 
 export const CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
 export const CLASSIFY_DESCRIPTION =

@@ -11,7 +11,7 @@ import {
   proSignupUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
-import { euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
+import { EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
 import { isPublicIpLiteral, ScanTargetRejected, type ScanRejectionCode } from "./scan-live-url.js";
 
 /**
@@ -21,6 +21,7 @@ import { isPublicIpLiteral, ScanTargetRejected, type ScanRejectionCode } from ".
  */
 
 export const C2PA_CHECK_PATH = "/api/v1/provenance/public-check-url";
+export const C2PA_SCAN_PATH = "/api/v1/sandbox/scan";
 /** Upstream check on the hosted console. The origin is fixed; only the JSON `url` value varies. */
 export const C2PA_CHECK_ENDPOINT = `${CONSOLE_ORIGIN}${C2PA_CHECK_PATH}`;
 /** The console allows 8 s for the image fetch, then reads the manifest; 15 s covers both. */
@@ -52,7 +53,7 @@ export const CHECK_IMAGE_C2PA_URL_INPUT_JSON_SCHEMA = {
       type: "string",
       minLength: 1,
       maxLength: MAX_URL_CHARS,
-      description: `Public https URL of a PNG, JPEG or WebP image up to ${C2PA_MAX_IMAGE_LABEL}, for example https://example.com/hero.png.`,
+      description: `Public https URL of a PNG, JPEG or WebP image up to ${C2PA_MAX_IMAGE_LABEL} (e.g. https://example.com/hero.png), or a bare public domain / https store page URL (e.g. charlie-paris.com) to auto-discover its hero image.`,
     },
   },
   required: ["url"],
@@ -103,6 +104,9 @@ export interface CheckImageC2paResult {
   links: { c2pa: string; pro: string; concierge: string };
   prices: { pro: string; concierge: string };
   note: string;
+  /** Present when `url` was a bare domain or webpage and the hero image was auto-discovered in 1 hop. */
+  imageUrl?: string;
+  discoveredFromPage?: boolean;
 }
 
 /**
@@ -339,15 +343,27 @@ function diagnose(report: UpstreamReport, proxy: ImageProxy | null): string | nu
   return proxy ? `The manifest survived ${proxy.name}. Re-check after any change to its settings.` : null;
 }
 
-function buildResult(target: ImageTarget, report: UpstreamReport): CheckImageC2paResult {
+interface BuildResultContext {
+  requestedHost?: string;
+  htmlLocale?: string;
+  discoveredFromPage?: boolean;
+}
+
+function buildResult(target: ImageTarget, report: UpstreamReport, context?: BuildResultContext): CheckImageC2paResult {
   const proxy = detectImageProxy(target.url);
-  const siteHost = isImageCdnHost(target.host) ? null : target.host;
-  const locale = inferLocaleFromDomain(siteHost ?? "");
+  const effectiveHost = context?.requestedHost ?? target.host;
+  const siteHost = isImageCdnHost(effectiveHost) ? null : effectiveHost;
+  const baseLocale = inferLocaleFromDomain(siteHost ?? "");
+  const locale =
+    baseLocale === "en" && context?.htmlLocale && (EU_LOCALE_CODES as readonly string[]).includes(context.htmlLocale)
+      ? context.htmlLocale
+      : baseLocale;
   const status: C2paStatus = !report.manifestFound ? "no_manifest" : report.signatureMatches ? "manifest_valid" : "signature_mismatch";
   return {
     tool: "spurvik_check_image_c2pa_url",
     status,
-    host: target.host,
+    host: effectiveHost,
+    ...(context?.discoveredFromPage ? { imageUrl: target.url, discoveredFromPage: true } : {}),
     fileName: report.fileName,
     mediaType: report.mediaType,
     byteLength: report.byteLength,
@@ -378,45 +394,104 @@ function buildResult(target: ImageTarget, report: UpstreamReport): CheckImageC2p
   };
 }
 
-function endpointFor(baseUrl: string | undefined): string | null {
-  if (baseUrl === undefined) return C2PA_CHECK_ENDPOINT;
+function originFor(baseUrl: string | undefined): string | null {
+  if (baseUrl === undefined) return CONSOLE_ORIGIN;
   try {
     const origin = new URL(baseUrl);
     if (origin.protocol !== "https:" || origin.username || origin.password) return null;
-    return `${origin.origin}${C2PA_CHECK_PATH}`;
+    return origin.origin;
   } catch {
     return null;
   }
 }
 
+/**
+ * Resolves either a bare public domain (`charlie-paris.com`) for 1-hop hero-image discovery,
+ * or a full `https://` URL checked via `normalizeImageUrl`.
+ */
+export function resolveC2paInput(raw: unknown): { target: ImageTarget; bareDomain: boolean } {
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (
+      trimmed.length > 0 &&
+      trimmed.length <= 253 &&
+      !trimmed.includes("/") &&
+      !trimmed.includes(":") &&
+      !trimmed.includes("?") &&
+      !trimmed.includes("#") &&
+      !trimmed.includes("@") &&
+      !/[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)
+    ) {
+      let asciiHost = normalizeHost(trimmed);
+      try {
+        asciiHost = normalizeHost(new URL(`https://${trimmed}`).hostname);
+      } catch {
+        asciiHost = "";
+      }
+      if (asciiHost) {
+        const ipPublic = isPublicIpLiteral(asciiHost);
+        if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED);
+        if (ipPublic === null) {
+          if (BLOCKED_SUFFIXES.some((suffix) => asciiHost === suffix || asciiHost.endsWith(`.${suffix}`))) {
+            throw new ScanTargetRejected("blocked_target", BLOCKED);
+          }
+          if (!asciiHost.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED);
+          if (HOSTNAME_RE.test(asciiHost)) {
+            return { target: { url: `https://${asciiHost}/`, host: asciiHost }, bareDomain: true };
+          }
+        }
+      }
+    }
+  }
+  return { target: normalizeImageUrl(raw), bareDomain: false };
+}
+
+function looksLikeImageAssetPath(rawUrl: string): boolean {
+  try {
+    return /\.(?:png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(new URL(rawUrl).pathname);
+  } catch {
+    return false;
+  }
+}
+
+async function discoverHeroFromPage(
+  pageUrl: string,
+  scanEndpoint: string,
+  fetchImpl: typeof globalThis.fetch,
+  timeoutMs: number,
+): Promise<{ heroTarget: ImageTarget; htmlLocale?: string } | null> {
+  const res = await fetchImpl(`${scanEndpoint}?url=${encodeURIComponent(pageUrl)}`, {
+    method: "GET",
+    headers: { Accept: "application/json", "User-Agent": MCP_USER_AGENT },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.status !== 200) return null;
+  const body = (await res.json().catch(() => null)) as unknown;
+  if (!isRecord(body)) return null;
+  const scan = isRecord(body.scan) ? body.scan : body;
+  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim()) return null;
+  const heroTarget = normalizeImageUrl(scan.heroImageUrl);
+  const htmlLocale =
+    typeof scan.htmlLocale === "string" && (EU_LOCALE_CODES as readonly string[]).includes(scan.htmlLocale)
+      ? scan.htmlLocale
+      : undefined;
+  return { heroTarget, htmlLocale };
+}
+
 const FALLBACK_HINT = `Upload the image at ${C2PA_PAGE_URL} instead.`;
 
-/**
- * C2PA JUMBF manifest & CDN-strip check of one public https image URL through the hosted console.
- * The URL is checked here first; a refused URL never leaves the machine. Never throws: network trouble,
- * a refusal or an unreadable answer returns `{ ok: false, error, message }`. Nothing is logged.
- */
-export async function checkImageC2paUrl(rawUrl: unknown, deps: CheckImageC2paDeps = {}): Promise<CheckImageC2paOutcome> {
-  let target: ImageTarget;
-  try {
-    target = normalizeImageUrl(rawUrl);
-  } catch (error) {
-    if (error instanceof ScanTargetRejected) return { ok: false, error: error.code, message: error.message };
-    return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
-  }
-  const endpoint = endpointFor(deps.baseUrl);
-  if (!endpoint) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
-  const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function") {
-    return { ok: false, error: "service_unreachable", message: `This Node.js has no fetch. ${FALLBACK_HINT}` };
-  }
-  const timeoutMs = deps.timeoutMs ?? C2PA_CHECK_TIMEOUT_MS;
+async function postCheckRequest(
+  imageUrl: string,
+  endpoint: string,
+  fetchImpl: typeof globalThis.fetch,
+  timeoutMs: number,
+): Promise<{ ok: true; response: Response; body: unknown } | { ok: false; error: CheckImageC2paErrorCode; message: string }> {
   let response: Response;
   try {
     response = await fetchImpl(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json", "User-Agent": MCP_USER_AGENT },
-      body: JSON.stringify({ url: target.url }),
+      body: JSON.stringify({ url: imageUrl }),
       redirect: "error",
       signal: AbortSignal.timeout(timeoutMs),
     });
@@ -431,6 +506,102 @@ export async function checkImageC2paUrl(rawUrl: unknown, deps: CheckImageC2paDep
     body = await response.json();
   } catch {
     body = null;
+  }
+  return { ok: true, response, body };
+}
+
+/**
+ * C2PA JUMBF manifest & CDN-strip check of one public https image URL (or 1-hop store domain hero image)
+ * through the hosted console. The URL is checked here first; a refused URL never leaves the machine.
+ * Never throws: network trouble, a refusal or an unreadable answer returns `{ ok: false, error, message }`.
+ */
+export async function checkImageC2paUrl(rawUrl: unknown, deps: CheckImageC2paDeps = {}): Promise<CheckImageC2paOutcome> {
+  let resolved: { target: ImageTarget; bareDomain: boolean };
+  try {
+    resolved = resolveC2paInput(rawUrl);
+  } catch (error) {
+    if (error instanceof ScanTargetRejected) return { ok: false, error: error.code, message: error.message };
+    return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
+  }
+  const origin = originFor(deps.baseUrl);
+  if (!origin) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
+  const endpoint = `${origin}${C2PA_CHECK_PATH}`;
+  const scanEndpoint = `${origin}${C2PA_SCAN_PATH}`;
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") {
+    return { ok: false, error: "service_unreachable", message: `This Node.js has no fetch. ${FALLBACK_HINT}` };
+  }
+  const timeoutMs = deps.timeoutMs ?? C2PA_CHECK_TIMEOUT_MS;
+  const { target, bareDomain } = resolved;
+
+  if (bareDomain) {
+    let discovered: { heroTarget: ImageTarget; htmlLocale?: string } | null = null;
+    try {
+      discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchImpl, timeoutMs);
+    } catch (error) {
+      if (error instanceof ScanTargetRejected) return { ok: false, error: error.code, message: error.message };
+      const name = error instanceof Error ? error.name : "";
+      return name === "TimeoutError" || name === "AbortError"
+        ? { ok: false, error: "timeout", message: `console.spurvik.com did not answer within ${Math.round(timeoutMs / 1000)} s. Nothing was checked. ${FALLBACK_HINT}` }
+        : { ok: false, error: "service_unreachable", message: `console.spurvik.com could not be reached. Nothing was checked. ${FALLBACK_HINT}` };
+    }
+    if (!discovered) {
+      return {
+        ok: false,
+        error: "no_hero_image",
+        message: `No frontpage hero or og:image PNG/JPEG/WebP URL was found on that domain. Pass a direct https image URL or upload the file at ${C2PA_PAGE_URL}.`,
+      };
+    }
+    const checked = await postCheckRequest(discovered.heroTarget.url, endpoint, fetchImpl, timeoutMs);
+    if (!checked.ok) return checked;
+    if (checked.response.status !== 200) {
+      const upstream = isRecord(checked.body) && isRecord(checked.body.error) ? checked.body.error : {};
+      const code =
+        typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code)
+          ? upstream.code
+          : `upstream_http_${checked.response.status}`;
+      const message = cleanMessage(upstream.message) || `The check service answered HTTP ${checked.response.status}.`;
+      return { ok: false, error: code, message: `${message} ${FALLBACK_HINT}` };
+    }
+    const report = readUpstreamReport(checked.body);
+    if (!report) {
+      return { ok: false, error: "upstream_invalid_response", message: `The check service sent an answer this server cannot read. ${FALLBACK_HINT}` };
+    }
+    return {
+      ok: true,
+      result: buildResult(discovered.heroTarget, report, {
+        requestedHost: target.host,
+        htmlLocale: discovered.htmlLocale,
+        discoveredFromPage: true,
+      }),
+    };
+  }
+
+  const initial = await postCheckRequest(target.url, endpoint, fetchImpl, timeoutMs);
+  if (!initial.ok) return initial;
+  const { response, body } = initial;
+  if (response.status === 415 && !looksLikeImageAssetPath(target.url)) {
+    try {
+      const discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchImpl, timeoutMs);
+      if (discovered) {
+        const heroChecked = await postCheckRequest(discovered.heroTarget.url, endpoint, fetchImpl, timeoutMs);
+        if (heroChecked.ok && heroChecked.response.status === 200) {
+          const heroReport = readUpstreamReport(heroChecked.body);
+          if (heroReport) {
+            return {
+              ok: true,
+              result: buildResult(discovered.heroTarget, heroReport, {
+                requestedHost: target.host,
+                htmlLocale: discovered.htmlLocale,
+                discoveredFromPage: true,
+              }),
+            };
+          }
+        }
+      }
+    } catch {
+      // Keep original 415 error when fallback page scan or hero check fails.
+    }
   }
   if (response.status !== 200) {
     const upstream = isRecord(body) && isRecord(body.error) ? body.error : {};

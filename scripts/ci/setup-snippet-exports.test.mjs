@@ -86,6 +86,7 @@ function isSpurvikSpecifier(spec) {
 test("spurvik_setup_snippet imports resolve against published spurvik exports", async (t) => {
   const source = readFileSync(snippetSource, "utf8");
   const frameworks = parseExportedStringArray(source, "FRAMEWORKS");
+  const pythonFrameworks = new Set(parseExportedStringArray(source, "PYTHON_FRAMEWORKS"));
   const runtimes = parseExportedStringArray(source, "RUNTIMES");
   const snippetVersion = parseSnippetSdkVersion(source);
   const sdkVersion = JSON.parse(readFileSync(join(root, "packages/sdk/package.json"), "utf8")).version;
@@ -158,6 +159,13 @@ test("spurvik_setup_snippet imports resolve against published spurvik exports", 
         assert.equal(text.includes("workspace:*"), false, `${framework}/${runtime} still mentions workspace:*`);
         assert.match(text, new RegExp(`spurvik@${snippetVersion}`));
         assert.match(text, new RegExp(`spurvik-sdk@${snippetVersion}`));
+
+        if (pythonFrameworks.has(framework) || runtime === "python") {
+          assert.match(text, /```python\n/, `${framework}/${runtime} must emit a python code block`);
+          assert.match(text, /https:\/\/spurvik\.com\/r\/spurvik_guard\.py/, `${framework}/${runtime} must link spurvik_guard.py`);
+          assert.match(text, /from spurvik_guard import /, `${framework}/${runtime} must import spurvik_guard`);
+          continue;
+        }
 
         const specifiers = extractSpecifiers(text);
         assert.ok(specifiers.some(isSpurvikSpecifier), `${framework}/${runtime} has no spurvik import`);

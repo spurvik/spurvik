@@ -398,6 +398,12 @@ describe("createServer", () => {
     expect(text).toMatch(/```\n\n## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s \(work email only, no password, EU Frankfurt fra1\): https:\/\/console\.spurvik\.com\/signup\n/);
     expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
     expect(text).toContain("- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge\n");
+    const pyFastapi = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "fastapi" } }));
+    expect(pyFastapi).toContain("```python\n");
+    expect(pyFastapi).toContain("https://spurvik.com/r/spurvik_guard.py");
+    expect(pyFastapi).toContain("from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event");
+    expect(pyFastapi).toContain("background_tasks.add_task(");
+    expect(pyFastapi).toContain("## Next steps\n");
     await client.close();
   });
 

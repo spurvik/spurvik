@@ -14,6 +14,7 @@ import {
 } from "../links.js";
 import { sdkExportNames } from "../sdk-exports.js";
 
+export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -22,10 +23,21 @@ export const FRAMEWORKS = [
   "mastra",
   "openai-agents",
   "langgraph",
+  ...PYTHON_FRAMEWORKS,
 ] as const;
-export const RUNTIMES = ["node", "next", "vercel", "supabase-edge"] as const;
+export const RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"] as const;
+export type PythonFramework = (typeof PYTHON_FRAMEWORKS)[number];
 export type Framework = (typeof FRAMEWORKS)[number];
 export type Runtime = (typeof RUNTIMES)[number];
+type TsRuntime = Exclude<Runtime, "python">;
+
+export function isPythonFramework(value: string): value is PythonFramework {
+  return (PYTHON_FRAMEWORKS as readonly string[]).includes(value);
+}
+
+export function isPythonVariant(framework: string, runtime: string): boolean {
+  return isPythonFramework(framework) || runtime === "python";
+}
 
 const REQUIRE_ENV = `function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -71,27 +83,27 @@ function configLiteral(serverless: boolean): string {
   return lines.join("\n");
 }
 
-function runtimeImport(runtime: Runtime): string {
+function runtimeImport(runtime: TsRuntime): string {
   if (runtime === "next") return 'import { after } from "next/server";';
   if (runtime === "vercel") return 'import { waitUntil } from "@vercel/functions";';
   return "";
 }
 
-function runtimeDeclare(runtime: Runtime): string {
+function runtimeDeclare(runtime: TsRuntime): string {
   if (runtime !== "supabase-edge") return "";
   return `declare const EdgeRuntime: {
   waitUntil(task: Promise<void>): void;
 };`;
 }
 
-function providerFlush(runtime: Runtime): string {
+function providerFlush(runtime: TsRuntime): string {
   if (runtime === "node") return "";
   if (runtime === "next") return "  after(() => client._spurvik.flush());";
   if (runtime === "vercel") return "  waitUntil(client._spurvik.flush());";
   return "  EdgeRuntime.waitUntil(client._spurvik.flush());";
 }
 
-function middlewareFlush(runtime: Runtime): string {
+function middlewareFlush(runtime: TsRuntime): string {
   if (runtime === "node") return "";
   if (runtime === "next") return "  after(() => spurvik().flush());";
   if (runtime === "vercel") return "  waitUntil(spurvik().flush());";
@@ -114,14 +126,14 @@ function header(): string {
   ].join("\n");
 }
 
-function holderFlush(runtime: Runtime, call: string): string {
+function holderFlush(runtime: TsRuntime, call: string): string {
   if (runtime === "node") return "";
   if (runtime === "next") return `  after(() => ${call});`;
   if (runtime === "vercel") return `  waitUntil(${call});`;
   return `  EdgeRuntime.waitUntil(${call});`;
 }
 
-function mastraSource(runtime: Runtime): string {
+function mastraSource(runtime: TsRuntime): string {
   const { provenanceFromMetadata, withSpurvikMastra } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
@@ -167,7 +179,7 @@ function mastraSource(runtime: Runtime): string {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 
-function agentsSource(runtime: Runtime): string {
+function agentsSource(runtime: TsRuntime): string {
   const { provenanceFromAgentsResponse, withSpurvikModelProvider } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
@@ -212,7 +224,7 @@ function agentsSource(runtime: Runtime): string {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 
-function langgraphSource(runtime: Runtime): string {
+function langgraphSource(runtime: TsRuntime): string {
   const {
     provenanceFromLangGraphState,
     resolveLangGraphInterrupts,
@@ -270,7 +282,7 @@ function langgraphSource(runtime: Runtime): string {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 
-function providerSource(framework: "openai" | "anthropic" | "google-genai", runtime: Runtime): string {
+function providerSource(framework: "openai" | "anthropic" | "google-genai", runtime: TsRuntime): string {
   const { provenanceOf, withSpurvik } = sdkExportNames;
   const serverless = runtime !== "node";
   const clients = {
@@ -342,7 +354,7 @@ function providerSource(framework: "openai" | "anthropic" | "google-genai", runt
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 
-function middlewareSource(runtime: Runtime): string {
+function middlewareSource(runtime: TsRuntime): string {
   const { provenanceFromMetadata, spurvikMiddleware } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
@@ -382,20 +394,145 @@ function middlewareSource(runtime: Runtime): string {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 
-/** TypeScript source of the setup snippet, with no surrounding prose. */
-export function setupSnippetSource(framework: string, runtime: string): string {
+const PYTHON_GUARD_URL = "https://spurvik.com/r/spurvik_guard.py";
+const PYTHON_GUIDE_URL = "https://spurvik.com/python-fastapi-langchain-eu-ai-act-logging";
+
+function pythonSource(framework: Framework): string {
+  const provider = framework === "anthropic" ? "anthropic" : framework === "google-genai" ? "google" : "openai";
+  const headerLines = [
+    `# curl -fsSLO ${PYTHON_GUARD_URL}`,
+    "# Python 3.10+ zero-dependency stdlib helper (MIT) — 0 bytes of raw prompt text sent.",
+    `# Companion TypeScript/React npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION}.`,
+    "import time",
+  ];
+  const body =
+    framework === "fastapi"
+      ? [
+          "from fastapi import BackgroundTasks, FastAPI",
+          "from openai import AsyncOpenAI",
+          "from pydantic import BaseModel",
+          "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+          "",
+          "app = FastAPI()",
+          "client = AsyncOpenAI()",
+          "",
+          "class ChatRequest(BaseModel):",
+          "    prompt: str",
+          "",
+          '@app.post("/api/chat")',
+          "async def chat_endpoint(req: ChatRequest, background_tasks: BackgroundTasks) -> dict[str, str]:",
+          "    t0 = time.perf_counter()",
+          '    res = await client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": req.prompt}])',
+          '    output = res.choices[0].message.content or ""',
+          "    background_tasks.add_task(",
+          "        send_telemetry_event,",
+          "        req.prompt,",
+          "        output,",
+          '        model_provider="openai",',
+          '        model_version="gpt-4o",',
+          "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+          "    )",
+          '    return {"reply": output, "art50Badge": art50_badge_html(system_name="Support AI", locale="en")}',
+        ]
+      : framework === "langchain" || framework === "langgraph"
+        ? [
+            "from langchain_openai import ChatOpenAI",
+            "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+            "",
+            'llm = ChatOpenAI(model="gpt-4o")',
+            "",
+            "def run_chain(prompt: str) -> str:",
+            "    t0 = time.perf_counter()",
+            "    reply = llm.invoke(prompt)",
+            "    output = str(reply.content)",
+            "    send_telemetry_event(",
+            "        prompt,",
+            "        output,",
+            '        model_provider="openai",',
+            '        model_version="gpt-4o",',
+            "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+            "    )",
+            "    return output",
+          ]
+        : framework === "pydantic-ai"
+          ? [
+              "from pydantic_ai import Agent",
+              "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+              "",
+              'agent = Agent("openai:gpt-4o")',
+              "",
+              "async def run_agent(prompt: str) -> str:",
+              "    t0 = time.perf_counter()",
+              "    result = await agent.run(prompt)",
+              "    output = str(result.output)",
+              "    send_telemetry_event(",
+              "        prompt,",
+              "        output,",
+              '        model_provider="openai",',
+              '        model_version="gpt-4o",',
+              "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+              "    )",
+              "    return output",
+            ]
+          : [
+              "from openai import OpenAI",
+              "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+              "",
+              "client = OpenAI()",
+              "",
+              "def ask_assistant(prompt: str) -> str:",
+              "    t0 = time.perf_counter()",
+              '    res = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": prompt}])',
+              '    output = res.choices[0].message.content or ""',
+              "    send_telemetry_event(",
+              "        prompt,",
+              "        output,",
+              `        model_provider="${provider}",`,
+              '        model_version="gpt-4o",',
+              "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+              "    )",
+              "    return output",
+            ];
+  return [
+    ...headerLines,
+    ...body,
+    "",
+    "# Pre-execution human approval gate (Pro €19/mo & Team €79/mo, field names only):",
+    '# approval = request_human_approval("issue_refund", {"order_id": 4821, "amount_eur": 120})',
+    "",
+    "# Visible 24-language Art. 50(1) HTML notice for Jinja2 / FastAPI / Django templates:",
+    '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)',
+  ].join("\n") + "\n";
+}
+
+/** Source of the setup snippet (TypeScript or Python 3.10+ stdlib), with no surrounding prose. */
+export function setupSnippetSource(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
-  if (framework === "vercel-ai-sdk") return middlewareSource(runtime);
-  if (framework === "mastra") return mastraSource(runtime);
-  if (framework === "openai-agents") return agentsSource(runtime);
-  if (framework === "langgraph") return langgraphSource(runtime);
-  return providerSource(framework, runtime);
+  if (isPythonVariant(framework, runtime)) return pythonSource(framework);
+  const tsRuntime = runtime as TsRuntime;
+  if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
+  if (framework === "mastra") return mastraSource(tsRuntime);
+  if (framework === "openai-agents") return agentsSource(tsRuntime);
+  if (framework === "langgraph") return langgraphSource(tsRuntime);
+  return providerSource(framework as "openai" | "anthropic" | "google-genai", tsRuntime);
 }
 
 /** Tool text: a short note, then the snippet. */
-export function setupSnippet(framework: string, runtime: string): string {
+export function setupSnippet(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
   const source = setupSnippetSource(framework, runtime);
+  if (isPythonVariant(framework, runtime)) {
+    const pyLines = [
+      `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
+      `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
+      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      PRICE_NOTE,
+    ];
+    return `${pyLines.join("\n")}\n\n\`\`\`python\n${source}\`\`\`\n`;
+  }
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
     "Paste the snippet into the app that calls the model. Keys are read from the environment when the function runs. A missing key throws. The value is not logged.",

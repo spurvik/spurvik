@@ -2,7 +2,7 @@ import { WorkspacePathError, validateWorkspaceRoot } from "./root.js";
 import { serverVersion } from "./server.js";
 import { formatScanReport, scanForUnwrappedCalls } from "./tools/find-unwrapped.js";
 import { markingHooksText } from "./tools/marking-hooks.js";
-import { FRAMEWORKS, RUNTIMES, setupSnippet, type Framework, type Runtime } from "./tools/setup-snippet.js";
+import { FRAMEWORKS, isPythonFramework, RUNTIMES, setupSnippet, type Framework, type Runtime } from "./tools/setup-snippet.js";
 
 export interface CliIo {
   stdout: (chunk: string) => void;
@@ -144,11 +144,11 @@ export function tryRunCli(argv: readonly string[], io: CliIo = DEFAULT_IO): numb
 
   if (first === "snippet") {
     const fw = args[1];
-    const rt = args[2] ?? "node";
     if (!fw || !isFrameworkArg(fw)) {
       io.stderr(`Choose a framework from: ${FRAMEWORKS.join(", ")}.\n`);
       return 2;
     }
+    const rt = args[2] ?? (isPythonFramework(fw) ? "python" : "node");
     if (!isRuntimeArg(rt)) {
       io.stderr(`Choose a runtime from: ${RUNTIMES.join(", ")}.\n`);
       return 2;

@@ -987,6 +987,14 @@ export interface C2paReport {
   diagnosis: string | null;
   disclosure: { locale: string; react: string; script: string };
   links: { c2pa: string; pro: string; concierge: string };
+  /** True when the image URL was auto-discovered in 1 hop from a bare domain or store webpage HTML. */
+  discoveredFromPage?: boolean;
+}
+
+export interface C2paContext {
+  requestedHost?: string;
+  htmlLocale?: BadgeLang;
+  discoveredFromPage?: boolean;
 }
 
 /** The same `<AIDisclosureLabel notice="generated" />` and badge.js `data-notice="generated"` the hosted tool returns. */
@@ -998,7 +1006,7 @@ export function generatedNotice(locale: string): { react: string; script: string
 }
 
 /** Builds the report from the console answer `{ data: { mediaType, byteLength, manifestFound, ... }, fileName }`. */
-export function reportFromC2pa(target: ScanTarget, body: unknown): C2paReport | null {
+export function reportFromC2pa(target: ScanTarget, body: unknown, context?: C2paContext): C2paReport | null {
   if (!isRecord(body) || !isRecord(body.data)) return null;
   const data = body.data;
   const mediaType = C2PA_MEDIA_TYPES.find((type) => type === data.mediaType);
@@ -1018,8 +1026,10 @@ export function reportFromC2pa(target: ScanTarget, body: unknown): C2paReport | 
   const rawName = typeof body.fileName === "string" ? body.fileName : "";
   const fileName = rawName.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[._]+/, "").slice(0, 80) || `image.${MEDIA_EXTENSION[mediaType]}`;
   const proxy = detectImageProxy(target.url);
-  const siteHost = isImageCdnHost(target.host) ? null : target.host;
-  const locale = noticeLocaleForHost(siteHost);
+  const effectiveHost = context?.requestedHost ?? target.host;
+  const siteHost = isImageCdnHost(effectiveHost) ? null : effectiveHost;
+  const baseLocale = noticeLocaleForHost(siteHost);
+  const locale = baseLocale === "en" && context?.htmlLocale ? context.htmlLocale : baseLocale;
   const status: C2paStatus = !manifestFound ? "no_manifest" : signatureMatches ? "manifest_valid" : "signature_mismatch";
   let diagnosis: string | null = null;
   if (!manifestFound) {
@@ -1036,7 +1046,7 @@ export function reportFromC2pa(target: ScanTarget, body: unknown): C2paReport | 
   const h = siteHost ? encodeURIComponent(siteHost) : null;
   return {
     imageUrl: target.url,
-    host: target.host,
+    host: effectiveHost,
     fileName,
     mediaType,
     byteLength,
@@ -1055,19 +1065,82 @@ export function reportFromC2pa(target: ScanTarget, body: unknown): C2paReport | 
       pro: h ? `${PRO_SIGNUP_URL}&appUrl=${h}` : PRO_SIGNUP_URL,
       concierge: h ? `${CONCIERGE_SIGNUP_URL}&appUrl=${h}` : CONCIERGE_SIGNUP_URL,
     },
+    ...(context?.discoveredFromPage ? { discoveredFromPage: true } : {}),
   };
 }
 
-async function fetchC2pa(target: ScanTarget, deps: CliDeps): Promise<C2paReport> {
-  const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function") throw new ScanFailed("This Node.js has no fetch. Use Node.js 20 or later.");
-  const timeoutMs = deps.timeoutMs ?? C2PA_TIMEOUT_MS;
+/**
+ * Resolves either a bare public domain (`charlie-paris.com`) for 1-hop hero-image discovery,
+ * or a full `https://` URL (image or store page) checked via `normalizeImageUrl`.
+ */
+export function resolveC2paInput(raw: string): { target: ScanTarget; bareDomain: boolean } {
+  const trimmed = raw.trim();
+  if (
+    trimmed.length > 0 &&
+    trimmed.length <= 253 &&
+    !trimmed.includes("/") &&
+    !trimmed.includes(":") &&
+    !trimmed.includes("?") &&
+    !trimmed.includes("#") &&
+    !trimmed.includes("@") &&
+    !/[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)
+  ) {
+    try {
+      const scanTarget = normalizeScanTarget(trimmed);
+      if (isPublicIpLiteral(scanTarget.host) === null) {
+        return { target: scanTarget, bareDomain: true };
+      }
+    } catch (error) {
+      if (error instanceof ScanTargetError && error.code === "blocked_target") {
+        throw new ScanTargetError("blocked_target", IMAGE_BLOCKED);
+      }
+    }
+  }
+  return { target: normalizeImageUrl(raw), bareDomain: false };
+}
+
+function looksLikeImageAssetPath(rawUrl: string): boolean {
+  try {
+    return /\.(?:png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(new URL(rawUrl).pathname);
+  } catch {
+    return false;
+  }
+}
+
+async function discoverHeroFromPage(
+  pageTarget: ScanTarget,
+  fetchImpl: typeof globalThis.fetch,
+  timeoutMs: number,
+): Promise<{ heroTarget: ScanTarget; htmlLocale?: BadgeLang } | null> {
+  const res = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(pageTarget.url)}`, {
+    method: "GET",
+    headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.status !== 200) return null;
+  const body = (await res.json().catch(() => null)) as unknown;
+  if (!isRecord(body)) return null;
+  const scan = isRecord(body.scan) ? body.scan : body;
+  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim()) return null;
+  const heroTarget = normalizeImageUrl(scan.heroImageUrl);
+  const htmlLocale =
+    typeof scan.htmlLocale === "string" && (BADGE_LANGS as readonly string[]).includes(scan.htmlLocale)
+      ? (scan.htmlLocale as BadgeLang)
+      : undefined;
+  return { heroTarget, htmlLocale };
+}
+
+async function postC2paCheck(
+  imageTarget: ScanTarget,
+  fetchImpl: typeof globalThis.fetch,
+  timeoutMs: number,
+): Promise<{ status: number; body: unknown }> {
   let response: Response;
   try {
     response = await fetchImpl(C2PA_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json", "User-Agent": USER_AGENT },
-      body: JSON.stringify({ url: target.url }),
+      body: JSON.stringify({ url: imageTarget.url }),
       redirect: "error",
       signal: AbortSignal.timeout(timeoutMs),
     });
@@ -1085,9 +1158,70 @@ async function fetchC2pa(target: ScanTarget, deps: CliDeps): Promise<C2paReport>
   } catch {
     body = null;
   }
-  if (response.status !== 200) {
+  return { status: response.status, body };
+}
+
+async function fetchC2pa(target: ScanTarget, deps: CliDeps, bareDomain = false): Promise<C2paReport> {
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") throw new ScanFailed("This Node.js has no fetch. Use Node.js 20 or later.");
+  const timeoutMs = deps.timeoutMs ?? C2PA_TIMEOUT_MS;
+
+  if (bareDomain) {
+    let discovered: { heroTarget: ScanTarget; htmlLocale?: BadgeLang } | null = null;
+    try {
+      discovered = await discoverHeroFromPage(target, fetchImpl, timeoutMs);
+    } catch (error) {
+      if (error instanceof ScanTargetError) {
+        throw new ScanFailed(`Discovered hero image refused (${error.code}): ${error.message}`);
+      }
+      const name = error instanceof Error ? error.name : "";
+      throw new ScanFailed(
+        name === "TimeoutError" || name === "AbortError"
+          ? `The C2PA check did not answer within ${Math.round(timeoutMs / 1000)}s.`
+          : "Could not reach console.spurvik.com. Check your network and try again.",
+      );
+    }
+    if (!discovered) {
+      throw new ScanFailed("No frontpage hero or og:image PNG/JPEG/WebP URL was found on that domain. Pass a direct https image URL instead.");
+    }
+    const { status, body } = await postC2paCheck(discovered.heroTarget, fetchImpl, timeoutMs);
+    if (status !== 200) {
+      const upstream = isRecord(body) && isRecord(body.error) ? body.error : {};
+      const code = /^[a-z_]{1,40}$/.test(String(upstream.code ?? "")) ? String(upstream.code) : `http_${status}`;
+      const message = cleanText(upstream.message, 200);
+      throw new ScanFailed(`Check refused (${code})${message ? `: ${message}` : "."}`);
+    }
+    const report = reportFromC2pa(discovered.heroTarget, body, {
+      requestedHost: target.host,
+      htmlLocale: discovered.htmlLocale,
+      discoveredFromPage: true,
+    });
+    if (!report) throw new ScanFailed("The C2PA check sent an answer this CLI cannot read. Try again later.");
+    return report;
+  }
+
+  const { status, body } = await postC2paCheck(target, fetchImpl, timeoutMs);
+  if (status === 415 && !looksLikeImageAssetPath(target.url)) {
+    try {
+      const discovered = await discoverHeroFromPage(target, fetchImpl, timeoutMs);
+      if (discovered) {
+        const heroCheck = await postC2paCheck(discovered.heroTarget, fetchImpl, timeoutMs);
+        if (heroCheck.status === 200) {
+          const heroReport = reportFromC2pa(discovered.heroTarget, heroCheck.body, {
+            requestedHost: target.host,
+            htmlLocale: discovered.htmlLocale,
+            discoveredFromPage: true,
+          });
+          if (heroReport) return heroReport;
+        }
+      }
+    } catch {
+      // Fall back to original 415 error when hero auto-discovery fails.
+    }
+  }
+  if (status !== 200) {
     const upstream = isRecord(body) && isRecord(body.error) ? body.error : {};
-    const code = /^[a-z_]{1,40}$/.test(String(upstream.code ?? "")) ? String(upstream.code) : `http_${response.status}`;
+    const code = /^[a-z_]{1,40}$/.test(String(upstream.code ?? "")) ? String(upstream.code) : `http_${status}`;
     const message = cleanText(upstream.message, 200);
     throw new ScanFailed(`Check refused (${code})${message ? `: ${message}` : "."}`);
   }
@@ -1104,6 +1238,9 @@ function printC2pa(report: C2paReport, io: Io): void {
   out();
   row("Image", `${report.fileName} ${c.dim(`(${report.mediaType}, ${report.byteLength.toLocaleString("en-US")} bytes)`)}`);
   row("Host", report.host);
+  if (report.discoveredFromPage) {
+    row("Discovered", `${report.imageUrl} ${c.dim("(frontpage hero / og:image)")}`);
+  }
   row(
     "C2PA manifest",
     report.manifestFound
@@ -1149,20 +1286,20 @@ async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
     io.err("Usage: spurvik c2pa <image-url> [--json] [--fail-on-missing]");
     return EXIT_ERROR;
   }
-  let target: ScanTarget;
+  let resolved: { target: ScanTarget; bareDomain: boolean };
   try {
-    target = normalizeImageUrl(raw);
+    resolved = resolveC2paInput(raw);
   } catch (error) {
     io.err(`spurvik c2pa: ${error instanceof ScanTargetError ? error.message : IMAGE_URL_HELP}`);
     return EXIT_ERROR;
   }
   let report: C2paReport;
   try {
-    report = await fetchC2pa(target, deps);
+    report = await fetchC2pa(resolved.target, deps, resolved.bareDomain);
   } catch (error) {
     const message = error instanceof ScanFailed ? error.message : "The C2PA check failed.";
     if (args.json) {
-      io.out(JSON.stringify({ host: target.host, status: "error", error: message, links: { c2pa: C2PA_PAGE_URL } }, null, 2));
+      io.out(JSON.stringify({ host: resolved.target.host, status: "error", error: message, links: { c2pa: C2PA_PAGE_URL } }, null, 2));
     } else {
       io.err(`spurvik c2pa: ${message}`);
       io.err(`Check it in the browser instead: ${C2PA_PAGE_URL}`);
@@ -1326,6 +1463,7 @@ export function helpText(): string {
     "Examples:",
     "  npx spurvik scan stepnetwork.dk",
     "  npx spurvik c2pa https://example.com/hero.png --fail-on-missing",
+    "  npx spurvik c2pa charlie-paris.com",
     "  npx spurvik audit . --fail-on-gap",
     "  npx spurvik badge example.de",
     "  npx spurvik rfp acme.eu --plan team --provider langgraph",

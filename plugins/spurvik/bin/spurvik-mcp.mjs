@@ -13506,11 +13506,11 @@ var READ_ONLY_ANNOTATIONS = {
 };
 var READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, openWorldHint: true };
 var SETUP_TITLE = "Spurvik setup snippet";
-var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph. Provider clients are wrapped with withSpurvik. The Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel. The Mastra snippet calls withSpurvikMastra. The OpenAI Agents snippet calls withSpurvikModelProvider. The LangGraph snippet calls withSpurvikLangGraph and spurvikInterrupt. The snippet is built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
-var FRAMEWORK_FIELD = "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
-var RUNTIME_FIELD = "Where the process runs: node, next, vercel, or supabase-edge. This chooses the flush call.";
-var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, or langgraph.";
-var UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, or supabase-edge.";
+var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
+var FRAMEWORK_FIELD = "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+var RUNTIME_FIELD = "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
+var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+var UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 var FIND_TITLE = "Find unwrapped AI calls";
 var ENV_SKIP_SENTENCE = "The scanner skips files named .env or .env.* (any case), including through symlinks and hard links.";
 var FIND_DESCRIPTION = "Heuristic static scan of one directory inside the workspace root for AI client calls that are not passed through withSpurvik, spurvikMiddleware, withSpurvikMastra, withSpurvikModel, withSpurvikModelProvider, withSpurvikLangGraph, or spurvikInterrupt. A StateGraph constructor is reported when the file does not call withSpurvikLangGraph. A bare interrupt() call is reported when the file does not call spurvikInterrupt or resolveLangGraphInterrupts. The scan reads .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, and .cts files. It does not read .md or .mdc files. Results are file:line. The line number is 1-based and counts every newline, including comments and strings. This is a heuristic, so it can miss a call or report one that is already wrapped. The scan does not change files and does not use the network. Paths that leave the workspace, including '..', are rejected. " + ENV_SKIP_SENTENCE;
@@ -13558,8 +13558,8 @@ var BATCH_TITLE = "Batch-scan up to 10 domains for Art. 50(1)";
 var BATCH_DESCRIPTION = "Scan 1 to 10 public domains or http(s) URLs (for example an agency's client sites) through console.spurvik.com for AI chat widgets and AI SDKs, and check each frontpage for a visible EU AI Act Article 50(1) notice. Every entry is checked first: if any entry is localhost, a private or reserved IP or an internal host, the whole batch is refused and nothing is sent. Returns JSON: totalDomains, gapsFound and one row per host with detectedWidgets, art50NoticeDetected, gap, reportUrl, a one-line badgeSnippet and statusShieldMarkdown, plus portfolioUrl and upgradeUrls (Team €79/mo, Done-For-You €199 once per site). At most 4 scans run at once, each with an 8-second timeout; a host the service cannot reach returns offlineFallback: true in its row. Heuristic: reads the HTML of one page per domain. Not legal advice.";
 var BATCH_DOMAINS_FIELD = '1 to 10 public http(s) URLs or bare domains, for example ["stepnetwork.dk", "folk.app"]. Duplicate hosts are scanned once.';
 var C2PA_TITLE = "Check an image URL for a C2PA manifest (CDN-strip check)";
-var C2PA_DESCRIPTION = 'C2PA JUMBF manifest & CDN-strip checker for one public https image URL (PNG, JPEG or WebP, up to 4 MB), ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). console.spurvik.com fetches the image once through its SSRF gate and reads the manifest in memory; nothing is stored. Returns JSON: status, mediaType, byteLength, fileName, c2pa { manifestFound, embedded, claimGenerator, signatureMatches, trustAnchor, validationCodes }, whether the URL goes through an image optimizer that strips C2PA (/_next/image, Cloudinary, imgix, Cloudflare /cdn-cgi/image/) with a fix, a visible "AI-generated" notice (<AIDisclosureLabel notice="generated" /> and badge.js data-notice="generated"), and links: the interactive checker, Pro (€19/mo) and Done-For-You (€199 once) with appUrl prefilled. Read-only: it never signs or adds a manifest. Only https on port 443, no credentials; localhost, .local, .internal and private or reserved IPs are refused before any request. 15-second timeout; 10 checks per minute per address, shared with console.spurvik.com/c2pa. Not legal advice.';
-var C2PA_URL_FIELD = "Public https URL of a PNG, JPEG or WebP image up to 4 MB, for example https://example.com/hero.png.";
+var C2PA_DESCRIPTION = 'C2PA JUMBF manifest & CDN-strip checker for one public https image URL (PNG, JPEG or WebP, up to 4 MB) — or a bare public domain / https store page URL, which auto-discovers the frontpage og:image / hero image in 1 hop — ahead of EU AI Act Art. 50(2) machine-readable marking (applies from 2 December 2026). console.spurvik.com fetches the image once through its SSRF gate and reads the manifest in memory; nothing is stored. Returns JSON: status, mediaType, byteLength, fileName, c2pa { manifestFound, embedded, claimGenerator, signatureMatches, trustAnchor, validationCodes }, whether the URL goes through an image optimizer that strips C2PA (/_next/image, Cloudinary, imgix, Cloudflare /cdn-cgi/image/, Shopify CDN, Jetpack Photon, Webflow CDN) with a fix, a visible "AI-generated" notice (<AIDisclosureLabel notice="generated" /> and badge.js data-notice="generated"), and links: the interactive checker, Pro (€19/mo) and Done-For-You (€199 once) with appUrl prefilled. Read-only: it never signs or adds a manifest. Only https on port 443, no credentials; localhost, .local, .internal and private or reserved IPs are refused before any request. 15-second timeout; 10 checks per minute per address, shared with console.spurvik.com/c2pa. Not legal advice.';
+var C2PA_URL_FIELD = "Public https URL of a PNG, JPEG or WebP image up to 4 MB (e.g. https://example.com/hero.png), or a bare public store domain / https page URL (e.g. charlie-paris.com) to auto-discover its hero image.";
 var CLASSIFY_TITLE = "Map an AI use case to an EU AI Act risk tier";
 var CLASSIFY_DESCRIPTION = "Deterministic, zero-network mapping of one AI use case to an EU AI Act tier: prohibited_art5, high_risk_annex_iii, limited_transparency_art50 or minimal_risk. Returns JSON with the matched signals, obligations with dates, recommended Spurvik controls, interactiveClassifierUrl and upgradeUrls. The use-case text is matched against fixed patterns; it is not stored or echoed. Engineering mapping aid; not legal advice and not a decision under Article 6.";
 var USE_CASE_FIELD = "What the AI system does and for whom, in one or two sentences. Max 4000 characters. Not stored or echoed.";
@@ -22779,6 +22779,7 @@ async function batchScanDomains(domains, deps = {}) {
 
 // packages/mcp/src/tools/check-image-c2pa-url.ts
 var C2PA_CHECK_PATH = "/api/v1/provenance/public-check-url";
+var C2PA_SCAN_PATH = "/api/v1/sandbox/scan";
 var C2PA_CHECK_ENDPOINT = `${CONSOLE_ORIGIN}${C2PA_CHECK_PATH}`;
 var C2PA_CHECK_TIMEOUT_MS = 15e3;
 var C2PA_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
@@ -22801,7 +22802,7 @@ var CHECK_IMAGE_C2PA_URL_INPUT_JSON_SCHEMA = {
       type: "string",
       minLength: 1,
       maxLength: MAX_URL_CHARS2,
-      description: `Public https URL of a PNG, JPEG or WebP image up to ${C2PA_MAX_IMAGE_LABEL}, for example https://example.com/hero.png.`
+      description: `Public https URL of a PNG, JPEG or WebP image up to ${C2PA_MAX_IMAGE_LABEL} (e.g. https://example.com/hero.png), or a bare public domain / https store page URL (e.g. charlie-paris.com) to auto-discover its hero image.`
     }
   },
   required: ["url"],
@@ -22956,15 +22957,18 @@ function diagnose(report, proxy) {
   }
   return proxy ? `The manifest survived ${proxy.name}. Re-check after any change to its settings.` : null;
 }
-function buildResult(target, report) {
+function buildResult(target, report, context) {
   const proxy = detectImageProxy(target.url);
-  const siteHost = isImageCdnHost(target.host) ? null : target.host;
-  const locale = inferLocaleFromDomain(siteHost ?? "");
+  const effectiveHost = context?.requestedHost ?? target.host;
+  const siteHost = isImageCdnHost(effectiveHost) ? null : effectiveHost;
+  const baseLocale = inferLocaleFromDomain(siteHost ?? "");
+  const locale = baseLocale === "en" && context?.htmlLocale && EU_LOCALE_CODES.includes(context.htmlLocale) ? context.htmlLocale : baseLocale;
   const status = !report.manifestFound ? "no_manifest" : report.signatureMatches ? "manifest_valid" : "signature_mismatch";
   return {
     tool: "spurvik_check_image_c2pa_url",
     status,
-    host: target.host,
+    host: effectiveHost,
+    ...context?.discoveredFromPage ? { imageUrl: target.url, discoveredFromPage: true } : {},
     fileName: report.fileName,
     mediaType: report.mediaType,
     byteLength: report.byteLength,
@@ -22994,38 +22998,73 @@ function buildResult(target, report) {
     note: `Read-only C2PA check: Spurvik did not sign or change the image, and the URL and bytes were not stored. claimGenerator is unverified text from the manifest. Not legal advice. ${PRICE_NOTE}`
   };
 }
-function endpointFor(baseUrl) {
-  if (baseUrl === void 0) return C2PA_CHECK_ENDPOINT;
+function originFor(baseUrl) {
+  if (baseUrl === void 0) return CONSOLE_ORIGIN;
   try {
     const origin = new URL(baseUrl);
     if (origin.protocol !== "https:" || origin.username || origin.password) return null;
-    return `${origin.origin}${C2PA_CHECK_PATH}`;
+    return origin.origin;
   } catch {
     return null;
   }
 }
-var FALLBACK_HINT = `Upload the image at ${C2PA_PAGE_URL} instead.`;
-async function checkImageC2paUrl(rawUrl, deps = {}) {
-  let target;
+function resolveC2paInput(raw) {
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (trimmed.length > 0 && trimmed.length <= 253 && !trimmed.includes("/") && !trimmed.includes(":") && !trimmed.includes("?") && !trimmed.includes("#") && !trimmed.includes("@") && !/[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)) {
+      let asciiHost = normalizeHost2(trimmed);
+      try {
+        asciiHost = normalizeHost2(new URL(`https://${trimmed}`).hostname);
+      } catch {
+        asciiHost = "";
+      }
+      if (asciiHost) {
+        const ipPublic = isPublicIpLiteral(asciiHost);
+        if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED2);
+        if (ipPublic === null) {
+          if (BLOCKED_SUFFIXES2.some((suffix) => asciiHost === suffix || asciiHost.endsWith(`.${suffix}`))) {
+            throw new ScanTargetRejected("blocked_target", BLOCKED2);
+          }
+          if (!asciiHost.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED2);
+          if (HOSTNAME_RE2.test(asciiHost)) {
+            return { target: { url: `https://${asciiHost}/`, host: asciiHost }, bareDomain: true };
+          }
+        }
+      }
+    }
+  }
+  return { target: normalizeImageUrl(raw), bareDomain: false };
+}
+function looksLikeImageAssetPath(rawUrl) {
   try {
-    target = normalizeImageUrl(rawUrl);
-  } catch (error2) {
-    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
-    return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
+    return /\.(?:png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(new URL(rawUrl).pathname);
+  } catch {
+    return false;
   }
-  const endpoint = endpointFor(deps.baseUrl);
-  if (!endpoint) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
-  const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function") {
-    return { ok: false, error: "service_unreachable", message: `This Node.js has no fetch. ${FALLBACK_HINT}` };
-  }
-  const timeoutMs2 = deps.timeoutMs ?? C2PA_CHECK_TIMEOUT_MS;
+}
+async function discoverHeroFromPage(pageUrl, scanEndpoint, fetchImpl, timeoutMs2) {
+  const res = await fetchImpl(`${scanEndpoint}?url=${encodeURIComponent(pageUrl)}`, {
+    method: "GET",
+    headers: { Accept: "application/json", "User-Agent": MCP_USER_AGENT },
+    signal: AbortSignal.timeout(timeoutMs2)
+  });
+  if (res.status !== 200) return null;
+  const body = await res.json().catch(() => null);
+  if (!isRecord2(body)) return null;
+  const scan = isRecord2(body.scan) ? body.scan : body;
+  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim()) return null;
+  const heroTarget = normalizeImageUrl(scan.heroImageUrl);
+  const htmlLocale = typeof scan.htmlLocale === "string" && EU_LOCALE_CODES.includes(scan.htmlLocale) ? scan.htmlLocale : void 0;
+  return { heroTarget, htmlLocale };
+}
+var FALLBACK_HINT = `Upload the image at ${C2PA_PAGE_URL} instead.`;
+async function postCheckRequest(imageUrl, endpoint, fetchImpl, timeoutMs2) {
   let response;
   try {
     response = await fetchImpl(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json", "User-Agent": MCP_USER_AGENT },
-      body: JSON.stringify({ url: target.url }),
+      body: JSON.stringify({ url: imageUrl }),
       redirect: "error",
       signal: AbortSignal.timeout(timeoutMs2)
     });
@@ -23038,6 +23077,88 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
     body = await response.json();
   } catch {
     body = null;
+  }
+  return { ok: true, response, body };
+}
+async function checkImageC2paUrl(rawUrl, deps = {}) {
+  let resolved;
+  try {
+    resolved = resolveC2paInput(rawUrl);
+  } catch (error2) {
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
+    return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
+  }
+  const origin = originFor(deps.baseUrl);
+  if (!origin) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
+  const endpoint = `${origin}${C2PA_CHECK_PATH}`;
+  const scanEndpoint = `${origin}${C2PA_SCAN_PATH}`;
+  const fetchImpl = deps.fetch ?? globalThis.fetch;
+  if (typeof fetchImpl !== "function") {
+    return { ok: false, error: "service_unreachable", message: `This Node.js has no fetch. ${FALLBACK_HINT}` };
+  }
+  const timeoutMs2 = deps.timeoutMs ?? C2PA_CHECK_TIMEOUT_MS;
+  const { target, bareDomain } = resolved;
+  if (bareDomain) {
+    let discovered = null;
+    try {
+      discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchImpl, timeoutMs2);
+    } catch (error2) {
+      if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
+      const name = error2 instanceof Error ? error2.name : "";
+      return name === "TimeoutError" || name === "AbortError" ? { ok: false, error: "timeout", message: `console.spurvik.com did not answer within ${Math.round(timeoutMs2 / 1e3)} s. Nothing was checked. ${FALLBACK_HINT}` } : { ok: false, error: "service_unreachable", message: `console.spurvik.com could not be reached. Nothing was checked. ${FALLBACK_HINT}` };
+    }
+    if (!discovered) {
+      return {
+        ok: false,
+        error: "no_hero_image",
+        message: `No frontpage hero or og:image PNG/JPEG/WebP URL was found on that domain. Pass a direct https image URL or upload the file at ${C2PA_PAGE_URL}.`
+      };
+    }
+    const checked = await postCheckRequest(discovered.heroTarget.url, endpoint, fetchImpl, timeoutMs2);
+    if (!checked.ok) return checked;
+    if (checked.response.status !== 200) {
+      const upstream = isRecord2(checked.body) && isRecord2(checked.body.error) ? checked.body.error : {};
+      const code = typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code) ? upstream.code : `upstream_http_${checked.response.status}`;
+      const message = cleanMessage(upstream.message) || `The check service answered HTTP ${checked.response.status}.`;
+      return { ok: false, error: code, message: `${message} ${FALLBACK_HINT}` };
+    }
+    const report2 = readUpstreamReport(checked.body);
+    if (!report2) {
+      return { ok: false, error: "upstream_invalid_response", message: `The check service sent an answer this server cannot read. ${FALLBACK_HINT}` };
+    }
+    return {
+      ok: true,
+      result: buildResult(discovered.heroTarget, report2, {
+        requestedHost: target.host,
+        htmlLocale: discovered.htmlLocale,
+        discoveredFromPage: true
+      })
+    };
+  }
+  const initial = await postCheckRequest(target.url, endpoint, fetchImpl, timeoutMs2);
+  if (!initial.ok) return initial;
+  const { response, body } = initial;
+  if (response.status === 415 && !looksLikeImageAssetPath(target.url)) {
+    try {
+      const discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchImpl, timeoutMs2);
+      if (discovered) {
+        const heroChecked = await postCheckRequest(discovered.heroTarget.url, endpoint, fetchImpl, timeoutMs2);
+        if (heroChecked.ok && heroChecked.response.status === 200) {
+          const heroReport = readUpstreamReport(heroChecked.body);
+          if (heroReport) {
+            return {
+              ok: true,
+              result: buildResult(discovered.heroTarget, heroReport, {
+                requestedHost: target.host,
+                htmlLocale: discovered.htmlLocale,
+                discoveredFromPage: true
+              })
+            };
+          }
+        }
+      }
+    } catch {
+    }
   }
   if (response.status !== 200) {
     const upstream = isRecord2(body) && isRecord2(body.error) ? body.error : {};
@@ -28073,6 +28194,7 @@ var sdkExportNames = {
 };
 
 // packages/mcp/src/tools/setup-snippet.ts
+var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28080,9 +28202,16 @@ var FRAMEWORKS = [
   "vercel-ai-sdk",
   "mastra",
   "openai-agents",
-  "langgraph"
+  "langgraph",
+  ...PYTHON_FRAMEWORKS
 ];
-var RUNTIMES = ["node", "next", "vercel", "supabase-edge"];
+var RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"];
+function isPythonFramework(value) {
+  return PYTHON_FRAMEWORKS.includes(value);
+}
+function isPythonVariant(framework, runtime) {
+  return isPythonFramework(framework) || runtime === "python";
+}
 var REQUIRE_ENV = `function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(\`Missing \${name}. Set it in the environment.\`);
@@ -28424,17 +28553,137 @@ function middlewareSource(runtime) {
   ];
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
-function setupSnippetSource(framework, runtime) {
+var PYTHON_GUARD_URL = "https://spurvik.com/r/spurvik_guard.py";
+var PYTHON_GUIDE_URL = "https://spurvik.com/python-fastapi-langchain-eu-ai-act-logging";
+function pythonSource(framework) {
+  const provider = framework === "anthropic" ? "anthropic" : framework === "google-genai" ? "google" : "openai";
+  const headerLines = [
+    `# curl -fsSLO ${PYTHON_GUARD_URL}`,
+    "# Python 3.10+ zero-dependency stdlib helper (MIT) — 0 bytes of raw prompt text sent.",
+    `# Companion TypeScript/React npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION}.`,
+    "import time"
+  ];
+  const body = framework === "fastapi" ? [
+    "from fastapi import BackgroundTasks, FastAPI",
+    "from openai import AsyncOpenAI",
+    "from pydantic import BaseModel",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "",
+    "app = FastAPI()",
+    "client = AsyncOpenAI()",
+    "",
+    "class ChatRequest(BaseModel):",
+    "    prompt: str",
+    "",
+    '@app.post("/api/chat")',
+    "async def chat_endpoint(req: ChatRequest, background_tasks: BackgroundTasks) -> dict[str, str]:",
+    "    t0 = time.perf_counter()",
+    '    res = await client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": req.prompt}])',
+    '    output = res.choices[0].message.content or ""',
+    "    background_tasks.add_task(",
+    "        send_telemetry_event,",
+    "        req.prompt,",
+    "        output,",
+    '        model_provider="openai",',
+    '        model_version="gpt-4o",',
+    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+    "    )",
+    '    return {"reply": output, "art50Badge": art50_badge_html(system_name="Support AI", locale="en")}'
+  ] : framework === "langchain" || framework === "langgraph" ? [
+    "from langchain_openai import ChatOpenAI",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "",
+    'llm = ChatOpenAI(model="gpt-4o")',
+    "",
+    "def run_chain(prompt: str) -> str:",
+    "    t0 = time.perf_counter()",
+    "    reply = llm.invoke(prompt)",
+    "    output = str(reply.content)",
+    "    send_telemetry_event(",
+    "        prompt,",
+    "        output,",
+    '        model_provider="openai",',
+    '        model_version="gpt-4o",',
+    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+    "    )",
+    "    return output"
+  ] : framework === "pydantic-ai" ? [
+    "from pydantic_ai import Agent",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "",
+    'agent = Agent("openai:gpt-4o")',
+    "",
+    "async def run_agent(prompt: str) -> str:",
+    "    t0 = time.perf_counter()",
+    "    result = await agent.run(prompt)",
+    "    output = str(result.output)",
+    "    send_telemetry_event(",
+    "        prompt,",
+    "        output,",
+    '        model_provider="openai",',
+    '        model_version="gpt-4o",',
+    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+    "    )",
+    "    return output"
+  ] : [
+    "from openai import OpenAI",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "",
+    "client = OpenAI()",
+    "",
+    "def ask_assistant(prompt: str) -> str:",
+    "    t0 = time.perf_counter()",
+    '    res = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": prompt}])',
+    '    output = res.choices[0].message.content or ""',
+    "    send_telemetry_event(",
+    "        prompt,",
+    "        output,",
+    `        model_provider="${provider}",`,
+    '        model_version="gpt-4o",',
+    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+    "    )",
+    "    return output"
+  ];
+  return [
+    ...headerLines,
+    ...body,
+    "",
+    "# Pre-execution human approval gate (Pro €19/mo & Team €79/mo, field names only):",
+    '# approval = request_human_approval("issue_refund", {"order_id": 4821, "amount_eur": 120})',
+    "",
+    "# Visible 24-language Art. 50(1) HTML notice for Jinja2 / FastAPI / Django templates:",
+    '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)'
+  ].join("\n") + "\n";
+}
+function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
-  if (framework === "vercel-ai-sdk") return middlewareSource(runtime);
-  if (framework === "mastra") return mastraSource(runtime);
-  if (framework === "openai-agents") return agentsSource(runtime);
-  if (framework === "langgraph") return langgraphSource(runtime);
-  return providerSource(framework, runtime);
+  if (isPythonVariant(framework, runtime)) return pythonSource(framework);
+  const tsRuntime = runtime;
+  if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
+  if (framework === "mastra") return mastraSource(tsRuntime);
+  if (framework === "openai-agents") return agentsSource(tsRuntime);
+  if (framework === "langgraph") return langgraphSource(tsRuntime);
+  return providerSource(framework, tsRuntime);
 }
-function setupSnippet(framework, runtime) {
+function setupSnippet(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
   const source = setupSnippetSource(framework, runtime);
+  if (isPythonVariant(framework, runtime)) {
+    const pyLines = [
+      `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
+      `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
+      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      PRICE_NOTE
+    ];
+    return `${pyLines.join("\n")}
+
+\`\`\`python
+${source}\`\`\`
+`;
+  }
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
     "Paste the snippet into the app that calls the model. Keys are read from the environment when the function runs. A missing key throws. The value is not logged.",
@@ -28802,11 +29051,11 @@ function createServer(workspaceRoot, options = {}) {
       description: SETUP_DESCRIPTION,
       inputSchema: {
         framework: external_exports.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
-        runtime: external_exports.enum(RUNTIMES).describe(RUNTIME_FIELD)
+        runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime)}${SETUP_NEXT_STEPS}`)
+    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"))}${SETUP_NEXT_STEPS}`)
   );
   server.registerTool(
     "spurvik_find_unwrapped_calls",
@@ -29072,12 +29321,12 @@ function tryRunCli(argv, io = DEFAULT_IO) {
   }
   if (first === "snippet") {
     const fw = args[1];
-    const rt = args[2] ?? "node";
     if (!fw || !isFrameworkArg(fw)) {
       io.stderr(`Choose a framework from: ${FRAMEWORKS.join(", ")}.
 `);
       return 2;
     }
+    const rt = args[2] ?? (isPythonFramework(fw) ? "python" : "node");
     if (!isRuntimeArg(rt)) {
       io.stderr(`Choose a runtime from: ${RUNTIMES.join(", ")}.
 `);

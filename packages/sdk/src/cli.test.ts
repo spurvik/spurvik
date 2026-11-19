@@ -541,6 +541,69 @@ describe("spurvik c2pa", () => {
     expect(reportFromC2pa({ url: "https://example.com/a.png", host: "example.com" }, { data: { ...c2paAnswer().data, manifestFound: false, signatureMatches: true } }))
       .toMatchObject({ manifestFound: false, signatureMatches: false, status: "no_manifest", fileName: "image.png" });
   });
+
+  it("auto-discovers the frontpage hero image in 1 hop from a bare store domain or https page URL, preserving store host and htmlLocale", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://console.spurvik.com/api/v1/sandbox/scan")) {
+        return jsonResponse({
+          ok: true,
+          scan: {
+            reachable: true,
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0555/hero-watch.webp",
+            htmlLocale: "fr",
+          },
+        });
+      }
+      const body = JSON.parse(String(init?.body ?? "{}"));
+      if (body.url === "https://charlie-paris.com/") {
+        return jsonResponse({ error: { code: "unsupported_media", message: "That URL did not return a PNG, JPEG or WebP image." } }, 415);
+      }
+      return jsonResponse(c2paAnswer({ mediaType: "image/webp" }, "hero-watch.webp"));
+    });
+
+    // 1. Bare domain: charlie-paris.com
+    const bare = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["c2pa", "charlie-paris.com", "--json"], bare.deps)).toBe(EXIT_OK);
+    const bareBody = JSON.parse(bare.out());
+    expect(bareBody).toMatchObject({
+      host: "charlie-paris.com",
+      imageUrl: "https://cdn.shopify.com/s/files/1/0555/hero-watch.webp",
+      discoveredFromPage: true,
+      status: "no_manifest",
+      imageProxy: { detected: true, name: "Shopify CDN (/cdn/shop/)" },
+      disclosure: { locale: "fr" },
+      links: {
+        pro: "https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com",
+        concierge: "https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com",
+      },
+    });
+
+    // 2. Full https store page URL: https://charlie-paris.com/ (415 -> 1-hop fallback)
+    const page = harness(fetchMock as unknown as typeof fetch);
+    expect(await runCli(["c2pa", "https://charlie-paris.com/"], page.deps)).toBe(EXIT_OK);
+    expect(page.out()).toContain("charlie-paris.com");
+    expect(page.out()).toContain("https://cdn.shopify.com/s/files/1/0555/hero-watch.webp (frontpage hero / og:image)");
+    expect(page.out()).toContain('locale="fr"');
+
+    // 3. Bare private/internal hosts are refused before any network call; private discovered heroImageUrl is refused
+    fetchMock.mockClear();
+    for (const bad of ["localhost", "127.0.0.1", "cam.local", "intranet"]) {
+      const h = harness(fetchMock as unknown as typeof fetch);
+      expect(await runCli(["c2pa", bad], h.deps), bad).toBe(EXIT_ERROR);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const ssrfHero = harness(
+      (async () =>
+        jsonResponse({
+          ok: true,
+          scan: { reachable: true, heroImageUrl: "https://127.0.0.1/internal.png", htmlLocale: "en" },
+        })) as unknown as typeof fetch,
+    );
+    expect(await runCli(["c2pa", "charlie-paris.com"], ssrfHero.deps)).toBe(EXIT_ERROR);
+    expect(ssrfHero.err()).toContain("blocked_target");
+  });
 });
 
 describe("spurvik audit", () => {

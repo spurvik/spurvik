@@ -69,7 +69,7 @@ import { explainReceipt, knownSigningSecrets, resolveSigningSecret, scrubSecrets
 import { scanWorkspace } from "./tools/find-unwrapped.js";
 import { markingHooksText } from "./tools/marking-hooks.js";
 import { scanLiveUrl, type ScanLiveUrlDeps } from "./tools/scan-live-url.js";
-import { FRAMEWORKS, RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
+import { FRAMEWORKS, isPythonFramework, RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
 import {
   MAX_QUESTIONNAIRE_DOMAIN_CHARS,
   QUESTIONNAIRE_PLANS,
@@ -145,11 +145,12 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       description: SETUP_DESCRIPTION,
       inputSchema: {
         framework: z.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
-        runtime: z.enum(RUNTIMES).describe(RUNTIME_FIELD),
+        runtime: z.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime)}${SETUP_NEXT_STEPS}`),
+    async ({ framework, runtime }) =>
+      text(`${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"))}${SETUP_NEXT_STEPS}`),
   );
 
   server.registerTool(

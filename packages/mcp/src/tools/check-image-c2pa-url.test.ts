@@ -498,4 +498,57 @@ describe("checkImageC2paUrl", () => {
     await expectOk(checkImageC2paUrl("https://example.com/hero.png"));
     expect(globalFetch).toHaveBeenCalledTimes(1);
   });
+
+  it("auto-discovers a store hero image in 1 hop from a bare domain or https webpage URL while enforcing SSRF gates", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("https://console.spurvik.com/api/v1/sandbox/scan")) {
+        return jsonResponse({
+          ok: true,
+          scan: {
+            reachable: true,
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0555/hero-watch.webp",
+            htmlLocale: "fr",
+          },
+        });
+      }
+      const parsed = JSON.parse(String(init?.body ?? "{}"));
+      if (parsed.url === "https://charlie-paris.com/") {
+        return jsonResponse({ error: { code: "unsupported_media", message: "That URL did not return a PNG, JPEG or WebP image." } }, 415);
+      }
+      return jsonResponse(report({ ...NO_MANIFEST, mediaType: "image/webp" }, "hero-watch.webp"));
+    });
+
+    const fromDomain = await expectOk(checkImageC2paUrl("charlie-paris.com", { fetch: fetchMock as unknown as typeof fetch }));
+    expect(fromDomain).toMatchObject({
+      host: "charlie-paris.com",
+      imageUrl: "https://cdn.shopify.com/s/files/1/0555/hero-watch.webp",
+      discoveredFromPage: true,
+      status: "no_manifest",
+      imageProxy: { detected: true, name: "Shopify CDN (/cdn/shop/)" },
+      disclosure: { locale: "fr" },
+      links: {
+        pro: "https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com",
+        concierge: "https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com",
+      },
+    });
+
+    const fromPage = await expectOk(checkImageC2paUrl("https://charlie-paris.com/", { fetch: fetchMock as unknown as typeof fetch }));
+    expect(fromPage.discoveredFromPage).toBe(true);
+    expect(fromPage.host).toBe("charlie-paris.com");
+    expect(fromPage.disclosure.locale).toBe("fr");
+
+    fetchMock.mockClear();
+    for (const bad of ["localhost", "127.0.0.1", "cam.local", "intranet"]) {
+      const err = await expectError(checkImageC2paUrl(bad, { fetch: fetchMock as unknown as typeof fetch }));
+      expect(err.error).toBe("blocked_target");
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const evilHeroFetch = vi.fn(async () =>
+      jsonResponse({ ok: true, scan: { reachable: true, heroImageUrl: "https://127.0.0.1/evil.png", htmlLocale: "en" } }),
+    );
+    const evilErr = await expectError(checkImageC2paUrl("charlie-paris.com", { fetch: evilHeroFetch as unknown as typeof fetch }));
+    expect(evilErr.error).toBe("blocked_target");
+  });
 });
