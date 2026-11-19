@@ -9,6 +9,7 @@ import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "no
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  SPURVIK_QUESTIONNAIRE_LOCALES,
   SPURVIK_QUESTIONNAIRE_PLANS,
   SPURVIK_QUESTIONNAIRE_PROVIDERS,
   spurvikVendorQuestionnaireAnswers,
@@ -1362,13 +1363,14 @@ async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
 export type RfpReport = SpurvikVendorQuestionnaireOutput;
 
 const RFP_USAGE =
-  "Usage: spurvik rfp [domain] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|custom] [--generates-media] [--no-high-risk-actions] [--json]";
+  "Usage: spurvik rfp [domain] [--lang en|de|fr|nl|da] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|custom] [--generates-media] [--no-high-risk-actions] [--json]";
 
 /** Answers built from plan and provider facts only. The domain is used only when it is a public hostname. */
 export function rfpReport(options: {
   domain?: string;
   plan?: string;
   provider?: string;
+  locale?: string;
   hasHighRiskActions?: boolean;
   generatesMedia?: boolean;
 }): RfpReport {
@@ -1389,10 +1391,15 @@ function cmdRfp(args: ParsedArgs, io: Io): number {
     io.err(`spurvik rfp: --provider must be one of ${SPURVIK_QUESTIONNAIRE_PROVIDERS.join(", ")}`);
     return EXIT_ERROR;
   }
+  if (args.lang !== undefined && !(SPURVIK_QUESTIONNAIRE_LOCALES as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik rfp: --lang must be one of ${SPURVIK_QUESTIONNAIRE_LOCALES.join(", ")}`);
+    return EXIT_ERROR;
+  }
   const report = rfpReport({
     domain: args.positionals[0],
     plan: args.plan,
     provider: args.provider,
+    locale: args.lang,
     hasHighRiskActions: !args.noHighRiskActions,
     generatesMedia: args.generatesMedia,
   });
@@ -1543,8 +1550,12 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err(`spurvik: unknown option ${escapeForTerminal(args.unknown[0]!)}. Run spurvik --help.`);
     return EXIT_ERROR;
   }
-  if ((args.lang !== undefined || args.cms !== undefined) && args.command !== "badge") {
-    io.err("spurvik: --lang and --cms apply to the badge command only.");
+  if (args.cms !== undefined && args.command !== "badge") {
+    io.err("spurvik: --cms applies to the badge command only.");
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && args.command !== "badge" && args.command !== "rfp") {
+    io.err("spurvik: --lang applies to the badge and rfp commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {

@@ -48,6 +48,7 @@ import {
   VQ_DOMAIN_FIELD,
   VQ_GENERATES_MEDIA_FIELD,
   VQ_HIGH_RISK_ACTIONS_FIELD,
+  VQ_LOCALE_FIELD,
   VQ_PLAN_FIELD,
   VQ_PROVIDER_FIELD,
   VQ_TITLE,
@@ -72,6 +73,7 @@ import { scanLiveUrl, type ScanLiveUrlDeps } from "./tools/scan-live-url.js";
 import { FRAMEWORKS, isPythonFramework, RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
 import {
   MAX_QUESTIONNAIRE_DOMAIN_CHARS,
+  QUESTIONNAIRE_LOCALES,
   QUESTIONNAIRE_PLANS,
   QUESTIONNAIRE_PROVIDERS,
   vendorQuestionnaireAnswers,
@@ -290,6 +292,7 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
         hasHighRiskActions: z.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
         generatesMedia: z.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
         domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
+        locale: z.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },

@@ -1030,16 +1030,28 @@ describe("spurvik rfp", () => {
     expect(await runCli(["rfp", "folk.app", "--provider", "python"], py.deps)).toBe(0);
     expect(py.out()).toContain("spurvik_guard.py");
     expect(py.out()).toContain("send_telemetry_event");
+
+    const de = harness();
+    expect(await runCli(["rfp", "personio.de", "--lang", "de", "--plan", "team"], de.deps)).toBe(0);
+    expect(de.out()).toContain("EU-KI-Verordnung Sicherheitsfragebogen");
+    expect(de.out()).toContain("https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
+
+    const daJson = harness();
+    expect(await runCli(["rfp", "stepnetwork.dk", "--lang", "da", "--json"], daJson.deps)).toBe(0);
+    const daParsed = JSON.parse(daJson.out());
+    expect(daParsed.interactiveUrl).toBe("https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed?domain=stepnetwork.dk");
+    expect(daParsed.upgradeUrls.proWhiteLabelEur19).toContain("locale=da");
   });
 
-  it("keeps the rfp flags on rfp and --fail-on-gap off it", async () => {
+  it("keeps the rfp flags on rfp and --fail-on-gap / --cms off it", async () => {
     for (const argv of [
       ["audit", "--plan", "pro"],
       ["badge", "--provider", "openai"],
       ["scan", "folk.app", "--generates-media"],
       ["rfp", "--fail-on-gap"],
       ["rfp", "--fail-on-missing"],
-      ["rfp", "--lang", "da"],
+      ["rfp", "--cms", "shopify"],
+      ["rfp", "--lang", "ja"],
     ]) {
       const h = harness(noNetwork() as unknown as typeof fetch);
       expect(await runCli(argv, h.deps), argv.join(" ")).toBe(EXIT_ERROR);

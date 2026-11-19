@@ -212,6 +212,21 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         "Optional public domain or http(s) URL of your product, used to prefill the answers and links. It is never sent anywhere. localhost, IP addresses, internal names and anything else that is not a public hostname are ignored and not repeated in the output.",
     },
     {
+      displayName: "Answer Language",
+      name: "questionnaireLocale",
+      type: "options",
+      default: "en",
+      displayOptions: { show: { operation: ["vendorQuestionnaireAnswers"] } },
+      description: "Language of the generated Q1–Q5 vendor security questionnaire answers and interactive DPO/DSB/FG cockpit links.",
+      options: [
+        { name: "English (en)", value: "en" },
+        { name: "Deutsch — DSB (de)", value: "de" },
+        { name: "Français — DPO (fr)", value: "fr" },
+        { name: "Nederlands — FG (nl)", value: "nl" },
+        { name: "Dansk — DPO (da)", value: "da" },
+      ],
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
@@ -503,6 +518,7 @@ export class SpurvikEuAiActGuard implements INodeType {
           hasHighRiskActions: this.getNodeParameter("hasHighRiskActions", i, true),
           generatesMedia: this.getNodeParameter("generatesMedia", i, false),
           domain: this.getNodeParameter("questionnaireDomain", i, ""),
+          locale: this.getNodeParameter("questionnaireLocale", i, "en"),
         });
         returnData.push({ json: answers as unknown as IDataObject });
         continue;

@@ -41,7 +41,14 @@ const QUESTION_HEADINGS = [
   "## Q4: Art. 14 Deterministic Human Oversight Gates",
   "## Q5: Audit Retention, DPO Evidence & Annex IV Documentation",
 ];
-const QUESTIONNAIRE_FIELDS = ["questionnairePlan", "questionnaireProvider", "hasHighRiskActions", "generatesMedia", "questionnaireDomain"];
+const QUESTIONNAIRE_FIELDS = [
+  "questionnairePlan",
+  "questionnaireProvider",
+  "hasHighRiskActions",
+  "generatesMedia",
+  "questionnaireDomain",
+  "questionnaireLocale",
+];
 const PRIVATE_DOMAINS = [
   "http://127.0.0.1",
   "10.0.0.8",
@@ -192,6 +199,16 @@ describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)",
     assert.equal(domain.required, undefined);
     assert.equal(domain.placeholder, "acme.eu");
     assert.match(domain.description, /never sent anywhere/);
+
+    const locale = byName("questionnaireLocale");
+    assert.equal(locale.type, "options");
+    assert.equal(locale.default, "en");
+    assert.deepEqual(locale.options.map((option) => option.value), ["en", "de", "fr", "nl", "da"]);
+
+    const de = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "python", domain: "personio.de", locale: "de" });
+    assert.equal(de.interactiveUrl, "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
+    assert.match(de.markdown, /EU-KI-Verordnung Sicherheitsfragebogen/);
+    assert.match(de.upgradeUrls.proWhiteLabelEur19, /locale=de/);
 
     for (const name of QUESTIONNAIRE_FIELDS) {
       assert.deepEqual(byName(name).displayOptions, { show: { operation: ["vendorQuestionnaireAnswers"] } }, name);

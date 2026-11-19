@@ -104,11 +104,13 @@ export {
 } from "./links.js";
 export {
   MAX_QUESTIONNAIRE_DOMAIN_CHARS,
+  QUESTIONNAIRE_LOCALES,
   QUESTIONNAIRE_PLANS,
   QUESTIONNAIRE_PROVIDERS,
   VENDOR_QUESTIONNAIRE_DEFAULTS,
   VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA,
   vendorQuestionnaireAnswers,
+  type QuestionnaireLocale,
   type QuestionnairePlan,
   type QuestionnaireProvider,
   type VendorQuestionnaireInput,

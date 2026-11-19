@@ -144,3 +144,5 @@ export const VQ_GENERATES_MEDIA_FIELD =
   "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false.";
 export const VQ_DOMAIN_FIELD =
   "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
+export const VQ_LOCALE_FIELD =
+  "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG) or da (Danish DPO).";
