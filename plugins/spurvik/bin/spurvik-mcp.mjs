@@ -28293,7 +28293,7 @@ function configLiteral(serverless) {
     '    apiKey: requireEnv("SPURVIK_API_KEY"),',
     '    signingSecret: requireEnv("SPURVIK_SIGNING_SECRET"),',
     '    contentHash: { mode: "keyed", secret: requireEnv("SPURVIK_CONTENT_HASH_SECRET") },',
-    '    baseUrl: requireEnv("SPURVIK_BASE_URL"),',
+    '    baseUrl: requireEnv("SPURVIK_BASE_URL"), // https://console.spurvik.com (EU Frankfurt fra1)',
     `    riskTier: "limited_art50", // ${RISK_TIER_SAMPLE_COMMENT}`,
     "    article50Disclosure: false, // Set true only when the app shows an interaction notice."
   ];
@@ -28758,7 +28758,7 @@ function setupSnippet(framework, runtime = isPythonFramework(framework) ? "pytho
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
-      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Shareable readiness report for your domain: ${REPORT_URL}`,
       `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
       PRICE_NOTE
@@ -28774,7 +28774,7 @@ ${source}\`\`\`
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
-      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Shareable readiness report for your domain: ${REPORT_URL}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
       PRICE_NOTE
@@ -28815,7 +28815,7 @@ ${source}\`\`\`
     );
   }
   lines.push(
-    `Shareable compliance report for your domain: ${REPORT_URL}`,
+    `Shareable readiness report for your domain: ${REPORT_URL}`,
     `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
     `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
     PRICE_NOTE
