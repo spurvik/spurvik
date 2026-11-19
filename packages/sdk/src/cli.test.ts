@@ -1076,6 +1076,7 @@ describe("spurvik --version / --help", () => {
       expect(await runCli(argv, h.deps)).toBe(EXIT_OK);
       expect(h.out()).toContain("spurvik scan <domain-or-url> [--json] [--fail-on-gap]");
       expect(h.out()).toContain("spurvik audit [dir]");
+      expect(h.out()).toContain("spurvik setup [target|dir]");
       expect(h.out()).toContain("spurvik badge [domain] [--lang <eu-locale>]");
       expect(h.out()).toContain("spurvik c2pa <image-url> [--json] [--fail-on-missing]");
       expect(h.out()).toContain("spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]");
@@ -1120,5 +1121,81 @@ describe("ignoreBrokenPipe", () => {
     const stream = new EventEmitter();
     ignoreBrokenPipe(stream as unknown as NodeJS.WritableStream);
     expect(() => stream.emit("error", errnoError("EIO"))).toThrow("write EIO");
+  });
+});
+
+describe("spurvik setup / init (H107b)", () => {
+  let tmp: string;
+  beforeEach(() => {
+    tmp = mkdtempSync(path.join(tmpdir(), "spurvik-setup-"));
+  });
+  afterEach(() => {
+    rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it("auto-detects Next.js + Vercel AI SDK from package.json with zero network calls", async () => {
+    writeFileSync(
+      path.join(tmp, "package.json"),
+      JSON.stringify({ dependencies: { next: "15.0.0", ai: "7.0.0", "@ai-sdk/openai": "1.0.0" } }),
+    );
+    const fetchMock = vi.fn(async () => {
+      throw new Error("no network expected");
+    });
+    const h = harness(fetchMock as unknown as typeof fetch, { cwd: tmp });
+    expect(await runCli(["setup"], h.deps)).toBe(EXIT_OK);
+    expect(fetchMock).not.toHaveBeenCalled();
+    const out = h.out();
+    expect(out).toContain("(vercel-ai-sdk, runtime: next, auto-detected)");
+    expect(out).toContain('import { spurvikMiddleware } from "spurvik/ai";');
+    expect(out).toContain('import { after } from "next/server";');
+    expect(out).toContain("after(() => spurvik.flush());");
+    expect(out).toContain("SPURVIK_BASE_URL=https://console.spurvik.com");
+    expect(out).toContain("openssl rand -hex 32");
+    expect(out).toContain("https://console.spurvik.com/signup");
+    expect(out).toContain("Pro €19/mo");
+    expect(out).toContain("€199 once");
+    expect(out).not.toMatch(/€49|compliant|verified|certified|legal advice/i);
+  });
+
+  it("auto-detects FastAPI from requirements.txt and Shopify from layout/theme.liquid", async () => {
+    writeFileSync(path.join(tmp, "requirements.txt"), "fastapi==0.115.0\nopenai==1.60.0\n");
+    const py = harness(undefined, { cwd: tmp });
+    expect(await runCli(["init", "--json"], py.deps)).toBe(EXIT_OK);
+    const pyReport = JSON.parse(py.out());
+    expect(pyReport).toMatchObject({
+      target: "fastapi",
+      runtime: "python",
+      detected: true,
+      installCommand: "curl -fsSLO https://spurvik.com/r/spurvik_guard.py",
+    });
+    expect(pyReport.snippet).toContain("send_telemetry_event");
+    expect(pyReport.envTemplate).toContain("SPURVIK_CONTENT_HASH_SECRET=");
+
+    const shopDir = path.join(tmp, "shop");
+    mkdirSync(path.join(shopDir, "layout"), { recursive: true });
+    writeFileSync(path.join(shopDir, "layout", "theme.liquid"), "<html></html>");
+    const shop = harness(undefined, { cwd: tmp });
+    expect(await runCli(["setup", "shop", "--json"], shop.deps)).toBe(EXIT_OK);
+    const shopReport = JSON.parse(shop.out());
+    expect(shopReport).toMatchObject({ target: "shopify", runtime: "browser", detected: true });
+    expect(shopReport.snippet).toContain("request.locale.iso_code");
+  });
+
+  it("supports explicit targets and --runtime, and scopes --runtime to setup/init only", async () => {
+    const h = harness();
+    expect(await runCli(["setup", "anthropic", "--runtime=vercel"], h.deps)).toBe(EXIT_OK);
+    expect(h.out()).toContain('import Anthropic from "@anthropic-ai/sdk";');
+    expect(h.out()).toContain('import { waitUntil } from "@vercel/functions";');
+    expect(h.out()).toContain("registerProcessHooks: false,");
+
+    for (const bad of [
+      ["scan", "folk.app", "--runtime", "next"],
+      ["setup", "--runtime", "deno"],
+      ["setup", "not-a-framework-or-dir"],
+      ["setup", "--fail-on-gap"],
+    ]) {
+      const errH = harness();
+      expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
   });
 });

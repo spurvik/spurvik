@@ -808,6 +808,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
         for (const line of PYTHON_WRAP_SNIPPET) out(`    ${line}`);
       }
       out(`  ${c.dim("config fields:")} ${QUICKSTART_URL}`);
+      out(`  ${c.dim("tailored setup:")} npx spurvik setup`);
     }
     out();
     out(`  ${c.bold("Next steps")} ${c.dim("(hosted EU console, Frankfurt fra1; prices excl. VAT)")}`);
@@ -877,6 +878,434 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
   out();
   out(`  ${c.bold("White-label")} ${c.dim('(data-attribution="false") — Pro €19/mo:')} ${proUrl}`);
   out(`  ${c.bold("24h Setup")} ${c.dim("(engineer installs in PR or CMS, €199 once):")} ${conciergeUrl}`);
+  out();
+  return EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// setup (alias: init) — local read-only stack detection + copy-paste SDK/Python/CMS setup & .env template
+// ---------------------------------------------------------------------------------------------------------------
+
+export const SETUP_TARGETS = [
+  "openai",
+  "anthropic",
+  "google-genai",
+  "vercel-ai-sdk",
+  "mastra",
+  "openai-agents",
+  "langgraph",
+  "react",
+  "python",
+  "fastapi",
+  "langchain",
+  "pydantic-ai",
+  "shopify",
+  "wordpress",
+  "webflow",
+  "html",
+] as const;
+export type SetupTarget = (typeof SETUP_TARGETS)[number];
+
+export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"] as const;
+export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
+
+const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "html"];
+
+export interface SetupReport {
+  target: SetupTarget;
+  runtime: SetupRuntime | "browser";
+  detected: boolean;
+  installCommand: string;
+  snippet: string;
+  envTemplate: string[];
+  links: {
+    freeSignupUrl: string;
+    proUpgradeUrl: string;
+    teamUpgradeUrl: string;
+    doneForYouUrl: string;
+  };
+}
+
+function fileExists(p: string): boolean {
+  try {
+    return statSync(p).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function dirExists(p: string): boolean {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+export function detectSetupStack(root: string): { target: SetupTarget; runtime: SetupRuntime; detected: boolean } {
+  const pkgPath = path.join(root, "package.json");
+  if (fileExists(pkgPath)) {
+    try {
+      const raw = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+        dependencies?: Record<string, unknown>;
+        devDependencies?: Record<string, unknown>;
+      };
+      const deps = new Set([
+        ...Object.keys(raw.dependencies ?? {}),
+        ...Object.keys(raw.devDependencies ?? {}),
+      ]);
+      const runtime: SetupRuntime = deps.has("next")
+        ? "next"
+        : deps.has("@vercel/functions")
+          ? "vercel"
+          : "node";
+      if (deps.has("@mastra/core")) return { target: "mastra", runtime, detected: true };
+      if (deps.has("@openai/agents")) return { target: "openai-agents", runtime, detected: true };
+      if (deps.has("@langchain/langgraph")) return { target: "langgraph", runtime, detected: true };
+      if (deps.has("ai") || deps.has("@ai-sdk/openai") || deps.has("@ai-sdk/anthropic") || deps.has("@ai-sdk/google")) {
+        return { target: "vercel-ai-sdk", runtime, detected: true };
+      }
+      if (deps.has("@anthropic-ai/sdk")) return { target: "anthropic", runtime, detected: true };
+      if (deps.has("@google/genai") || deps.has("@google/generative-ai")) {
+        return { target: "google-genai", runtime, detected: true };
+      }
+      if (deps.has("openai")) return { target: "openai", runtime, detected: true };
+      if (deps.has("react")) return { target: "react", runtime, detected: true };
+    } catch {
+      // Unparseable package.json: fall through to Python/CMS checks.
+    }
+  }
+
+  const pyTextParts: string[] = [];
+  for (const name of ["pyproject.toml", "requirements.txt"]) {
+    const p = path.join(root, name);
+    if (fileExists(p)) {
+      try {
+        pyTextParts.push(readFileSync(p, "utf8").toLowerCase());
+      } catch {
+        // Ignore unreadable file.
+      }
+    }
+  }
+  if (pyTextParts.length > 0) {
+    const combined = pyTextParts.join("\n");
+    if (/\bfastapi\b/.test(combined)) return { target: "fastapi", runtime: "python", detected: true };
+    if (/\bpydantic[-_]ai\b/.test(combined)) return { target: "pydantic-ai", runtime: "python", detected: true };
+    if (/\b(langchain|langgraph)\b/.test(combined)) return { target: "langchain", runtime: "python", detected: true };
+    return { target: "python", runtime: "python", detected: true };
+  }
+
+  if (fileExists(path.join(root, "layout", "theme.liquid"))) {
+    return { target: "shopify", runtime: "node", detected: true };
+  }
+  if (fileExists(path.join(root, "wp-config.php")) || dirExists(path.join(root, "wp-content"))) {
+    return { target: "wordpress", runtime: "node", detected: true };
+  }
+
+  return { target: "openai", runtime: "node", detected: false };
+}
+
+function flushHelperLines(runtime: Exclude<SetupRuntime, "python">, expr: string): { importLine: string; callLine: string } {
+  if (runtime === "next") return { importLine: 'import { after } from "next/server";', callLine: `after(() => ${expr});` };
+  if (runtime === "vercel") {
+    return { importLine: 'import { waitUntil } from "@vercel/functions";', callLine: `waitUntil(${expr});` };
+  }
+  if (runtime === "supabase-edge") {
+    return { importLine: "", callLine: `EdgeRuntime.waitUntil(${expr});` };
+  }
+  return { importLine: "", callLine: "" };
+}
+
+function sdkConfigLines(serverless: boolean): string[] {
+  const lines = [
+    "const spurvikConfig = {",
+    "  apiKey: process.env.SPURVIK_API_KEY!,",
+    "  signingSecret: process.env.SPURVIK_SIGNING_SECRET!,",
+    '  contentHash: { mode: "keyed" as const, secret: process.env.SPURVIK_CONTENT_HASH_SECRET! },',
+    '  baseUrl: process.env.SPURVIK_BASE_URL ?? "https://console.spurvik.com",',
+    '  riskTier: "limited_art50" as const, // Sample value; set your own classification.',
+    "  article50Disclosure: false, // Set true only when your UI renders an AI notice.",
+  ];
+  if (serverless) lines.push("  registerProcessHooks: false,");
+  lines.push("  telemetry: { flushTimeoutMs: 3_000 },", "};");
+  return lines;
+}
+
+export function buildSetupReport(
+  target: SetupTarget,
+  requestedRuntime: SetupRuntime | undefined,
+  detected: boolean,
+): SetupReport {
+  const links = {
+    freeSignupUrl: SIGNUP_URL,
+    proUpgradeUrl: PRO_SIGNUP_URL,
+    teamUpgradeUrl: TEAM_SIGNUP_URL,
+    doneForYouUrl: CONCIERGE_SIGNUP_URL,
+  };
+
+  if (CMS_SETUP_TARGETS.includes(target) || target === "react") {
+    const snippet =
+      target === "shopify"
+        ? [
+            "{%- comment -%} Paste before </body> in layout/theme.liquid (or save https://spurvik.com/r/spurvik-shopify-art50.liquid as sections/spurvik-art50-notice.liquid) {%- endcomment -%}",
+            '<script src="https://spurvik.com/badge.js" data-system="{{ shop.name | escape }}" data-locale="{{ request.locale.iso_code | slice: 0, 2 | downcase }}" data-position="bottom-left" data-attribution="true" defer></script>',
+          ].join("\n")
+        : target === "wordpress"
+          ? [
+              "// Add to functions.php or upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip:",
+              "add_action('wp_footer', function (): void {",
+              "    $lang = strtolower(substr(determine_locale(), 0, 2)) ?: 'en';",
+              "    printf('<script src=\"https://spurvik.com/badge.js\" data-system=\"%s\" data-locale=\"%s\" data-position=\"bottom-left\" data-attribution=\"true\" defer></script>', esc_attr(get_bloginfo('name') ?: 'AI Assistant'), esc_attr($lang));",
+              "});",
+            ].join("\n")
+          : target === "react"
+            ? [
+                'import { AIDisclosureLabel } from "spurvik/react";',
+                "",
+                '<AIDisclosureLabel notice="interaction" locale="en" systemName="Support Assistant" />',
+              ].join("\n")
+            : '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>';
+    const installCommand =
+      target === "react"
+        ? "npm install spurvik"
+        : target === "shopify"
+          ? "curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid"
+          : target === "wordpress"
+            ? "curl -fsSLO https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"
+            : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
+    return {
+      target,
+      runtime: "browser",
+      detected,
+      installCommand,
+      snippet,
+      envTemplate: [],
+      links,
+    };
+  }
+
+  const isPy = PYTHON_SETUP_TARGETS.includes(target) || requestedRuntime === "python";
+  if (isPy) {
+    const snippet =
+      target === "fastapi"
+        ? [
+            "import time",
+            "from fastapi import BackgroundTasks, FastAPI",
+            "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+            "",
+            "app = FastAPI()",
+            "",
+            "# Inside your chat route after receiving model output:",
+            "# background_tasks.add_task(send_telemetry_event, prompt, output, model_provider='openai', model_version='gpt-4o', latency_ms=140)",
+            "# Pre-flight human gate (Pro €19/mo & Team €79/mo, field names only):",
+            "# approval = request_human_approval('issue_refund', {'order_id': 4821, 'amount_eur': 120})",
+          ].join("\n")
+        : [
+            "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+            "",
+            "# Logs keyed HMAC-SHA256 input/output digests (0 bytes of raw prompt text) to EU Frankfurt (fra1):",
+            'send_telemetry_event(prompt, reply, model_provider="openai", model_version="gpt-4o", latency_ms=140)',
+            '# Optional pre-flight human approval gate: request_human_approval("send_invoice", {"amount_eur": 250})',
+          ].join("\n");
+    return {
+      target,
+      runtime: "python",
+      detected,
+      installCommand: "curl -fsSLO https://spurvik.com/r/spurvik_guard.py",
+      snippet,
+      envTemplate: [
+        "SPURVIK_BASE_URL=https://console.spurvik.com",
+        "SPURVIK_API_KEY=",
+        "# Generate >= 16-byte secret locally (never sent to Spurvik): openssl rand -hex 32",
+        "SPURVIK_CONTENT_HASH_SECRET=",
+      ],
+      links,
+    };
+  }
+
+  const tsRuntime: Exclude<SetupRuntime, "python"> = requestedRuntime ?? "node";
+  const serverless = tsRuntime !== "node";
+  const cfg = sdkConfigLines(serverless);
+  let snippetLines: string[];
+
+  if (target === "vercel-ai-sdk") {
+    const flush = flushHelperLines(tsRuntime, "spurvik.flush()");
+    snippetLines = [
+      'import { generateText, wrapLanguageModel } from "ai";',
+      'import { openai } from "@ai-sdk/openai";',
+      'import { spurvikMiddleware } from "spurvik/ai";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const spurvik = spurvikMiddleware(spurvikConfig);",
+      'const model = wrapLanguageModel({ model: openai("gpt-4o"), middleware: spurvik });',
+      'const result = await generateText({ model, prompt: "Hello" });',
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "mastra") {
+    const flush = flushHelperLines(tsRuntime, "wrapped.flush()");
+    snippetLines = [
+      'import { Agent } from "@mastra/core/agent";',
+      'import { withSpurvikMastra } from "spurvik/mastra";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const wrapped = withSpurvikMastra(baseModel, spurvikConfig);",
+      'const agent = new Agent({ id: "assistant", name: "assistant", instructions: "Be concise.", model: wrapped.model });',
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "openai-agents") {
+    const flush = flushHelperLines(tsRuntime, "provider.flush()");
+    snippetLines = [
+      'import { Agent, Runner } from "@openai/agents";',
+      'import { OpenAIProvider } from "@openai/agents-openai";',
+      'import { withSpurvikModelProvider } from "spurvik/openai-agents";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const provider = withSpurvikModelProvider(new OpenAIProvider(), spurvikConfig);",
+      'const runner = new Runner({ modelProvider: provider });',
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "langgraph") {
+    const flush = flushHelperLines(tsRuntime, "lg.flush()");
+    snippetLines = [
+      'import { withSpurvikLangGraph } from "spurvik/langgraph";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const lg = withSpurvikLangGraph(spurvikConfig);",
+      "// Pass { callbacks: [lg.callbackHandler] } to graph.invoke(input, { callbacks: [lg.callbackHandler] })",
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "anthropic") {
+    const flush = flushHelperLines(tsRuntime, "ai._spurvik.flush()");
+    snippetLines = [
+      'import Anthropic from "@anthropic-ai/sdk";',
+      'import { provenanceOf, withSpurvik } from "spurvik";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const ai = withSpurvik(new Anthropic(), spurvikConfig);",
+      'const msg = await ai.messages.create({ model: "claude-sonnet-4-5", max_tokens: 512, messages: [{ role: "user", content: "Hello" }] });',
+      "const receipt = provenanceOf(msg);",
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "google-genai") {
+    const flush = flushHelperLines(tsRuntime, "ai._spurvik.flush()");
+    snippetLines = [
+      'import { GoogleGenAI } from "@google/genai";',
+      'import { provenanceOf, withSpurvik } from "spurvik";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const ai = withSpurvik(new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }), spurvikConfig);",
+      'const res = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: "Hello" });',
+      "const receipt = provenanceOf(res);",
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else {
+    const flush = flushHelperLines(tsRuntime, "ai._spurvik.flush()");
+    snippetLines = [
+      'import OpenAI from "openai";',
+      'import { provenanceOf, withSpurvik } from "spurvik";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const ai = withSpurvik(new OpenAI(), spurvikConfig);",
+      'const res = await ai.chat.completions.create({ model: "gpt-4o", messages: [{ role: "user", content: "Hello" }] });',
+      "const receipt = provenanceOf(res);",
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  }
+
+  return {
+    target,
+    runtime: tsRuntime,
+    detected,
+    installCommand: "npm install spurvik",
+    snippet: [
+      `// The SDK logs the call and attaches an HMAC receipt (${CLI_VERSION}, MIT). It does not mark content.`,
+      ...snippetLines,
+    ].join("\n"),
+    envTemplate: [
+      "SPURVIK_BASE_URL=https://console.spurvik.com",
+      "SPURVIK_API_KEY=",
+      "# Generate two local 32-byte secrets (never sent to Spurvik): openssl rand -hex 32",
+      "SPURVIK_SIGNING_SECRET=",
+      "SPURVIK_CONTENT_HASH_SECRET=",
+    ],
+    links,
+  };
+}
+
+function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
+  if (args.positionals.length > 1) {
+    io.err(`Usage: spurvik setup [target|dir] [--runtime ${SETUP_RUNTIMES.join("|")}] [--json]`);
+    return EXIT_ERROR;
+  }
+  if (args.runtime !== undefined && !SETUP_RUNTIMES.includes(args.runtime as SetupRuntime)) {
+    io.err(`spurvik setup: --runtime must be one of ${SETUP_RUNTIMES.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  const base = deps.cwd ?? process.cwd();
+  const arg0 = args.positionals[0]?.trim();
+  let target: SetupTarget;
+  let detected = false;
+  let autoRuntime: SetupRuntime | undefined;
+
+  if (!arg0) {
+    const stack = detectSetupStack(base);
+    target = stack.target;
+    autoRuntime = stack.runtime;
+    detected = stack.detected;
+  } else if (SETUP_TARGETS.includes(arg0.toLowerCase() as SetupTarget)) {
+    target = arg0.toLowerCase() as SetupTarget;
+  } else {
+    const candidateDir = path.resolve(base, arg0);
+    if (dirExists(candidateDir)) {
+      const stack = detectSetupStack(candidateDir);
+      target = stack.target;
+      autoRuntime = stack.runtime;
+      detected = stack.detected;
+    } else {
+      io.err(`spurvik setup: unknown target "${escapeForTerminal(arg0)}". Supported: ${SETUP_TARGETS.join(", ")}`);
+      return EXIT_ERROR;
+    }
+  }
+
+  const runtime = (args.runtime as SetupRuntime | undefined) ?? autoRuntime;
+  const report = buildSetupReport(target, runtime, detected);
+
+  if (args.json) {
+    io.out(JSON.stringify(report, null, 2));
+    return EXIT_OK;
+  }
+
+  const { c, out } = io;
+  out();
+  out(
+    `  ${c.bold("Spurvik · quickstart setup")} ${c.dim(
+      `(${report.target}, runtime: ${report.runtime}${report.detected ? ", auto-detected" : ""})`,
+    )}`,
+  );
+  out();
+  out(`  ${c.bold("1. Install")}`);
+  out(`    ${report.installCommand}`);
+  out();
+  out(`  ${c.bold("2. Paste wrapper / snippet")}`);
+  for (const line of report.snippet.split("\n")) out(`    ${line}`);
+  if (report.envTemplate.length > 0) {
+    out();
+    out(`  ${c.bold("3. Environment variables (.env.example)")}`);
+    for (const line of report.envTemplate) out(`    ${line}`);
+  }
+  out();
+  out(`  ${c.bold("Next steps")} ${c.dim("(hosted EU console, Frankfurt fra1; prices excl. VAT)")}`);
+  out(`    Free SPURVIK_API_KEY in 10s (€0, no card): ${c.cyan(report.links.freeSignupUrl)}`);
+  out(`    White-label badge + 90d Frankfurt vault + Slack/Teams gates (Pro €19/mo): ${c.cyan(report.links.proUpgradeUrl)}`);
+  out(`    24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro): ${c.cyan(report.links.doneForYouUrl)}`);
   out();
   return EXIT_OK;
 }
@@ -1433,6 +1862,7 @@ interface ParsedArgs {
   version: boolean;
   lang?: string;
   cms?: string;
+  runtime?: string;
   plan?: string;
   provider?: string;
   generatesMedia: boolean;
@@ -1440,7 +1870,7 @@ interface ParsedArgs {
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "rfp", "help", "version"]);
+const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "setup", "init", "rfp", "help", "version"]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -1471,6 +1901,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (arg.startsWith("--lang=")) parsed.lang = arg.slice("--lang=".length);
     else if (arg === "--cms") parsed.cms = argv[++i] ?? "";
     else if (arg.startsWith("--cms=")) parsed.cms = arg.slice("--cms=".length);
+    else if (arg === "--runtime") parsed.runtime = argv[++i] ?? "";
+    else if (arg.startsWith("--runtime=")) parsed.runtime = arg.slice("--runtime=".length);
     else if (arg === "--plan") parsed.plan = argv[++i] ?? "";
     else if (arg.startsWith("--plan=")) parsed.plan = arg.slice("--plan=".length);
     else if (arg === "--provider") parsed.provider = argv[++i] ?? "";
@@ -1504,6 +1936,7 @@ export function helpText(): string {
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
     "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check (image URL or domain)",
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped TS/JS & Python AI model calls",
+    "  spurvik setup [target|dir] [--runtime <r>] [--json]      Auto-detect stack & print SDK/Python/CMS setup + .env",
     "  spurvik badge [domain] [--lang <eu-locale>] [--cms <c>]  24-language badge.js, Shopify, WP, Webflow & React snippets",
     "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
     "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
@@ -1554,6 +1987,10 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --cms applies to the badge command only.");
     return EXIT_ERROR;
   }
+  if (args.runtime !== undefined && args.command !== "setup" && args.command !== "init") {
+    io.err("spurvik: --runtime applies to the setup command only.");
+    return EXIT_ERROR;
+  }
   if (args.lang !== undefined && args.command !== "badge" && args.command !== "rfp") {
     io.err("spurvik: --lang applies to the badge and rfp commands only.");
     return EXIT_ERROR;
@@ -1566,7 +2003,7 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: use --fail-on-missing with c2pa (--fail-on-gap is for scan and audit).");
     return EXIT_ERROR;
   }
-  if (args.failOnGap && args.command === "rfp") {
+  if (args.failOnGap && (args.command === "rfp" || args.command === "setup" || args.command === "init")) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
   }
@@ -1587,6 +2024,9 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       return cmdAudit(args, deps, io);
     case "badge":
       return cmdBadge(args, io);
+    case "setup":
+    case "init":
+      return cmdSetup(args, deps, io);
     case "rfp":
       return cmdRfp(args, io);
     default:
