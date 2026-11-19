@@ -13506,10 +13506,10 @@ var READ_ONLY_ANNOTATIONS = {
 };
 var READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, openWorldHint: true };
 var SETUP_TITLE = "Spurvik setup snippet";
-var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
-var FRAMEWORK_FIELD = "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py; CMS and storefront stacks (shopify, wordpress, webflow, html) install the 24-language Shadow DOM Art. 50(1) notice via .liquid, wp_footer / .zip, or badge.js. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
+var FRAMEWORK_FIELD = "Provider, framework, or storefront to wire: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 var RUNTIME_FIELD = "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
-var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 var UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 var FIND_TITLE = "Find unwrapped AI calls";
 var ENV_SKIP_SENTENCE = "The scanner skips files named .env or .env.* (any case), including through symlinks and hard links.";
@@ -28195,6 +28195,7 @@ var sdkExportNames = {
 
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
+var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28203,11 +28204,15 @@ var FRAMEWORKS = [
   "mastra",
   "openai-agents",
   "langgraph",
-  ...PYTHON_FRAMEWORKS
+  ...PYTHON_FRAMEWORKS,
+  ...CMS_FRAMEWORKS
 ];
 var RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"];
 function isPythonFramework(value) {
   return PYTHON_FRAMEWORKS.includes(value);
+}
+function isCmsFramework(value) {
+  return CMS_FRAMEWORKS.includes(value);
 }
 function isPythonVariant(framework, runtime) {
   return isPythonFramework(framework) || runtime === "python";
@@ -28655,9 +28660,42 @@ function pythonSource(framework) {
     '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)'
   ].join("\n") + "\n";
 }
+function cmsSource(framework) {
+  if (framework === "shopify") {
+    return [
+      "{%- comment -%} Option A (recommended): curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid -> sections/spurvik-art50-notice.liquid {%- endcomment -%}",
+      "{%- comment -%} Option B: 1-line tag before </body> in layout/theme.liquid {%- endcomment -%}",
+      "<script",
+      '  src="https://spurvik.com/badge.js"',
+      '  data-system="{{ shop.name | escape }}"',
+      '  data-locale="{{ request.locale.iso_code | slice: 0, 2 | downcase }}"',
+      '  data-position="bottom-left"',
+      '  data-attribution="true"',
+      "  defer",
+      "></script>"
+    ].join("\n") + "\n";
+  }
+  if (framework === "wordpress") {
+    return [
+      "<?php",
+      "// WordPress / WooCommerce Art. 50(1) AI notice (or upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip):",
+      "add_action('wp_footer', function (): void {",
+      "    $lang = strtolower(substr(determine_locale(), 0, 2));",
+      "    $site = esc_attr(get_bloginfo('name') ?: 'Support AI');",
+      "    printf(",
+      `        '<script src="https://spurvik.com/badge.js" data-system="%s" data-locale="%s" data-position="bottom-left" data-attribution="true" defer></script>',`,
+      "        $site,",
+      "        esc_attr($lang ?: 'en')",
+      "    );",
+      "});"
+    ].join("\n") + "\n";
+  }
+  return '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>\n';
+}
 function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
+  if (isCmsFramework(framework)) return cmsSource(framework);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime;
   if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
@@ -28668,6 +28706,23 @@ function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? 
 }
 function setupSnippet(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
   const source = setupSnippetSource(framework, runtime);
+  if (isCmsFramework(framework)) {
+    const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
+    const guideLine = framework === "shopify" ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure" : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
+    const cmsLines = [
+      `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
+      `${guideLine} ${DOES_NOT_MARK}`,
+      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      PRICE_NOTE
+    ];
+    return `${cmsLines.join("\n")}
+
+\`\`\`${langFence}
+${source}\`\`\`
+`;
+  }
   if (isPythonVariant(framework, runtime)) {
     const pyLines = [
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,

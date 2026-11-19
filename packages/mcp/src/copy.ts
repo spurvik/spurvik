@@ -18,13 +18,13 @@ export const READ_ONLY_OPEN_WORLD_ANNOTATIONS = { ...READ_ONLY_ANNOTATIONS, open
 
 export const SETUP_TITLE = "Spurvik setup snippet";
 export const SETUP_DESCRIPTION =
-  "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
+  "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py; CMS and storefront stacks (shopify, wordpress, webflow, html) install the 24-language Shadow DOM Art. 50(1) notice via .liquid, wp_footer / .zip, or badge.js. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
 export const FRAMEWORK_FIELD =
-  "Provider or framework to wrap: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+  "Provider, framework, or storefront to wire: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 export const RUNTIME_FIELD =
   "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
 export const UNKNOWN_FRAMEWORK =
-  "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, or pydantic-ai.";
+  "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 export const UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 
 export const FIND_TITLE = "Find unwrapped AI calls";

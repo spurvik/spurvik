@@ -404,6 +404,15 @@ describe("createServer", () => {
     expect(pyFastapi).toContain("from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event");
     expect(pyFastapi).toContain("background_tasks.add_task(");
     expect(pyFastapi).toContain("## Next steps\n");
+
+    const shopifyOut = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "shopify" } }));
+    expect(shopifyOut).toContain("spurvik-shopify-art50.liquid");
+    expect(shopifyOut).toContain("```liquid\n");
+    expect(shopifyOut).toContain("## Next steps\n");
+
+    const wpOut = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "wordpress" } }));
+    expect(wpOut).toContain("spurvik-eu-ai-act-wp.zip");
+    expect(wpOut).toContain("```php\n");
     await client.close();
   });
 

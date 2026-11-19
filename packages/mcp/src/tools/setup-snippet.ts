@@ -15,6 +15,7 @@ import {
 import { sdkExportNames } from "../sdk-exports.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
+export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -24,15 +25,21 @@ export const FRAMEWORKS = [
   "openai-agents",
   "langgraph",
   ...PYTHON_FRAMEWORKS,
+  ...CMS_FRAMEWORKS,
 ] as const;
 export const RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"] as const;
 export type PythonFramework = (typeof PYTHON_FRAMEWORKS)[number];
+export type CmsFramework = (typeof CMS_FRAMEWORKS)[number];
 export type Framework = (typeof FRAMEWORKS)[number];
 export type Runtime = (typeof RUNTIMES)[number];
 type TsRuntime = Exclude<Runtime, "python">;
 
 export function isPythonFramework(value: string): value is PythonFramework {
   return (PYTHON_FRAMEWORKS as readonly string[]).includes(value);
+}
+
+export function isCmsFramework(value: string): value is CmsFramework {
+  return (CMS_FRAMEWORKS as readonly string[]).includes(value);
 }
 
 export function isPythonVariant(framework: string, runtime: string): boolean {
@@ -505,10 +512,44 @@ function pythonSource(framework: Framework): string {
   ].join("\n") + "\n";
 }
 
-/** Source of the setup snippet (TypeScript or Python 3.10+ stdlib), with no surrounding prose. */
+function cmsSource(framework: CmsFramework): string {
+  if (framework === "shopify") {
+    return [
+      "{%- comment -%} Option A (recommended): curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid -> sections/spurvik-art50-notice.liquid {%- endcomment -%}",
+      "{%- comment -%} Option B: 1-line tag before </body> in layout/theme.liquid {%- endcomment -%}",
+      "<script",
+      '  src="https://spurvik.com/badge.js"',
+      '  data-system="{{ shop.name | escape }}"',
+      '  data-locale="{{ request.locale.iso_code | slice: 0, 2 | downcase }}"',
+      '  data-position="bottom-left"',
+      '  data-attribution="true"',
+      "  defer",
+      "></script>",
+    ].join("\n") + "\n";
+  }
+  if (framework === "wordpress") {
+    return [
+      "<?php",
+      "// WordPress / WooCommerce Art. 50(1) AI notice (or upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip):",
+      "add_action('wp_footer', function (): void {",
+      "    $lang = strtolower(substr(determine_locale(), 0, 2));",
+      "    $site = esc_attr(get_bloginfo('name') ?: 'Support AI');",
+      "    printf(",
+      "        '<script src=\"https://spurvik.com/badge.js\" data-system=\"%s\" data-locale=\"%s\" data-position=\"bottom-left\" data-attribution=\"true\" defer></script>',",
+      "        $site,",
+      "        esc_attr($lang ?: 'en')",
+      "    );",
+      "});",
+    ].join("\n") + "\n";
+  }
+  return '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>\n';
+}
+
+/** Source of the setup snippet (TypeScript, Python 3.10+ stdlib, or CMS/HTML snippet), with no surrounding prose. */
 export function setupSnippetSource(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
+  if (isCmsFramework(framework)) return cmsSource(framework);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime as TsRuntime;
   if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
@@ -521,6 +562,24 @@ export function setupSnippetSource(framework: string, runtime: string = isPython
 /** Tool text: a short note, then the snippet. */
 export function setupSnippet(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
   const source = setupSnippetSource(framework, runtime);
+  if (isCmsFramework(framework)) {
+    const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
+    const guideLine =
+      framework === "shopify"
+        ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure"
+        : framework === "wordpress"
+          ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge"
+          : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
+    const cmsLines = [
+      `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
+      `${guideLine} ${DOES_NOT_MARK}`,
+      `Shareable compliance report for your domain: ${REPORT_URL}`,
+      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      PRICE_NOTE,
+    ];
+    return `${cmsLines.join("\n")}\n\n\`\`\`${langFence}\n${source}\`\`\`\n`;
+  }
   if (isPythonVariant(framework, runtime)) {
     const pyLines = [
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
