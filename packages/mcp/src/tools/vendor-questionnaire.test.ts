@@ -240,6 +240,7 @@ describe("vendorQuestionnaireAnswers input validation", () => {
       "langgraph",
       "openai-agents",
       "mastra",
+      "python",
       "custom",
     ]);
   });

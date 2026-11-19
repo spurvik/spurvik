@@ -10,9 +10,11 @@
 
 import {
   type SpurvikScanUpgradeUrls,
+  EU_LOCALE_CODES,
   N8N_NODES_SPURVIK_USER_AGENT,
   SPURVIK_BADGE_SCRIPT_SRC,
   SPURVIK_CONSOLE_ORIGIN,
+  SPURVIK_SCAN_PATH,
   localeForHost,
   resolveScanBaseUrl,
 } from "./scan-domain";
@@ -92,6 +94,9 @@ export interface SpurvikC2paCheckOutput {
   c2paCheckerUrl: string;
   /** Signup links; `appUrl` is the image host unless that host is a shared image CDN. */
   upgradeUrls: SpurvikScanUpgradeUrls;
+  /** Present when `imageUrl` was a bare domain or webpage URL and the hero image was auto-discovered in 1 hop. */
+  discoveredFromPage?: boolean;
+  requestedDomain?: string;
 }
 
 function isBlockedSuffix(host: string): boolean {
@@ -311,14 +316,27 @@ function diagnose(report: UpstreamReport, proxy: SpurvikImageProxy | null): stri
   return proxy ? `The manifest survived ${proxy.name}. Re-check after any change to its settings.` : null;
 }
 
-/** Output in a fixed key order. Links use the public console origin and the encoded image host only. */
+interface BuildOutputContext {
+  requestedHost?: string;
+  htmlLocale?: string;
+  discoveredFromPage?: boolean;
+}
+
+/** Output in a fixed key order. Links use the public console origin and the encoded site/image host only. */
 function buildOutput(
   target: SpurvikC2paImageTarget,
   report: UpstreamReport | null,
   reason: string | null,
+  context?: BuildOutputContext,
 ): SpurvikC2paCheckOutput {
   const proxy = detectImageProxy(target.url);
-  const siteHost = isSharedImageCdnHost(target.host) ? null : target.host;
+  const effectiveHost = context?.requestedHost ?? target.host;
+  const siteHost = isSharedImageCdnHost(effectiveHost) ? null : effectiveHost;
+  const baseLocale = siteHost ? localeForHost(siteHost) : "en";
+  const locale =
+    baseLocale === "en" && context?.htmlLocale && EU_LOCALE_CODES.includes(context.htmlLocale)
+      ? context.htmlLocale
+      : baseLocale;
   const checkStatus: SpurvikC2paCheckOutput["checkStatus"] = !report
     ? "not_checked"
     : !report.manifestFound
@@ -345,62 +363,192 @@ function buildOutput(
     diagnosis: report
       ? diagnose(report, proxy)
       : `Nothing was checked. Try again later, or upload the image at ${SPURVIK_C2PA_CHECKER_URL}.`,
-    art50GeneratedBadgeSnippet: generatedBadgeSnippet(siteHost ? localeForHost(siteHost) : "en"),
+    art50GeneratedBadgeSnippet: generatedBadgeSnippet(locale),
     c2paCheckerUrl: SPURVIK_C2PA_CHECKER_URL,
     upgradeUrls: upgradeUrlsFor(siteHost),
+    ...(context?.discoveredFromPage ? { discoveredFromPage: true, requestedDomain: effectiveHost } : {}),
   };
 }
 
-/**
- * Read-only C2PA JUMBF manifest & CDN-strip check of one public https image URL through the console's
- * public check. Reads no credential and sends no Authorization header. Throws only for invalid input
- * (imageUrl or consoleBaseUrl), before any request. A timeout, a refused connection, a redirect, a console
- * refusal, invalid JSON or an unreadable report return `checkStatus: "not_checked"` with a short `reason`.
- * The upstream error text and body are never copied to the output.
- */
-export async function checkSpurvikImageC2paUrl(
-  input: SpurvikC2paCheckInput,
-  opts: SpurvikC2paCheckOptions = {},
-): Promise<SpurvikC2paCheckOutput> {
-  const target = normalizeC2paImageUrl(input.imageUrl);
-  const baseUrl = resolveScanBaseUrl(input.consoleBaseUrl);
-  const fetchFn = opts.fetchImpl ?? globalThis.fetch;
-  if (typeof fetchFn !== "function") return buildOutput(target, null, "fetch_unavailable");
+function resolveN8nC2paInput(raw: unknown): { target: SpurvikC2paImageTarget; bareDomain: boolean } {
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (
+      trimmed.length > 0 &&
+      trimmed.length <= MAX_HOST_CHARS &&
+      !trimmed.includes("/") &&
+      !trimmed.includes(":") &&
+      !trimmed.includes("?") &&
+      !trimmed.includes("#") &&
+      !trimmed.includes("@") &&
+      !/[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)
+    ) {
+      const target = normalizeC2paImageUrl(`https://${trimmed}/`);
+      return { target, bareDomain: true };
+    }
+  }
+  return { target: normalizeC2paImageUrl(raw), bareDomain: false };
+}
 
-  const signal = AbortSignal.timeout(opts.timeoutMs ?? SPURVIK_C2PA_TIMEOUT_MS);
+function looksLikeImageAssetPath(rawUrl: string): boolean {
+  try {
+    return /\.(?:png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(new URL(rawUrl).pathname);
+  } catch {
+    return false;
+  }
+}
+
+async function discoverHeroFromPage(
+  pageUrl: string,
+  scanEndpoint: string,
+  fetchFn: typeof fetch,
+  timeoutMs: number,
+): Promise<{ heroTarget: SpurvikC2paImageTarget; htmlLocale?: string } | null> {
+  const res = await fetchFn(`${scanEndpoint}?url=${encodeURIComponent(pageUrl)}`, {
+    method: "GET",
+    headers: { Accept: "application/json", "User-Agent": N8N_NODES_SPURVIK_USER_AGENT },
+    redirect: "error",
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.status !== 200) return null;
+  const body = (await res.json().catch(() => null)) as unknown;
+  if (!isRecord(body)) return null;
+  const scan = isRecord(body.scan) ? body.scan : body;
+  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim()) return null;
+  const heroTarget = normalizeC2paImageUrl(scan.heroImageUrl);
+  const htmlLocale =
+    typeof scan.htmlLocale === "string" && EU_LOCALE_CODES.includes(scan.htmlLocale) ? scan.htmlLocale : undefined;
+  return { heroTarget, htmlLocale };
+}
+
+async function postC2paCheck(
+  imageUrl: string,
+  endpoint: string,
+  fetchFn: typeof fetch,
+  timeoutMs: number,
+): Promise<{ ok: true; response: Response; body: unknown; jsonFailed: boolean } | { ok: false; reason: string }> {
+  const signal = AbortSignal.timeout(timeoutMs);
   let response: Response;
   try {
-    response = await fetchFn(`${baseUrl}${SPURVIK_C2PA_CHECK_PATH}`, {
+    response = await fetchFn(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         "User-Agent": N8N_NODES_SPURVIK_USER_AGENT,
       },
-      body: JSON.stringify({ url: target.url }),
+      body: JSON.stringify({ url: imageUrl }),
       redirect: "error",
       signal,
     });
   } catch (error) {
-    return buildOutput(target, null, isTimeout(error) ? "timeout" : "network_error");
+    return { ok: false, reason: isTimeout(error) ? "timeout" : "network_error" };
+  }
+  try {
+    const body: unknown = await response.json();
+    return { ok: true, response, body, jsonFailed: false };
+  } catch (error) {
+    if (isTimeout(error)) return { ok: false, reason: "timeout" };
+    return { ok: true, response, body: null, jsonFailed: true };
+  }
+}
+
+/**
+ * Read-only C2PA JUMBF manifest & CDN-strip check of one public https image URL (or 1-hop store domain hero image)
+ * through the console's public check. Reads no credential and sends no Authorization header. Throws only for
+ * invalid input (imageUrl or consoleBaseUrl), before any request. A timeout, a refused connection, a redirect,
+ * a console refusal, invalid JSON or an unreadable report return `checkStatus: "not_checked"` with a short `reason`.
+ * The upstream error text and body are never copied to the output.
+ */
+export async function checkSpurvikImageC2paUrl(
+  input: SpurvikC2paCheckInput,
+  opts: SpurvikC2paCheckOptions = {},
+): Promise<SpurvikC2paCheckOutput> {
+  const { target, bareDomain } = resolveN8nC2paInput(input.imageUrl);
+  const baseUrl = resolveScanBaseUrl(input.consoleBaseUrl);
+  const fetchFn = opts.fetchImpl ?? globalThis.fetch;
+  if (typeof fetchFn !== "function") return buildOutput(target, null, "fetch_unavailable");
+
+  const timeoutMs = opts.timeoutMs ?? SPURVIK_C2PA_TIMEOUT_MS;
+  const checkEndpoint = `${baseUrl}${SPURVIK_C2PA_CHECK_PATH}`;
+  const scanEndpoint = `${baseUrl}${SPURVIK_SCAN_PATH}`;
+
+  if (bareDomain) {
+    let discovered: { heroTarget: SpurvikC2paImageTarget; htmlLocale?: string } | null = null;
+    try {
+      discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchFn, timeoutMs);
+    } catch (error) {
+      return buildOutput(target, null, isTimeout(error) ? "timeout" : "network_error", { requestedHost: target.host });
+    }
+    if (!discovered) {
+      return buildOutput(target, null, "no_hero_image", { requestedHost: target.host });
+    }
+    const ctx: BuildOutputContext = {
+      requestedHost: target.host,
+      htmlLocale: discovered.htmlLocale,
+      discoveredFromPage: true,
+    };
+    const checked = await postC2paCheck(discovered.heroTarget.url, checkEndpoint, fetchFn, timeoutMs);
+    if (!checked.ok) return buildOutput(discovered.heroTarget, null, checked.reason, ctx);
+    if (checked.jsonFailed) {
+      return buildOutput(
+        discovered.heroTarget,
+        null,
+        checked.response.status === 200 ? "upstream_invalid_json" : `upstream_http_${checked.response.status}`,
+        ctx,
+      );
+    }
+    if (checked.response.status !== 200) {
+      const upstream = isRecord(checked.body) && isRecord(checked.body.error) ? checked.body.error : {};
+      const code =
+        typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code)
+          ? upstream.code
+          : `upstream_http_${checked.response.status}`;
+      return buildOutput(discovered.heroTarget, null, code, ctx);
+    }
+    const report = readUpstreamReport(checked.body);
+    if (!report) return buildOutput(discovered.heroTarget, null, "upstream_invalid_shape", ctx);
+    return buildOutput(discovered.heroTarget, report, null, ctx);
   }
 
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch (error) {
-    if (isTimeout(error)) return buildOutput(target, null, "timeout");
-    return buildOutput(target, null, response.status === 200 ? "upstream_invalid_json" : `upstream_http_${response.status}`);
+  const initial = await postC2paCheck(target.url, checkEndpoint, fetchFn, timeoutMs);
+  if (!initial.ok) return buildOutput(target, null, initial.reason);
+  if (initial.response.status === 415 && !looksLikeImageAssetPath(target.url)) {
+    try {
+      const discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchFn, timeoutMs);
+      if (discovered) {
+        const heroChecked = await postC2paCheck(discovered.heroTarget.url, checkEndpoint, fetchFn, timeoutMs);
+        if (heroChecked.ok && !heroChecked.jsonFailed && heroChecked.response.status === 200) {
+          const heroReport = readUpstreamReport(heroChecked.body);
+          if (heroReport) {
+            return buildOutput(discovered.heroTarget, heroReport, null, {
+              requestedHost: target.host,
+              htmlLocale: discovered.htmlLocale,
+              discoveredFromPage: true,
+            });
+          }
+        }
+      }
+    } catch {
+      // Keep original 415 refusal when page scan or hero check fails.
+    }
   }
-  if (response.status !== 200) {
-    const upstream = isRecord(body) && isRecord(body.error) ? body.error : {};
+  if (initial.jsonFailed) {
+    return buildOutput(
+      target,
+      null,
+      initial.response.status === 200 ? "upstream_invalid_json" : `upstream_http_${initial.response.status}`,
+    );
+  }
+  if (initial.response.status !== 200) {
+    const upstream = isRecord(initial.body) && isRecord(initial.body.error) ? initial.body.error : {};
     const code =
       typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code)
         ? upstream.code
-        : `upstream_http_${response.status}`;
+        : `upstream_http_${initial.response.status}`;
     return buildOutput(target, null, code);
   }
-  const report = readUpstreamReport(body);
+  const report = readUpstreamReport(initial.body);
   if (!report) return buildOutput(target, null, "upstream_invalid_shape");
   return buildOutput(target, report, null);
 }

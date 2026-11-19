@@ -150,7 +150,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       placeholder: "https://example.com/hero.png",
       displayOptions: { show: { operation: ["checkImageC2paUrl"] } },
       description:
-        "Public https URL of a PNG, JPEG or WebP image up to 4 MB. Only this URL is sent to the console, which fetches the image once and reads the C2PA manifest in memory. http, ports other than 443, user:password@, localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa) and single-label hosts are refused before any request.",
+        "Public https URL of a PNG, JPEG or WebP image up to 4 MB, or a bare public domain / https store page URL (e.g. charlie-paris.com) to auto-discover its frontpage hero image in 1 hop. http, ports other than 443, user:password@, localhost, IP addresses, internal names (.local, .internal, .lan, .home.arpa) and single-label hosts are refused before any request.",
     },
     {
       displayName: "Spurvik Plan",
@@ -181,6 +181,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         { name: "LangGraph", value: "langgraph" },
         { name: "OpenAI Agents SDK", value: "openai-agents" },
         { name: "Mastra", value: "mastra" },
+        { name: "Python (FastAPI / LangChain / PydanticAI)", value: "python" },
         { name: "Custom", value: "custom" },
       ],
     },

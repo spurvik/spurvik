@@ -13577,7 +13577,7 @@ var ATTRIBUTION_FIELD = 'Show the "Art. 50 · Spurvik" trust link. Defaults to t
 var VQ_TITLE = "Answer an EU AI Act vendor security questionnaire";
 var VQ_DESCRIPTION = "Zero-network, deterministic Markdown answers to the five EU AI Act questions enterprise buyers ask in vendor security questionnaires and DPO RFPs: Q1 Art. 50(1) notice and 2 Dec 2026 Art. 50(2) provenance, Q2 Art. 12 cryptographic event logging (keyed HMAC-SHA256 inputHash/outputHash, SHA-256 recordHash chained by prevLogHash), Q3 GDPR Art. 5(1)(c) zero-prompt minimisation and EU Frankfurt residency, Q4 Art. 14 deterministic human approval gates, Q5 audit retention, DPO evidence and Annex IV documentation. Answers match the chosen Spurvik plan: Free €0 (10,000 events/mo, 30 days), Pro €19/mo (250,000, 90 days, white-label badge, hosted approval queue, DPO engineering summary), Team €79/mo (2,000,000, 12 months, Annex IV draft, webhook export) or Done-For-You €199 once (24h install, signed DPO readiness report, 1 year of Pro). Every field is optional. Ends with links to the interactive questionnaire and signup. Review the wording against your own setup before you send it.";
 var VQ_PLAN_FIELD = "Spurvik plan the answers describe: free, pro (default), team or concierge (Done-For-You).";
-var VQ_PROVIDER_FIELD = "Model provider or agent framework: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra or custom.";
+var VQ_PROVIDER_FIELD = "Model provider or agent framework: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, python or custom.";
 var VQ_HIGH_RISK_ACTIONS_FIELD = "Agents or tools can trigger refunds, emails, permission changes or deletions. Defaults to true.";
 var VQ_GENERATES_MEDIA_FIELD = "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false.";
 var VQ_DOMAIN_FIELD = "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
@@ -28736,6 +28736,7 @@ var QUESTIONNAIRE_PROVIDERS = [
   "langgraph",
   "openai-agents",
   "mastra",
+  "python",
   "custom"
 ];
 var VENDOR_QUESTIONNAIRE_DEFAULTS = {
@@ -28837,6 +28838,12 @@ var PROVIDER_FACTS = {
     approval: "`createSpurvikNeedsApproval` on each tool and `resolveInterruptions`, from `spurvik/openai-agents`"
   },
   mastra: { label: "Mastra", inference: "our model provider", wrapper: "`withSpurvikMastra`, from `spurvik/mastra`", approval: CLIENT_APPROVAL },
+  python: {
+    label: "Python (FastAPI / LangChain / PydanticAI)",
+    inference: "our model provider",
+    wrapper: "`send_telemetry_event` from `spurvik_guard.py` (Python 3.10+ stdlib)",
+    approval: "`request_human_approval(action_type, payload)` from `spurvik_guard.py`"
+  },
   custom: { label: "our model provider", inference: "our model provider", wrapper: "`withSpurvik` on the provider client", approval: CLIENT_APPROVAL }
 };
 function invalid(error2, message) {

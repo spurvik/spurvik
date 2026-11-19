@@ -184,7 +184,7 @@ export function resolveScanBaseUrl(raw: unknown): string {
   return `${parsed.origin}${parsed.pathname.replace(/\/+$/, "")}`;
 }
 
-const EU_LOCALE_CODES: readonly string[] = [
+export const EU_LOCALE_CODES: readonly string[] = [
   "en",
   "da",
   "de",

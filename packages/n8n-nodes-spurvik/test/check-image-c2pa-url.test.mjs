@@ -722,4 +722,67 @@ describe("checkImageC2paUrl execute", () => {
       },
     );
   });
+
+  it("auto-discovers the frontpage hero image in 1 hop for a bare public store domain while preserving siteHost & htmlLocale (H91c)", async () => {
+    const heroUrl = "https://cdn.shopify.com/s/files/1/001/files/hero.webp?v=1";
+    await withFetch(
+      async (url) =>
+        String(url).includes("/api/v1/sandbox/scan")
+          ? json({ ok: true, scan: { reachable: true, heroImageUrl: heroUrl, htmlLocale: "fr" } })
+          : json(report(NO_MANIFEST, "hero.webp")),
+      async (calls) => {
+        const [out] = await node.execute.call(c2paCtx({ imageUrl: "charlie-paris.com" }));
+        assert.equal(calls.length, 2);
+        assert.equal(calls[0].url, `${CONSOLE}/api/v1/sandbox/scan?url=${encodeURIComponent("https://charlie-paris.com/")}`);
+        assert.equal(calls[1].url, ENDPOINT);
+        assert.deepEqual(JSON.parse(calls[1].init.body), { url: heroUrl });
+        const row = out[0].json;
+        assert.equal(row.imageUrl, heroUrl);
+        assert.equal(row.imageHost, "cdn.shopify.com");
+        assert.equal(row.checkStatus, "no_manifest");
+        assert.equal(row.cdnRewriteSuspected, true);
+        assert.equal(row.cdnProvider, "Shopify CDN (/cdn/shop/)");
+        assert.equal(row.art50GeneratedBadgeSnippet, badge("fr"));
+        assert.deepEqual(row.upgradeUrls, upgradeUrls("charlie-paris.com"));
+        assert.equal(row.discoveredFromPage, true);
+        assert.equal(row.requestedDomain, "charlie-paris.com");
+      },
+    );
+  });
+
+  it("falls back in 1 hop when an https store page URL returns 415 from public-check-url, and returns no_hero_image when none exists (H91c)", async () => {
+    const heroUrl = "https://velasca.com/media/boot.webp";
+    let step = 0;
+    const fallbackResult = await checkSpurvikImageC2paUrl(
+      { imageUrl: "https://velasca.com/collections/men" },
+      {
+        fetchImpl: async (url) => {
+          step += 1;
+          if (String(url).includes("/api/v1/sandbox/scan")) {
+            return json({ ok: true, scan: { reachable: true, heroImageUrl: heroUrl, htmlLocale: "it" } });
+          }
+          return step === 1
+            ? json({ ok: false, error: { code: "unsupported_media", message: "Not an image" } }, 415)
+            : json(report(NO_MANIFEST, "boot.webp"));
+        },
+      },
+    );
+    assert.equal(step, 3);
+    assert.equal(fallbackResult.imageUrl, heroUrl);
+    assert.equal(fallbackResult.art50GeneratedBadgeSnippet, badge("it"));
+    assert.deepEqual(fallbackResult.upgradeUrls, upgradeUrls("velasca.com"));
+    assert.equal(fallbackResult.discoveredFromPage, true);
+    assert.equal(fallbackResult.requestedDomain, "velasca.com");
+
+    const noHero = await checkSpurvikImageC2paUrl(
+      { imageUrl: "empty-site.eu" },
+      { fetchImpl: async () => json({ ok: true, scan: { reachable: true } }) },
+    );
+    assert.equal(noHero.checkStatus, "not_checked");
+    assert.equal(noHero.reason, "no_hero_image");
+    assert.deepEqual(noHero.upgradeUrls, upgradeUrls("empty-site.eu"));
+
+    await assert.rejects(() => checkSpurvikImageC2paUrl({ imageUrl: "printer.local" }), /public hosts/);
+    await assert.rejects(() => checkSpurvikImageC2paUrl({ imageUrl: "127.0.0.1" }), /public hosts/);
+  });
 });

@@ -29,6 +29,7 @@ export const SPURVIK_QUESTIONNAIRE_PROVIDERS = [
   "langgraph",
   "openai-agents",
   "mastra",
+  "python",
   "custom",
 ] as const;
 export type SpurvikQuestionnaireProvider = (typeof SPURVIK_QUESTIONNAIRE_PROVIDERS)[number];
@@ -204,6 +205,12 @@ const PROVIDER_FACTS: Record<SpurvikQuestionnaireProvider, ProviderFacts> = {
     approval: "`createSpurvikNeedsApproval` on each tool and `resolveInterruptions`, from `spurvik/openai-agents`",
   },
   mastra: { label: "Mastra", inference: "our model provider", wrapper: "`withSpurvikMastra`, from `spurvik/mastra`", approval: CLIENT_APPROVAL },
+  python: {
+    label: "Python (FastAPI / LangChain / PydanticAI)",
+    inference: "our model provider",
+    wrapper: "`send_telemetry_event` from `spurvik_guard.py` (Python 3.10+ stdlib)",
+    approval: "`request_human_approval(action_type, payload)` from `spurvik_guard.py`",
+  },
   custom: { label: "our model provider", inference: "our model provider", wrapper: "`withSpurvik` on the provider client", approval: CLIENT_APPROVAL },
 };
 

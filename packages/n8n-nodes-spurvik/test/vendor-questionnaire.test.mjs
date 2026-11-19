@@ -177,6 +177,7 @@ describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)",
       "langgraph",
       "openai-agents",
       "mastra",
+      "python",
       "custom",
     ]);
 
@@ -248,7 +249,7 @@ describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)",
     assert.equal(packageIndex.questionnaireHostname, questionnaireHostname);
     assert.equal(packageIndex.SPURVIK_VENDOR_QUESTIONNAIRE_URL, INTERACTIVE);
     assert.deepEqual([...packageIndex.SPURVIK_QUESTIONNAIRE_PLANS], ["free", "pro", "team", "concierge"]);
-    assert.equal(packageIndex.SPURVIK_QUESTIONNAIRE_PROVIDERS.length, 8);
+    assert.equal(packageIndex.SPURVIK_QUESTIONNAIRE_PROVIDERS.length, 9);
     assert.equal(SPURVIK_VENDOR_QUESTIONNAIRE_URL, INTERACTIVE);
   });
 });
@@ -465,7 +466,7 @@ describe("vendorQuestionnaireAnswers execute", () => {
   it("throws for a plan, provider or flag outside the options, without repeating the value", async () => {
     const cases = [
       [{ questionnairePlan: "enterprise-sso-49" }, /plan must be one of: free, pro, team, concierge\./],
-      [{ questionnaireProvider: "cohere-secret-x" }, /provider must be one of: openai, anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, custom\./],
+      [{ questionnaireProvider: "cohere-secret-x" }, /provider must be one of: openai, anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, python, custom\./],
       [{ hasHighRiskActions: "yes-please" }, /hasHighRiskActions must be true or false\./],
       [{ generatesMedia: 1 }, /generatesMedia must be true or false\./],
     ];

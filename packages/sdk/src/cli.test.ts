@@ -970,7 +970,11 @@ describe("spurvik rfp", () => {
     expect(plan.err()).toContain("--plan must be one of free, pro, team, concierge");
     const provider = harness();
     await runCli(["rfp", "--provider", "x"], provider.deps);
-    expect(provider.err()).toContain("--provider must be one of openai, anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, custom");
+    expect(provider.err()).toContain("--provider must be one of openai, anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, python, custom");
+    const py = harness();
+    expect(await runCli(["rfp", "folk.app", "--provider", "python"], py.deps)).toBe(0);
+    expect(py.out()).toContain("spurvik_guard.py");
+    expect(py.out()).toContain("send_telemetry_event");
   });
 
   it("keeps the rfp flags on rfp and --fail-on-gap off it", async () => {
