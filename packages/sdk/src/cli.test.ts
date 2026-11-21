@@ -1225,3 +1225,59 @@ describe("spurvik setup / init (H107b)", () => {
     }
   });
 });
+
+describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-assessment Markdown (H113b)", () => {
+  it("classifies a default customer chatbot on a domain with localized badge.js snippet, zero network, and no raw useCase echo", async () => {
+    const h = harness(() => {
+      throw new Error("risk must make zero network requests");
+    });
+    const secretPrompt = "SECRET_PROMPT_MARKER_9912 customer support chatbot for orders";
+    expect(await runCli(["risk", "tiendanimal.es", "--use-case", secretPrompt], h.deps)).toBe(EXIT_OK);
+    const out = h.out();
+    expect(out).toContain("# EU AI Act Risk Self-Assessment Record · tiendanimal.es");
+    expect(out).toContain("Transparency duties only (Article 50) (`limited_transparency_art50`)");
+    expect(out).toContain('data-locale="es" data-system-name="tiendanimal.es"');
+    expect(out).toContain("https://console.spurvik.com/risk-check?domain=tiendanimal.es");
+    expect(out).toContain("https://console.spurvik.com/report?domain=tiendanimal.es&locale=es");
+    expect(out).toContain("https://console.spurvik.com/signup?plan=pro&appUrl=tiendanimal.es&locale=es");
+    expect(out).toContain("Engineering mapping aid; not legal advice.");
+    expect(out).not.toContain("SECRET_PROMPT_MARKER_9912");
+    expect(out).not.toMatch(/€49|compliant|verified|certified|conforme|zero-pii/i);
+  });
+
+  it("covers high_risk_annex_iii, prohibited_art5 (no signup links), minimal_risk, and drops private/invalid hosts silently", async () => {
+    const hr = harness();
+    expect(await runCli(["risk", "acme.eu", "--area", "employment_hr", "--decisions", "--json"], hr.deps)).toBe(EXIT_OK);
+    const hrJson = JSON.parse(hr.out());
+    expect(hrJson.tier).toBe("high_risk_annex_iii");
+    expect(hrJson.annexIiiArea).toBe("employment_hr");
+    expect(hrJson.domain).toBe("acme.eu");
+    expect(hrJson.obligations.map((o: { article: string }) => o.article)).toContain("Art. 11 + Annex IV");
+    expect(hrJson.upgradeUrls.team.url).toBe("https://console.spurvik.com/signup?plan=team&appUrl=acme.eu");
+
+    const art5 = harness();
+    expect(await runCli(["risk", "localhost", "--use-case", "Social scoring citizen score system", "--json"], art5.deps)).toBe(
+      EXIT_OK,
+    );
+    const art5Json = JSON.parse(art5.out());
+    expect(art5Json.tier).toBe("prohibited_art5");
+    expect(art5Json.domain).toBeNull();
+    expect(art5Json.upgradeUrls).toBeNull();
+    expect(art5Json.markdown).not.toContain("localhost");
+    expect(art5Json.markdown).not.toContain("## Next steps");
+
+    const min = harness();
+    expect(await runCli(["risk", "--no-interacts", "--no-synthetic", "--json"], min.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(min.out()).tier).toBe("minimal_risk");
+
+    for (const bad of [
+      ["risk", "--area", "mars_colony"],
+      ["risk", "--lang", "ja"],
+      ["risk", "--fail-on-gap"],
+      ["scan", "folk.app", "--area", "education"],
+    ]) {
+      const errH = harness();
+      expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
+  });
+});

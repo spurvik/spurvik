@@ -9,6 +9,12 @@ import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "no
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  classifySpurvikRisk,
+  SPURVIK_RISK_AREAS,
+  type SpurvikClassifyRiskReport,
+  type SpurvikRiskArea,
+} from "./classify-risk.js";
+import {
   questionnaireHostname,
   SPURVIK_QUESTIONNAIRE_LOCALES,
   SPURVIK_QUESTIONNAIRE_PLANS,
@@ -1880,6 +1886,68 @@ function cmdRfp(args: ParsedArgs, io: Io): number {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// risk — EU AI Act risk-tier classifier & DPO self-assessment Markdown record (local, no network)
+// ---------------------------------------------------------------------------------------------------------------
+
+export type RiskReport = SpurvikClassifyRiskReport;
+
+const RISK_USAGE =
+  "Usage: spurvik risk [domain] [--use-case <text>] [--area general|biometrics|critical_infrastructure|education|employment_hr|essential_services_credit|law_enforcement|migration_border|justice_democracy] [--interacts|--no-interacts] [--synthetic|--no-synthetic] [--decisions|--no-decisions] [--lang <eu-locale>] [--json]";
+
+export function riskReport(options: {
+  siteDomain?: string;
+  useCase?: string;
+  area?: SpurvikRiskArea;
+  locale?: string;
+  interactsWithHumans?: boolean;
+  generatesSyntheticMedia?: boolean;
+  makesAutomatedDecisionsAboutPeople?: boolean;
+}) {
+  return classifySpurvikRisk(options);
+}
+
+function cmdRisk(args: ParsedArgs, io: Io): number {
+  if (args.positionals.length > 1) {
+    io.err(RISK_USAGE);
+    return EXIT_ERROR;
+  }
+  if (args.area !== undefined && !(SPURVIK_RISK_AREAS as readonly string[]).includes(args.area)) {
+    io.err(`spurvik risk: --area must be one of ${SPURVIK_RISK_AREAS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && !(BADGE_LANGS as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik risk: --lang must be one of ${BADGE_LANGS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  const outcome = riskReport({
+    siteDomain: args.positionals[0],
+    useCase: args.useCase,
+    area: args.area as SpurvikRiskArea | undefined,
+    locale: args.lang,
+    interactsWithHumans: args.interacts,
+    generatesSyntheticMedia: args.synthetic,
+    makesAutomatedDecisionsAboutPeople: args.decisions,
+  });
+  if (!outcome.ok) {
+    io.err(`spurvik risk: ${outcome.message}`);
+    return EXIT_ERROR;
+  }
+  if (args.json) {
+    io.out(JSON.stringify(outcome.report, null, 2));
+    return EXIT_OK;
+  }
+  const { c, out } = io;
+  const lines = outcome.report.markdown.replace(/\n$/, "").split("\n");
+  for (const line of lines) {
+    if (line.startsWith("#")) out(c.bold(line));
+    else if (line.startsWith("- ")) out(line.replace(/: (https:\/\/\S+)$/, (_match, url: string) => `: ${c.cyan(url)}`));
+    else out(line);
+  }
+  out();
+  return EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -1899,10 +1967,15 @@ interface ParsedArgs {
   provider?: string;
   generatesMedia: boolean;
   noHighRiskActions: boolean;
+  useCase?: string;
+  area?: string;
+  interacts?: boolean;
+  synthetic?: boolean;
+  decisions?: boolean;
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "setup", "init", "rfp", "help", "version"]);
+const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "setup", "init", "rfp", "risk", "help", "version"]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -1943,6 +2016,16 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (arg.startsWith("--provider=")) parsed.provider = arg.slice("--provider=".length);
     else if (arg === "--generates-media") parsed.generatesMedia = true;
     else if (arg === "--no-high-risk-actions") parsed.noHighRiskActions = true;
+    else if (arg === "--use-case") parsed.useCase = argv[++i] ?? "";
+    else if (arg.startsWith("--use-case=")) parsed.useCase = arg.slice("--use-case=".length);
+    else if (arg === "--area") parsed.area = argv[++i] ?? "";
+    else if (arg.startsWith("--area=")) parsed.area = arg.slice("--area=".length);
+    else if (arg === "--interacts") parsed.interacts = true;
+    else if (arg === "--no-interacts") parsed.interacts = false;
+    else if (arg === "--synthetic") parsed.synthetic = true;
+    else if (arg === "--no-synthetic") parsed.synthetic = false;
+    else if (arg === "--decisions") parsed.decisions = true;
+    else if (arg === "--no-decisions") parsed.decisions = false;
     else if (arg.startsWith("-") && arg.length > 1) parsed.unknown.push(arg);
     else rest.push(arg);
   }
@@ -1972,6 +2055,7 @@ export function helpText(): string {
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped TS/JS & Python AI model calls",
     "  spurvik setup [target|dir] [--runtime <r>] [--json]      Auto-detect stack & print SDK/Python/CMS setup + .env",
     "  spurvik badge [domain] [--lang <eu-locale>] [--cms <c>]  24-language badge.js, Shopify, WP, Webflow & React snippets",
+    "  spurvik risk [domain] [--use-case <text>] [--area <a>]   EU AI Act risk classifier & DPO self-assessment Markdown",
     "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
     "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
     "      --plan free|pro|team|concierge (default pro)",
@@ -1988,10 +2072,11 @@ export function helpText(): string {
     "  npx spurvik c2pa charlie-paris.com",
     "  npx spurvik audit . --fail-on-gap",
     "  npx spurvik badge example.de",
+    "  npx spurvik risk acme.eu --use-case \"Customer support chatbot\" > AI_ACT_RISK.md",
     "  npx spurvik rfp acme.eu --plan team --provider langgraph",
     "",
     "scan and c2pa send only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only;",
-    "rfp makes no request. Not legal advice.",
+    "risk and rfp make no request. Not legal advice.",
   ].join("\n");
 }
 
@@ -2029,8 +2114,15 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --domain applies to the setup command only.");
     return EXIT_ERROR;
   }
-  if (args.lang !== undefined && args.command !== "badge" && args.command !== "rfp" && args.command !== "setup" && args.command !== "init") {
-    io.err("spurvik: --lang applies to the badge, rfp and setup commands only.");
+  if (
+    args.lang !== undefined &&
+    args.command !== "badge" &&
+    args.command !== "rfp" &&
+    args.command !== "risk" &&
+    args.command !== "setup" &&
+    args.command !== "init"
+  ) {
+    io.err("spurvik: --lang applies to the badge, rfp, risk and setup commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {
@@ -2041,7 +2133,7 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: use --fail-on-missing with c2pa (--fail-on-gap is for scan and audit).");
     return EXIT_ERROR;
   }
-  if (args.failOnGap && (args.command === "rfp" || args.command === "setup" || args.command === "init")) {
+  if (args.failOnGap && (args.command === "rfp" || args.command === "risk" || args.command === "setup" || args.command === "init")) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
   }
@@ -2050,6 +2142,17 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "rfp"
   ) {
     io.err("spurvik: --plan, --provider, --generates-media and --no-high-risk-actions apply to the rfp command only.");
+    return EXIT_ERROR;
+  }
+  if (
+    (args.useCase !== undefined ||
+      args.area !== undefined ||
+      args.interacts !== undefined ||
+      args.synthetic !== undefined ||
+      args.decisions !== undefined) &&
+    args.command !== "risk"
+  ) {
+    io.err("spurvik: --use-case, --area, --interacts, --synthetic and --decisions apply to the risk command only.");
     return EXIT_ERROR;
   }
   switch (args.command) {
@@ -2067,6 +2170,8 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       return cmdSetup(args, deps, io);
     case "rfp":
       return cmdRfp(args, io);
+    case "risk":
+      return cmdRisk(args, io);
     default:
       io.err(`spurvik: unknown command "${cleanText(args.command, 40)}". Run spurvik --help.`);
       return EXIT_ERROR;
