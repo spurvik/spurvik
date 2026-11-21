@@ -8,15 +8,21 @@ import {
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   conciergeSignupUrlFor,
+  lovableCockpitUrlFor,
   PRICE_NOTE,
   PRO_PRICE,
   PRO_SIGNUP_URL,
   proSignupUrlFor,
+  pythonCockpitUrlFor,
   REPORT_URL,
   reportUrlFor,
+  TEAM_PRICE,
+  TEAM_SIGNUP_URL,
+  teamSignupUrlFor,
+  workflowCockpitUrlFor,
 } from "../links.js";
 import { sdkExportNames } from "../sdk-exports.js";
-import { EU_LANGUAGES } from "./badge-copy.js";
+import { EU_LANGUAGES, inferLocaleFromDomain } from "./badge-copy.js";
 import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
@@ -467,7 +473,6 @@ function middlewareSource(runtime: TsRuntime): string {
 }
 
 const PYTHON_GUARD_URL = "https://spurvik.com/r/spurvik_guard.py";
-const PYTHON_GUIDE_URL = "https://spurvik.com/python-fastapi-langchain-eu-ai-act-logging";
 
 function pythonSource(framework: Framework): string {
   const provider = framework === "anthropic" ? "anthropic" : framework === "google-genai" ? "google" : "openai";
@@ -664,27 +669,26 @@ export function setupSnippet(
   const runtime = resolved.runtime;
   const source = setupSnippetSource(frameworkInput, runtimeInput, options);
   const host = publicHostname(options.domain);
-  const loc =
-    typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en"
+  const explicitLoc =
+    typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale)
       ? options.locale
       : null;
+  const effectiveLocale = explicitLoc ?? (host ? inferLocaleFromDomain(host) : "en");
+  const loc = explicitLoc && explicitLoc !== "en" ? explicitLoc : null;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamLink = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   if (isWorkflowFramework(framework)) {
-    const guideHref =
-      loc === "de"
-        ? "https://spurvik.com/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe"
-        : loc === "fr"
-          ? "https://spurvik.com/fr/n8n-make-reglement-ia-article-50-hmac-approbation"
-          : "https://spurvik.com/n8n-eu-ai-act-guard";
+    const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [
       `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
       `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
       `Interactive workflow cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE,
     ];
@@ -709,23 +713,30 @@ export function setupSnippet(
     return `${cmsLines.join("\n")}\n\n\`\`\`${langFence}\n${source}\`\`\`\n`;
   }
   if (isPythonVariant(framework, runtime)) {
+    const pyGuideHref = pythonCockpitUrlFor(host, effectiveLocale);
     const pyLines = [
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
-      `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
+      `Interactive Python & FastAPI guide: ${pyGuideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE,
     ];
     return `${pyLines.join("\n")}\n\n\`\`\`python\n${source}\`\`\`\n`;
   }
+  const rawLower = frameworkInput.trim().toLowerCase();
+  const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
     "Paste the snippet into the app that calls the model. Keys are read from the environment when the function runs. A missing key throws. The value is not logged.",
     `\`riskTier\`: ${RISK_TIER_SAMPLE_COMMENT}`,
     `The SDK logs the call and attaches an HMAC receipt. ${DOES_NOT_MARK}`,
   ];
+  if (isVibeAlias) {
+    lines.push(`Interactive ${rawLower} prompt & 24h setup cockpit: ${lovableCockpitUrlFor(host, effectiveLocale)}`);
+  }
   if (framework === "vercel-ai-sdk") {
     lines.push(
       "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik.",

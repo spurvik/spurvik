@@ -430,12 +430,20 @@ describe("createServer", () => {
     );
     expect(lovableOut).toContain("EdgeRuntime.waitUntil");
     expect(lovableOut).toContain('locale="sv"');
+    expect(lovableOut).toContain("/sv/lovable-bolt-replit-ai-forordningen-artikel-50");
 
     const n8nOut = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n", locale: "de" } }),
     );
     expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.9");
     expect(n8nOut).toContain("/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe");
+    expect(n8nOut).toContain("plan=team");
+
+    const pyDeOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "fastapi", domain: "personio.de" } }),
+    );
+    expect(pyDeOut).toContain("/de/python-fastapi-langchain-ki-verordnung-logging?domain=personio.de");
+    expect(pyDeOut).toContain("plan=team&appUrl=personio.de");
     await client.close();
   });
 

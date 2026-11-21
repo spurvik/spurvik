@@ -1490,6 +1490,7 @@ function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
   }
   out(`    Free SPURVIK_API_KEY in 10s (€0, no card): ${c.cyan(report.links.freeSignupUrl)}`);
   out(`    White-label badge + 90d Frankfurt vault + Slack/Teams gates (Pro €19/mo): ${c.cyan(report.links.proUpgradeUrl)}`);
+  out(`    2M events/mo + 12mo Frankfurt retention + Annex IV draft (Team €79/mo): ${c.cyan(report.links.teamUpgradeUrl)}`);
   out(`    24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro): ${c.cyan(report.links.doneForYouUrl)}`);
   out();
   return EXIT_OK;

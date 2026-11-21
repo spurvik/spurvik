@@ -22103,6 +22103,24 @@ function rfpQuestionnaireUrlFor(host, locale = "en") {
   const slug = code === "de" ? "/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb" : code === "fr" ? "/fr/questionnaire-securite-reglement-ia-dpo-fournisseur" : code === "nl" ? "/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging" : code === "da" ? "/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed" : code === "es" ? "/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd" : code === "it" ? "/it/questionario-sicurezza-fornitori-reglamento-ia-dpo" : code === "sv" ? "/sv/ai-forordningen-leverantorssakerhetsformular-dso" : "/eu-ai-act-vendor-security-questionnaire";
   return `https://spurvik.com${slug}?domain=${encodeURIComponent(host)}`;
 }
+function pythonCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/python-fastapi-langchain-ki-verordnung-logging" : code === "fr" ? "/fr/python-fastapi-langchain-reglement-ia-journalisation" : code === "nl" ? "/nl/python-fastapi-langchain-ai-verordening-logging" : code === "da" ? "/da/python-fastapi-langchain-eu-ai-act-logning" : code === "sv" ? "/sv/python-fastapi-langchain-ai-forordningen-loggning" : code === "es" ? "/es/python-fastapi-langchain-reglamento-ia-registro" : code === "it" ? "/it/python-fastapi-langchain-regolamento-ia-logging" : "/python-fastapi-langchain-eu-ai-act-logging";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+function workflowCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe" : code === "fr" ? "/fr/n8n-make-reglement-ia-article-50-hmac-approbation" : code === "nl" ? "/nl/n8n-make-ai-verordening-artikel-50-hmac-goedkeuring" : code === "da" ? "/da/n8n-make-eu-ai-act-artikel-50-hmac-godkendelse" : code === "sv" ? "/sv/n8n-make-ai-forordningen-artikel-50-hmac-godkannande" : code === "es" ? "/es/n8n-make-reglamento-ia-articulo-50-hmac-aprobacion" : code === "it" ? "/it/n8n-make-regolamento-ia-articolo-50-hmac-approvazione" : "/n8n-eu-ai-act-guard";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+function lovableCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/lovable-bolt-replit-ki-verordnung-artikel-50" : code === "fr" ? "/fr/lovable-bolt-replit-reglement-ia-article-50" : code === "nl" ? "/nl/lovable-bolt-replit-ai-verordening-artikel-50" : code === "da" ? "/da/lovable-bolt-replit-eu-ai-act-artikel-50" : code === "sv" ? "/sv/lovable-bolt-replit-ai-forordningen-artikel-50" : code === "es" ? "/es/lovable-bolt-replit-reglamento-ia-articulo-50" : code === "it" ? "/it/lovable-bolt-replit-regolamento-ia-articolo-50" : "/lovable-bolt-replit-eu-ai-act";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -22584,19 +22602,21 @@ ${steps.join("\n")}
 function setupNextSteps(rawDomain, rawLocale) {
   const host = publicHostname(rawDomain);
   const loc = typeof rawLocale === "string" && EU_LANGUAGES.some((l) => l.code === rawLocale) && rawLocale !== "en" ? rawLocale : null;
-  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, TEAM_STEP, CONCIERGE_STEP);
   const freeParams = [];
   if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
   if (loc) freeParams.push(`locale=${loc}`);
   const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   const steps = [];
   if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
   steps.push(
     `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
     `${CONCIERGE_LABEL} ${conciergeUrl}`
   );
   return block(...steps);
@@ -22606,6 +22626,7 @@ var FIND_NEXT_STEPS = block(
   "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
   FREE_KEY_STEP,
   PRO_STEP,
+  TEAM_STEP,
   CONCIERGE_STEP
 );
 var RECEIPT_NEXT_STEPS = block(
@@ -28853,7 +28874,6 @@ function middlewareSource(runtime) {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 var PYTHON_GUARD_URL = "https://spurvik.com/r/spurvik_guard.py";
-var PYTHON_GUIDE_URL = "https://spurvik.com/python-fastapi-langchain-eu-ai-act-logging";
 function pythonSource(framework) {
   const provider = framework === "anthropic" ? "anthropic" : framework === "google-genai" ? "google" : "openai";
   const headerLines = [
@@ -29026,19 +29046,23 @@ function setupSnippet(frameworkInput, runtimeInput, options = {}) {
   const runtime = resolved.runtime;
   const source = setupSnippetSource(frameworkInput, runtimeInput, options);
   const host = publicHostname(options.domain);
-  const loc = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en" ? options.locale : null;
+  const explicitLoc = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : null;
+  const effectiveLocale = explicitLoc ?? (host ? inferLocaleFromDomain(host) : "en");
+  const loc = explicitLoc && explicitLoc !== "en" ? explicitLoc : null;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamLink = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   if (isWorkflowFramework(framework)) {
-    const guideHref = loc === "de" ? "https://spurvik.com/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe" : loc === "fr" ? "https://spurvik.com/fr/n8n-make-reglement-ia-article-50-hmac-approbation" : "https://spurvik.com/n8n-eu-ai-act-guard";
+    const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [
       `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
       `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
       `Interactive workflow cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE
     ];
@@ -29066,12 +29090,14 @@ ${source}\`\`\`
 `;
   }
   if (isPythonVariant(framework, runtime)) {
+    const pyGuideHref = pythonCockpitUrlFor(host, effectiveLocale);
     const pyLines = [
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
-      `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
+      `Interactive Python & FastAPI guide: ${pyGuideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE
     ];
@@ -29081,12 +29107,17 @@ ${source}\`\`\`
 ${source}\`\`\`
 `;
   }
+  const rawLower = frameworkInput.trim().toLowerCase();
+  const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
     "Paste the snippet into the app that calls the model. Keys are read from the environment when the function runs. A missing key throws. The value is not logged.",
     `\`riskTier\`: ${RISK_TIER_SAMPLE_COMMENT}`,
     `The SDK logs the call and attaches an HMAC receipt. ${DOES_NOT_MARK}`
   ];
+  if (isVibeAlias) {
+    lines.push(`Interactive ${rawLower} prompt & 24h setup cockpit: ${lovableCockpitUrlFor(host, effectiveLocale)}`);
+  }
   if (framework === "vercel-ai-sdk") {
     lines.push(
       "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik."

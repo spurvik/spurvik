@@ -88,6 +88,75 @@ export function rfpQuestionnaireUrlFor(host: string, locale = "en"): string {
   return `https://spurvik.com${slug}?domain=${encodeURIComponent(host)}`;
 }
 
+/** 8-language Python, FastAPI, LangChain, PydanticAI & Django cockpit URL prefilled with `?domain=`. */
+export function pythonCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/python-fastapi-langchain-ki-verordnung-logging"
+      : code === "fr"
+        ? "/fr/python-fastapi-langchain-reglement-ia-journalisation"
+        : code === "nl"
+          ? "/nl/python-fastapi-langchain-ai-verordening-logging"
+          : code === "da"
+            ? "/da/python-fastapi-langchain-eu-ai-act-logning"
+            : code === "sv"
+              ? "/sv/python-fastapi-langchain-ai-forordningen-loggning"
+              : code === "es"
+                ? "/es/python-fastapi-langchain-reglamento-ia-registro"
+                : code === "it"
+                  ? "/it/python-fastapi-langchain-regolamento-ia-logging"
+                  : "/python-fastapi-langchain-eu-ai-act-logging";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
+/** 8-language self-hosted n8n & Make.com workflow guard cockpit URL prefilled with `?domain=`. */
+export function workflowCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe"
+      : code === "fr"
+        ? "/fr/n8n-make-reglement-ia-article-50-hmac-approbation"
+        : code === "nl"
+          ? "/nl/n8n-make-ai-verordening-artikel-50-hmac-goedkeuring"
+          : code === "da"
+            ? "/da/n8n-make-eu-ai-act-artikel-50-hmac-godkendelse"
+            : code === "sv"
+              ? "/sv/n8n-make-ai-forordningen-artikel-50-hmac-godkannande"
+              : code === "es"
+                ? "/es/n8n-make-reglamento-ia-articulo-50-hmac-aprobacion"
+                : code === "it"
+                  ? "/it/n8n-make-regolamento-ia-articolo-50-hmac-approvazione"
+                  : "/n8n-eu-ai-act-guard";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
+/** 8-language Lovable, Bolt.new, v0 & Replit vibe-coding cockpit URL prefilled with `?domain=`. */
+export function lovableCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/lovable-bolt-replit-ki-verordnung-artikel-50"
+      : code === "fr"
+        ? "/fr/lovable-bolt-replit-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/lovable-bolt-replit-ai-verordening-artikel-50"
+          : code === "da"
+            ? "/da/lovable-bolt-replit-eu-ai-act-artikel-50"
+            : code === "sv"
+              ? "/sv/lovable-bolt-replit-ai-forordningen-artikel-50"
+              : code === "es"
+                ? "/es/lovable-bolt-replit-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/lovable-bolt-replit-regolamento-ia-articolo-50"
+                  : "/lovable-bolt-replit-eu-ai-act";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;

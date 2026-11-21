@@ -8,6 +8,7 @@ import {
   reportUrlFor,
   SIGNUP_URL,
   TEAM_SIGNUP_URL,
+  teamSignupUrlFor,
   VENDOR_QUESTIONNAIRE_URL,
 } from "./links.js";
 import { EU_LANGUAGES, inferLocaleFromDomain } from "./tools/badge-copy.js";
@@ -48,19 +49,21 @@ export function setupNextSteps(rawDomain?: string, rawLocale?: string): string {
     typeof rawLocale === "string" && EU_LANGUAGES.some((l) => l.code === rawLocale) && rawLocale !== "en"
       ? rawLocale
       : null;
-  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, TEAM_STEP, CONCIERGE_STEP);
   const freeParams: string[] = [];
   if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
   if (loc) freeParams.push(`locale=${loc}`);
   const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   const steps: string[] = [];
   if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
   steps.push(
     `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
     `${CONCIERGE_LABEL} ${conciergeUrl}`,
   );
   return block(...steps);
@@ -72,6 +75,7 @@ export const FIND_NEXT_STEPS = block(
   "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
   FREE_KEY_STEP,
   PRO_STEP,
+  TEAM_STEP,
   CONCIERGE_STEP,
 );
 
