@@ -28378,6 +28378,7 @@ var sdkExportNames = {
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
 var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
+var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28387,14 +28388,62 @@ var FRAMEWORKS = [
   "openai-agents",
   "langgraph",
   ...PYTHON_FRAMEWORKS,
-  ...CMS_FRAMEWORKS
+  ...CMS_FRAMEWORKS,
+  ...WORKFLOW_FRAMEWORKS
 ];
 var RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"];
+var SETUP_FRAMEWORK_ALIASES = {
+  gemini: "google-genai",
+  google: "google-genai",
+  google_genai: "google-genai",
+  claude: "anthropic",
+  "ai-sdk": "vercel-ai-sdk",
+  ai_sdk: "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  next: "vercel-ai-sdk",
+  nextjs: "vercel-ai-sdk",
+  "next.js": "vercel-ai-sdk",
+  bolt: "vercel-ai-sdk",
+  "bolt.new": "vercel-ai-sdk",
+  v0: "vercel-ai-sdk",
+  replit: "vercel-ai-sdk",
+  lovable: "openai",
+  supabase: "openai",
+  "supabase-edge": "openai",
+  django: "python",
+  flask: "python",
+  woocommerce: "wordpress",
+  prestashop: "html",
+  shopware: "html",
+  centra: "html",
+  dandomain: "html",
+  lightspeed: "html",
+  "make.com": "make"
+};
+var SETUP_DEFAULT_RUNTIME_BY_ALIAS = {
+  next: "next",
+  nextjs: "next",
+  "next.js": "next",
+  vercel: "vercel",
+  lovable: "supabase-edge",
+  supabase: "supabase-edge",
+  "supabase-edge": "supabase-edge"
+};
+function resolveSetupFrameworkAndRuntime(rawFramework, rawRuntime) {
+  const lower = rawFramework.trim().toLowerCase();
+  const framework = lower === "" ? "openai" : SETUP_FRAMEWORK_ALIASES[lower] ?? lower;
+  const aliasRuntime = SETUP_DEFAULT_RUNTIME_BY_ALIAS[lower];
+  const runtime = rawRuntime && rawRuntime.trim() ? rawRuntime.trim() : aliasRuntime ?? (isPythonFramework(framework) ? "python" : "node");
+  return { framework, runtime, isLovableAlias: lower === "lovable" };
+}
 function isPythonFramework(value) {
   return PYTHON_FRAMEWORKS.includes(value);
 }
 function isCmsFramework(value) {
   return CMS_FRAMEWORKS.includes(value);
+}
+function isWorkflowFramework(value) {
+  return WORKFLOW_FRAMEWORKS.includes(value);
 }
 function isPythonVariant(framework, runtime) {
   return isPythonFramework(framework) || runtime === "python";
@@ -28876,11 +28925,23 @@ function cmsSource(framework, host = null, locale = "en") {
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>
 `;
 }
-function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? "python" : "node", options = {}) {
+function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
+  const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+  const framework = resolved.framework;
+  const runtime = resolved.runtime;
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
   const host = publicHostname(options.domain);
   const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isWorkflowFramework(framework)) {
+    return [
+      "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
+      "npm install n8n-nodes-spurvik@1.0.9",
+      "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
+      "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
+      ""
+    ].join("\n");
+  }
   if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime;
@@ -28888,16 +28949,42 @@ function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? 
   if (framework === "mastra") return mastraSource(tsRuntime);
   if (framework === "openai-agents") return agentsSource(tsRuntime);
   if (framework === "langgraph") return langgraphSource(tsRuntime);
-  return providerSource(framework, tsRuntime);
+  const base = providerSource(framework, tsRuntime);
+  if (resolved.isLovableAlias) {
+    return `${base}
+// Frontend (React): render <AIDisclosureLabel notice="interaction" locale="${locale}" /> from "spurvik/react" above chat messages.
+`;
+  }
+  return base;
 }
-function setupSnippet(framework, runtime = isPythonFramework(framework) ? "python" : "node", options = {}) {
-  const source = setupSnippetSource(framework, runtime, options);
+function setupSnippet(frameworkInput, runtimeInput, options = {}) {
+  const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+  const framework = resolved.framework;
+  const runtime = resolved.runtime;
+  const source = setupSnippetSource(frameworkInput, runtimeInput, options);
   const host = publicHostname(options.domain);
   const loc = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en" ? options.locale : null;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  if (isWorkflowFramework(framework)) {
+    const guideHref = loc === "de" ? "https://spurvik.com/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe" : loc === "fr" ? "https://spurvik.com/fr/n8n-make-reglement-ia-article-50-hmac-approbation" : "https://spurvik.com/n8n-eu-ai-act-guard";
+    const wfLines = [
+      `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
+      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
+      `Interactive workflow cockpit: ${guideHref}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${wfLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
   if (isCmsFramework(framework)) {
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const guideLine = framework === "shopify" ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure" : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
@@ -29624,15 +29711,16 @@ function createServer(workspaceRoot, options = {}) {
       title: SETUP_TITLE,
       description: SETUP_DESCRIPTION,
       inputSchema: {
-        framework: external_exports.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
+        framework: external_exports.string().max(64).optional().describe(FRAMEWORK_FIELD),
+        target: external_exports.string().max(64).optional().describe("Alias for framework (e.g. openai, lovable, nextjs, n8n, python, shopify)."),
         runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
         domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
         locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ framework, runtime, domain, locale }) => text(
-      `${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"), { domain, locale })}${setupNextSteps(domain, locale)}`
+    async ({ framework, target, runtime, domain, locale }) => text(
+      `${setupSnippet(framework ?? target ?? "openai", runtime, { domain, locale })}${setupNextSteps(domain, locale)}`
     )
   );
   server.registerTool(

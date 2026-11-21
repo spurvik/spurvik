@@ -21,6 +21,7 @@ import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
 export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"] as const;
+export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -31,13 +32,68 @@ export const FRAMEWORKS = [
   "langgraph",
   ...PYTHON_FRAMEWORKS,
   ...CMS_FRAMEWORKS,
+  ...WORKFLOW_FRAMEWORKS,
 ] as const;
 export const RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"] as const;
 export type PythonFramework = (typeof PYTHON_FRAMEWORKS)[number];
 export type CmsFramework = (typeof CMS_FRAMEWORKS)[number];
+export type WorkflowFramework = (typeof WORKFLOW_FRAMEWORKS)[number];
 export type Framework = (typeof FRAMEWORKS)[number];
 export type Runtime = (typeof RUNTIMES)[number];
 type TsRuntime = Exclude<Runtime, "python">;
+
+const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
+  gemini: "google-genai",
+  google: "google-genai",
+  google_genai: "google-genai",
+  claude: "anthropic",
+  "ai-sdk": "vercel-ai-sdk",
+  ai_sdk: "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  next: "vercel-ai-sdk",
+  nextjs: "vercel-ai-sdk",
+  "next.js": "vercel-ai-sdk",
+  bolt: "vercel-ai-sdk",
+  "bolt.new": "vercel-ai-sdk",
+  v0: "vercel-ai-sdk",
+  replit: "vercel-ai-sdk",
+  lovable: "openai",
+  supabase: "openai",
+  "supabase-edge": "openai",
+  django: "python",
+  flask: "python",
+  woocommerce: "wordpress",
+  prestashop: "html",
+  shopware: "html",
+  centra: "html",
+  dandomain: "html",
+  lightspeed: "html",
+  "make.com": "make",
+};
+
+const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, Runtime>> = {
+  next: "next",
+  nextjs: "next",
+  "next.js": "next",
+  vercel: "vercel",
+  lovable: "supabase-edge",
+  supabase: "supabase-edge",
+  "supabase-edge": "supabase-edge",
+};
+
+export function resolveSetupFrameworkAndRuntime(
+  rawFramework: string,
+  rawRuntime?: string,
+): { framework: string; runtime: string; isLovableAlias: boolean } {
+  const lower = rawFramework.trim().toLowerCase();
+  const framework = lower === "" ? "openai" : (SETUP_FRAMEWORK_ALIASES[lower] ?? lower);
+  const aliasRuntime = SETUP_DEFAULT_RUNTIME_BY_ALIAS[lower];
+  const runtime =
+    rawRuntime && rawRuntime.trim()
+      ? rawRuntime.trim()
+      : (aliasRuntime ?? (isPythonFramework(framework) ? "python" : "node"));
+  return { framework, runtime, isLovableAlias: lower === "lovable" };
+}
 
 export function isPythonFramework(value: string): value is PythonFramework {
   return (PYTHON_FRAMEWORKS as readonly string[]).includes(value);
@@ -45,6 +101,10 @@ export function isPythonFramework(value: string): value is PythonFramework {
 
 export function isCmsFramework(value: string): value is CmsFramework {
   return (CMS_FRAMEWORKS as readonly string[]).includes(value);
+}
+
+export function isWorkflowFramework(value: string): value is WorkflowFramework {
+  return (WORKFLOW_FRAMEWORKS as readonly string[]).includes(value);
 }
 
 export function isPythonVariant(framework: string, runtime: string): boolean {
@@ -558,15 +618,27 @@ export interface SetupSnippetOptions {
 
 /** Source of the setup snippet (TypeScript, Python 3.10+ stdlib, or CMS/HTML snippet), with no surrounding prose. */
 export function setupSnippetSource(
-  framework: string,
-  runtime: string = isPythonFramework(framework) ? "python" : "node",
+  frameworkInput: string,
+  runtimeInput?: string,
   options: SetupSnippetOptions = {},
 ): string {
+  const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+  const framework = resolved.framework;
+  const runtime = resolved.runtime;
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
   const host = publicHostname(options.domain);
   const locale =
     typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isWorkflowFramework(framework)) {
+    return [
+      "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
+      "npm install n8n-nodes-spurvik@1.0.9",
+      "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
+      "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
+      "",
+    ].join("\n");
+  }
   if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime as TsRuntime;
@@ -574,16 +646,23 @@ export function setupSnippetSource(
   if (framework === "mastra") return mastraSource(tsRuntime);
   if (framework === "openai-agents") return agentsSource(tsRuntime);
   if (framework === "langgraph") return langgraphSource(tsRuntime);
-  return providerSource(framework as "openai" | "anthropic" | "google-genai", tsRuntime);
+  const base = providerSource(framework as "openai" | "anthropic" | "google-genai", tsRuntime);
+  if (resolved.isLovableAlias) {
+    return `${base}\n// Frontend (React): render <AIDisclosureLabel notice="interaction" locale="${locale}" /> from "spurvik/react" above chat messages.\n`;
+  }
+  return base;
 }
 
 /** Tool text: a short note, then the snippet. */
 export function setupSnippet(
-  framework: string,
-  runtime: string = isPythonFramework(framework) ? "python" : "node",
+  frameworkInput: string,
+  runtimeInput?: string,
   options: SetupSnippetOptions = {},
 ): string {
-  const source = setupSnippetSource(framework, runtime, options);
+  const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+  const framework = resolved.framework;
+  const runtime = resolved.runtime;
+  const source = setupSnippetSource(frameworkInput, runtimeInput, options);
   const host = publicHostname(options.domain);
   const loc =
     typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en"
@@ -593,6 +672,24 @@ export function setupSnippet(
   const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  if (isWorkflowFramework(framework)) {
+    const guideHref =
+      loc === "de"
+        ? "https://spurvik.com/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe"
+        : loc === "fr"
+          ? "https://spurvik.com/fr/n8n-make-reglement-ia-article-50-hmac-approbation"
+          : "https://spurvik.com/n8n-eu-ai-act-guard";
+    const wfLines = [
+      `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
+      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
+      `Interactive workflow cockpit: ${guideHref}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${wfLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+  }
   if (isCmsFramework(framework)) {
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const guideLine =

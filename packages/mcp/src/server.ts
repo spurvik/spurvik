@@ -74,7 +74,7 @@ import { explainReceipt, knownSigningSecrets, resolveSigningSecret, scrubSecrets
 import { scanWorkspace } from "./tools/find-unwrapped.js";
 import { markingHooksText } from "./tools/marking-hooks.js";
 import { scanLiveUrl, type ScanLiveUrlDeps } from "./tools/scan-live-url.js";
-import { FRAMEWORKS, isPythonFramework, RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
+import { RUNTIMES, setupSnippet } from "./tools/setup-snippet.js";
 import {
   MAX_QUESTIONNAIRE_DOMAIN_CHARS,
   QUESTIONNAIRE_LOCALES,
@@ -150,16 +150,17 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       title: SETUP_TITLE,
       description: SETUP_DESCRIPTION,
       inputSchema: {
-        framework: z.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
+        framework: z.string().max(64).optional().describe(FRAMEWORK_FIELD),
+        target: z.string().max(64).optional().describe("Alias for framework (e.g. openai, lovable, nextjs, n8n, python, shopify)."),
         runtime: z.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
         domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
         locale: z.string().max(16).optional().describe(SETUP_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ framework, runtime, domain, locale }) =>
+    async ({ framework, target, runtime, domain, locale }) =>
       text(
-        `${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"), { domain, locale })}${setupNextSteps(domain, locale)}`,
+        `${setupSnippet(framework ?? target ?? "openai", runtime, { domain, locale })}${setupNextSteps(domain, locale)}`,
       ),
   );
 

@@ -910,6 +910,8 @@ export const SETUP_TARGETS = [
   "wordpress",
   "webflow",
   "html",
+  "n8n",
+  "make",
 ] as const;
 export type SetupTarget = (typeof SETUP_TARGETS)[number];
 
@@ -918,10 +920,50 @@ export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
 const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "html"];
+const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make"];
+
+const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
+  gemini: "google-genai",
+  google: "google-genai",
+  google_genai: "google-genai",
+  claude: "anthropic",
+  "ai-sdk": "vercel-ai-sdk",
+  ai_sdk: "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  next: "vercel-ai-sdk",
+  nextjs: "vercel-ai-sdk",
+  "next.js": "vercel-ai-sdk",
+  bolt: "vercel-ai-sdk",
+  "bolt.new": "vercel-ai-sdk",
+  v0: "vercel-ai-sdk",
+  replit: "vercel-ai-sdk",
+  lovable: "openai",
+  supabase: "openai",
+  "supabase-edge": "openai",
+  django: "python",
+  flask: "python",
+  woocommerce: "wordpress",
+  prestashop: "html",
+  shopware: "html",
+  centra: "html",
+  dandomain: "html",
+  lightspeed: "html",
+  "make.com": "make",
+};
+
+const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
+  next: "next",
+  nextjs: "next",
+  "next.js": "next",
+  vercel: "vercel",
+  lovable: "supabase-edge",
+  supabase: "supabase-edge",
+  "supabase-edge": "supabase-edge",
+};
 
 export interface SetupReport {
   target: SetupTarget;
-  runtime: SetupRuntime | "browser";
+  runtime: SetupRuntime | "browser" | "workflow";
   detected: boolean;
   domain?: string;
   locale?: string;
@@ -965,11 +1007,18 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
         ...Object.keys(raw.dependencies ?? {}),
         ...Object.keys(raw.devDependencies ?? {}),
       ]);
+      const hasSupabaseEdge =
+        fileExists(path.join(root, "supabase", "config.toml")) || dirExists(path.join(root, "supabase", "functions"));
       const runtime: SetupRuntime = deps.has("next")
         ? "next"
         : deps.has("@vercel/functions")
           ? "vercel"
-          : "node";
+          : hasSupabaseEdge
+            ? "supabase-edge"
+            : "node";
+      if (deps.has("n8n-nodes-spurvik") || deps.has("n8n-workflow")) {
+        return { target: "n8n", runtime: "node", detected: true };
+      }
       if (deps.has("@mastra/core")) return { target: "mastra", runtime, detected: true };
       if (deps.has("@openai/agents")) return { target: "openai-agents", runtime, detected: true };
       if (deps.has("@langchain/langgraph")) return { target: "langgraph", runtime, detected: true };
@@ -1068,6 +1117,35 @@ export function buildSetupReport(
     ...(host ? { domain: host } : {}),
     ...(loc ? { locale: loc } : {}),
   };
+
+  if (WORKFLOW_SETUP_TARGETS.includes(target)) {
+    const snippet =
+      target === "make"
+        ? [
+            "# Import https://spurvik.com/r/make-com-spurvik-blueprint.json in Make.com",
+            "# Sends keyed HMAC-SHA256 digests (0 bytes of prompt text) to https://console.spurvik.com/api/v1/telemetry",
+          ].join("\n")
+        : [
+            "# In n8n: Settings -> Community Nodes -> Install n8n-nodes-spurvik (7 EU AI Act operations)",
+            "# Starter workflow JSON: https://spurvik.com/r/n8n-art50-starter.json",
+          ].join("\n");
+    return {
+      target,
+      runtime: "workflow",
+      detected,
+      ...metaFields,
+      installCommand:
+        target === "make"
+          ? "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json"
+          : "npm install n8n-nodes-spurvik",
+      snippet,
+      envTemplate: [
+        "SPURVIK_BASE_URL=https://console.spurvik.com",
+        "SPURVIK_API_KEY=",
+      ],
+      links,
+    };
+  }
 
   if (CMS_SETUP_TARGETS.includes(target) || target === "react") {
     const snippetLocale = loc ?? "en";
@@ -1296,6 +1374,10 @@ function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
     detected = stack.detected;
   } else if (SETUP_TARGETS.includes(arg0.toLowerCase() as SetupTarget)) {
     target = arg0.toLowerCase() as SetupTarget;
+  } else if (Object.prototype.hasOwnProperty.call(SETUP_TARGET_ALIASES, arg0.toLowerCase())) {
+    const lower = arg0.toLowerCase();
+    target = SETUP_TARGET_ALIASES[lower]!;
+    autoRuntime = SETUP_DEFAULT_RUNTIME_BY_ALIAS[lower];
   } else {
     const candidateDir = path.resolve(base, arg0);
     if (dirExists(candidateDir)) {

@@ -1223,6 +1223,14 @@ describe("spurvik setup / init (H107b)", () => {
       expect(rfpJson.interactiveUrl).toBe(`https://spurvik.com/${slug}?domain=${host}`);
       expect(rfpJson.upgradeUrls.proWhiteLabelEur19).toContain(`&appUrl=${host}&locale=${lang}`);
     }
+
+    const lovableH = harness();
+    expect(await runCli(["setup", "lovable", "--domain", "app.eu", "--lang", "sv", "--json"], lovableH.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(lovableH.out())).toMatchObject({ target: "openai", runtime: "supabase-edge", domain: "app.eu", locale: "sv" });
+
+    const n8nH = harness();
+    expect(await runCli(["setup", "n8n", "--json"], n8nH.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(n8nH.out())).toMatchObject({ target: "n8n", runtime: "workflow", installCommand: "npm install n8n-nodes-spurvik" });
   });
 });
 

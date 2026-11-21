@@ -424,6 +424,18 @@ describe("createServer", () => {
     const wpOut = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "wordpress" } }));
     expect(wpOut).toContain("spurvik-eu-ai-act-wp.zip");
     expect(wpOut).toContain("```php\n");
+
+    const lovableOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { target: "lovable", locale: "sv" } }),
+    );
+    expect(lovableOut).toContain("EdgeRuntime.waitUntil");
+    expect(lovableOut).toContain('locale="sv"');
+
+    const n8nOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n", locale: "de" } }),
+    );
+    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.9");
+    expect(n8nOut).toContain("/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe");
     await client.close();
   });
 
