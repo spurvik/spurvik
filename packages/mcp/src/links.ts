@@ -29,9 +29,10 @@ export const TEAM_PRICE = "€79/mo";
 export const CONCIERGE_PRICE = "€199 once";
 export const PRICE_NOTE = "Prices excl. VAT, B2B.";
 
-/** `?domain=` report link for one host. */
-export function reportUrlFor(host: string): string {
-  return `${REPORT_URL}?domain=${encodeURIComponent(host)}`;
+/** `?domain=` report link for one host (adds `&locale=` only when an explicit non-English locale overrides a generic TLD). */
+export function reportUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc}`;
 }
 
 /** `?scan=` sandbox link for one host. */
@@ -40,13 +41,51 @@ export function sandboxUrlFor(host: string): string {
 }
 
 /** Pro signup with the scanned host prefilled as `appUrl`. */
-export function proSignupUrlFor(host: string): string {
-  return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+export function proSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
+
+/** Team (€79/mo) signup with the scanned host prefilled as `appUrl`. */
+export function teamSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${TEAM_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
 }
 
 /** Done-For-You signup with the scanned host prefilled as `appUrl`. */
-export function conciergeSignupUrlFor(host: string): string {
-  return `${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}`;
+export function conciergeSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
+
+/** Interactive C2PA JUMBF checker prefilled with the scanned domain (and optional public hero image URL). */
+export function c2paCheckUrlFor(host: string, heroImageUrl?: string | null, locale?: string): string {
+  const parts = [`domain=${encodeURIComponent(host)}`];
+  if (locale && locale !== "en") parts.push(`locale=${encodeURIComponent(locale)}`);
+  if (heroImageUrl) parts.push(`url=${encodeURIComponent(heroImageUrl)}`);
+  return `${C2PA_PAGE_URL}?${parts.join("&")}`;
+}
+
+/** 8-language EU AI Act vendor security questionnaire & DPO RFP cockpit URL prefilled with `?domain=`. */
+export function rfpQuestionnaireUrlFor(host: string, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb"
+      : code === "fr"
+        ? "/fr/questionnaire-securite-reglement-ia-dpo-fournisseur"
+        : code === "nl"
+          ? "/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging"
+          : code === "da"
+            ? "/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed"
+            : code === "es"
+              ? "/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd"
+              : code === "it"
+                ? "/it/questionario-sicurezza-fornitori-reglamento-ia-dpo"
+                : code === "sv"
+                  ? "/sv/ai-forordningen-leverantorssakerhetsformular-dso"
+                  : "/eu-ai-act-vendor-security-questionnaire";
+  return `https://spurvik.com${slug}?domain=${encodeURIComponent(host)}`;
 }
 
 /** Live Art. 50 status shield SVG for one host. */

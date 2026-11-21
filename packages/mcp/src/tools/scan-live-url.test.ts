@@ -353,6 +353,53 @@ describe("scanLiveUrl", () => {
     expect(frOnCom.suggestedLocale).toBe("fr");
     expect(frOnCom.suggestedLanguage).toBe("Français (fr)");
     expect(frOnCom.badgeSnippet).toContain('data-locale="fr"');
+    expect(frOnCom.reportUrl).toBe("https://console.spurvik.com/report?domain=charlie-paris.com&locale=fr");
+    expect(frOnCom.rfpQuestionnaireUrl).toBe(
+      "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur?domain=charlie-paris.com",
+    );
+    expect(frOnCom.upgradeUrls.teamAuditAndAnnexIv).toBe(
+      "https://console.spurvik.com/signup?plan=team&appUrl=charlie-paris.com&locale=fr",
+    );
+    expect(frOnCom.confirmedAiSurface).toBe(true);
+
+    // Dual-use helpdesk widget + heroImageUrl + SSRF refusal on private heroImageUrl (H128b).
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
+          scan: {
+            ...UPSTREAM_SCAN,
+            domain: "charlie-paris.com",
+            scannedUrl: "https://charlie-paris.com/",
+            detectedWidgets: ["Gorgias"],
+            detectedSdks: [],
+            htmlLocale: "fr",
+            heroImageUrl: "https://charlie-paris.com/cdn/hero.jpg",
+          },
+        }),
+      ),
+    );
+    const dualUse = await expectOk(scanLiveUrl("charlie-paris.com"));
+    expect(dualUse.confirmedAiSurface).toBe(false);
+    expect(dualUse.heroImageUrl).toBe("https://charlie-paris.com/cdn/hero.jpg");
+    expect(dualUse.c2paCheckUrl).toBe(
+      "https://console.spurvik.com/c2pa?domain=charlie-paris.com&locale=fr&url=https%3A%2F%2Fcharlie-paris.com%2Fcdn%2Fhero.jpg",
+    );
+    expect(dualUse.note).toContain("human-only live chat needs none");
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
+          scan: { ...UPSTREAM_SCAN, heroImageUrl: "https://127.0.0.1/secret.png" },
+        }),
+      ),
+    );
+    const ssrfHero = await expectOk(scanLiveUrl("stepnetwork.dk"));
+    expect(ssrfHero.heroImageUrl).toBeNull();
+    expect(ssrfHero.c2paCheckUrl).toBe("https://console.spurvik.com/c2pa?domain=stepnetwork.dk&locale=da");
 
     // Explicit EU ccTLD (.dk -> da) takes precedence over htmlLocale.
     vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ ok: true, scan: { ...UPSTREAM_SCAN, htmlLocale: "fr" } })));

@@ -1,0 +1,488 @@
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { SpurvikConfigError } from "./errors.js";
+const MIN_SECRET_LENGTH = 16;
+const MAX_CLOCK_SKEW_SECONDS = 300;
+/** Default lifetime of an approval link, same as 1.0.4. A link can be reused until this window ends. */
+const DEFAULT_LINK_MAX_AGE_SECONDS = 86_400;
+/** Upper bound for a caller-supplied maxAgeSeconds. Longer values use this cap. */
+const MAX_LINK_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const REQUIRED_CHANNEL_FIELDS = {
+    slack: ["webhookUrl"],
+    telegram: ["botToken", "chatId"],
+    email: ["resendApiKey", "from", "to"],
+    discord: ["webhookUrl"],
+    teams: ["webhookUrl"],
+    linear: ["apiKey", "teamId"],
+    jira: ["baseUrl", "email", "apiToken", "projectKey"],
+    monday: ["apiToken", "boardId"],
+    asana: ["accessToken", "projectGid"],
+};
+/** Throws when a channel is unknown or a required credential/target field is missing or blank. */
+function assertChannelConfig(channel) {
+    const required = channel && REQUIRED_CHANNEL_FIELDS[channel.type];
+    if (!required) {
+        throw new SpurvikConfigError(`Unknown approval channel type: ${String(channel?.type)}.`);
+    }
+    for (const field of required) {
+        const value = channel[field];
+        const present = Array.isArray(value)
+            ? value.length > 0 && value.every((v) => typeof v === "string" && v.trim().length > 0)
+            : typeof value === "string" && value.trim().length > 0;
+        if (!present) {
+            throw new SpurvikConfigError(`Approval channel "${channel.type}" requires a non-empty "${field}".`);
+        }
+    }
+}
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+function resolveMaxAgeSeconds(value) {
+    if (value === 0) {
+        throw new SpurvikConfigError("maxAgeSeconds must be greater than 0. Omit it to use the 86400 second default.");
+    }
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0)
+        return DEFAULT_LINK_MAX_AGE_SECONDS;
+    return Math.min(value, MAX_LINK_MAX_AGE_SECONDS);
+}
+function assertSigningSecret(secret) {
+    if (typeof secret !== "string" || secret.length === 0) {
+        throw new SpurvikConfigError("Channel approval secret is missing.");
+    }
+    if (secret !== secret.trim()) {
+        throw new SpurvikConfigError("Channel approval secret must not have leading or trailing whitespace.");
+    }
+    if (secret.length < MIN_SECRET_LENGTH) {
+        throw new SpurvikConfigError(`Channel approval secret must be at least ${MIN_SECRET_LENGTH} characters.`);
+    }
+}
+/**
+ * HMAC payload for an approval link.
+ * A nonce is appended only when present, so a 1.0.4 token (no nonce) still matches.
+ * Domain prefixes `spurvik:art12` and `spurvik:art14` are part of the signed bytes.
+ */
+function decisionMacPayload(gateId, actionHmac, decision, issuedAtUnix, nonce) {
+    const base = `spurvik:art14:decision:v1|${gateId}|${actionHmac}|${decision}|${issuedAtUnix}`;
+    if (typeof nonce === "string" && nonce.length > 0)
+        return `${base}|${nonce}`;
+    return base;
+}
+/**
+ * Generates a deterministic HMAC-SHA256 digest and signed Approve / Block URLs
+ * without persisting raw prompt text (GDPR Art. 5(1)(c) & EU AI Act Art. 12/14).
+ */
+export function createSignedApprovalLinks(request, signingSecret, issuedAtUnix = Math.floor(Date.now() / 1000)) {
+    assertSigningSecret(signingSecret);
+    const contextPairs = Object.entries(request.context ?? {})
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${String(v)}`)
+        .join("&");
+    const actionHmac = createHmac("sha256", signingSecret)
+        .update(`spurvik:art12:v1|${request.gateId}|${request.actionName}|${contextPairs}`, "utf8")
+        .digest("hex");
+    const nonce = randomBytes(16).toString("hex");
+    const approveToken = createHmac("sha256", signingSecret)
+        .update(decisionMacPayload(request.gateId, actionHmac, "approved", issuedAtUnix, nonce), "utf8")
+        .digest("hex");
+    const rejectToken = createHmac("sha256", signingSecret)
+        .update(decisionMacPayload(request.gateId, actionHmac, "rejected", issuedAtUnix, nonce), "utf8")
+        .digest("hex");
+    const callbackBaseUrl = request.callbackBaseUrl?.trim() ?? "";
+    if (!callbackBaseUrl) {
+        throw new SpurvikConfigError("callbackBaseUrl is required. Pass a URL that accepts GET clicks on the Approve and Block links. The SDK does not supply a console default.");
+    }
+    const base = callbackBaseUrl.replace(/\/+$/, "");
+    const queryBase = `gateId=${encodeURIComponent(request.gateId)}&ts=${issuedAtUnix}&hmac=${actionHmac}&nonce=${encodeURIComponent(nonce)}`;
+    return {
+        gateId: request.gateId,
+        actionName: request.actionName,
+        actionHmac,
+        approveToken,
+        rejectToken,
+        approveUrl: `${base}?${queryBase}&decision=approved&sig=${approveToken}`,
+        rejectUrl: `${base}?${queryBase}&decision=rejected&sig=${rejectToken}`,
+        nonce,
+        issuedAtUnix,
+    };
+}
+/**
+ * Checks Spurvik's own Approve / Block link token in constant time.
+ * This does not verify a Slack, Telegram, Discord, Teams, or other platform webhook signature.
+ * Approvers click signed links. The SDK does not receive platform webhooks.
+ * Pass `nonce` for tokens created by this version. Omit it for a 1.0.4 token, which has no nonce.
+ */
+export function verifyChannelApprovalToken(params) {
+    if (typeof params.signature !== "string")
+        return false;
+    assertSigningSecret(params.signingSecret);
+    const maxAge = resolveMaxAgeSeconds(params.maxAgeSeconds);
+    const now = params.nowUnixSeconds ?? Math.floor(Date.now() / 1000);
+    if (!Number.isFinite(params.issuedAtUnix))
+        return false;
+    if (now - params.issuedAtUnix > maxAge)
+        return false;
+    if (params.issuedAtUnix - now > MAX_CLOCK_SKEW_SECONDS)
+        return false;
+    const expectedHex = createHmac("sha256", params.signingSecret)
+        .update(decisionMacPayload(params.gateId, params.actionHmac, params.decision, params.issuedAtUnix, params.nonce), "utf8")
+        .digest("hex");
+    if (params.signature.length !== expectedHex.length)
+        return false;
+    try {
+        const actualBuf = Buffer.from(params.signature, "hex");
+        const expectedBuf = Buffer.from(expectedHex, "hex");
+        return actualBuf.length === expectedBuf.length && timingSafeEqual(actualBuf, expectedBuf);
+    }
+    catch {
+        return false;
+    }
+}
+/**
+ * Checks Spurvik's own approval-link token.
+ * Returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when the token matches.
+ * Returns `false` when it does not, including when `signature` is missing or not a string.
+ * A missing signature does not throw. A missing or too-short signing secret still throws.
+ * This does not verify a Slack, Telegram, Discord, or other platform webhook signature.
+ */
+export function verifySignedChannelCallback(input) {
+    if (input == null || typeof input.signature !== "string" || input.signature.length === 0)
+        return false;
+    if (typeof input.gateId !== "string" || input.gateId.length === 0)
+        return false;
+    if (typeof input.actionHmac !== "string" || input.actionHmac.length === 0)
+        return false;
+    if (input.decision !== "approved" && input.decision !== "rejected")
+        return false;
+    const issuedAtUnix = typeof input.issuedAtUnix === "number" ? input.issuedAtUnix : Number.NaN;
+    if (!Number.isFinite(issuedAtUnix))
+        return false;
+    const nonce = typeof input.nonce === "string" && input.nonce.length > 0 ? input.nonce : null;
+    const ok = verifyChannelApprovalToken({
+        gateId: input.gateId,
+        actionHmac: input.actionHmac,
+        decision: input.decision,
+        issuedAtUnix,
+        signature: input.signature,
+        nonce,
+        signingSecret: input.signingSecret,
+        maxAgeSeconds: input.maxAgeSeconds,
+        nowUnixSeconds: input.nowUnixSeconds,
+    });
+    if (!ok)
+        return false;
+    return {
+        ok: true,
+        decision: input.decision,
+        gateId: input.gateId,
+        actionHmac: input.actionHmac,
+        issuedAtUnix,
+        nonce,
+    };
+}
+/**
+ * Builds the native channel request URL, headers, and body for any of the 9 supported
+ * human-in-the-loop channels (`slack`, `telegram`, `email`, `discord`, `teams`, `linear`, `jira`, `monday`, `asana`).
+ */
+export function buildChannelOutboundRequest(channel, request, links) {
+    assertChannelConfig(channel);
+    const shortHmac = links.actionHmac.slice(0, 12);
+    const title = `[Spurvik Art. 14 Gate] ${request.actionName}`;
+    const details = `${request.summary} (gate=${request.gateId}, hmac=${shortHmac})`;
+    switch (channel.type) {
+        case "slack":
+            return {
+                url: channel.webhookUrl,
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    text: `${title}: ${details}`,
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text: `*${title}*\n${request.summary}\n\`gate=${request.gateId}\` · \`hmac=${shortHmac}\``,
+                            },
+                        },
+                        {
+                            type: "actions",
+                            elements: [
+                                {
+                                    type: "button",
+                                    text: { type: "plain_text", text: "Approve Action" },
+                                    style: "primary",
+                                    url: links.approveUrl,
+                                    action_id: `spurvik_approve_${request.gateId}`,
+                                },
+                                {
+                                    type: "button",
+                                    text: { type: "plain_text", text: "Block Agent" },
+                                    style: "danger",
+                                    url: links.rejectUrl,
+                                    action_id: `spurvik_reject_${request.gateId}`,
+                                },
+                            ],
+                        },
+                    ],
+                }),
+            };
+        case "telegram": {
+            const apiBase = (channel.apiBaseUrl?.trim() || "https://api.telegram.org").replace(/\/+$/, "");
+            return {
+                url: `${apiBase}/bot${channel.botToken}/sendMessage`,
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: channel.chatId,
+                    text: `${title}\n${request.summary}\ngate=${request.gateId} · hmac=${shortHmac}`,
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: "Approve Action", url: links.approveUrl },
+                                { text: "Block Agent", url: links.rejectUrl },
+                            ],
+                        ],
+                    },
+                }),
+            };
+        }
+        case "email": {
+            const apiBase = (channel.apiBaseUrl?.trim() || "https://api.resend.com").replace(/\/+$/, "");
+            const recipients = Array.isArray(channel.to) ? channel.to : [channel.to];
+            return {
+                url: `${apiBase}/emails`,
+                headers: {
+                    authorization: `Bearer ${channel.resendApiKey}`,
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    from: channel.from,
+                    to: recipients,
+                    subject: `${title} — Human approval required`,
+                    text: `${title}\n\n${request.summary}\nGate ID: ${request.gateId}\nHMAC-SHA256: ${links.actionHmac}\n\nApprove: ${links.approveUrl}\nBlock: ${links.rejectUrl}`,
+                    html: `<div style="font-family:sans-serif;background:#05080F;color:#F8FAFC;padding:24px;border-radius:12px;">
+  <h2 style="margin:0 0 8px;color:#10B981;">${escapeHtml(title)}</h2>
+  <p style="margin:0 0 16px;color:#CBD5E1;">${escapeHtml(request.summary)}</p>
+  <p style="font-family:monospace;font-size:12px;color:#94A3B8;">gate=${escapeHtml(request.gateId)} · hmac=${escapeHtml(shortHmac)}</p>
+  <div style="margin-top:20px;">
+    <a href="${escapeHtml(links.approveUrl)}" style="background:#10B981;color:#05080F;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;margin-right:12px;">Approve Action</a>
+    <a href="${escapeHtml(links.rejectUrl)}" style="background:#EF4444;color:#FFFFFF;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Block Agent</a>
+  </div>
+</div>`,
+                }),
+            };
+        }
+        case "discord":
+            return {
+                url: channel.webhookUrl,
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    content: `**${title}**\n${request.summary}\n\`gate=${request.gateId}\` · \`hmac=${shortHmac}\`\nApprove: <${links.approveUrl}> | Block: <${links.rejectUrl}>`,
+                }),
+            };
+        case "teams":
+            return {
+                url: channel.webhookUrl,
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    type: "message",
+                    attachments: [
+                        {
+                            contentType: "application/vnd.microsoft.card.adaptive",
+                            content: {
+                                $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+                                type: "AdaptiveCard",
+                                version: "1.4",
+                                body: [
+                                    { type: "TextBlock", text: title, weight: "Bolder", size: "Medium" },
+                                    { type: "TextBlock", text: request.summary, wrap: true },
+                                    { type: "TextBlock", text: `gate=${request.gateId} · hmac=${shortHmac}`, isSubtle: true, wrap: true },
+                                ],
+                                actions: [
+                                    { type: "Action.OpenUrl", title: "Approve Action", url: links.approveUrl },
+                                    { type: "Action.OpenUrl", title: "Block Agent", url: links.rejectUrl },
+                                ],
+                            },
+                        },
+                    ],
+                }),
+            };
+        case "linear":
+            return {
+                url: channel.apiUrl?.trim() || "https://api.linear.app/graphql",
+                headers: {
+                    authorization: channel.apiKey,
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    query: `mutation SpurvikCreateHitlIssue($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier url } } }`,
+                    variables: {
+                        input: {
+                            teamId: channel.teamId,
+                            title,
+                            description: `${request.summary}\n\n- **Gate ID**: \`${request.gateId}\`\n- **Art. 12 HMAC-SHA256**: \`${links.actionHmac}\`\n- [Approve Action](${links.approveUrl})\n- [Block Agent](${links.rejectUrl})`,
+                        },
+                    },
+                }),
+            };
+        case "jira": {
+            const base = channel.baseUrl.replace(/\/+$/, "");
+            const basic = Buffer.from(`${channel.email}:${channel.apiToken}`, "utf8").toString("base64");
+            return {
+                url: `${base}/rest/api/3/issue`,
+                headers: {
+                    authorization: `Basic ${basic}`,
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    fields: {
+                        project: { key: channel.projectKey },
+                        summary: title,
+                        issuetype: { name: channel.issueTypeName || "Task" },
+                        description: {
+                            type: "doc",
+                            version: 1,
+                            content: [
+                                {
+                                    type: "paragraph",
+                                    content: [
+                                        {
+                                            type: "text",
+                                            text: `${details}\nApprove: ${links.approveUrl}\nBlock: ${links.rejectUrl}`,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    },
+                }),
+            };
+        }
+        case "monday":
+            // Creates a board item only. The item name does not include Approve or Block links.
+            return {
+                url: channel.apiUrl?.trim() || "https://api.monday.com/v2",
+                headers: {
+                    authorization: channel.apiToken,
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    query: `mutation ($boardId: ID!, $groupId: String, $itemName: String!) { create_item (board_id: $boardId, group_id: $groupId, item_name: $itemName) { id } }`,
+                    variables: {
+                        boardId: channel.boardId,
+                        groupId: channel.groupId,
+                        itemName: `${title} — ${request.summary} [gate=${request.gateId}]`,
+                    },
+                }),
+            };
+        case "asana": {
+            const apiBase = (channel.apiBaseUrl?.trim() || "https://app.asana.com/api/1.0").replace(/\/+$/, "");
+            return {
+                url: `${apiBase}/tasks`,
+                headers: {
+                    authorization: `Bearer ${channel.accessToken}`,
+                    "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    data: {
+                        name: title,
+                        projects: [channel.projectGid],
+                        notes: `${request.summary}\n\nGate ID: ${request.gateId}\nHMAC-SHA256: ${links.actionHmac}\nApprove: ${links.approveUrl}\nBlock: ${links.rejectUrl}`,
+                    },
+                }),
+            };
+        }
+    }
+}
+/**
+ * Dispatches a signed human-in-the-loop (`ask_human`) approval request to any supported channel
+ * (`slack`, `telegram`, `email`, `discord`, `teams`, `linear`, `jira`, `monday`, `asana`).
+ */
+export async function dispatchHumanApprovalChannel(channel, request, opts) {
+    const fetchImpl = opts.fetchImpl ?? fetch;
+    const links = createSignedApprovalLinks(request, opts.signingSecret, opts.issuedAtUnix);
+    const outbound = buildChannelOutboundRequest(channel, request, links);
+    const response = await fetchImpl(outbound.url, {
+        method: "POST",
+        headers: outbound.headers,
+        body: outbound.body,
+    });
+    if (!response.ok) {
+        throw new Error(`Channel dispatch (${channel.type}) failed with HTTP ${response.status}.`);
+    }
+    let externalId = null;
+    let notSent = null;
+    try {
+        const data = (await response.json());
+        if (Array.isArray(data?.errors) && data.errors.length > 0) {
+            notSent = `Channel dispatch (${channel.type}) returned ${data.errors.length} GraphQL error(s) with HTTP ${response.status}.`;
+        }
+        else if (data?.error_code !== undefined && data.error_code !== null && String(data.error_code).length > 0) {
+            notSent = `Channel dispatch (${channel.type}) was not sent (error_code ${String(data.error_code)}) with HTTP ${response.status}.`;
+        }
+        else {
+            const issueCreate = data?.data
+                ?.issueCreate;
+            if (issueCreate && issueCreate.success === false) {
+                notSent = `Channel dispatch (${channel.type}) was not sent (success is false) with HTTP ${response.status}.`;
+            }
+            else if (typeof data?.id === "string")
+                externalId = data.id;
+            else if (typeof data?.result?.message_id === "number") {
+                externalId = String(data.result.message_id);
+            }
+            else if (typeof issueCreate?.issue?.id === "string") {
+                externalId = issueCreate.issue.id;
+            }
+            else if (typeof data?.data?.gid === "string") {
+                externalId = data.data.gid;
+            }
+            else if (typeof data?.data?.create_item?.id === "string") {
+                externalId = data.data.create_item.id;
+            }
+        }
+    }
+    catch {
+        // Non-JSON responses (e.g. Slack `"ok"` text) are valid.
+    }
+    if (notSent) {
+        throw new Error(notSent);
+    }
+    return {
+        channel: channel.type,
+        gateId: request.gateId,
+        actionHmac: links.actionHmac,
+        httpStatus: response.status,
+        externalId,
+    };
+}
+/**
+ * Multi-channel `ask_human()` router that fans out a deterministic pre-flight approval request
+ * across all configured channels (e.g. Slack + Linear, or Telegram + Email) in parallel.
+ */
+export function createMultiChannelApprovalRouter(opts) {
+    assertSigningSecret(opts.signingSecret);
+    if (!Array.isArray(opts.channels) || opts.channels.length === 0) {
+        throw new SpurvikConfigError("Provide at least one channel in createMultiChannelApprovalRouter.");
+    }
+    opts.channels.forEach(assertChannelConfig);
+    return {
+        async requestApproval(request) {
+            const links = createSignedApprovalLinks(request, opts.signingSecret);
+            const receipts = await Promise.all(opts.channels.map((channel) => dispatchHumanApprovalChannel(channel, request, {
+                signingSecret: opts.signingSecret,
+                fetchImpl: opts.fetchImpl,
+                issuedAtUnix: links.issuedAtUnix,
+            })));
+            return { links, receipts };
+        },
+        verifyCallback(params) {
+            return verifyChannelApprovalToken({
+                ...params,
+                signingSecret: opts.signingSecret,
+            });
+        },
+    };
+}

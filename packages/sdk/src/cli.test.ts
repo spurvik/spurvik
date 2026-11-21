@@ -184,6 +184,26 @@ describe("spurvik scan", () => {
     );
     expect(await runCli(["scan", "charlie-paris.com"], frHtml.deps)).toBe(EXIT_OK);
     expect(frHtml.out()).toContain('data-locale="fr"');
+    expect(frHtml.out()).toContain("https://console.spurvik.com/report?domain=charlie-paris.com&locale=fr");
+    expect(frHtml.out()).toContain("https://console.spurvik.com/signup?plan=team&appUrl=charlie-paris.com&locale=fr");
+
+    const dualUse = harness(
+      (async () =>
+        jsonResponse({
+          ok: true,
+          scan: {
+            ...FOLK_GAP.scan,
+            domain: "acme.co.uk",
+            scannedUrl: "https://acme.co.uk/",
+            detectedWidgets: ["LiveChat"],
+            detectedSdks: [],
+            heroImageUrl: "https://acme.co.uk/hero.webp",
+          },
+        })) as unknown as typeof fetch,
+    );
+    expect(await runCli(["scan", "acme.co.uk"], dualUse.deps)).toBe(EXIT_OK);
+    expect(dualUse.out()).toContain("human-only chat needs none");
+    expect(dualUse.out()).toContain("https://console.spurvik.com/c2pa?domain=acme.co.uk&url=https%3A%2F%2Facme.co.uk%2Fhero.webp");
   });
 
   it("network errors and timeouts exit 2 with a short message and no stack", async () => {

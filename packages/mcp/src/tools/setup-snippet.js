@@ -1,0 +1,694 @@
+import { DOES_NOT_MARK, RISK_TIER_SAMPLE_COMMENT, UNKNOWN_FRAMEWORK, UNKNOWN_RUNTIME, } from "../copy.js";
+import { CONCIERGE_PRICE, CONCIERGE_SIGNUP_URL, conciergeSignupUrlFor, PRICE_NOTE, PRO_PRICE, PRO_SIGNUP_URL, proSignupUrlFor, REPORT_URL, reportUrlFor, } from "../links.js";
+import { sdkExportNames } from "../sdk-exports.js";
+import { EU_LANGUAGES } from "./badge-copy.js";
+import { publicHostname } from "./public-hostname.js";
+export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
+export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
+export const WORKFLOW_FRAMEWORKS = ["n8n", "make"];
+export const FRAMEWORKS = [
+    "openai",
+    "anthropic",
+    "google-genai",
+    "vercel-ai-sdk",
+    "mastra",
+    "openai-agents",
+    "langgraph",
+    ...PYTHON_FRAMEWORKS,
+    ...CMS_FRAMEWORKS,
+    ...WORKFLOW_FRAMEWORKS,
+];
+export const RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"];
+const SETUP_FRAMEWORK_ALIASES = {
+    gemini: "google-genai",
+    google: "google-genai",
+    google_genai: "google-genai",
+    claude: "anthropic",
+    "ai-sdk": "vercel-ai-sdk",
+    ai_sdk: "vercel-ai-sdk",
+    vercel: "vercel-ai-sdk",
+    next: "vercel-ai-sdk",
+    nextjs: "vercel-ai-sdk",
+    "next.js": "vercel-ai-sdk",
+    bolt: "vercel-ai-sdk",
+    "bolt.new": "vercel-ai-sdk",
+    v0: "vercel-ai-sdk",
+    replit: "vercel-ai-sdk",
+    lovable: "openai",
+    supabase: "openai",
+    "supabase-edge": "openai",
+    django: "python",
+    flask: "python",
+    woocommerce: "wordpress",
+    prestashop: "html",
+    shopware: "html",
+    centra: "html",
+    dandomain: "html",
+    lightspeed: "html",
+    "make.com": "make",
+};
+const SETUP_DEFAULT_RUNTIME_BY_ALIAS = {
+    next: "next",
+    nextjs: "next",
+    "next.js": "next",
+    vercel: "vercel",
+    lovable: "supabase-edge",
+    supabase: "supabase-edge",
+    "supabase-edge": "supabase-edge",
+};
+export function resolveSetupFrameworkAndRuntime(rawFramework, rawRuntime) {
+    const lower = rawFramework.trim().toLowerCase();
+    const framework = lower === "" ? "openai" : (SETUP_FRAMEWORK_ALIASES[lower] ?? lower);
+    const aliasRuntime = SETUP_DEFAULT_RUNTIME_BY_ALIAS[lower];
+    const runtime = rawRuntime && rawRuntime.trim()
+        ? rawRuntime.trim()
+        : (aliasRuntime ?? (isPythonFramework(framework) ? "python" : "node"));
+    return { framework, runtime, isLovableAlias: lower === "lovable" };
+}
+export function isPythonFramework(value) {
+    return PYTHON_FRAMEWORKS.includes(value);
+}
+export function isCmsFramework(value) {
+    return CMS_FRAMEWORKS.includes(value);
+}
+export function isWorkflowFramework(value) {
+    return WORKFLOW_FRAMEWORKS.includes(value);
+}
+export function isPythonVariant(framework, runtime) {
+    return isPythonFramework(framework) || runtime === "python";
+}
+const REQUIRE_ENV = `function requireEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(\`Missing \${name}. Set it in the environment.\`);
+  return value;
+}`;
+const BOUNDED_FLUSH = `function boundedFlush(task: Promise<unknown>): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const limited = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, 3_000);
+  });
+  const settled = task.then(
+    () => undefined,
+    () => undefined,
+  );
+  return Promise.race([settled, limited]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}`;
+function isFramework(value) {
+    return FRAMEWORKS.includes(value);
+}
+function isRuntime(value) {
+    return RUNTIMES.includes(value);
+}
+function configLiteral(serverless) {
+    const lines = [
+        "{",
+        '    apiKey: requireEnv("SPURVIK_API_KEY"),',
+        '    signingSecret: requireEnv("SPURVIK_SIGNING_SECRET"),',
+        '    contentHash: { mode: "keyed", secret: requireEnv("SPURVIK_CONTENT_HASH_SECRET") },',
+        '    baseUrl: requireEnv("SPURVIK_BASE_URL"), // https://console.spurvik.com (EU Frankfurt fra1)',
+        `    riskTier: "limited_art50", // ${RISK_TIER_SAMPLE_COMMENT}`,
+        "    article50Disclosure: false, // Set true only when the app shows an interaction notice.",
+    ];
+    if (serverless)
+        lines.push("    registerProcessHooks: false,");
+    lines.push("    telemetry: { flushTimeoutMs: 3_000 },");
+    lines.push("  }");
+    return lines.join("\n");
+}
+function runtimeImport(runtime) {
+    if (runtime === "next")
+        return 'import { after } from "next/server";';
+    if (runtime === "vercel")
+        return 'import { waitUntil } from "@vercel/functions";';
+    return "";
+}
+function runtimeDeclare(runtime) {
+    if (runtime !== "supabase-edge")
+        return "";
+    return `declare const EdgeRuntime: {
+  waitUntil(task: Promise<void>): void;
+};`;
+}
+function providerFlush(runtime) {
+    if (runtime === "node")
+        return "";
+    if (runtime === "next")
+        return "  after(() => client._spurvik.flush());";
+    if (runtime === "vercel")
+        return "  waitUntil(client._spurvik.flush());";
+    return "  EdgeRuntime.waitUntil(client._spurvik.flush());";
+}
+function middlewareFlush(runtime) {
+    if (runtime === "node")
+        return "";
+    if (runtime === "next")
+        return "  after(() => spurvik().flush());";
+    if (runtime === "vercel")
+        return "  waitUntil(spurvik().flush());";
+    return "  EdgeRuntime.waitUntil(spurvik().flush());";
+}
+function nodeShutdown(expr) {
+    return `process.once("SIGTERM", () => {
+  void boundedFlush(${expr}).finally(() => process.exit(0));
+});`;
+}
+/** Published spurvik / spurvik-sdk version interpolated into snippets. Keep in sync with packages/sdk. */
+export const SNIPPET_SDK_VERSION = "1.0.12";
+function header() {
+    return [
+        "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
+        `// Unscoped npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION} (MIT, same build).`,
+    ].join("\n");
+}
+function holderFlush(runtime, call) {
+    if (runtime === "node")
+        return "";
+    if (runtime === "next")
+        return `  after(() => ${call});`;
+    if (runtime === "vercel")
+        return `  waitUntil(${call});`;
+    return `  EdgeRuntime.waitUntil(${call});`;
+}
+function mastraSource(runtime) {
+    const { provenanceFromMetadata, withSpurvikMastra } = sdkExportNames;
+    const serverless = runtime !== "node";
+    const imports = [
+        'import type { LanguageModelV4 } from "@ai-sdk/provider";',
+        'import { Agent } from "@mastra/core/agent";',
+        'import { verifyProvenanceSignature } from "spurvik";',
+        `import { ${provenanceFromMetadata}, ${withSpurvikMastra} } from "spurvik/mastra";`,
+        runtimeImport(runtime),
+    ].filter((line) => line.length > 0);
+    const parts = [
+        header(),
+        "",
+        imports.join("\n"),
+        "",
+        runtimeDeclare(runtime),
+        REQUIRE_ENV,
+        "",
+        runtime === "node" ? `${BOUNDED_FLUSH}\n` : "",
+        `let active: ReturnType<typeof ${withSpurvikMastra}> | undefined;`,
+        "",
+        "function bind(model: LanguageModelV4) {",
+        `  active ??= ${withSpurvikMastra}(model, ${configLiteral(serverless)});`,
+        "  return active;",
+        "}",
+        "",
+        "export async function run(model: LanguageModelV4) {",
+        "  const wrapped = bind(model);",
+        "  const agent = new Agent({",
+        '    id: "support",',
+        '    name: "support",',
+        '    instructions: "Answer briefly.",',
+        "    model: wrapped.model,",
+        "  });",
+        '  const generated = await agent.generate("Hello");',
+        `  const record = ${provenanceFromMetadata}(generated.providerMetadata as Parameters<typeof ${provenanceFromMetadata}>[0]);`,
+        "  if (record) await verifyProvenanceSignature(record, requireEnv(\"SPURVIK_SIGNING_SECRET\"));",
+        holderFlush(runtime, "active?.flush() ?? Promise.resolve()"),
+        "  return record;",
+        "}",
+        "",
+        runtime === "node" ? nodeShutdown("active?.flush() ?? Promise.resolve()") : "",
+    ];
+    return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+function agentsSource(runtime) {
+    const { provenanceFromAgentsResponse, withSpurvikModelProvider } = sdkExportNames;
+    const serverless = runtime !== "node";
+    const imports = [
+        'import { Agent, Runner, type ModelProvider } from "@openai/agents";',
+        'import { verifyProvenanceSignature } from "spurvik";',
+        `import { ${provenanceFromAgentsResponse}, ${withSpurvikModelProvider} } from "spurvik/openai-agents";`,
+        runtimeImport(runtime),
+    ].filter((line) => line.length > 0);
+    const parts = [
+        header(),
+        "",
+        imports.join("\n"),
+        "",
+        runtimeDeclare(runtime),
+        REQUIRE_ENV,
+        "",
+        runtime === "node" ? `${BOUNDED_FLUSH}\n` : "",
+        `let active: ReturnType<typeof ${withSpurvikModelProvider}> | undefined;`,
+        "",
+        "function bind(inner: ModelProvider) {",
+        `  active ??= ${withSpurvikModelProvider}(inner, ${configLiteral(serverless)});`,
+        "  return active;",
+        "}",
+        "",
+        "export async function run(inner: ModelProvider) {",
+        "  const provider = bind(inner);",
+        "  const runner = new Runner({ modelProvider: provider });",
+        "  const agent = new Agent({",
+        '    name: "support",',
+        '    instructions: "Answer briefly.",',
+        "  });",
+        '  const result = await runner.run(agent, "Hello");',
+        "  const response = result.rawResponses[0];",
+        `  const record = ${provenanceFromAgentsResponse}(response);`,
+        "  if (record) await verifyProvenanceSignature(record, requireEnv(\"SPURVIK_SIGNING_SECRET\"));",
+        holderFlush(runtime, "active?.flush() ?? Promise.resolve()"),
+        "  return record;",
+        "}",
+        "",
+        runtime === "node" ? nodeShutdown("active?.flush() ?? Promise.resolve()") : "",
+    ];
+    return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+function langgraphSource(runtime) {
+    const { provenanceFromLangGraphState, resolveLangGraphInterrupts, spurvikInterrupt, withSpurvikLangGraph, } = sdkExportNames;
+    const serverless = runtime !== "node";
+    const imports = [
+        'import { Command, type CompiledStateGraph } from "@langchain/langgraph";',
+        'import { verifyProvenanceSignature } from "spurvik";',
+        `import { ${provenanceFromLangGraphState}, ${resolveLangGraphInterrupts}, ${spurvikInterrupt}, ${withSpurvikLangGraph} } from "spurvik/langgraph";`,
+        runtimeImport(runtime),
+    ].filter((line) => line.length > 0);
+    const parts = [
+        header(),
+        "",
+        imports.join("\n"),
+        "",
+        runtimeDeclare(runtime),
+        REQUIRE_ENV,
+        "",
+        runtime === "node" ? `${BOUNDED_FLUSH}\n` : "",
+        "type RunnableGraph = CompiledStateGraph<Record<string, unknown>, Record<string, unknown>>;",
+        `let active: ReturnType<typeof ${withSpurvikLangGraph}> | undefined;`,
+        `let spurvikConfig: Parameters<typeof ${withSpurvikLangGraph}>[1] | undefined;`,
+        "",
+        "function bind(compiled: RunnableGraph) {",
+        `  spurvikConfig ??= ${configLiteral(serverless)};`,
+        `  active ??= ${withSpurvikLangGraph}(compiled, spurvikConfig);`,
+        "  return active;",
+        "}",
+        "",
+        "export async function run(compiled: RunnableGraph) {",
+        "  const wrapped = bind(compiled);",
+        "  const config = spurvikConfig;",
+        "  if (!config) throw new Error(\"Missing Spurvik config.\");",
+        "  const state = await wrapped.invoke({});",
+        `  const record = ${provenanceFromLangGraphState}(state);`,
+        `  const decision = await ${spurvikInterrupt}(`,
+        '    { actionName: "send_message", callId: "call_1", payload: { id: "m_1" } },',
+        "    config,",
+        "  );",
+        "  const command = new Command(decision.command);",
+        `  const batch = await ${resolveLangGraphInterrupts}([], config);`,
+        "  const resumed = new Command(batch.command);",
+        "  void command;",
+        "  void resumed;",
+        "  if (record) await verifyProvenanceSignature(record, requireEnv(\"SPURVIK_SIGNING_SECRET\"));",
+        holderFlush(runtime, "active?.flush() ?? Promise.resolve()"),
+        "  return record;",
+        "}",
+        "",
+        runtime === "node" ? nodeShutdown("active?.flush() ?? Promise.resolve()") : "",
+    ];
+    return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+function providerSource(framework, runtime) {
+    const { provenanceOf, withSpurvik } = sdkExportNames;
+    const serverless = runtime !== "node";
+    const clients = {
+        openai: {
+            importLine: 'import OpenAI from "openai";',
+            typeName: "OpenAI",
+            construct: 'new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") })',
+            call: `const completion = await client.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{ role: "user", content: "Hello" }],
+  });
+  const record = ${provenanceOf}(completion);`,
+        },
+        anthropic: {
+            importLine: 'import Anthropic from "@anthropic-ai/sdk";',
+            typeName: "Anthropic",
+            construct: 'new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") })',
+            call: `const message = await client.messages.create({
+    model: "claude-3-5-sonnet-latest",
+    max_tokens: 16,
+    messages: [{ role: "user", content: "Hello" }],
+  });
+  const record = ${provenanceOf}(message);`,
+        },
+        "google-genai": {
+            importLine: 'import { GoogleGenAI } from "@google/genai";',
+            typeName: "GoogleGenAI",
+            construct: 'new GoogleGenAI({ apiKey: requireEnv("GEMINI_API_KEY") })',
+            call: `const generated = await client.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: "Hello",
+  });
+  const record = ${provenanceOf}(generated);`,
+        },
+    };
+    const client = clients[framework];
+    const imports = [
+        client.importLine,
+        `import { ${provenanceOf}, ${withSpurvik} } from "spurvik";`,
+        runtimeImport(runtime),
+    ].filter((line) => line.length > 0);
+    const parts = [
+        header(),
+        "",
+        imports.join("\n"),
+        "",
+        runtimeDeclare(runtime),
+        REQUIRE_ENV,
+        "",
+        runtime === "node" ? `${BOUNDED_FLUSH}\n` : "",
+        `let provider: ${client.typeName} | undefined;`,
+        `let wrapped: ReturnType<typeof ${withSpurvik}<${client.typeName}>> | undefined;`,
+        "",
+        "function aiClient() {",
+        `  provider ??= ${client.construct};`,
+        `  wrapped ??= ${withSpurvik}(provider, ${configLiteral(serverless)});`,
+        "  return wrapped;",
+        "}",
+        "",
+        "export async function run() {",
+        "  const client = aiClient();",
+        client.call,
+        providerFlush(runtime),
+        "  return record;",
+        "}",
+        "",
+        runtime === "node" ? nodeShutdown("wrapped?._spurvik.flush() ?? Promise.resolve()") : "",
+    ];
+    return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+function middlewareSource(runtime) {
+    const { provenanceFromMetadata, spurvikMiddleware } = sdkExportNames;
+    const serverless = runtime !== "node";
+    const imports = [
+        `import { ${provenanceFromMetadata}, ${spurvikMiddleware} } from "spurvik/ai";`,
+        'import { gateway, generateText, wrapLanguageModel } from "ai";',
+        runtimeImport(runtime),
+    ].filter((line) => line.length > 0);
+    const parts = [
+        header(),
+        "",
+        imports.join("\n"),
+        "",
+        runtimeDeclare(runtime),
+        REQUIRE_ENV,
+        "",
+        runtime === "node" ? `${BOUNDED_FLUSH}\n` : "",
+        `let middleware: ReturnType<typeof ${spurvikMiddleware}> | undefined;`,
+        "",
+        "function spurvik() {",
+        `  middleware ??= ${spurvikMiddleware}(${configLiteral(serverless)});`,
+        "  return middleware;",
+        "}",
+        "",
+        "export async function run() {",
+        "  const model = wrapLanguageModel({",
+        '    model: gateway(process.env.AI_MODEL?.trim() || "openai/gpt-4o"),',
+        "    middleware: spurvik(),",
+        "  });",
+        '  const generated = await generateText({ model, prompt: "Hello" });',
+        `  const record = ${provenanceFromMetadata}(generated.providerMetadata);`,
+        middlewareFlush(runtime),
+        "  return record;",
+        "}",
+        "",
+        runtime === "node" ? nodeShutdown("middleware?.flush() ?? Promise.resolve()") : "",
+    ];
+    return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+const PYTHON_GUARD_URL = "https://spurvik.com/r/spurvik_guard.py";
+const PYTHON_GUIDE_URL = "https://spurvik.com/python-fastapi-langchain-eu-ai-act-logging";
+function pythonSource(framework) {
+    const provider = framework === "anthropic" ? "anthropic" : framework === "google-genai" ? "google" : "openai";
+    const headerLines = [
+        `# curl -fsSLO ${PYTHON_GUARD_URL}`,
+        "# Python 3.10+ zero-dependency stdlib helper (MIT) — 0 bytes of raw prompt text sent.",
+        `# Companion TypeScript/React npm packages: spurvik@${SNIPPET_SDK_VERSION} and spurvik-sdk@${SNIPPET_SDK_VERSION}.`,
+        "import time",
+    ];
+    const body = framework === "fastapi"
+        ? [
+            "from fastapi import BackgroundTasks, FastAPI",
+            "from openai import AsyncOpenAI",
+            "from pydantic import BaseModel",
+            "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+            "",
+            "app = FastAPI()",
+            "client = AsyncOpenAI()",
+            "",
+            "class ChatRequest(BaseModel):",
+            "    prompt: str",
+            "",
+            '@app.post("/api/chat")',
+            "async def chat_endpoint(req: ChatRequest, background_tasks: BackgroundTasks) -> dict[str, str]:",
+            "    t0 = time.perf_counter()",
+            '    res = await client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": req.prompt}])',
+            '    output = res.choices[0].message.content or ""',
+            "    background_tasks.add_task(",
+            "        send_telemetry_event,",
+            "        req.prompt,",
+            "        output,",
+            '        model_provider="openai",',
+            '        model_version="gpt-4o",',
+            "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+            "    )",
+            '    return {"reply": output, "art50Badge": art50_badge_html(system_name="Support AI", locale="en")}',
+        ]
+        : framework === "langchain" || framework === "langgraph"
+            ? [
+                "from langchain_openai import ChatOpenAI",
+                "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+                "",
+                'llm = ChatOpenAI(model="gpt-4o")',
+                "",
+                "def run_chain(prompt: str) -> str:",
+                "    t0 = time.perf_counter()",
+                "    reply = llm.invoke(prompt)",
+                "    output = str(reply.content)",
+                "    send_telemetry_event(",
+                "        prompt,",
+                "        output,",
+                '        model_provider="openai",',
+                '        model_version="gpt-4o",',
+                "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+                "    )",
+                "    return output",
+            ]
+            : framework === "pydantic-ai"
+                ? [
+                    "from pydantic_ai import Agent",
+                    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+                    "",
+                    'agent = Agent("openai:gpt-4o")',
+                    "",
+                    "async def run_agent(prompt: str) -> str:",
+                    "    t0 = time.perf_counter()",
+                    "    result = await agent.run(prompt)",
+                    "    output = str(result.output)",
+                    "    send_telemetry_event(",
+                    "        prompt,",
+                    "        output,",
+                    '        model_provider="openai",',
+                    '        model_version="gpt-4o",',
+                    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+                    "    )",
+                    "    return output",
+                ]
+                : [
+                    "from openai import OpenAI",
+                    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+                    "",
+                    "client = OpenAI()",
+                    "",
+                    "def ask_assistant(prompt: str) -> str:",
+                    "    t0 = time.perf_counter()",
+                    '    res = client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "content": prompt}])',
+                    '    output = res.choices[0].message.content or ""',
+                    "    send_telemetry_event(",
+                    "        prompt,",
+                    "        output,",
+                    `        model_provider="${provider}",`,
+                    '        model_version="gpt-4o",',
+                    "        latency_ms=int((time.perf_counter() - t0) * 1000),",
+                    "    )",
+                    "    return output",
+                ];
+    return [
+        ...headerLines,
+        ...body,
+        "",
+        "# Pre-execution human approval gate (Pro €19/mo & Team €79/mo, field names only):",
+        '# approval = request_human_approval("issue_refund", {"order_id": 4821, "amount_eur": 120})',
+        "",
+        "# Visible 24-language Art. 50(1) HTML notice for Jinja2 / FastAPI / Django templates:",
+        '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)',
+    ].join("\n") + "\n";
+}
+function cmsSource(framework, host = null, locale = "en") {
+    if (framework === "shopify") {
+        return [
+            "{%- comment -%} Option A (recommended): curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid -> sections/spurvik-art50-notice.liquid {%- endcomment -%}",
+            "{%- comment -%} Option B: 1-line tag before </body> in layout/theme.liquid {%- endcomment -%}",
+            "<script",
+            '  src="https://spurvik.com/badge.js"',
+            '  data-system="{{ shop.name | escape }}"',
+            '  data-locale="{{ request.locale.iso_code | slice: 0, 2 | downcase }}"',
+            '  data-position="bottom-left"',
+            '  data-attribution="true"',
+            "  defer",
+            "></script>",
+        ].join("\n") + "\n";
+    }
+    if (framework === "wordpress") {
+        return [
+            "<?php",
+            "// WordPress / WooCommerce Art. 50(1) AI notice (or upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip):",
+            "add_action('wp_footer', function (): void {",
+            "    $lang = strtolower(substr(determine_locale(), 0, 2));",
+            "    $site = esc_attr(get_bloginfo('name') ?: 'Support AI');",
+            "    printf(",
+            "        '<script src=\"https://spurvik.com/badge.js\" data-system=\"%s\" data-locale=\"%s\" data-position=\"bottom-left\" data-attribution=\"true\" defer></script>',",
+            "        $site,",
+            "        esc_attr($lang ?: 'en')",
+            "    );",
+            "});",
+        ].join("\n") + "\n";
+    }
+    const sys = host ?? "Support Assistant";
+    return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
+}
+/** Source of the setup snippet (TypeScript, Python 3.10+ stdlib, or CMS/HTML snippet), with no surrounding prose. */
+export function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
+    const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+    const framework = resolved.framework;
+    const runtime = resolved.runtime;
+    if (!isFramework(framework))
+        throw new Error(UNKNOWN_FRAMEWORK);
+    if (!isRuntime(runtime))
+        throw new Error(UNKNOWN_RUNTIME);
+    const host = publicHostname(options.domain);
+    const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+    if (isWorkflowFramework(framework)) {
+        return [
+            "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
+            "npm install n8n-nodes-spurvik@1.0.9",
+            "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
+            "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
+            "",
+        ].join("\n");
+    }
+    if (isCmsFramework(framework))
+        return cmsSource(framework, host, locale);
+    if (isPythonVariant(framework, runtime))
+        return pythonSource(framework);
+    const tsRuntime = runtime;
+    if (framework === "vercel-ai-sdk")
+        return middlewareSource(tsRuntime);
+    if (framework === "mastra")
+        return mastraSource(tsRuntime);
+    if (framework === "openai-agents")
+        return agentsSource(tsRuntime);
+    if (framework === "langgraph")
+        return langgraphSource(tsRuntime);
+    const base = providerSource(framework, tsRuntime);
+    if (resolved.isLovableAlias) {
+        return `${base}\n// Frontend (React): render <AIDisclosureLabel notice="interaction" locale="${locale}" /> from "spurvik/react" above chat messages.\n`;
+    }
+    return base;
+}
+/** Tool text: a short note, then the snippet. */
+export function setupSnippet(frameworkInput, runtimeInput, options = {}) {
+    const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
+    const framework = resolved.framework;
+    const runtime = resolved.runtime;
+    const source = setupSnippetSource(frameworkInput, runtimeInput, options);
+    const host = publicHostname(options.domain);
+    const loc = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en"
+        ? options.locale
+        : null;
+    const locSuffix = loc ? `&locale=${loc}` : "";
+    const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
+    const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+    const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+    if (isWorkflowFramework(framework)) {
+        const guideHref = loc === "de"
+            ? "https://spurvik.com/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe"
+            : loc === "fr"
+                ? "https://spurvik.com/fr/n8n-make-reglement-ia-article-50-hmac-approbation"
+                : "https://spurvik.com/n8n-eu-ai-act-guard";
+        const wfLines = [
+            `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
+            `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
+            `Interactive workflow cockpit: ${guideHref}`,
+            `Shareable readiness report for your domain: ${reportLink}`,
+            `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+            `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+            PRICE_NOTE,
+        ];
+        return `${wfLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+    }
+    if (isCmsFramework(framework)) {
+        const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
+        const guideLine = framework === "shopify"
+            ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure"
+            : framework === "wordpress"
+                ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge"
+                : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
+        const cmsLines = [
+            `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
+            `${guideLine} ${DOES_NOT_MARK}`,
+            `Shareable readiness report for your domain: ${reportLink}`,
+            `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+            `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+            PRICE_NOTE,
+        ];
+        return `${cmsLines.join("\n")}\n\n\`\`\`${langFence}\n${source}\`\`\`\n`;
+    }
+    if (isPythonVariant(framework, runtime)) {
+        const pyLines = [
+            `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
+            `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+            `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
+            `Shareable readiness report for your domain: ${reportLink}`,
+            `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+            `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+            PRICE_NOTE,
+        ];
+        return `${pyLines.join("\n")}\n\n\`\`\`python\n${source}\`\`\`\n`;
+    }
+    const lines = [
+        `Framework: ${framework}. Runtime: ${runtime}.`,
+        "Paste the snippet into the app that calls the model. Keys are read from the environment when the function runs. A missing key throws. The value is not logged.",
+        `\`riskTier\`: ${RISK_TIER_SAMPLE_COMMENT}`,
+        `The SDK logs the call and attaches an HMAC receipt. ${DOES_NOT_MARK}`,
+    ];
+    if (framework === "vercel-ai-sdk") {
+        lines.push("This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik.");
+    }
+    else if (framework === "mastra") {
+        lines.push("This snippet calls withSpurvikMastra.");
+    }
+    else if (framework === "openai-agents") {
+        lines.push("This snippet calls withSpurvikModelProvider.");
+    }
+    else if (framework === "langgraph") {
+        lines.push("This snippet calls withSpurvikLangGraph and spurvikInterrupt.");
+    }
+    else {
+        lines.push("This snippet calls withSpurvik on the provider client.");
+    }
+    if (runtime === "vercel") {
+        lines.push("Install @vercel/functions in the app that calls waitUntil. This monorepo does not depend on that package.");
+    }
+    if (runtime !== "node") {
+        lines.push("registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook.");
+    }
+    lines.push(`Shareable readiness report for your domain: ${reportLink}`, `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`, `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`, PRICE_NOTE);
+    return `${lines.join("\n")}\n\n\`\`\`ts\n${source}\`\`\`\n`;
+}

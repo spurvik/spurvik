@@ -285,18 +285,65 @@ export interface ScanLinks {
   reportUrl: string;
   sandboxUrl: string;
   portfolioUrl: string;
+  c2paCheckUrl: string;
+  rfpQuestionnaireUrl: string;
   proUpgradeUrl: string;
+  teamUpgradeUrl: string;
   doneForYouUrl: string;
 }
 
-export function scanLinks(host: string): ScanLinks {
+const CLI_CONFIRMED_AI_RE =
+  /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
+
+function cliRfpQuestionnaireUrl(host: string, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb"
+      : code === "fr"
+        ? "/fr/questionnaire-securite-reglement-ia-dpo-fournisseur"
+        : code === "nl"
+          ? "/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging"
+          : code === "da"
+            ? "/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed"
+            : code === "es"
+              ? "/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd"
+              : code === "it"
+                ? "/it/questionario-sicurezza-fornitori-regolamento-ia-dpo"
+                : code === "sv"
+                  ? "/sv/ai-forordningen-leverantorssakerhetsformular-dso"
+                  : "/eu-ai-act-vendor-security-questionnaire";
+  return `https://spurvik.com${slug}?domain=${encodeURIComponent(host)}`;
+}
+
+function sanitizeCliHeroImageUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > 1024 || !/^https:\/\//i.test(trimmed)) return null;
+  try {
+    return normalizeScanTarget(trimmed).url;
+  } catch {
+    return null;
+  }
+}
+
+export function scanLinks(host: string, resolvedLang?: BadgeLang, heroImageUrl?: string | null): ScanLinks {
   const h = encodeURIComponent(host);
+  const tldLang = langForHost(host);
+  const lang = resolvedLang ?? tldLang;
+  const extraLocale = lang !== "en" && lang !== tldLang ? `&locale=${encodeURIComponent(lang)}` : "";
+  const c2paParts = [`domain=${h}`];
+  if (lang !== "en") c2paParts.push(`locale=${encodeURIComponent(lang)}`);
+  if (heroImageUrl) c2paParts.push(`url=${encodeURIComponent(heroImageUrl)}`);
   return {
-    reportUrl: `${CONSOLE_ORIGIN}/report?domain=${h}`,
+    reportUrl: `${CONSOLE_ORIGIN}/report?domain=${h}${extraLocale}`,
     sandboxUrl: `${CONSOLE_ORIGIN}/sandbox?scan=${h}`,
     portfolioUrl: PORTFOLIO_URL,
-    proUpgradeUrl: `${CONSOLE_ORIGIN}/signup?plan=pro&appUrl=${h}`,
-    doneForYouUrl: `${CONSOLE_ORIGIN}/signup?plan=concierge&appUrl=${h}`,
+    c2paCheckUrl: `${CONSOLE_ORIGIN}/c2pa?${c2paParts.join("&")}`,
+    rfpQuestionnaireUrl: cliRfpQuestionnaireUrl(host, lang),
+    proUpgradeUrl: `${CONSOLE_ORIGIN}/signup?plan=pro&appUrl=${h}${extraLocale}`,
+    teamUpgradeUrl: `${CONSOLE_ORIGIN}/signup?plan=team&appUrl=${h}${extraLocale}`,
+    doneForYouUrl: `${CONSOLE_ORIGIN}/signup?plan=concierge&appUrl=${h}${extraLocale}`,
   };
 }
 
@@ -313,6 +360,9 @@ export interface ScanReport {
   reachable: boolean;
   httpStatus: number | null;
   detectedWidgets: string[];
+  /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
+  confirmedAiSurface: boolean | null;
+  heroImageUrl: string | null;
   /** Art. 50(1) interaction notice found on the page. null when the page could not be read. */
   covered: boolean | null;
   badgeSnippet: string;
@@ -364,6 +414,11 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
   const art50Card = isRecord(cards.art50_1) ? cards.art50_1 : {};
   const disclosure = markers.art50_1_disclosure === true || art50Card.status === "detected";
   const widgets = pageRead ? cleanList(scan.detectedWidgets, scan.detectedSdks) : [];
+  const confirmedAiSurface = pageRead
+    ? (Array.isArray(scan.detectedSdks) && cleanList(scan.detectedSdks).length > 0) ||
+      widgets.some((w) => CLI_CONFIRMED_AI_RE.test(w))
+    : null;
+  const heroImageUrl = pageRead ? sanitizeCliHeroImageUrl(scan.heroImageUrl) : null;
   const status: ScanStatus = !pageRead ? "unreachable" : disclosure ? "covered" : widgets.length > 0 ? "gap" : "no_widget_detected";
   const scannedUrl = cleanText(scan.scannedUrl, 2048);
   const tldLang = langForHost(target.host);
@@ -378,9 +433,11 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
     reachable: scan.reachable,
     httpStatus,
     detectedWidgets: widgets,
+    confirmedAiSurface,
+    heroImageUrl,
     covered: pageRead ? disclosure : null,
     badgeSnippet: badgeScriptTag(target.host, resolvedLang),
-    links: scanLinks(target.host),
+    links: scanLinks(target.host, resolvedLang, heroImageUrl),
   };
 }
 
@@ -435,7 +492,9 @@ function printScan(report: ScanReport, io: Io): void {
     report.status === "covered"
       ? c.green(STATUS_LABEL.covered)
       : report.status === "gap"
-        ? c.red(STATUS_LABEL.gap)
+        ? report.confirmedAiSurface === false
+          ? c.yellow("CHECK — dual-use chat widget detected; Art. 50(1) notice required if AI replies are enabled (human-only chat needs none)")
+          : c.red(STATUS_LABEL.gap)
         : report.status === "unreachable"
           ? c.yellow(STATUS_LABEL.unreachable)
           : c.cyan(STATUS_LABEL.no_widget_detected);
@@ -461,7 +520,9 @@ function printScan(report: ScanReport, io: Io): void {
     out(`    ${c.cyan(url)}`);
   };
   step("Client / DPO PDF brief", report.links.reportUrl);
+  step("2 Dec 2026 C2PA hero-image check", report.links.c2paCheckUrl);
   step("White-label Pro (€19/mo)", report.links.proUpgradeUrl);
+  step("Team 2M events + Annex IV (€79/mo)", report.links.teamUpgradeUrl);
   step("24h engineer Done-For-You (€199 once, incl. 1 year of Pro)", report.links.doneForYouUrl);
   step("Batch scan 10 domains", report.links.portfolioUrl);
   out();

@@ -1,13 +1,16 @@
 import {
+  c2paCheckUrlFor,
   conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
   PORTFOLIO_URL,
   PRICE_NOTE,
   proSignupUrlFor,
   reportUrlFor,
+  rfpQuestionnaireUrlFor,
   sandboxUrlFor,
   statusShieldMarkdownFor,
   statusShieldUrlFor,
+  teamSignupUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -58,12 +61,20 @@ export interface ScanLiveUrlLinks {
   sandboxUrl: string;
   /** Multi-domain cockpit for agencies (up to 10 domains per batch). */
   portfolioUrl: string;
+  /** Interactive C2PA JUMBF provenance checker (Art. 50(2), 2 Dec 2026 transition) prefilled with domain & heroImageUrl. */
+  c2paCheckUrl: string;
+  /** 8-language EU AI Act vendor security questionnaire & DPO RFP answers prefilled with `?domain=`. */
+  rfpQuestionnaireUrl: string;
   /** Live Art. 50 status shield SVG for this host. */
   statusShieldUrl: string;
   /** README Markdown: the status shield linked to reportUrl. */
   statusShieldMarkdown: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
-  upgradeUrls: { proWhiteLabelAndAuditVault: string; doneForYou24hSetup: string };
+  upgradeUrls: {
+    proWhiteLabelAndAuditVault: string;
+    teamAuditAndAnnexIv: string;
+    doneForYou24hSetup: string;
+  };
 }
 
 export interface ScanLiveUrlResult extends ScanLiveUrlLinks {
@@ -81,6 +92,10 @@ export interface ScanLiveUrlResult extends ScanLiveUrlLinks {
   detectedWidgets: string[];
   detectedSdks: string[];
   detectedModel: string | null;
+  /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
+  confirmedAiSurface: boolean | null;
+  /** First public HTTPS raster hero/OG image URL discovered on the frontpage for Art. 50(2) C2PA inspection. */
+  heroImageUrl: string | null;
   art50NoticeDetected: boolean | null;
   markers: { art50_1_disclosure: boolean; art50_2_provenance: boolean; art50_4_synthetic: boolean; art12_telemetry: boolean } | null;
   suggestedLocale: string;
@@ -254,16 +269,35 @@ export function normalizeScanTarget(raw: unknown): ScanTarget {
   return { url: url.toString(), host };
 }
 
-function scanLinks(host: string): ScanLiveUrlLinks {
+const CONFIRMED_AI_RE =
+  /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
+
+function sanitizeHeroImageUrl(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > 1024 || !/^https:\/\//i.test(trimmed)) return null;
+  try {
+    return normalizeScanTarget(trimmed).url;
+  } catch {
+    return null;
+  }
+}
+
+function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImageUrl: string | null = null): ScanLiveUrlLinks {
+  const tldLocale = inferLocaleFromDomain(host);
+  const extraLocale = locale !== "en" && locale !== tldLocale ? locale : undefined;
   return {
-    reportUrl: reportUrlFor(host),
+    reportUrl: reportUrlFor(host, extraLocale),
     sandboxUrl: sandboxUrlFor(host),
     portfolioUrl: PORTFOLIO_URL,
+    c2paCheckUrl: c2paCheckUrlFor(host, heroImageUrl, locale),
+    rfpQuestionnaireUrl: rfpQuestionnaireUrlFor(host, locale),
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
-      proWhiteLabelAndAuditVault: proSignupUrlFor(host),
-      doneForYou24hSetup: conciergeSignupUrlFor(host),
+      proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),
+      teamAuditAndAnnexIv: teamSignupUrlFor(host, extraLocale),
+      doneForYou24hSetup: conciergeSignupUrlFor(host, extraLocale),
     },
   };
 }
@@ -311,6 +345,7 @@ function resolveScannedLocale(host: string, pageRead: boolean, htmlLocale: unkno
 function baseResult(
   target: ScanTarget,
   locale = inferLocaleFromDomain(target.host),
+  heroImageUrl: string | null = null,
 ): Omit<ScanLiveUrlResult, "offlineFallback" | "status" | "reason" | "note"> {
   return {
     tool: "spurvik_scan_live_url",
@@ -321,12 +356,14 @@ function baseResult(
     detectedWidgets: [],
     detectedSdks: [],
     detectedModel: null,
+    confirmedAiSurface: null,
+    heroImageUrl,
     art50NoticeDetected: null,
     markers: null,
     suggestedLocale: locale,
     suggestedLanguage: euLanguage(locale).label,
     badgeSnippet: buildBadgeScript({ systemName: target.host, locale, theme: "dark", position: "bottom-right", attribution: true }),
-    ...scanLinks(target.host),
+    ...scanLinks(target.host, locale, heroImageUrl),
   };
 }
 
@@ -356,19 +393,31 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
   const pageRead = reachable && httpStatus === null;
   const model = typeof scan.detectedModel === "string" ? stringList([scan.detectedModel])[0] ?? null : null;
   const locale = resolveScannedLocale(target.host, pageRead, scan.htmlLocale);
+  const heroImageUrl = pageRead ? sanitizeHeroImageUrl(scan.heroImageUrl) : null;
+  const detectedWidgets = pageRead ? stringList(scan.detectedWidgets) : [];
+  const detectedSdks = pageRead ? stringList(scan.detectedSdks) : [];
+  const confirmedAiSurface = pageRead
+    ? detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_RE.test(w))
+    : null;
+  const dualUseOnly = pageRead && detectedWidgets.length > 0 && !confirmedAiSurface;
+  const dualUseClause = dualUseOnly
+    ? " Dual-use support widget detected: Art. 50(1) notice is required if AI replies or routing are enabled (human-only live chat needs none)."
+    : "";
   return {
-    ...baseResult(target, locale),
+    ...baseResult(target, locale, heroImageUrl),
     offlineFallback: false,
     status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
     reason: shortCode(scan.reason),
     httpStatus,
     score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
-    detectedWidgets: pageRead ? stringList(scan.detectedWidgets) : [],
-    detectedSdks: pageRead ? stringList(scan.detectedSdks) : [],
+    detectedWidgets,
+    detectedSdks,
     detectedModel: pageRead ? model : null,
+    confirmedAiSurface,
+    heroImageUrl,
     art50NoticeDetected: pageRead && markers ? markers.art50_1_disclosure : null,
     markers: pageRead ? markers : null,
-    note: `Heuristic check of one public page. It can miss a widget or a notice that loads later. Not legal advice. ${PRICE_NOTE}`,
+    note: `Heuristic check of one public page. It can miss a widget or a notice that loads later.${dualUseClause} Not legal advice. ${PRICE_NOTE}`,
   };
 }
 
