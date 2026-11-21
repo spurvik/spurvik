@@ -13490,12 +13490,12 @@ var StdioServerTransport = class {
   }
 };
 
-// packages/mcp/src/root.js
+// packages/mcp/src/root.ts
 import { existsSync, realpathSync } from "node:fs";
 import { homedir, tmpdir, userInfo } from "node:os";
 import path from "node:path";
 
-// packages/mcp/src/copy.js
+// packages/mcp/src/copy.ts
 var RISK_TIER_SAMPLE_COMMENT = "Sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case.";
 var SERVER_INSTRUCTIONS = "Read-only tools for the Spurvik SDK and EU AI Act Article 50. Seven tools run locally and do not use the network. spurvik_scan_live_url sends one public URL to console.spurvik.com and reads the scan result, spurvik_batch_scan_domains does the same for up to 10 public domains, and spurvik_check_image_c2pa_url sends one public https image URL to console.spurvik.com for a read-only C2PA manifest check; localhost, private IPs and internal hosts are refused before any request. The SDK logs AI calls and attaches HMAC receipts. Marking hooks are the caller's. Spurvik does not mark content. spurvik_classify_ai_act_risk is an engineering mapping aid, not legal advice and not a decision under Article 6. spurvik_vendor_questionnaire_answers drafts copy-paste answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs.";
 var READ_ONLY_ANNOTATIONS = {
@@ -13587,7 +13587,7 @@ var VQ_GENERATES_MEDIA_FIELD = "The product generates synthetic images, audio or
 var VQ_DOMAIN_FIELD = "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
 var VQ_LOCALE_FIELD = "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO).";
 
-// packages/mcp/src/root.js
+// packages/mcp/src/root.ts
 var WorkspacePathError = class extends Error {
   constructor(message) {
     super(message);
@@ -13618,12 +13618,10 @@ function comparablePath(input) {
   const prefix = value.toLowerCase();
   if (prefix.startsWith("//?/") || prefix.startsWith("//./")) {
     const rest = value.slice(4);
-    if (PLAIN_DRIVE.test(rest))
-      value = rest;
+    if (PLAIN_DRIVE.test(rest)) value = rest;
   }
   value = collapseDotSegments(value);
-  if (value.length > 1 && value.endsWith("/"))
-    value = value.slice(0, -1);
+  if (value.length > 1 && value.endsWith("/")) value = value.slice(0, -1);
   return value.toLowerCase();
 }
 function collapseDotSegments(value) {
@@ -13633,30 +13631,23 @@ function collapseDotSegments(value) {
   const absolute = unc || drive.length > 0 || body.startsWith("/");
   const stack = [];
   for (const part of body.split("/")) {
-    if (part === "" || part === ".")
-      continue;
+    if (part === "" || part === ".") continue;
     if (part === "..") {
-      if (stack.length > 0)
-        stack.pop();
-      else if (!absolute)
-        stack.push("..");
+      if (stack.length > 0) stack.pop();
+      else if (!absolute) stack.push("..");
       continue;
     }
     stack.push(part);
   }
-  if (unc)
-    return stack.length > 0 ? `//${stack.join("/")}` : "//";
-  if (drive)
-    return stack.length > 0 ? `${drive}/${stack.join("/")}` : drive;
-  if (body.startsWith("/"))
-    return `/${stack.join("/")}`;
+  if (unc) return stack.length > 0 ? `//${stack.join("/")}` : "//";
+  if (drive) return stack.length > 0 ? `${drive}/${stack.join("/")}` : drive;
+  if (body.startsWith("/")) return `/${stack.join("/")}`;
   return stack.join("/") || ".";
 }
 function isNonDriveDevicePath(input) {
   const value = input.normalize("NFC").replaceAll("\\", "/");
   const prefix = value.toLowerCase();
-  if (!prefix.startsWith("//?/") && !prefix.startsWith("//./"))
-    return false;
+  if (!prefix.startsWith("//?/") && !prefix.startsWith("//./")) return false;
   return !PLAIN_DRIVE.test(value.slice(4));
 }
 function homeUser(comparable) {
@@ -13666,8 +13657,7 @@ function accountHomes() {
   const homes = [];
   const seen = /* @__PURE__ */ new Set();
   const add = (value) => {
-    if (!value || seen.has(value))
-      return;
+    if (!value || seen.has(value)) return;
     seen.add(value);
     homes.push(value);
   };
@@ -13700,94 +13690,74 @@ function homeKeys() {
 function accountUsers() {
   const users = /* @__PURE__ */ new Set();
   const username = accountUsername();
-  if (username)
-    users.add(username);
+  if (username) users.add(username);
   for (const home of homeKeys()) {
     const user = homeUser(home);
-    if (user)
-      users.add(user);
+    if (user) users.add(user);
   }
   return users;
 }
 function windowsProfileApplies(comparable) {
-  if (/^\/mnt\/[a-z]\/users\/[^/]+(?:\/|$)/.test(comparable))
-    return true;
+  if (/^\/mnt\/[a-z]\/users\/[^/]+(?:\/|$)/.test(comparable)) return true;
   return process.platform === "win32" && /^[a-z]:\/users\/[^/]+(?:\/|$)/.test(comparable);
 }
 function windowsProfileUser() {
   const profile = process.env.USERPROFILE?.trim();
   if (profile) {
     const user2 = comparablePath(profile).match(/^(?:[a-z]:\/users|\/mnt\/[a-z]\/users)\/([^/]+)(?:\/|$)/)?.[1];
-    if (user2 && user2 !== "public")
-      return user2;
+    if (user2 && user2 !== "public") return user2;
   }
   const local = process.env.LOCALAPPDATA?.trim();
-  if (!local)
-    return void 0;
+  if (!local) return void 0;
   const comparable = comparablePath(local);
-  if (!comparable.endsWith("/appdata/local"))
-    return void 0;
+  if (!comparable.endsWith("/appdata/local")) return void 0;
   const user = comparable.match(/^(?:[a-z]:\/users|\/mnt\/[a-z]\/users)\/([^/]+)\/appdata\/local$/)?.[1];
-  if (!user || user === "public")
-    return void 0;
+  if (!user || user === "public") return void 0;
   return user;
 }
 function isOtherUserHome(comparable) {
   const user = homeUser(comparable);
-  if (!user)
-    return false;
-  if (user === "public" && /^\/mnt\/[a-z]\/users\/public(?:\/|$)/.test(comparable))
-    return false;
+  if (!user) return false;
+  if (user === "public" && /^\/mnt\/[a-z]\/users\/public(?:\/|$)/.test(comparable)) return false;
   const users = accountUsers();
   if (windowsProfileApplies(comparable)) {
     const windows = windowsProfileUser();
-    if (windows)
-      users.add(windows);
+    if (windows) users.add(windows);
   }
   return !users.has(user);
 }
 function dotHomeKeys() {
   const keys = new Set(homeKeys());
   const name = windowsProfileUser();
-  if (!name)
-    return [...keys];
+  if (!name) return [...keys];
   for (const letter of "abcdefghijklmnopqrstuvwxyz") {
     keys.add(`/mnt/${letter}/users/${name}`);
-    if (process.platform === "win32")
-      keys.add(`${letter}:/users/${name}`);
+    if (process.platform === "win32") keys.add(`${letter}:/users/${name}`);
   }
   return [...keys];
 }
 function isOwnHomeOrDot(comparable) {
   for (const home of dotHomeKeys()) {
-    if (!home || home === "/")
-      continue;
-    if (comparable === home)
-      return true;
+    if (!home || home === "/") continue;
+    if (comparable === home) return true;
     const prefix = `${home}/`;
-    if (!comparable.startsWith(prefix))
-      continue;
+    if (!comparable.startsWith(prefix)) continue;
     const first = comparable.slice(prefix.length).split("/")[0] ?? "";
-    if (first.startsWith("."))
-      return true;
+    if (first.startsWith(".")) return true;
   }
   return false;
 }
 function isAppDataUnderHome(comparable) {
-  if (/^(?:\/home|\/users|[a-z]:\/users|\/mnt\/[a-z]\/users)\/[^/]+\/appdata(?:\/|$)/.test(comparable))
-    return true;
+  if (/^(?:\/home|\/users|[a-z]:\/users|\/mnt\/[a-z]\/users)\/[^/]+\/appdata(?:\/|$)/.test(comparable)) return true;
   for (const home of homeKeys()) {
-    if (!home || home === "/")
-      continue;
-    if (comparable === `${home}/appdata` || comparable.startsWith(`${home}/appdata/`))
-      return true;
+    if (!home || home === "/") continue;
+    if (comparable === `${home}/appdata` || comparable.startsWith(`${home}/appdata/`)) return true;
   }
   return false;
 }
 function isSystemTree(comparable) {
   for (const dir of [...WINDOWS_TREE, ...PRIVATE_TREES, ...DESCENDANT_DIRS]) {
-    if (comparable === dir || comparable.startsWith(`${dir}/`))
-      return true;
+    if (comparable === dir || comparable.startsWith(`${dir}/`)) return true;
   }
   return false;
 }
@@ -13802,46 +13772,36 @@ function isWindowsLocalTempPath(comparable) {
 }
 function localAppDataTemp() {
   const local = process.env.LOCALAPPDATA?.trim();
-  if (!local)
-    return void 0;
+  if (!local) return void 0;
   const base = comparablePath(local);
-  if (!base || base === "/")
-    return void 0;
+  if (!base || base === "/") return void 0;
   return `${base}/temp`;
 }
 var MACOS_TEMP = /^\/(?:private\/)?var\/folders\/[^/]+\/[^/]+\/t$/;
 function isPlatformTempLocation(comparable) {
-  if (!comparable || comparable === "/")
-    return false;
-  if (comparable === "/tmp" || comparable === "/var/tmp" || comparable === "/private/tmp")
-    return true;
-  if (MACOS_TEMP.test(comparable))
-    return true;
-  if (isWindowsLocalTempPath(comparable) && /\/appdata\/local\/temp$/.test(comparable))
-    return true;
+  if (!comparable || comparable === "/") return false;
+  if (comparable === "/tmp" || comparable === "/var/tmp" || comparable === "/private/tmp") return true;
+  if (MACOS_TEMP.test(comparable)) return true;
+  if (isWindowsLocalTempPath(comparable) && /\/appdata\/local\/temp$/.test(comparable)) return true;
   const fromEnv = localAppDataTemp();
   return fromEnv !== void 0 && comparable === fromEnv;
 }
 function tmpdirCandidates() {
   const raw = tmpdir();
-  if (!raw)
-    return [];
+  if (!raw) return [];
   const keys = /* @__PURE__ */ new Set();
   const rawKey = comparablePath(raw);
-  if (rawKey && rawKey !== "/")
-    keys.add(rawKey);
+  if (rawKey && rawKey !== "/") keys.add(rawKey);
   try {
     const resolved = comparablePath(realpathSync(raw));
-    if (resolved && resolved !== "/")
-      keys.add(resolved);
+    if (resolved && resolved !== "/") keys.add(resolved);
   } catch {
   }
   return [...keys];
 }
 function qualifiedTempRoots() {
   const raw = tmpdir();
-  if (!raw)
-    return [];
+  if (!raw) return [];
   let resolved;
   try {
     resolved = realpathSync(raw);
@@ -13849,12 +13809,10 @@ function qualifiedTempRoots() {
     return [];
   }
   const resolvedKey = comparablePath(resolved);
-  if (!resolvedKey || !isPlatformTempLocation(resolvedKey))
-    return [];
+  if (!resolvedKey || !isPlatformTempLocation(resolvedKey)) return [];
   const keys = /* @__PURE__ */ new Set([resolvedKey]);
   const rawKey = comparablePath(raw);
-  if (rawKey && rawKey !== "/" && isPlatformTempLocation(rawKey))
-    keys.add(rawKey);
+  if (rawKey && rawKey !== "/" && isPlatformTempLocation(rawKey)) keys.add(rawKey);
   return [...keys];
 }
 function isBareTmpdir(comparable) {
@@ -13862,42 +13820,30 @@ function isBareTmpdir(comparable) {
 }
 function isUnderQualifiedTemp(comparable) {
   for (const root of qualifiedTempRoots()) {
-    if (comparable.startsWith(`${root}/`))
-      return true;
+    if (comparable.startsWith(`${root}/`)) return true;
   }
   return false;
 }
 function tempAllowanceApplies(comparable) {
-  if (isBareTmpdir(comparable) || !isUnderQualifiedTemp(comparable))
-    return false;
+  if (isBareTmpdir(comparable) || !isUnderQualifiedTemp(comparable)) return false;
   return isVarFoldersPath(comparable) || isPrivateVarFoldersPath(comparable) || isWindowsLocalTempPath(comparable);
 }
 function isForbiddenRoot(real) {
-  if (isNonDriveDevicePath(real))
-    return true;
+  if (isNonDriveDevicePath(real)) return true;
   const comparable = comparablePath(real);
-  if (comparable === "/" || comparable === "")
-    return true;
-  if (/^[a-z]:$/.test(comparable))
-    return true;
-  if (comparable.startsWith("//") && comparable !== "//")
-    return true;
-  if (EXACT_DIRS.includes(comparable))
-    return true;
-  if (isBareTmpdir(comparable))
-    return true;
-  if (isOtherUserHome(comparable))
-    return true;
-  if (isOwnHomeOrDot(comparable))
-    return true;
+  if (comparable === "/" || comparable === "") return true;
+  if (/^[a-z]:$/.test(comparable)) return true;
+  if (comparable.startsWith("//") && comparable !== "//") return true;
+  if (EXACT_DIRS.includes(comparable)) return true;
+  if (isBareTmpdir(comparable)) return true;
+  if (isOtherUserHome(comparable)) return true;
+  if (isOwnHomeOrDot(comparable)) return true;
   if (isSystemTree(comparable)) {
-    if (tempAllowanceApplies(comparable))
-      return false;
+    if (tempAllowanceApplies(comparable)) return false;
     return true;
   }
   if (isAppDataUnderHome(comparable)) {
-    if (tempAllowanceApplies(comparable))
-      return false;
+    if (tempAllowanceApplies(comparable)) return false;
     return true;
   }
   return false;
@@ -13907,23 +13853,18 @@ function hasProjectMarker(real) {
 }
 function validateWorkspaceRoot(requested) {
   const trimmed = requested.trim();
-  if (!trimmed || trimmed.includes("\0"))
-    throw new WorkspacePathError(ROOT_MISSING_DIR);
-  if (isForbiddenRoot(trimmed))
-    throw new WorkspacePathError(ROOT_NOT_ALLOWED);
+  if (!trimmed || trimmed.includes("\0")) throw new WorkspacePathError(ROOT_MISSING_DIR);
+  if (isForbiddenRoot(trimmed)) throw new WorkspacePathError(ROOT_NOT_ALLOWED);
   let real;
   try {
     real = realpathSync(trimmed);
   } catch (error2) {
     const code = error2.code;
-    if (code === "ENOENT")
-      throw new WorkspacePathError(ROOT_MISSING_DIR);
+    if (code === "ENOENT") throw new WorkspacePathError(ROOT_MISSING_DIR);
     throw new WorkspacePathError(ROOT_MISSING_DIR);
   }
-  if (isForbiddenRoot(real))
-    throw new WorkspacePathError(ROOT_NOT_ALLOWED);
-  if (!hasProjectMarker(real))
-    throw new WorkspacePathError(ROOT_NOT_PROJECT);
+  if (isForbiddenRoot(real)) throw new WorkspacePathError(ROOT_NOT_ALLOWED);
+  if (!hasProjectMarker(real)) throw new WorkspacePathError(ROOT_NOT_PROJECT);
   return real;
 }
 function rootFromArgv(argv) {
@@ -13933,20 +13874,18 @@ function rootFromArgv(argv) {
       const value = argv[index + 1];
       return value && !value.startsWith("--") ? value : "";
     }
-    if (arg?.startsWith("--root="))
-      return arg.slice("--root=".length);
+    if (arg?.startsWith("--root=")) return arg.slice("--root=".length);
   }
   return void 0;
 }
 function resolveConfiguredRoot(argv, env) {
   const fromArg = rootFromArgv(argv);
   const requested = fromArg !== void 0 ? fromArg : env.SPURVIK_MCP_ROOT;
-  if (typeof requested !== "string" || !requested.trim())
-    throw new WorkspacePathError(MISSING_ROOT);
+  if (typeof requested !== "string" || !requested.trim()) throw new WorkspacePathError(MISSING_ROOT);
   return validateWorkspaceRoot(requested);
 }
 
-// packages/mcp/src/server.js
+// packages/mcp/src/server.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { dirname, join as join2 } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22112,7 +22051,7 @@ var EMPTY_COMPLETION_RESULT = {
   }
 };
 
-// packages/mcp/src/links.js
+// packages/mcp/src/links.ts
 var CONSOLE_ORIGIN = "https://console.spurvik.com";
 var BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
 var REPORT_URL = `${CONSOLE_ORIGIN}/report`;
@@ -22155,10 +22094,8 @@ function conciergeSignupUrlFor(host, extraLocale) {
 }
 function c2paCheckUrlFor(host, heroImageUrl, locale) {
   const parts = [`domain=${encodeURIComponent(host)}`];
-  if (locale && locale !== "en")
-    parts.push(`locale=${encodeURIComponent(locale)}`);
-  if (heroImageUrl)
-    parts.push(`url=${encodeURIComponent(heroImageUrl)}`);
+  if (locale && locale !== "en") parts.push(`locale=${encodeURIComponent(locale)}`);
+  if (heroImageUrl) parts.push(`url=${encodeURIComponent(heroImageUrl)}`);
   return `${C2PA_PAGE_URL}?${parts.join("&")}`;
 }
 function rfpQuestionnaireUrlFor(host, locale = "en") {
@@ -22173,7 +22110,7 @@ function statusShieldMarkdownFor(host) {
   return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
 }
 
-// packages/mcp/src/tools/badge-copy.js
+// packages/mcp/src/tools/badge-copy.ts
 var EU_LANGUAGES = [
   { code: "en", label: "English (en)", interaction: "You are interacting with an AI system." },
   { code: "da", label: "Dansk (da)", interaction: "Du interagerer med et AI-system." },
@@ -22234,11 +22171,9 @@ var CCTLD_LOCALES = {
   ee: "et"
 };
 function hostFromDomainLike(raw) {
-  if (typeof raw !== "string")
-    return "";
+  if (typeof raw !== "string") return "";
   const trimmed = raw.trim().toLowerCase();
-  if (!trimmed || /\s/.test(trimmed))
-    return "";
+  if (!trimmed || /\s/.test(trimmed)) return "";
   try {
     const withScheme = /^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`;
     const host = new URL(withScheme).hostname.replace(/\.$/, "");
@@ -22249,8 +22184,7 @@ function hostFromDomainLike(raw) {
 }
 function inferLocaleFromDomain(raw) {
   const host = hostFromDomainLike(raw);
-  if (!host)
-    return "en";
+  if (!host) return "en";
   const tld = host.slice(host.lastIndexOf(".") + 1);
   return Object.hasOwn(CCTLD_LOCALES, tld) ? CCTLD_LOCALES[tld] : "en";
 }
@@ -22264,8 +22198,7 @@ function badgeDataAttributes(input) {
     ["data-locale", EU_LOCALE_CODES.includes(input.locale) ? input.locale : "en"],
     ["data-theme", input.theme === "light" ? "light" : "dark"]
   ];
-  if (input.position === "bottom-left")
-    pairs.push(["data-position", "bottom-left"]);
+  if (input.position === "bottom-left") pairs.push(["data-position", "bottom-left"]);
   pairs.push(["data-attribution", input.attribution ? "true" : "false"]);
   return pairs;
 }
@@ -22276,11 +22209,11 @@ function buildBadgeScript(input) {
 ${tag}` : tag;
 }
 
-// packages/mcp/src/version.js
+// packages/mcp/src/version.ts
 var MCP_VERSION = "1.0.9";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
-// packages/mcp/src/tools/scan-live-url.js
+// packages/mcp/src/tools/scan-live-url.ts
 var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
 var SCAN_TIMEOUT_MS = 8e3;
 var MAX_URL_CHARS = 2048;
@@ -22299,10 +22232,8 @@ var INVALID2 = "The URL is not valid. Pass a public http(s) URL or a bare domain
 var BLOCKED = "That host is not a public address. localhost, private or reserved IPs and internal hosts are not scanned.";
 function normalizeHost(value) {
   let host = value.trim().toLowerCase();
-  if (host.endsWith("."))
-    host = host.slice(0, -1);
-  if (host.startsWith("[") && host.endsWith("]"))
-    host = host.slice(1, -1);
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
   return host;
 }
 function isBlockedHostname(host) {
@@ -22311,15 +22242,12 @@ function isBlockedHostname(host) {
 }
 function parseIpv4(value) {
   const parts = value.split(".");
-  if (parts.length !== 4)
-    return null;
+  if (parts.length !== 4) return null;
   let out = 0;
   for (const part of parts) {
-    if (!/^\d{1,3}$/.test(part) || part.length > 1 && part.startsWith("0"))
-      return null;
+    if (!/^\d{1,3}$/.test(part) || part.length > 1 && part.startsWith("0")) return null;
     const num = Number(part);
-    if (num > 255)
-      return null;
+    if (num > 255) return null;
     out = out * 256 + num;
   }
   return out;
@@ -22351,30 +22279,23 @@ function parseIpv6Groups(value) {
   let text2 = value;
   if (text2.includes(".")) {
     const lastColon = text2.lastIndexOf(":");
-    if (lastColon === -1)
-      return null;
+    if (lastColon === -1) return null;
     const v4 = parseIpv4(text2.slice(lastColon + 1));
-    if (v4 === null)
-      return null;
+    if (v4 === null) return null;
     text2 = `${text2.slice(0, lastColon)}:${(v4 >>> 16 & 65535).toString(16)}:${(v4 & 65535).toString(16)}`;
   }
   const halves = text2.split("::");
-  if (halves.length > 2)
-    return null;
+  if (halves.length > 2) return null;
   const head = halves[0] ? halves[0].split(":") : [];
   const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
-  if (halves.length === 1 && head.length !== 8)
-    return null;
+  if (halves.length === 1 && head.length !== 8) return null;
   const missing = 8 - head.length - tail.length;
-  if (halves.length === 2 && missing < 1)
-    return null;
+  if (halves.length === 2 && missing < 1) return null;
   const groups = halves.length === 2 ? [...head, ...Array(missing).fill("0"), ...tail] : head;
-  if (groups.length !== 8)
-    return null;
+  if (groups.length !== 8) return null;
   const nums = [];
   for (const group of groups) {
-    if (!/^[0-9a-f]{1,4}$/.test(group))
-      return null;
+    if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
     nums.push(Number.parseInt(group, 16));
   }
   return nums;
@@ -22382,48 +22303,33 @@ function parseIpv6Groups(value) {
 function ipv6Public(groups) {
   const [g0 = 0, g1 = 0, g2 = 0, g3 = 0, g4 = 0, g5 = 0, g6 = 0, g7 = 0] = groups;
   const firstFiveZero = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
-  if (firstFiveZero && g5 === 65535)
-    return ipv4Public((g6 << 16 | g7) >>> 0);
-  if (firstFiveZero && g5 === 0)
-    return false;
-  if ((g0 & 65024) === 64512)
-    return false;
-  if ((g0 & 65472) === 65152)
-    return false;
-  if ((g0 & 65280) === 65280)
-    return false;
-  if (g0 === 8193 && g1 === 3512)
-    return false;
-  if (g0 === 100 && g1 === 65435)
-    return false;
-  if (g0 === 8194)
-    return false;
-  if (g0 === 8193 && (g1 & 65024) === 0)
-    return false;
-  if (g0 === 256 && g1 === 0 && g2 === 0 && g3 === 0)
-    return false;
+  if (firstFiveZero && g5 === 65535) return ipv4Public((g6 << 16 | g7) >>> 0);
+  if (firstFiveZero && g5 === 0) return false;
+  if ((g0 & 65024) === 64512) return false;
+  if ((g0 & 65472) === 65152) return false;
+  if ((g0 & 65280) === 65280) return false;
+  if (g0 === 8193 && g1 === 3512) return false;
+  if (g0 === 100 && g1 === 65435) return false;
+  if (g0 === 8194) return false;
+  if (g0 === 8193 && (g1 & 65024) === 0) return false;
+  if (g0 === 256 && g1 === 0 && g2 === 0 && g3 === 0) return false;
   return true;
 }
 function isPublicIpLiteral(host) {
   const normalized = normalizeHost(host);
-  if (!normalized)
-    return null;
-  if (normalized.includes("%"))
-    return false;
+  if (!normalized) return null;
+  if (normalized.includes("%")) return false;
   if (normalized.includes(":")) {
     const groups = parseIpv6Groups(normalized);
     return groups ? ipv6Public(groups) : false;
   }
   const v4 = parseIpv4(normalized);
-  if (v4 !== null)
-    return ipv4Public(v4);
-  if (/^[0-9.]+$/.test(normalized))
-    return false;
+  if (v4 !== null) return ipv4Public(v4);
+  if (/^[0-9.]+$/.test(normalized)) return false;
   return null;
 }
 function normalizeScanTarget(raw) {
-  if (typeof raw !== "string")
-    throw new ScanTargetRejected("invalid_url", INVALID2);
+  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", INVALID2);
   const trimmed = raw.trim();
   if (!trimmed || trimmed.length > MAX_URL_CHARS || /[\u0000-\u001f\u007f\s<>"'`\\]/.test(trimmed)) {
     throw new ScanTargetRejected("invalid_url", INVALID2);
@@ -22448,31 +22354,24 @@ function normalizeScanTarget(raw) {
   url.protocol = "https:";
   url.hash = "";
   const host = normalizeHost(url.hostname);
-  if (!host)
-    throw new ScanTargetRejected("invalid_url", INVALID2);
+  if (!host) throw new ScanTargetRejected("invalid_url", INVALID2);
   const ipPublic = isPublicIpLiteral(host);
-  if (ipPublic === false)
-    throw new ScanTargetRejected("blocked_target", BLOCKED);
+  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED);
   if (ipPublic === null) {
-    if (isBlockedHostname(host))
-      throw new ScanTargetRejected("blocked_target", BLOCKED);
+    if (isBlockedHostname(host)) throw new ScanTargetRejected("blocked_target", BLOCKED);
     if (!HOSTNAME_RE.test(host)) {
-      if (!host.includes("."))
-        throw new ScanTargetRejected("blocked_target", BLOCKED);
+      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED);
       throw new ScanTargetRejected("invalid_url", INVALID2);
     }
   }
-  if (nonDefaultPort)
-    throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
+  if (nonDefaultPort) throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
   return { url: url.toString(), host };
 }
 var CONFIRMED_AI_RE = /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
 function sanitizeHeroImageUrl(raw) {
-  if (typeof raw !== "string")
-    return null;
+  if (typeof raw !== "string") return null;
   const trimmed = raw.trim();
-  if (!trimmed || trimmed.length > 1024 || !/^https:\/\//i.test(trimmed))
-    return null;
+  if (!trimmed || trimmed.length > 1024 || !/^https:\/\//i.test(trimmed)) return null;
   try {
     return normalizeScanTarget(trimmed).url;
   } catch {
@@ -22501,17 +22400,13 @@ function isRecord(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function stringList(value) {
-  if (!Array.isArray(value))
-    return [];
+  if (!Array.isArray(value)) return [];
   const out = [];
   for (const item of value) {
-    if (typeof item !== "string")
-      continue;
+    if (typeof item !== "string") continue;
     const clean = item.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, MAX_ITEM_CHARS);
-    if (clean && !out.includes(clean))
-      out.push(clean);
-    if (out.length >= MAX_LIST_ITEMS)
-      break;
+    if (clean && !out.includes(clean)) out.push(clean);
+    if (out.length >= MAX_LIST_ITEMS) break;
   }
   return out;
 }
@@ -22522,15 +22417,13 @@ function shortCode(value) {
   return typeof value === "string" && /^[a-z0-9_]{1,40}$/.test(value) ? value : null;
 }
 function readUpstreamScan(body) {
-  if (!isRecord(body))
-    return null;
+  if (!isRecord(body)) return null;
   const scan = isRecord(body.scan) ? body.scan : body;
   return typeof scan.reachable === "boolean" ? scan : null;
 }
 function resolveScannedLocale(host, pageRead, htmlLocale) {
   const tldLocale = inferLocaleFromDomain(host);
-  if (tldLocale !== "en")
-    return tldLocale;
+  if (tldLocale !== "en") return tldLocale;
   if (pageRead && typeof htmlLocale === "string" && htmlLocale !== "en" && EU_LOCALE_CODES.includes(htmlLocale)) {
     return htmlLocale;
   }
@@ -22607,16 +22500,14 @@ async function scanLiveUrl(rawUrl, deps = {}) {
   try {
     target = normalizeScanTarget(rawUrl);
   } catch (error2) {
-    if (error2 instanceof ScanTargetRejected)
-      return { ok: false, error: error2.code, message: error2.message };
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
     return { ok: false, error: "invalid_url", message: INVALID2 };
   }
   return { ok: true, result: await scanNormalizedTarget(target, deps) };
 }
 async function scanNormalizedTarget(target, deps = {}) {
   const fetchImpl = deps.fetch ?? globalThis.fetch;
-  if (typeof fetchImpl !== "function")
-    return fallback(target, "fetch_unavailable");
+  if (typeof fetchImpl !== "function") return fallback(target, "fetch_unavailable");
   let response;
   try {
     response = await fetchImpl(`${SCAN_ENDPOINT}?url=${encodeURIComponent(target.url)}`, {
@@ -22628,8 +22519,7 @@ async function scanNormalizedTarget(target, deps = {}) {
     const name = error2 instanceof Error ? error2.name : "";
     return fallback(target, name === "TimeoutError" || name === "AbortError" ? "timeout" : "network_error");
   }
-  if (response.status !== 200)
-    return fallback(target, `upstream_http_${response.status}`);
+  if (response.status !== 200) return fallback(target, `upstream_http_${response.status}`);
   let body;
   try {
     body = await response.json();
@@ -22637,50 +22527,40 @@ async function scanNormalizedTarget(target, deps = {}) {
     return fallback(target, "upstream_invalid_json");
   }
   const scan = readUpstreamScan(body);
-  if (!scan)
-    return fallback(target, "upstream_invalid_shape");
+  if (!scan) return fallback(target, "upstream_invalid_shape");
   return fromUpstream(target, scan);
 }
 
-// packages/mcp/src/tools/public-hostname.js
+// packages/mcp/src/tools/public-hostname.ts
 var MAX_INPUT_CHARS = 2048;
 var MAX_HOSTNAME_CHARS = 253;
 var LABEL_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
 var TLD_RE = /^(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/;
 var BLOCKED_SUFFIXES = ["localhost", "local", "internal", "localdomain", "lan", "home.arpa", "intranet", "corp", "test", "invalid", "example"];
 function publicHostname(raw) {
-  if (typeof raw !== "string")
-    return null;
+  if (typeof raw !== "string") return null;
   const trimmed = raw.trim().toLowerCase();
-  if (!trimmed || trimmed.length > MAX_INPUT_CHARS || /[\u0000- \u007f-￿<>"'`\\{}|^]/.test(trimmed))
-    return null;
+  if (!trimmed || trimmed.length > MAX_INPUT_CHARS || /[\u0000- \u007f-￿<>"'`\\{}|^]/.test(trimmed)) return null;
   const scheme = /^([a-z][a-z0-9+.-]*):\/\//.exec(trimmed)?.[1];
-  if (scheme !== void 0 && scheme !== "http" && scheme !== "https")
-    return null;
+  if (scheme !== void 0 && scheme !== "http" && scheme !== "https") return null;
   let url;
   try {
     url = new URL(scheme === void 0 ? `https://${trimmed}` : trimmed);
   } catch {
     return null;
   }
-  if (url.username || url.password || url.port)
-    return null;
+  if (url.username || url.password || url.port) return null;
   const host = url.hostname.replace(/\.$/, "");
-  if (!host || host.length > MAX_HOSTNAME_CHARS || host.startsWith("["))
-    return null;
-  if (isPublicIpLiteral(host) !== null)
-    return null;
+  if (!host || host.length > MAX_HOSTNAME_CHARS || host.startsWith("[")) return null;
+  if (isPublicIpLiteral(host) !== null) return null;
   const labels = host.split(".");
-  if (labels.length < 2 || !labels.every((label) => LABEL_RE.test(label)))
-    return null;
-  if (!TLD_RE.test(labels[labels.length - 1]))
-    return null;
-  if (BLOCKED_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`)))
-    return null;
+  if (labels.length < 2 || !labels.every((label) => LABEL_RE.test(label))) return null;
+  if (!TLD_RE.test(labels[labels.length - 1])) return null;
+  if (BLOCKED_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) return null;
   return host;
 }
 
-// packages/mcp/src/next-steps.js
+// packages/mcp/src/next-steps.ts
 var QUESTIONNAIRE_URL_BY_LOCALE = {
   de: "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb",
   fr: "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur",
@@ -22704,30 +22584,42 @@ ${steps.join("\n")}
 function setupNextSteps(rawDomain, rawLocale) {
   const host = publicHostname(rawDomain);
   const loc = typeof rawLocale === "string" && EU_LANGUAGES.some((l) => l.code === rawLocale) && rawLocale !== "en" ? rawLocale : null;
-  if (!host && !loc)
-    return block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
   const freeParams = [];
-  if (host)
-    freeParams.push(`appUrl=${encodeURIComponent(host)}`);
-  if (loc)
-    freeParams.push(`locale=${loc}`);
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
   const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   const steps = [];
-  if (host)
-    steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
-  steps.push(`- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`, `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`, `${CONCIERGE_LABEL} ${conciergeUrl}`);
+  if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
+  steps.push(
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`
+  );
   return block(...steps);
 }
 var SETUP_NEXT_STEPS = setupNextSteps();
-var FIND_NEXT_STEPS = block("- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).", FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
-var RECEIPT_NEXT_STEPS = block(`- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${SIGNUP_URL}`, `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${PRO_SIGNUP_URL}`, TEAM_STEP);
-var MARKING_NEXT_STEPS = block(`- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`, `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`, `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`);
+var FIND_NEXT_STEPS = block(
+  "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
+  FREE_KEY_STEP,
+  PRO_STEP,
+  CONCIERGE_STEP
+);
+var RECEIPT_NEXT_STEPS = block(
+  `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${SIGNUP_URL}`,
+  `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${PRO_SIGNUP_URL}`,
+  TEAM_STEP
+);
+var MARKING_NEXT_STEPS = block(
+  `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
+  `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`,
+  `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`
+);
 function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
-  if (tier === "prohibited_art5")
-    return null;
+  if (tier === "prohibited_art5") return null;
   const host = publicHostname(rawSiteDomain);
   const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
   const explicitLoc = primaryLocale && EU_LANGUAGES.some((l) => l.code === primaryLocale) && primaryLocale !== "en" ? primaryLocale : null;
@@ -22739,17 +22631,14 @@ function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
       FREE_KEY_STEP,
       PRO_STEP
     ];
-    if (tier === "high_risk_annex_iii")
-      steps2.push(TEAM_STEP, CONCIERGE_STEP);
+    if (tier === "high_risk_annex_iii") steps2.push(TEAM_STEP, CONCIERGE_STEP);
     return block(...steps2).trimStart();
   }
   const rfpBase = loc && QUESTIONNAIRE_URL_BY_LOCALE[loc] || VENDOR_QUESTIONNAIRE_URL;
   const rfpUrl = host ? `${rfpBase}?domain=${encodeURIComponent(host)}` : rfpBase;
   const freeParams = [];
-  if (host)
-    freeParams.push(`appUrl=${encodeURIComponent(host)}`);
-  if (loc)
-    freeParams.push(`locale=${loc}`);
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
   const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const paidSuffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${loc}` : ""}`;
   const steps = [
@@ -22759,16 +22648,22 @@ function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
   ];
   if (tier === "high_risk_annex_iii") {
-    steps.push(`- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}${paidSuffix}`, `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`);
+    steps.push(
+      `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}${paidSuffix}`,
+      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`
+    );
   }
   return block(...steps).trimStart();
 }
 function badgeNextSteps(systemName) {
   const host = publicHostname(systemName);
-  return block(`- Interactive Label Studio & CMS downloads (Shopify, WordPress, Framer): ${LABELS_URL}`, `${CONCIERGE_LABEL} ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`).trimStart();
+  return block(
+    `- Interactive Label Studio & CMS downloads (Shopify, WordPress, Framer): ${LABELS_URL}`,
+    `${CONCIERGE_LABEL} ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`
+  ).trimStart();
 }
 
-// packages/mcp/src/tools/art50-badge.js
+// packages/mcp/src/tools/art50-badge.ts
 var ART50_BADGE_INPUT_JSON_SCHEMA = {
   type: "object",
   properties: {
@@ -22792,10 +22687,8 @@ var PUBLIC_DOMAIN_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)
 var BLOCKED_DOMAIN_SUFFIXES = ["localhost", "local", "internal", "arpa"];
 function publicDomainFromSystemName(raw) {
   const host = hostFromDomainLike(raw);
-  if (!host || !PUBLIC_DOMAIN_RE.test(host))
-    return "";
-  if (BLOCKED_DOMAIN_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`)))
-    return "";
+  if (!host || !PUBLIC_DOMAIN_RE.test(host)) return "";
+  if (BLOCKED_DOMAIN_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) return "";
   return host;
 }
 function nextJsSnippet(attrs, position) {
@@ -22807,11 +22700,9 @@ function nextJsSnippet(attrs, position) {
     "  return (",
     "    <>"
   ];
-  if (position === "inline")
-    lines.push("      <div data-spurvik-badge />");
+  if (position === "inline") lines.push("      <div data-spurvik-badge />");
   lines.push("      <Script", `        src="${BADGE_SCRIPT_SRC}"`);
-  for (const [name, value] of attrs)
-    lines.push(`        ${name}="${value}"`);
+  for (const [name, value] of attrs) lines.push(`        ${name}="${value}"`);
   lines.push('        strategy="afterInteractive"', "      />", "    </>", "  );", "}");
   return lines.join("\n");
 }
@@ -22821,8 +22712,7 @@ function resolveLocale(input) {
     return EU_LOCALE_CODES.includes(requested) ? { locale: requested, source: "input" } : null;
   }
   const inferred = inferLocaleFromDomain(input.systemName);
-  if (inferred !== "en")
-    return { locale: inferred, source: "systemName_domain" };
+  if (inferred !== "en") return { locale: inferred, source: "systemName_domain" };
   return { locale: "en", source: "default" };
 }
 function generateArt50Badge(input = {}) {
@@ -22908,7 +22798,7 @@ function generateArt50Badge(input = {}) {
   };
 }
 
-// packages/mcp/src/tools/batch-scan-domains.js
+// packages/mcp/src/tools/batch-scan-domains.ts
 var BATCH_MAX_DOMAINS = 10;
 var BATCH_SCAN_CONCURRENCY = 4;
 async function mapPool(items, limit, worker) {
@@ -22951,8 +22841,7 @@ function validateDomains(input) {
   if (!Array.isArray(input)) {
     return { ok: false, error: "invalid_input", message: "Pass domains as an array of 1 to 10 public domains or URLs." };
   }
-  if (input.length === 0)
-    return { ok: false, error: "no_domains", message: "Pass at least 1 domain." };
+  if (input.length === 0) return { ok: false, error: "no_domains", message: "Pass at least 1 domain." };
   if (input.length > BATCH_MAX_DOMAINS) {
     return { ok: false, error: "too_many_domains", message: `Pass at most ${BATCH_MAX_DOMAINS} domains per batch.` };
   }
@@ -22990,8 +22879,7 @@ function validateDomains(input) {
 }
 async function batchScanDomains(domains, deps = {}) {
   const checked = validateDomains(domains);
-  if (!checked.ok)
-    return checked;
+  if (!checked.ok) return checked;
   const scans = await mapPool(checked.targets, BATCH_SCAN_CONCURRENCY, (target) => scanNormalizedTarget(target, deps));
   const results = scans.map(toDomainResult);
   const offlineFallbacks = results.filter((result) => result.offlineFallback).length;
@@ -23013,7 +22901,7 @@ async function batchScanDomains(domains, deps = {}) {
   };
 }
 
-// packages/mcp/src/tools/check-image-c2pa-url.js
+// packages/mcp/src/tools/check-image-c2pa-url.ts
 var C2PA_CHECK_PATH = "/api/v1/provenance/public-check-url";
 var C2PA_SCAN_PATH = "/api/v1/sandbox/scan";
 var C2PA_CHECK_ENDPOINT = `${CONSOLE_ORIGIN}${C2PA_CHECK_PATH}`;
@@ -23052,15 +22940,12 @@ var TRUST_ANCHOR_TEXT = {
 };
 function normalizeHost2(value) {
   let host = value.trim().toLowerCase();
-  if (host.endsWith("."))
-    host = host.slice(0, -1);
-  if (host.startsWith("[") && host.endsWith("]"))
-    host = host.slice(1, -1);
+  if (host.endsWith(".")) host = host.slice(0, -1);
+  if (host.startsWith("[") && host.endsWith("]")) host = host.slice(1, -1);
   return host;
 }
 function normalizeImageUrl(raw) {
-  if (typeof raw !== "string")
-    throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  if (typeof raw !== "string") throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
   const trimmed = raw.trim();
   if (!trimmed || trimmed.length > MAX_URL_CHARS2 || /[\u0000-\u001f\u007f-\u009f\s<>"'`\\]/.test(trimmed)) {
     throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
@@ -23069,39 +22954,31 @@ function normalizeImageUrl(raw) {
   if (scheme === void 0) {
     throw new ScanTargetRejected("invalid_url", /^[a-z][a-z0-9+.-]*:(?!\d)/i.test(trimmed) ? HTTPS_ONLY : ENTER_IMAGE_URL);
   }
-  if (scheme !== "https")
-    throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
+  if (scheme !== "https") throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
   let url;
   try {
     url = new URL(trimmed);
   } catch {
     throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
   }
-  if (url.protocol !== "https:")
-    throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
-  if (url.username || url.password)
-    throw new ScanTargetRejected("invalid_url", NO_CREDENTIALS);
+  if (url.protocol !== "https:") throw new ScanTargetRejected("invalid_url", HTTPS_ONLY);
+  if (url.username || url.password) throw new ScanTargetRejected("invalid_url", NO_CREDENTIALS);
   const host = normalizeHost2(url.hostname);
-  if (!host)
-    throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
+  if (!host) throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
   const ipPublic = isPublicIpLiteral(host);
-  if (ipPublic === false)
-    throw new ScanTargetRejected("blocked_target", BLOCKED2);
+  if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED2);
   if (ipPublic === null) {
     if (BLOCKED_SUFFIXES2.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) {
       throw new ScanTargetRejected("blocked_target", BLOCKED2);
     }
     if (!HOSTNAME_RE2.test(host)) {
-      if (!host.includes("."))
-        throw new ScanTargetRejected("blocked_target", BLOCKED2);
+      if (!host.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED2);
       throw new ScanTargetRejected("invalid_url", ENTER_IMAGE_URL);
     }
   }
-  if (url.port !== "")
-    throw new ScanTargetRejected("invalid_url", PORT_443_ONLY);
+  if (url.port !== "") throw new ScanTargetRejected("invalid_url", PORT_443_ONLY);
   url.hash = "";
-  if (!host.includes(":"))
-    url.hostname = host;
+  if (!host.includes(":")) url.hostname = host;
   return { url: url.toString(), host };
 }
 var REENCODE_FIX = "Re-check the untransformed original URL. If it also has no manifest, the CDN strips it on delivery: serve the signed file from your own origin.";
@@ -23120,34 +22997,28 @@ function detectImageProxy(rawUrl) {
       fix: "Set `unoptimized` on that next/image <Image> (or `images.unoptimized` in next.config) so the original signed bytes are served."
     };
   }
-  if (path4.includes("/cdn-cgi/image/"))
-    return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
+  if (path4.includes("/cdn-cgi/image/")) return { name: "Cloudflare image resizing (/cdn-cgi/image/)", fix: REENCODE_FIX };
   if (host === "cdn.shopify.com" || host.endsWith(".shopify.com") || path4.startsWith("/cdn/shop/")) {
     return { name: "Shopify CDN (/cdn/shop/)", fix: REENCODE_FIX };
   }
-  if (/^i\d\.wp\.com$/i.test(host))
-    return { name: "WordPress Jetpack Photon CDN (i*.wp.com)", fix: REENCODE_FIX };
+  if (/^i\d\.wp\.com$/i.test(host)) return { name: "WordPress Jetpack Photon CDN (i*.wp.com)", fix: REENCODE_FIX };
   if (host.endsWith(".website-files.com") || host.endsWith(".webflow.com")) {
     return { name: "Webflow Image CDN", fix: REENCODE_FIX };
   }
-  if (host === "cloudinary.com" || host.endsWith(".cloudinary.com"))
-    return { name: "Cloudinary", fix: REENCODE_FIX };
-  if (host === "imgix.net" || host.endsWith(".imgix.net"))
-    return { name: "imgix", fix: REENCODE_FIX };
+  if (host === "cloudinary.com" || host.endsWith(".cloudinary.com")) return { name: "Cloudinary", fix: REENCODE_FIX };
+  if (host === "imgix.net" || host.endsWith(".imgix.net")) return { name: "imgix", fix: REENCODE_FIX };
   return null;
 }
 function isImageCdnHost(host) {
   return /(?:^|\.)(?:cloudinary\.com|imgix\.net|shopify\.com|wp\.com|website-files\.com|(?:uploads-ssl|assets)\.webflow\.com)$/i.test(host);
 }
 function safeClaimGenerator(value) {
-  if (typeof value !== "string")
-    return null;
+  if (typeof value !== "string") return null;
   const cleaned = value.replace(/[^\p{L}\p{N} ._()/+:@-]+/gu, " ").replace(/\s+/g, " ").trim().slice(0, MAX_CLAIM_GENERATOR_CHARS).trim();
   return cleaned || null;
 }
 function safeValidationCodes(value) {
-  if (!Array.isArray(value))
-    return [];
+  if (!Array.isArray(value)) return [];
   return value.filter((code) => typeof code === "string" && /^[A-Za-z0-9._:-]{1,80}$/.test(code)).slice(0, MAX_VALIDATION_CODES);
 }
 var EXTENSION = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
@@ -23156,26 +23027,22 @@ function safeFileName(value, mediaType) {
   return safe || `image.${EXTENSION[mediaType]}`;
 }
 function cleanMessage(value) {
-  if (typeof value !== "string")
-    return "";
+  if (typeof value !== "string") return "";
   return value.replace(/[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff\u{e0000}-\u{e007f}`<>]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 200);
 }
 function isRecord2(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function readUpstreamReport(body) {
-  if (!isRecord2(body) || !isRecord2(body.data))
-    return null;
+  if (!isRecord2(body) || !isRecord2(body.data)) return null;
   const data = body.data;
   const mediaType = C2PA_MEDIA_TYPES.find((type) => type === data.mediaType);
-  if (!mediaType)
-    return null;
+  if (!mediaType) return null;
   const byteLength = data.byteLength;
   if (typeof byteLength !== "number" || !Number.isInteger(byteLength) || byteLength < 0 || byteLength > C2PA_MAX_IMAGE_BYTES) {
     return null;
   }
-  if (typeof data.manifestFound !== "boolean")
-    return null;
+  if (typeof data.manifestFound !== "boolean") return null;
   const manifestFound = data.manifestFound;
   const trustAnchor = typeof data.trustAnchor === "string" && /^[a-z_]{1,40}$/.test(data.trustAnchor) ? data.trustAnchor : manifestFound ? "no_failure_reported" : "not_checked";
   return {
@@ -23256,12 +23123,10 @@ function buildResult(target, report, context) {
   };
 }
 function originFor(baseUrl) {
-  if (baseUrl === void 0)
-    return CONSOLE_ORIGIN;
+  if (baseUrl === void 0) return CONSOLE_ORIGIN;
   try {
     const origin = new URL(baseUrl);
-    if (origin.protocol !== "https:" || origin.username || origin.password)
-      return null;
+    if (origin.protocol !== "https:" || origin.username || origin.password) return null;
     return origin.origin;
   } catch {
     return null;
@@ -23279,14 +23144,12 @@ function resolveC2paInput(raw) {
       }
       if (asciiHost) {
         const ipPublic = isPublicIpLiteral(asciiHost);
-        if (ipPublic === false)
-          throw new ScanTargetRejected("blocked_target", BLOCKED2);
+        if (ipPublic === false) throw new ScanTargetRejected("blocked_target", BLOCKED2);
         if (ipPublic === null) {
           if (BLOCKED_SUFFIXES2.some((suffix) => asciiHost === suffix || asciiHost.endsWith(`.${suffix}`))) {
             throw new ScanTargetRejected("blocked_target", BLOCKED2);
           }
-          if (!asciiHost.includes("."))
-            throw new ScanTargetRejected("blocked_target", BLOCKED2);
+          if (!asciiHost.includes(".")) throw new ScanTargetRejected("blocked_target", BLOCKED2);
           if (HOSTNAME_RE2.test(asciiHost)) {
             return { target: { url: `https://${asciiHost}/`, host: asciiHost }, bareDomain: true };
           }
@@ -23309,14 +23172,11 @@ async function discoverHeroFromPage(pageUrl, scanEndpoint, fetchImpl, timeoutMs2
     headers: { Accept: "application/json", "User-Agent": MCP_USER_AGENT },
     signal: AbortSignal.timeout(timeoutMs2)
   });
-  if (res.status !== 200)
-    return null;
+  if (res.status !== 200) return null;
   const body = await res.json().catch(() => null);
-  if (!isRecord2(body))
-    return null;
+  if (!isRecord2(body)) return null;
   const scan = isRecord2(body.scan) ? body.scan : body;
-  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim())
-    return null;
+  if (scan.reachable !== true || typeof scan.heroImageUrl !== "string" || !scan.heroImageUrl.trim()) return null;
   const heroTarget = normalizeImageUrl(scan.heroImageUrl);
   const htmlLocale = typeof scan.htmlLocale === "string" && EU_LOCALE_CODES.includes(scan.htmlLocale) ? scan.htmlLocale : void 0;
   return { heroTarget, htmlLocale };
@@ -23349,13 +23209,11 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
   try {
     resolved = resolveC2paInput(rawUrl);
   } catch (error2) {
-    if (error2 instanceof ScanTargetRejected)
-      return { ok: false, error: error2.code, message: error2.message };
+    if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
     return { ok: false, error: "invalid_url", message: ENTER_IMAGE_URL };
   }
   const origin = originFor(deps.baseUrl);
-  if (!origin)
-    return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
+  if (!origin) return { ok: false, error: "invalid_base_url", message: "The console base URL must be an https origin." };
   const endpoint = `${origin}${C2PA_CHECK_PATH}`;
   const scanEndpoint = `${origin}${C2PA_SCAN_PATH}`;
   const fetchImpl = deps.fetch ?? globalThis.fetch;
@@ -23369,8 +23227,7 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
     try {
       discovered = await discoverHeroFromPage(target.url, scanEndpoint, fetchImpl, timeoutMs2);
     } catch (error2) {
-      if (error2 instanceof ScanTargetRejected)
-        return { ok: false, error: error2.code, message: error2.message };
+      if (error2 instanceof ScanTargetRejected) return { ok: false, error: error2.code, message: error2.message };
       const name = error2 instanceof Error ? error2.name : "";
       return name === "TimeoutError" || name === "AbortError" ? { ok: false, error: "timeout", message: `console.spurvik.com did not answer within ${Math.round(timeoutMs2 / 1e3)} s. Nothing was checked. ${FALLBACK_HINT}` } : { ok: false, error: "service_unreachable", message: `console.spurvik.com could not be reached. Nothing was checked. ${FALLBACK_HINT}` };
     }
@@ -23382,8 +23239,7 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
       };
     }
     const checked = await postCheckRequest(discovered.heroTarget.url, endpoint, fetchImpl, timeoutMs2);
-    if (!checked.ok)
-      return checked;
+    if (!checked.ok) return checked;
     if (checked.response.status !== 200) {
       const upstream = isRecord2(checked.body) && isRecord2(checked.body.error) ? checked.body.error : {};
       const code = typeof upstream.code === "string" && /^[a-z_]{1,40}$/.test(upstream.code) ? upstream.code : `upstream_http_${checked.response.status}`;
@@ -23404,8 +23260,7 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
     };
   }
   const initial = await postCheckRequest(target.url, endpoint, fetchImpl, timeoutMs2);
-  if (!initial.ok)
-    return initial;
+  if (!initial.ok) return initial;
   const { response, body } = initial;
   if (response.status === 415 && !looksLikeImageAssetPath(target.url)) {
     try {
@@ -23442,7 +23297,7 @@ async function checkImageC2paUrl(rawUrl, deps = {}) {
   return { ok: true, result: buildResult(target, report) };
 }
 
-// packages/mcp/src/tools/classify-risk.js
+// packages/mcp/src/tools/classify-risk.ts
 var RISK_DOMAINS = [
   "general",
   "biometrics",
@@ -23590,20 +23445,17 @@ var ART50_FROM = "2026-08-02";
 var ANNEX_III_FROM = "2027-12-02";
 var ART5_FROM = "2025-02-02";
 function signal(explicit, text2, pattern) {
-  if (typeof explicit === "boolean")
-    return { value: explicit, source: "input" };
+  if (typeof explicit === "boolean") return { value: explicit, source: "input" };
   return { value: pattern.test(text2), source: "useCase_keywords" };
 }
 function resolveClassifyLocale(rawLocale, host) {
   if (typeof rawLocale === "string" && rawLocale.trim()) {
     const primary = rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "";
-    if (EU_LANGUAGES.some((l) => l.code === primary))
-      return primary === "en" ? null : primary;
+    if (EU_LANGUAGES.some((l) => l.code === primary)) return primary === "en" ? null : primary;
   }
   if (host) {
     const fromHost = inferLocaleFromDomain(host);
-    if (fromHost && fromHost !== "en")
-      return fromHost;
+    if (fromHost && fromHost !== "en") return fromHost;
   }
   return null;
 }
@@ -23628,17 +23480,19 @@ function buildSelfAssessmentMd(input) {
     lines.push("", "## Mapped Duties & Dates", ...input.obligations.map((o) => `- **${o.article}** (from ${o.appliesFrom}): ${o.duty}`));
   }
   lines.push("", "## Verification & Console Links", `- Interactive Risk Check: ${input.classifierUrl}`);
-  if (input.reportUrl)
-    lines.push(`- Shareable Readiness Brief: ${input.reportUrl}`);
+  if (input.reportUrl) lines.push(`- Shareable Readiness Brief: ${input.reportUrl}`);
   if (input.tier !== "prohibited_art5") {
-    lines.push(`- Pro (${PRO_PRICE}): ${input.upgrades.pro.url}`, ...input.tier === "high_risk_annex_iii" ? [`- Team (${TEAM_PRICE}): ${input.upgrades.team.url}`] : [], `- Done-For-You 24h Setup (${CONCIERGE_PRICE}): ${input.upgrades.concierge.url}`);
+    lines.push(
+      `- Pro (${PRO_PRICE}): ${input.upgrades.pro.url}`,
+      ...input.tier === "high_risk_annex_iii" ? [`- Team (${TEAM_PRICE}): ${input.upgrades.team.url}`] : [],
+      `- Done-For-You 24h Setup (${CONCIERGE_PRICE}): ${input.upgrades.concierge.url}`
+    );
   }
   return `${lines.join("\n")}
 `;
 }
 function validate(input) {
-  if (!input || typeof input !== "object")
-    return { error: "invalid_input", message: "Pass an object with useCase." };
+  if (!input || typeof input !== "object") return { error: "invalid_input", message: "Pass an object with useCase." };
   const record2 = input;
   if (typeof record2.useCase !== "string" || !record2.useCase.trim()) {
     return { error: "invalid_use_case", message: "Pass useCase as a non-empty string." };
@@ -23664,8 +23518,7 @@ function validate(input) {
 }
 function classifyAiActRisk(rawInput) {
   const checked = validate(rawInput);
-  if ("error" in checked)
-    return { ok: false, error: checked.error, message: checked.message };
+  if ("error" in checked) return { ok: false, error: checked.error, message: checked.message };
   const input = checked;
   const text2 = input.useCase.toLowerCase().replace(/\s+/g, " ");
   const domain = input.domain ?? "general";
@@ -23691,8 +23544,12 @@ function classifyAiActRisk(rawInput) {
     reviewFlags.push("Article 5 has narrow exceptions (for example medical or safety reasons for emotion recognition). Get legal advice before you go further.");
   } else if (annexArea && !optedOut) {
     tier = "high_risk_annex_iii";
-    rationale.push(`${ANNEX_POINTS[annexArea]} ${domainSource === "input" ? "was selected" : "matches the use case"}${signals.makesAutomatedDecisionsAboutPeople.value ? " and the system decides about or ranks people" : ""}.`);
-    reviewFlags.push("Article 6(3): an Annex III system is not high-risk when it only performs a narrow procedural task or does not materially influence decisions; document that assessment (Article 6(4)). A system that profiles natural persons is always high-risk.");
+    rationale.push(
+      `${ANNEX_POINTS[annexArea]} ${domainSource === "input" ? "was selected" : "matches the use case"}${signals.makesAutomatedDecisionsAboutPeople.value ? " and the system decides about or ranks people" : ""}.`
+    );
+    reviewFlags.push(
+      "Article 6(3): an Annex III system is not high-risk when it only performs a narrow procedural task or does not materially influence decisions; document that assessment (Article 6(4)). A system that profiles natural persons is always high-risk."
+    );
     if (annexArea === "biometrics") {
       reviewFlags.push("Biometric verification whose only purpose is to confirm that a person is who they claim to be is not in Annex III point 1.");
     }
@@ -23701,11 +23558,15 @@ function classifyAiActRisk(rawInput) {
     }
   } else {
     if (annexArea && optedOut) {
-      reviewFlags.push(`${ANNEX_POINTS[annexArea]} applies but no decisions about people were reported. Check that the use is not one listed in that point and keep the Article 6(3) assessment on file.`);
+      reviewFlags.push(
+        `${ANNEX_POINTS[annexArea]} applies but no decisions about people were reported. Check that the use is not one listed in that point and keep the Article 6(3) assessment on file.`
+      );
     }
     const transparency = signals.interactsWithHumans.value || signals.generatesSyntheticMedia.value || deepfake || emotionOrBiometric;
     tier = transparency ? "limited_transparency_art50" : "minimal_risk";
-    rationale.push(transparency ? "No Article 5 practice and no Annex III use matched; an Article 50 transparency trigger applies." : "No Article 5 practice, Annex III use or Article 50 trigger matched.");
+    rationale.push(
+      transparency ? "No Article 5 practice and no Annex III use matched; an Article 50 transparency trigger applies." : "No Article 5 practice, Annex III use or Article 50 trigger matched."
+    );
   }
   const obligations = [];
   const controls = [];
@@ -23759,13 +23620,24 @@ function classifyAiActRisk(rawInput) {
       });
     }
     if (tier === "high_risk_annex_iii") {
-      obligations.push({ article: "Art. 9-15", duty: "Risk management, data governance, accuracy and robustness for the high-risk system.", appliesFrom: ANNEX_III_FROM }, { article: "Art. 11 + Annex IV", duty: "Technical documentation.", appliesFrom: ANNEX_III_FROM }, { article: "Art. 12", duty: "Automatic logging of events over the system's lifetime.", appliesFrom: ANNEX_III_FROM }, { article: "Art. 14", duty: "Human oversight measures.", appliesFrom: ANNEX_III_FROM }, { article: "Art. 26", duty: "Deployer duties, including log retention and monitoring.", appliesFrom: ANNEX_III_FROM });
-      controls.push({
-        article: "Art. 12",
-        control: "Log every model call with hash-chained HMAC receipts, then scan for unwrapped calls.",
-        tool: "spurvik_setup_snippet",
-        plan: "free"
-      }, { article: "Art. 12", control: "Find AI calls that bypass logging.", tool: "spurvik_find_unwrapped_calls", plan: "free" }, { article: "Art. 14", control: "Route risky actions to Slack or Teams approval gates.", tool: null, plan: "pro" }, { article: "Art. 11", control: "Export the Annex IV technical documentation draft from the console.", tool: null, plan: "team" });
+      obligations.push(
+        { article: "Art. 9-15", duty: "Risk management, data governance, accuracy and robustness for the high-risk system.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 11 + Annex IV", duty: "Technical documentation.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 12", duty: "Automatic logging of events over the system's lifetime.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 14", duty: "Human oversight measures.", appliesFrom: ANNEX_III_FROM },
+        { article: "Art. 26", duty: "Deployer duties, including log retention and monitoring.", appliesFrom: ANNEX_III_FROM }
+      );
+      controls.push(
+        {
+          article: "Art. 12",
+          control: "Log every model call with hash-chained HMAC receipts, then scan for unwrapped calls.",
+          tool: "spurvik_setup_snippet",
+          plan: "free"
+        },
+        { article: "Art. 12", control: "Find AI calls that bypass logging.", tool: "spurvik_find_unwrapped_calls", plan: "free" },
+        { article: "Art. 14", control: "Route risky actions to Slack or Teams approval gates.", tool: null, plan: "pro" },
+        { article: "Art. 11", control: "Export the Annex IV technical documentation draft from the console.", tool: null, plan: "team" }
+      );
     }
     if (tier === "minimal_risk") {
       controls.push({
@@ -23779,10 +23651,8 @@ function classifyAiActRisk(rawInput) {
   const host = publicHostname(input.siteDomain);
   const loc = resolveClassifyLocale(input.locale, host);
   const classifierParams = new URLSearchParams();
-  if (host)
-    classifierParams.set("domain", host);
-  if (loc)
-    classifierParams.set("locale", loc);
+  if (host) classifierParams.set("domain", host);
+  if (loc) classifierParams.set("locale", loc);
   const interactiveClassifierUrl = classifierParams.size > 0 ? `${RISK_CHECK_URL}?${classifierParams.toString()}` : RISK_CHECK_URL;
   const reportUrl = host ? `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}` : void 0;
   const upgrades = upgradeOffers(host, loc);
@@ -23824,17 +23694,14 @@ function classifyAiActRisk(rawInput) {
   };
 }
 
-// packages/core/src/canonical.js
+// packages/core/src/canonical.ts
 function canonicalJson(value) {
   return JSON.stringify(canonicalize(value));
 }
 function canonicalize(value) {
-  if (value === void 0)
-    return void 0;
-  if (value === null || typeof value !== "object")
-    return value;
-  if (Array.isArray(value))
-    return value.map((item) => canonicalize(item));
+  if (value === void 0) return void 0;
+  if (value === null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((item) => canonicalize(item));
   const entries = Object.entries(value).filter(([, entry]) => entry !== void 0).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0);
   const sorted = {};
   for (const [key, entry] of entries) {
@@ -23843,7 +23710,7 @@ function canonicalize(value) {
   return sorted;
 }
 
-// packages/core/src/hash.js
+// packages/core/src/hash.ts
 var textEncoder = new TextEncoder();
 function toHex(buffer) {
   const bytes = new Uint8Array(buffer);
@@ -23854,15 +23721,20 @@ function toHex(buffer) {
   return hex;
 }
 async function hmacSha256Hex(secret, value) {
-  const key = await crypto.subtle.importKey("raw", textEncoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
   const signature = await crypto.subtle.sign("HMAC", key, textEncoder.encode(value));
   return toHex(signature);
 }
 function timingSafeEqualString(left, right) {
   const a = textEncoder.encode(left);
   const b = textEncoder.encode(right);
-  if (a.length !== b.length)
-    return false;
+  if (a.length !== b.length) return false;
   let diff = 0;
   for (let index = 0; index < a.length; index += 1) {
     diff |= (a[index] ?? 0) ^ (b[index] ?? 0);
@@ -23870,13 +23742,12 @@ function timingSafeEqualString(left, right) {
   return diff === 0;
 }
 
-// packages/core/src/provenance.js
+// packages/core/src/provenance.ts
 var PROVENANCE_KIND = "provenance_record";
 var SIGNATURE_ALG = "HMAC-SHA-256";
 var PROVENANCE_VERSION = 2;
 async function verifyProvenanceSignature(record2, signingSecret) {
-  if (record2.kind !== PROVENANCE_KIND || record2.signatureAlg !== SIGNATURE_ALG)
-    return false;
+  if (record2.kind !== PROVENANCE_KIND || record2.signatureAlg !== SIGNATURE_ALG) return false;
   const expected = await hmacSha256Hex(signingSecret, canonicalJson(signedMaterial(record2)));
   return timingSafeEqualString(expected, record2.signature);
 }
@@ -23893,8 +23764,7 @@ function signedMaterial(record2) {
     article50Disclosure: record2.article50Disclosure,
     markingHookId: record2.markingHookId
   };
-  if (record2.provenanceVersion !== PROVENANCE_VERSION)
-    return base;
+  if (record2.provenanceVersion !== PROVENANCE_VERSION) return base;
   return {
     ...base,
     provenanceVersion: PROVENANCE_VERSION,
@@ -23904,10 +23774,10 @@ function signedMaterial(record2) {
   };
 }
 
-// packages/core/src/marking.js
+// packages/core/src/marking.ts
 var SIGNED_TEXT_TRAILER_ID = "signed-text-trailer";
 
-// packages/mcp/src/tools/explain-receipt.js
+// packages/mcp/src/tools/explain-receipt.ts
 var MAX_RECEIPT_CHARS = 1e6;
 var MIN_SIGNING_INPUT_LENGTH = 16;
 var REDACTED_MARK = "[redacted]";
@@ -23916,28 +23786,23 @@ function scrubSecrets(text2, secrets) {
   const seen = /* @__PURE__ */ new Set();
   for (const secret of secrets) {
     const trimmed = secret?.trim();
-    if (!trimmed || trimmed.length < MIN_SIGNING_INPUT_LENGTH || seen.has(trimmed))
-      continue;
+    if (!trimmed || trimmed.length < MIN_SIGNING_INPUT_LENGTH || seen.has(trimmed)) continue;
     seen.add(trimmed);
     const encoded = JSON.stringify(trimmed);
     for (const form of [trimmed, encoded.slice(1, -1), encoded]) {
-      if (form.length > 0 && !forms.includes(form))
-        forms.push(form);
+      if (form.length > 0 && !forms.includes(form)) forms.push(form);
     }
   }
   forms.sort((left, right) => right.length - left.length);
   let result = text2;
-  for (const form of forms)
-    result = result.split(form).join(REDACTED_MARK);
+  for (const form of forms) result = result.split(form).join(REDACTED_MARK);
   return result;
 }
 function knownSigningSecrets(argument) {
   const secrets = [];
-  if (argument !== void 0)
-    secrets.push(argument);
+  if (argument !== void 0) secrets.push(argument);
   const fromEnv = process.env.SPURVIK_SIGNING_SECRET;
-  if (fromEnv !== void 0)
-    secrets.push(fromEnv);
+  if (fromEnv !== void 0) secrets.push(fromEnv);
   return secrets;
 }
 var SECRET_FIELD = /secret|password|token|credential|apikey|api[_-]?key|signing/i;
@@ -24001,35 +23866,28 @@ function isRecord3(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 function rejectShortSigningInput(secret) {
-  if (secret.length < MIN_SIGNING_INPUT_LENGTH)
-    throw new Error(SIGNING_INPUT_TOO_SHORT);
+  if (secret.length < MIN_SIGNING_INPUT_LENGTH) throw new Error(SIGNING_INPUT_TOO_SHORT);
 }
 function resolveSigningSecret(argument) {
   if (argument !== void 0) {
     const trimmed2 = argument.trim();
-    if (!trimmed2)
-      throw new Error(MISSING_SIGNING_INPUT);
+    if (!trimmed2) throw new Error(MISSING_SIGNING_INPUT);
     rejectShortSigningInput(trimmed2);
     return trimmed2;
   }
   const fromEnv = process.env.SPURVIK_SIGNING_SECRET;
-  if (fromEnv === void 0)
-    return void 0;
+  if (fromEnv === void 0) return void 0;
   const trimmed = fromEnv.trim();
-  if (!trimmed)
-    throw new Error(MISSING_SIGNING_SECRET_ENV);
+  if (!trimmed) throw new Error(MISSING_SIGNING_SECRET_ENV);
   rejectShortSigningInput(trimmed);
   return trimmed;
 }
 function formatValue(value, secrets) {
-  if (value === void 0)
-    return "missing";
+  if (value === void 0) return "missing";
   const raw = typeof value === "string" ? value : JSON.stringify(value);
-  if (raw === void 0)
-    return "missing";
+  if (raw === void 0) return "missing";
   const text2 = scrubSecrets(raw, secrets);
-  if (text2.length > 180)
-    return `${text2.slice(0, 180)}...`;
+  if (text2.length > 180) return `${text2.slice(0, 180)}...`;
   return text2;
 }
 function canCheck(record2) {
@@ -24039,8 +23897,7 @@ async function explainReceipt(receiptJson, signingSecret) {
   let secret = signingSecret;
   if (secret !== void 0) {
     secret = secret.trim();
-    if (!secret)
-      throw new Error(MISSING_SIGNING_INPUT);
+    if (!secret) throw new Error(MISSING_SIGNING_INPUT);
     rejectShortSigningInput(secret);
   }
   const secrets = knownSigningSecrets(secret);
@@ -24052,8 +23909,7 @@ async function explainReceipt(receiptJson, signingSecret) {
   }
 }
 async function explainReceiptBody(receiptJson, signingSecret, secrets) {
-  if (receiptJson.length > MAX_RECEIPT_CHARS)
-    throw new Error(RECEIPT_TOO_LARGE);
+  if (receiptJson.length > MAX_RECEIPT_CHARS) throw new Error(RECEIPT_TOO_LARGE);
   const secret = signingSecret;
   let parsed;
   try {
@@ -24061,22 +23917,22 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   } catch {
     throw new Error(RECEIPT_NOT_JSON);
   }
-  if (!isRecord3(parsed))
-    throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord3(parsed)) throw new Error(RECEIPT_NOT_OBJECT);
   let markedOutput;
   let body = parsed;
   let readFromWrapper = false;
   if (isRecord3(parsed.record)) {
     body = parsed.record;
     readFromWrapper = true;
-    if (typeof parsed.markedOutput === "string")
-      markedOutput = parsed.markedOutput;
+    if (typeof parsed.markedOutput === "string") markedOutput = parsed.markedOutput;
   }
-  if (!isRecord3(body))
-    throw new Error(RECEIPT_NOT_OBJECT);
+  if (!isRecord3(body)) throw new Error(RECEIPT_NOT_OBJECT);
   const lines = ["HMAC provenance receipt", ""];
   if (readFromWrapper) {
-    lines.push("Read the provenance record from the record field. markedOutput, when present, is hook output beside the HMAC. It is not part of the signature. Spurvik does not mark content.", "");
+    lines.push(
+      "Read the provenance record from the record field. markedOutput, when present, is hook output beside the HMAC. It is not part of the signature. Spurvik does not mark content.",
+      ""
+    );
   }
   const known = new Set(FIELD_ORDER);
   for (const name of FIELD_ORDER) {
@@ -24087,16 +23943,18 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   if (extras.length > 0) {
     lines.push("", "Other fields:");
     for (const name of extras) {
-      if (SECRET_FIELD.test(name))
-        lines.push(`${name}: value omitted`);
-      else
-        lines.push(`${name}: ${formatValue(body[name], secrets)}`);
+      if (SECRET_FIELD.test(name)) lines.push(`${name}: value omitted`);
+      else lines.push(`${name}: ${formatValue(body[name], secrets)}`);
     }
   }
   if (markedOutput !== void 0) {
     const hidden = scrubSecrets(markedOutput, secrets);
     const shown = hidden.length > 180 ? `${hidden.slice(0, 180)}...` : hidden;
-    lines.push("", "markedOutput is hook output stored beside the receipt. It is not part of the HMAC. Spurvik does not mark content. This text is present only because a hook was set.", `markedOutput: ${shown}`);
+    lines.push(
+      "",
+      "markedOutput is hook output stored beside the receipt. It is not part of the HMAC. Spurvik does not mark content. This text is present only because a hook was set.",
+      `markedOutput: ${shown}`
+    );
   }
   lines.push("");
   if (!canCheck(body)) {
@@ -24119,7 +23977,7 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
 `;
 }
 
-// packages/mcp/src/tools/find-unwrapped.js
+// packages/mcp/src/tools/find-unwrapped.ts
 import * as fs from "node:fs";
 import path2 from "node:path";
 var SOURCE_EXT = /* @__PURE__ */ new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".py"]);
@@ -24175,11 +24033,9 @@ function isExcludedDirName(name) {
   return EXCLUDED_DIRS.has(normalizePathName(normalizeScanSegment(name)));
 }
 function isSensitiveBase(name, platform = process.platform) {
-  if (hasAlternateDataMark(name))
-    return true;
+  if (hasAlternateDataMark(name)) return true;
   const base = normalizePathName(normalizeScanSegment(name));
-  if (platform === "win32" && /~\d/.test(base))
-    return true;
+  if (platform === "win32" && /~\d/.test(base)) return true;
   return base === ".env" || base.startsWith(".env.") || base === ".npmrc" || base.endsWith(".pem") || base.endsWith(".key") || base.startsWith("id_rsa") || base === ".ssh" || base === ".aws";
 }
 function pathSegments(value) {
@@ -24187,13 +24043,11 @@ function pathSegments(value) {
 }
 function segmentsBelowRoot(root, real) {
   const relative = path2.relative(root, real);
-  if (!relative || relative.startsWith("..") || path2.isAbsolute(relative))
-    return [];
+  if (!relative || relative.startsWith("..") || path2.isAbsolute(relative)) return [];
   return pathSegments(relative);
 }
 function linkTextIsSensitive(target, root) {
-  if (root && path2.isAbsolute(target))
-    return pathHasSensitiveSegment(root, target);
+  if (root && path2.isAbsolute(target)) return pathHasSensitiveSegment(root, target);
   return pathSegments(target).some((segment) => isSensitiveBase(segment));
 }
 function pathHasSensitiveSegment(root, real) {
@@ -24213,8 +24067,7 @@ function isIdentPart(ch) {
   return isIdentStart(ch) || ch >= "0" && ch <= "9";
 }
 function depthSentence(limit) {
-  if (limit === MAX_DEPTH)
-    return SCAN_DEPTH_LIMIT;
+  if (limit === MAX_DEPTH) return SCAN_DEPTH_LIMIT;
   return `The scan stopped at its depth limit (${limit}). Some folders were not scanned.`;
 }
 function findUnwrappedInSource(source, control) {
@@ -24262,23 +24115,18 @@ function findUnwrappedInSource(source, control) {
   ]);
   const add = (atLine, call) => {
     const key = `${atLine}:${call}`;
-    if (seen.has(key))
-      return;
+    if (seen.has(key)) return;
     seen.add(key);
     findings.push({ line: atLine, call });
   };
   const budgetReached = () => {
-    if (stopped)
-      return true;
-    if (index < nextDeadlineCheck && tokensSinceCheck < DEADLINE_TOKENS)
-      return false;
+    if (stopped) return true;
+    if (index < nextDeadlineCheck && tokensSinceCheck < DEADLINE_TOKENS) return false;
     nextDeadlineCheck = index + DEADLINE_BYTES;
     tokensSinceCheck = 0;
-    if (!control?.shouldStop?.())
-      return false;
+    if (!control?.shouldStop?.()) return false;
     stopped = true;
-    if (control.stopped)
-      control.stopped.value = true;
+    if (control.stopped) control.stopped.value = true;
     return true;
   };
   const tick = () => {
@@ -24291,24 +24139,18 @@ function findUnwrappedInSource(source, control) {
   const topFn = () => fnStack[fnStack.length - 1];
   const markClient = () => {
     const fn = topFn();
-    if (fn)
-      fn.returnsClient = true;
+    if (fn) fn.returnsClient = true;
   };
   const markMiddleware = () => {
     const fn = topFn();
-    if (fn)
-      fn.returnsMiddleware = true;
+    if (fn) fn.returnsMiddleware = true;
   };
   const popFn = (fn) => {
-    if (fn.returnsClient)
-      factories.add(fn.name);
-    if (fn.returnsMiddleware)
-      middlewareNames.add(fn.name);
+    if (fn.returnsClient) factories.add(fn.name);
+    if (fn.returnsMiddleware) middlewareNames.add(fn.name);
     if (fn.parent) {
-      if (fn.returnsClient)
-        fn.parent.returnsClient = true;
-      if (fn.returnsMiddleware)
-        fn.parent.returnsMiddleware = true;
+      if (fn.returnsClient) fn.parent.returnsClient = true;
+      if (fn.returnsMiddleware) fn.parent.returnsMiddleware = true;
     }
   };
   const openBrace = (name) => {
@@ -24331,12 +24173,10 @@ function findUnwrappedInSource(source, control) {
       popFn(top);
       return;
     }
-    if (anonDepth > 0)
-      anonDepth -= 1;
+    if (anonDepth > 0) anonDepth -= 1;
   };
   const noteMiddleware = (value) => {
-    if (value !== "spurvikMiddleware" && !middlewareNames.has(value))
-      return;
+    if (value !== "spurvikMiddleware" && !middlewareNames.has(value)) return;
     for (let cursor = parens.length - 1; cursor >= 0; cursor -= 1) {
       charge();
       const frame = parens[cursor];
@@ -24352,43 +24192,32 @@ function findUnwrappedInSource(source, control) {
     while (cursor >= 0 && recent[cursor]?.kind === "id") {
       charge();
       const tok = recent[cursor];
-      if (!tok)
-        break;
+      if (!tok) break;
       idents.push(tok.value);
-      if (recent[cursor - 1]?.value !== ".")
-        break;
+      if (recent[cursor - 1]?.value !== ".") break;
       const next = cursor - 2;
-      if (recent[next]?.kind !== "id")
-        break;
+      if (recent[next]?.kind !== "id") break;
       cursor = next;
     }
     idents.reverse();
     let beforeIndex = cursor - 1;
-    if (recent[beforeIndex]?.value === ".")
-      beforeIndex -= 1;
+    if (recent[beforeIndex]?.value === ".") beforeIndex -= 1;
     return { idents, before: recent[beforeIndex] ?? null };
   };
   const receiverOf = (idents, chainStart, before) => {
-    if (chainStart > 0)
-      return { kind: "ident", name: idents[chainStart - 1] ?? "" };
-    if (before?.value === ")")
-      return { kind: "call", name: lastClosedCall };
-    if (before?.kind === "id")
-      return { kind: "ident", name: before.value };
+    if (chainStart > 0) return { kind: "ident", name: idents[chainStart - 1] ?? "" };
+    if (before?.value === ")") return { kind: "call", name: lastClosedCall };
+    if (before?.kind === "id") return { kind: "ident", name: before.value };
     return { kind: "other", name: "" };
   };
   const assignmentNameBefore = (from) => {
     let cursor = from;
-    if (recent[cursor]?.value === "async")
-      cursor -= 1;
-    if (recent[cursor]?.value !== "=")
-      return null;
+    if (recent[cursor]?.value === "async") cursor -= 1;
+    if (recent[cursor]?.value !== "=") return null;
     const name = recent[cursor - 1];
     const decl = recent[cursor - 2];
-    if (name?.kind !== "id" || !decl)
-      return null;
-    if (decl.value !== "const" && decl.value !== "let" && decl.value !== "var")
-      return null;
+    if (name?.kind !== "id" || !decl) return null;
+    if (decl.value !== "const" && decl.value !== "let" && decl.value !== "var") return null;
     return name.value;
   };
   const closeParen = (frame) => {
@@ -24396,16 +24225,12 @@ function findUnwrappedInSource(source, control) {
     pushRecent({ kind: "op", value: ")" });
     lastClosedCall = frame.callee;
     lastClosedArrowName = frame.arrowName;
-    if (frame.fnName)
-      expectFnBrace = frame.fnName;
+    if (frame.fnName) expectFnBrace = frame.fnName;
     if (frame.kind === "wrap") {
-      if (frame.sawMiddleware && frame.assignTo)
-        models.add(frame.assignTo);
-      if (frame.reportsTo && frame.sawMiddleware)
-        frame.reportsTo.modelWrapped = true;
+      if (frame.sawMiddleware && frame.assignTo) models.add(frame.assignTo);
+      if (frame.reportsTo && frame.sawMiddleware) frame.reportsTo.modelWrapped = true;
     }
-    if (frame.kind === "gen" && !frame.modelWrapped)
-      add(frame.line, frame.callee);
+    if (frame.kind === "gen" && !frame.modelWrapped) add(frame.line, frame.callee);
   };
   const openParen = (callee) => {
     const { idents, before } = dotted();
@@ -24413,15 +24238,12 @@ function findUnwrappedInSource(source, control) {
     if (callee !== "generateText" && callee !== "streamText") {
       for (const chain of CALL_CHAINS) {
         const start2 = idents.length - chain.ids.length;
-        if (start2 < 0)
-          continue;
+        if (start2 < 0) continue;
         let same = true;
         for (let cursor = 0; cursor < chain.ids.length; cursor += 1) {
-          if (idents[start2 + cursor] !== chain.ids[cursor])
-            same = false;
+          if (idents[start2 + cursor] !== chain.ids[cursor]) same = false;
         }
-        if (!same)
-          continue;
+        if (!same) continue;
         matched = { label: chain.label, start: start2 };
         break;
       }
@@ -24433,21 +24255,14 @@ function findUnwrappedInSource(source, control) {
       reportsTo.modelDone = true;
     }
     const assignTo = pendingWrapAssign && callee === "wrapLanguageModel" ? pendingWrapAssign : null;
-    if (callee === "wrapLanguageModel")
-      pendingWrapAssign = null;
-    if (callee === "withSpurvikLangGraph")
-      sawLangGraphWrap = true;
-    if (callee === "spurvikInterrupt" || callee === "resolveLangGraphInterrupts")
-      sawInterruptWrap = true;
-    if (callee === "StateGraph")
-      stateGraphLines.push(line);
-    if (callee === "interrupt" && recent[recent.length - 2]?.value !== ".")
-      interruptLines.push(line);
+    if (callee === "wrapLanguageModel") pendingWrapAssign = null;
+    if (callee === "withSpurvikLangGraph") sawLangGraphWrap = true;
+    if (callee === "spurvikInterrupt" || callee === "resolveLangGraphInterrupts") sawInterruptWrap = true;
+    if (callee === "StateGraph") stateGraphLines.push(line);
+    if (callee === "interrupt" && recent[recent.length - 2]?.value !== ".") interruptLines.push(line);
     if (pendingCall && pendingCall.kind === callee) {
-      if (callee === "withSpurvik")
-        names.add(pendingCall.lhs);
-      else
-        middlewareNames.add(pendingCall.lhs);
+      if (callee === "withSpurvik") names.add(pendingCall.lhs);
+      else middlewareNames.add(pendingCall.lhs);
       pendingCall = null;
     } else if (callee !== "wrapLanguageModel") {
       pendingCall = null;
@@ -24459,8 +24274,7 @@ function findUnwrappedInSource(source, control) {
         if (fn && arrowPending) {
         }
         middlewareNames.add(arrowPending);
-        if (callee === "withSpurvikMastra")
-          models.add(arrowPending);
+        if (callee === "withSpurvikMastra") models.add(arrowPending);
       }
       if (callee === "withSpurvik" || clientWrappers.has(callee) || factories.has(callee) || names.has(callee)) {
         factories.add(arrowPending);
@@ -24468,21 +24282,16 @@ function findUnwrappedInSource(source, control) {
       arrowPending = null;
     }
     if (returnIdent) {
-      if (returnIdent === "withSpurvik" || factories.has(returnIdent) || names.has(returnIdent))
-        markClient();
-      if (returnIdent === "spurvikMiddleware" || middlewareNames.has(returnIdent))
-        markMiddleware();
+      if (returnIdent === "withSpurvik" || factories.has(returnIdent) || names.has(returnIdent)) markClient();
+      if (returnIdent === "spurvikMiddleware" || middlewareNames.has(returnIdent)) markMiddleware();
       returnIdent = null;
     }
     let kind = "plain";
-    if ((callee === "generateText" || callee === "streamText") && recent[recent.length - 2]?.value !== ".")
-      kind = "gen";
-    else if (callee === "wrapLanguageModel" || reportsTo)
-      kind = "wrap";
+    if ((callee === "generateText" || callee === "streamText") && recent[recent.length - 2]?.value !== ".") kind = "gen";
+    else if (callee === "wrapLanguageModel" || reportsTo) kind = "wrap";
     const last = recent[recent.length - 1];
     let arrowName = null;
-    if (last?.value === "=" || last?.value === "async")
-      arrowName = assignmentNameBefore(recent.length - 1);
+    if (last?.value === "=" || last?.value === "async") arrowName = assignmentNameBefore(recent.length - 1);
     const frame = {
       kind,
       callee,
@@ -24507,13 +24316,11 @@ function findUnwrappedInSource(source, control) {
     if (matched) {
       const receiver = receiverOf(idents, matched.start, before);
       const wrapped = receiver.kind === "call" && (receiver.name === "withSpurvik" || factories.has(receiver.name)) || receiver.kind === "ident" && names.has(receiver.name);
-      if (!wrapped)
-        add(line, matched.label);
+      if (!wrapped) add(line, matched.label);
     }
   };
   const takeIdent = (value) => {
-    if (tick())
-      return;
+    if (tick()) return;
     noteMiddleware(value);
     if (expectFnName) {
       fnName = value;
@@ -24527,50 +24334,36 @@ function findUnwrappedInSource(source, control) {
     }
     if (returnWait) {
       returnWait = false;
-      if (names.has(value) || factories.has(value))
-        markClient();
-      else if (middlewareNames.has(value))
-        markMiddleware();
-      else
-        returnIdent = value;
+      if (names.has(value) || factories.has(value)) markClient();
+      else if (middlewareNames.has(value)) markMiddleware();
+      else returnIdent = value;
     }
     const gen = parens[parens.length - 1];
     if (gen?.kind === "gen" && !gen.modelDone) {
       if (gen.expectValue) {
-        if (value === "wrapLanguageModel")
-          gen.pendingWrap = true;
+        if (value === "wrapLanguageModel") gen.pendingWrap = true;
         else {
           gen.modelWrapped = models.has(value);
           gen.modelDone = true;
           gen.expectValue = false;
         }
-      } else if (value === "model")
-        gen.sawModelKey = true;
+      } else if (value === "model") gen.sawModelKey = true;
     }
     if (pendingLhs) {
-      if (value === "withSpurvik" || value === "spurvikMiddleware")
-        pendingCall = { lhs: pendingLhs, kind: value };
-      else if (value === "wrapLanguageModel")
-        pendingWrapAssign = pendingLhs;
-      else if (value === "withSpurvikMastra")
-        models.add(pendingLhs);
-      else if (clientWrappers.has(value))
-        names.add(pendingLhs);
-      else if (names.has(value) || factories.has(value))
-        names.add(pendingLhs);
-      else if (middlewareNames.has(value))
-        middlewareNames.add(pendingLhs);
+      if (value === "withSpurvik" || value === "spurvikMiddleware") pendingCall = { lhs: pendingLhs, kind: value };
+      else if (value === "wrapLanguageModel") pendingWrapAssign = pendingLhs;
+      else if (value === "withSpurvikMastra") models.add(pendingLhs);
+      else if (clientWrappers.has(value)) names.add(pendingLhs);
+      else if (names.has(value) || factories.has(value)) names.add(pendingLhs);
+      else if (middlewareNames.has(value)) middlewareNames.add(pendingLhs);
       pendingLhs = null;
     }
-    if (value === "function")
-      expectFnName = true;
-    else if (value === "return")
-      returnWait = true;
+    if (value === "function") expectFnName = true;
+    else if (value === "return") returnWait = true;
     pushRecent({ kind: "id", value });
   };
   const takeOp = (value) => {
-    if (tick())
-      return;
+    if (tick()) return;
     if (value === "{") {
       if (arrowPending) {
         openBrace(arrowPending);
@@ -24578,8 +24371,7 @@ function findUnwrappedInSource(source, control) {
       } else if (expectFnBrace) {
         openBrace(expectFnBrace);
         expectFnBrace = null;
-      } else
-        openBrace(null);
+      } else openBrace(null);
       return;
     }
     if (value === "}") {
@@ -24615,16 +24407,13 @@ function findUnwrappedInSource(source, control) {
     }
     if (value === ":") {
       const gen = parens[parens.length - 1];
-      if (gen?.kind === "gen" && gen.sawModelKey && !gen.modelDone)
-        gen.expectValue = true;
+      if (gen?.kind === "gen" && gen.sawModelKey && !gen.modelDone) gen.expectValue = true;
       return;
     }
     if (value === "=>") {
       const last = recent[recent.length - 1];
-      if (last?.value === ")")
-        arrowPending = lastClosedArrowName;
-      else if (last?.kind === "id")
-        arrowPending = assignmentNameBefore(recent.length - 2);
+      if (last?.value === ")") arrowPending = lastClosedArrowName;
+      else if (last?.kind === "id") arrowPending = assignmentNameBefore(recent.length - 2);
       return;
     }
     if (value === "=") {
@@ -24634,15 +24423,12 @@ function findUnwrappedInSource(source, control) {
       returnIdent = null;
       return;
     }
-    if (value !== ".")
-      returnIdent = null;
-    if (value === ".")
-      pushRecent({ kind: "op", value });
+    if (value !== ".") returnIdent = null;
+    if (value === ".") pushRecent({ kind: "op", value });
   };
   while (index < source.length) {
     charge();
-    if (budgetReached())
-      break;
+    if (budgetReached()) break;
     const ch = source[index] ?? "";
     const next = source[index + 1];
     if (ch === "/" && next === "/") {
@@ -24657,8 +24443,7 @@ function findUnwrappedInSource(source, control) {
       index += 2;
       while (index < source.length && !(source[index] === "*" && source[index + 1] === "/")) {
         charge();
-        if (source[index] === "\n")
-          line += 1;
+        if (source[index] === "\n") line += 1;
         index += 1;
       }
       index += index < source.length ? 2 : 0;
@@ -24671,14 +24456,11 @@ function findUnwrappedInSource(source, control) {
         charge();
         if (source[index] === "\\") {
           index += 1;
-          if (source[index] === "\n")
-            line += 1;
-          if (index < source.length)
-            index += 1;
+          if (source[index] === "\n") line += 1;
+          if (index < source.length) index += 1;
           continue;
         }
-        if (source[index] === "\n")
-          line += 1;
+        if (source[index] === "\n") line += 1;
         if (source[index] === quote) {
           index += 1;
           break;
@@ -24704,16 +24486,13 @@ function findUnwrappedInSource(source, control) {
         index += 1;
       }
       takeIdent(source.slice(start2, index));
-      if (stopped)
-        break;
+      if (stopped) break;
       continue;
     }
     if (ch === "=" && (next === ">" || next === "=")) {
       index += 2;
-      if (next === ">")
-        takeOp("=>");
-      if (stopped)
-        break;
+      if (next === ">") takeOp("=>");
+      if (stopped) break;
       continue;
     }
     if ((ch === "!" || ch === "<" || ch === ">") && next === "=") {
@@ -24722,28 +24501,22 @@ function findUnwrappedInSource(source, control) {
     }
     index += 1;
     takeOp(ch);
-    if (stopped)
-      break;
+    if (stopped) break;
   }
   if (!stopped && !sawLangGraphWrap) {
-    for (const at of stateGraphLines)
-      add(at, "StateGraph");
+    for (const at of stateGraphLines) add(at, "StateGraph");
   }
   if (!stopped && !sawInterruptWrap) {
-    for (const at of interruptLines)
-      add(at, "interrupt");
+    for (const at of interruptLines) add(at, "interrupt");
   }
   if (!stopped) {
     for (const frame of parens) {
       charge();
-      if (frame.kind === "gen" && !frame.modelWrapped)
-        add(frame.line, frame.callee);
-      if (budgetReached())
-        break;
+      if (frame.kind === "gen" && !frame.modelWrapped) add(frame.line, frame.callee);
+      if (budgetReached()) break;
     }
   }
-  if (control?.steps)
-    control.steps.count += steps;
+  if (control?.steps) control.steps.count += steps;
   findings.sort((left, right) => left.line - right.line || left.call.localeCompare(right.call));
   return findings;
 }
@@ -24755,23 +24528,24 @@ var PYTHON_AI_CALL_PATTERNS = [
   { re: /\bAgent\s*\(\s*["'](?:openai|anthropic|google-gla|gemini|mistral):/, call: "pydantic_ai.Agent()" }
 ];
 function findUnwrappedPythonInSource(source, pathHint, control) {
-  const looksPython = (pathHint ? /\.pyw?$/i.test(pathHint) : false) || /^\s*(?:from\s+[\w.]+\s+import\s+|import\s+(?:openai|anthropic|langchain|pydantic_ai|google\.genai)|def\s+\w+\s*\(|async\s+def\s+\w+\s*\()/m.test(source);
-  if (!looksPython)
-    return [];
-  if (/\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(source)) {
+  const looksPython = (pathHint ? /\.pyw?$/i.test(pathHint) : false) || /^\s*(?:from\s+[\w.]+\s+import\s+|import\s+(?:openai|anthropic|langchain|pydantic_ai|google\.genai)|def\s+\w+\s*\(|async\s+def\s+\w+\s*\()/m.test(
+    source
+  );
+  if (!looksPython) return [];
+  if (/\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(
+    source
+  )) {
     return [];
   }
   const findings = [];
   const lines = source.split("\n");
   for (let idx = 0; idx < lines.length; idx += 1) {
     if (idx > 0 && idx % 128 === 0 && control?.shouldStop?.()) {
-      if (control.stopped)
-        control.stopped.value = true;
+      if (control.stopped) control.stopped.value = true;
       break;
     }
     const line = lines[idx] ?? "";
-    if (/^\s*#/.test(line))
-      continue;
+    if (/^\s*#/.test(line)) continue;
     for (const pattern of PYTHON_AI_CALL_PATTERNS) {
       if (pattern.re.test(line)) {
         findings.push({ line: idx + 1, call: pattern.call });
@@ -24785,15 +24559,11 @@ function toPosix(relative) {
 }
 function resolveScanDirectory(workspaceRoot, requested) {
   const trimmed = requested.trim();
-  if (!trimmed)
-    throw new WorkspacePathError(PATH_EMPTY);
-  if (trimmed.includes("\0"))
-    throw new WorkspacePathError(PATH_INVALID);
+  if (!trimmed) throw new WorkspacePathError(PATH_EMPTY);
+  if (trimmed.includes("\0")) throw new WorkspacePathError(PATH_INVALID);
   const segments = pathSegments(trimmed);
-  if (segments.some((segment) => segment === ".."))
-    throw new WorkspacePathError(PATH_TRAVERSAL);
-  if (!path2.isAbsolute(trimmed) && linkTextIsSensitive(trimmed))
-    throw new WorkspacePathError(PATH_SENSITIVE);
+  if (segments.some((segment) => segment === "..")) throw new WorkspacePathError(PATH_TRAVERSAL);
+  if (!path2.isAbsolute(trimmed) && linkTextIsSensitive(trimmed)) throw new WorkspacePathError(PATH_SENSITIVE);
   let root;
   try {
     root = fs.realpathSync(workspaceRoot);
@@ -24803,27 +24573,22 @@ function resolveScanDirectory(workspaceRoot, requested) {
   const candidate = path2.resolve(root, trimmed);
   let linkTarget = null;
   try {
-    if (fs.lstatSync(candidate).isSymbolicLink())
-      linkTarget = fs.readlinkSync(candidate);
+    if (fs.lstatSync(candidate).isSymbolicLink()) linkTarget = fs.readlinkSync(candidate);
   } catch (error2) {
     const code = error2.code;
-    if (code === "ENOENT")
-      throw new WorkspacePathError(PATH_MISSING);
+    if (code === "ENOENT") throw new WorkspacePathError(PATH_MISSING);
     throw new WorkspacePathError(PATH_INVALID);
   }
-  if (linkTarget && linkTextIsSensitive(linkTarget, root))
-    throw new WorkspacePathError(PATH_SENSITIVE);
+  if (linkTarget && linkTextIsSensitive(linkTarget, root)) throw new WorkspacePathError(PATH_SENSITIVE);
   let resolved;
   try {
     resolved = fs.realpathSync(candidate);
   } catch (error2) {
     const code = error2.code;
-    if (code === "ENOENT")
-      throw new WorkspacePathError(PATH_MISSING);
+    if (code === "ENOENT") throw new WorkspacePathError(PATH_MISSING);
     throw new WorkspacePathError(PATH_INVALID);
   }
-  if (!isInside(root, resolved))
-    throw new WorkspacePathError(PATH_OUTSIDE);
+  if (!isInside(root, resolved)) throw new WorkspacePathError(PATH_OUTSIDE);
   if (pathHasSensitiveSegment(root, resolved) || isExcludedRealPath(root, resolved)) {
     throw new WorkspacePathError(pathHasSensitiveSegment(root, resolved) ? PATH_SENSITIVE : PATH_EXCLUDED);
   }
@@ -24833,8 +24598,7 @@ function resolveScanDirectory(workspaceRoot, requested) {
   } catch {
     throw new WorkspacePathError(PATH_INVALID);
   }
-  if (!info.isDirectory())
-    throw new WorkspacePathError(PATH_NOT_DIRECTORY);
+  if (!info.isDirectory()) throw new WorkspacePathError(PATH_NOT_DIRECTORY);
   return resolved;
 }
 function scanForUnwrappedCalls(workspaceRoot, directory, options) {
@@ -24861,20 +24625,17 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
   let skippedHardLinks = 0;
   const seenFiles = /* @__PURE__ */ new Set();
   const stopForTime = () => {
-    if (!expired())
-      return false;
+    if (!expired()) return false;
     timedOut = true;
     return true;
   };
   const walk2 = (dir, depth) => {
-    if (truncated || timedOut)
-      return;
+    if (truncated || timedOut) return;
     if (depth > maxDepth) {
       depthLimited = true;
       return;
     }
-    if (stopForTime())
-      return;
+    if (stopForTime()) return;
     let realDir;
     try {
       realDir = follow(dir);
@@ -24886,8 +24647,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       skippedOutside += 1;
       return;
     }
-    if (seenDirs.has(realDir))
-      return;
+    if (seenDirs.has(realDir)) return;
     seenDirs.add(realDir);
     let entries;
     try {
@@ -24896,14 +24656,10 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       return;
     }
     for (const entry of entries) {
-      if (truncated || timedOut)
-        return;
-      if (stopForTime())
-        return;
-      if (entry.name === "." || entry.name === "..")
-        continue;
-      if (isSensitiveBase(entry.name))
-        continue;
+      if (truncated || timedOut) return;
+      if (stopForTime()) return;
+      if (entry.name === "." || entry.name === "..") continue;
+      if (isSensitiveBase(entry.name)) continue;
       const full = path2.join(realDir, entry.name);
       let linked = false;
       try {
@@ -24913,8 +24669,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       }
       if (linked) {
         try {
-          if (linkTextIsSensitive(fs.readlinkSync(full), root))
-            continue;
+          if (linkTextIsSensitive(fs.readlinkSync(full), root)) continue;
         } catch {
           continue;
         }
@@ -24929,10 +24684,8 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
         skippedOutside += 1;
         continue;
       }
-      if (pathHasSensitiveSegment(root, real))
-        continue;
-      if (isExcludedRealPath(root, real))
-        continue;
+      if (pathHasSensitiveSegment(root, real)) continue;
+      if (isExcludedRealPath(root, real)) continue;
       let info;
       try {
         info = fs.statSync(real);
@@ -24940,8 +24693,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
         continue;
       }
       if (info.isDirectory()) {
-        if (isExcludedDirName(entry.name) || isExcludedDirName(path2.basename(real)))
-          continue;
+        if (isExcludedDirName(entry.name) || isExcludedDirName(path2.basename(real))) continue;
         if (depth + 1 > maxDepth) {
           depthLimited = true;
           continue;
@@ -24949,24 +24701,20 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
         walk2(real, depth + 1);
         continue;
       }
-      if (!info.isFile())
-        continue;
+      if (!info.isFile()) continue;
       if (info.nlink > 1) {
         skippedHardLinks += 1;
         continue;
       }
-      if (entry.name.endsWith(".d.ts") || path2.basename(real).endsWith(".d.ts"))
-        continue;
+      if (entry.name.endsWith(".d.ts") || path2.basename(real).endsWith(".d.ts")) continue;
       const extension = path2.extname(entry.name) || path2.extname(real);
-      if (!SOURCE_EXT.has(extension))
-        continue;
+      if (!SOURCE_EXT.has(extension)) continue;
       if (info.size > maxFileBytes) {
         skippedLarge += 1;
         continue;
       }
       const fileKey = `${info.dev}:${info.ino}`;
-      if (seenFiles.has(fileKey))
-        continue;
+      if (seenFiles.has(fileKey)) continue;
       seenFiles.add(fileKey);
       if (filesScanned >= maxFiles) {
         truncated = true;
@@ -24978,8 +24726,7 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       } catch {
         continue;
       }
-      if (text2.includes("\0"))
-        continue;
+      if (text2.includes("\0")) continue;
       filesScanned += 1;
       const relative = toPosix(path2.relative(root, real));
       const found = extension === ".py" ? findUnwrappedPythonInSource(text2, relative, { shouldStop: stopForTime }) : findUnwrappedInSource(text2, { shouldStop: stopForTime });
@@ -24990,12 +24737,13 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
           break;
         }
       }
-      if (timedOut || truncated)
-        return;
+      if (timedOut || truncated) return;
     }
   };
   walk2(resolved, 0);
-  findings.sort((left, right) => left.file.localeCompare(right.file) || left.line - right.line || left.call.localeCompare(right.call));
+  findings.sort(
+    (left, right) => left.file.localeCompare(right.file) || left.line - right.line || left.call.localeCompare(right.call)
+  );
   const relativeDir = toPosix(path2.relative(root, resolved)) || ".";
   const partial2 = truncated || timedOut || depthLimited;
   return {
@@ -25020,24 +24768,15 @@ function formatScanReport(report) {
     `Files scanned: ${report.filesScanned}`,
     `Findings: ${report.findings.length}`
   ];
-  if (report.skippedOutside > 0)
-    lines.push(`Skipped ${report.skippedOutside} paths that resolved outside the workspace.`);
-  if (report.skippedLarge > 0)
-    lines.push(`Skipped ${report.skippedLarge} files larger than 512 KB.`);
-  if (report.skippedHardLinks > 0)
-    lines.push(`Skipped ${report.skippedHardLinks} hard-linked files.`);
-  if (report.timedOut)
-    lines.push(SCAN_TIME_LIMIT);
-  if (report.truncated)
-    lines.push(SCAN_COUNT_LIMIT);
-  if (report.depthLimited)
-    lines.push(depthSentence(report.depthLimit));
+  if (report.skippedOutside > 0) lines.push(`Skipped ${report.skippedOutside} paths that resolved outside the workspace.`);
+  if (report.skippedLarge > 0) lines.push(`Skipped ${report.skippedLarge} files larger than 512 KB.`);
+  if (report.skippedHardLinks > 0) lines.push(`Skipped ${report.skippedHardLinks} hard-linked files.`);
+  if (report.timedOut) lines.push(SCAN_TIME_LIMIT);
+  if (report.truncated) lines.push(SCAN_COUNT_LIMIT);
+  if (report.depthLimited) lines.push(depthSentence(report.depthLimit));
   lines.push("");
-  if (report.findings.length === 0)
-    lines.push("No unwrapped calls found.");
-  else
-    for (const finding of report.findings)
-      lines.push(`${finding.file}:${finding.line} ${finding.call}`);
+  if (report.findings.length === 0) lines.push("No unwrapped calls found.");
+  else for (const finding of report.findings) lines.push(`${finding.file}:${finding.line} ${finding.call}`);
   return `${lines.join("\n")}
 `;
 }
@@ -25045,7 +24784,7 @@ function scanWorkspace(workspaceRoot, directory) {
   return formatScanReport(scanForUnwrappedCalls(workspaceRoot, directory));
 }
 
-// packages/mcp/src/tools/marking-hooks.js
+// packages/mcp/src/tools/marking-hooks.ts
 var SURFACES = ["text", "media", "both"];
 var textHook = {
   id: "customer-text-hook",
@@ -25063,38 +24802,49 @@ function isSurface(value) {
   return SURFACES.includes(value);
 }
 function markingHooksText(surface = "both") {
-  if (!isSurface(surface))
-    throw new Error(UNKNOWN_SURFACE);
+  if (!isSurface(surface)) throw new Error(UNKNOWN_SURFACE);
   const parts = [
     DOES_NOT_MARK,
     "withSpurvik and spurvikMiddleware log the call and attach an HMAC receipt. A marking hook runs only when you set config.marking.",
     "Leave marking unset when you have not provided a hook."
   ];
   if (surface !== "media") {
-    parts.push("A text hook is marking.text. The hook id and mark function are yours.", [
-      "marking: {",
-      "  text: {",
-      `    id: ${JSON.stringify(textHook.id)},`,
-      "    mark(text, provenance) {",
-      "      return text;",
-      "    },",
-      "  },",
-      "}"
-    ].join("\n"), `You can set marking.text to "signed-trailer". That opts into the built-in trailer whose id is ${SIGNED_TEXT_TRAILER_ID}. It is an application-level binding. It is not a C2PA manifest, and it is not, by itself, an Article 50(2) machine-readable mark.`, "Streams are not rewritten in flight. Hook output for a stream is on the receipt as markedOutput unless applyToMessageContent is true for a non-streaming call.");
+    parts.push(
+      "A text hook is marking.text. The hook id and mark function are yours.",
+      [
+        "marking: {",
+        "  text: {",
+        `    id: ${JSON.stringify(textHook.id)},`,
+        "    mark(text, provenance) {",
+        "      return text;",
+        "    },",
+        "  },",
+        "}"
+      ].join("\n"),
+      `You can set marking.text to "signed-trailer". That opts into the built-in trailer whose id is ${SIGNED_TEXT_TRAILER_ID}. It is an application-level binding. It is not a C2PA manifest, and it is not, by itself, an Article 50(2) machine-readable mark.`,
+      "Streams are not rewritten in flight. Hook output for a stream is on the receipt as markedOutput unless applyToMessageContent is true for a non-streaming call."
+    );
   }
   if (surface !== "text") {
-    parts.push("A media hook is marking.media. Your hook returns the bytes and whether a manifest was embedded.", [
-      "marking: {",
-      "  media: {",
-      `    id: ${JSON.stringify(mediaHook.id)},`,
-      "    async mark(input) {",
-      "      return { bytes: input.bytes, mediaType: input.mediaType, manifestEmbedded: false };",
-      "    },",
-      "  },",
-      "}"
-    ].join("\n"), "packages/c2pa in this repository implements a MediaMarkingHook for PNG and JPEG. It is not published to npm. This server does not call it.");
+    parts.push(
+      "A media hook is marking.media. Your hook returns the bytes and whether a manifest was embedded.",
+      [
+        "marking: {",
+        "  media: {",
+        `    id: ${JSON.stringify(mediaHook.id)},`,
+        "    async mark(input) {",
+        "      return { bytes: input.bytes, mediaType: input.mediaType, manifestEmbedded: false };",
+        "    },",
+        "  },",
+        "}"
+      ].join("\n"),
+      "packages/c2pa in this repository implements a MediaMarkingHook for PNG and JPEG. It is not published to npm. This server does not call it."
+    );
   }
-  parts.push("markingApplied on the receipt is true only for a hook that changed the content in the way the SDK already records, or for upstream status provider_confirmed. Do not set it yourself.", `Article 50(2) marking is the hook you supply. ${DOES_NOT_MARK}`);
+  parts.push(
+    "markingApplied on the receipt is true only for a hook that changed the content in the way the SDK already records, or for upstream status provider_confirmed. Do not set it yourself.",
+    `Article 50(2) marking is the hook you supply. ${DOES_NOT_MARK}`
+  );
   return `${parts.join("\n\n")}
 `;
 }
@@ -28664,7 +28414,7 @@ function deferred3() {
   return { promise, resolve: resolve2, reject };
 }
 
-// packages/mcp/src/sdk-exports.js
+// packages/mcp/src/sdk-exports.ts
 function liveExport(value, name) {
   if (typeof value !== "function") {
     throw new Error(`Missing spurvik export ${name}.`);
@@ -28688,7 +28438,7 @@ var sdkExportNames = {
   provenanceFromLangGraphState: liveExport(provenanceFromLangGraphState, "provenanceFromLangGraphState")
 };
 
-// packages/mcp/src/tools/setup-snippet.js
+// packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
 var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
@@ -28795,42 +28545,32 @@ function configLiteral(serverless) {
     `    riskTier: "limited_art50", // ${RISK_TIER_SAMPLE_COMMENT}`,
     "    article50Disclosure: false, // Set true only when the app shows an interaction notice."
   ];
-  if (serverless)
-    lines.push("    registerProcessHooks: false,");
+  if (serverless) lines.push("    registerProcessHooks: false,");
   lines.push("    telemetry: { flushTimeoutMs: 3_000 },");
   lines.push("  }");
   return lines.join("\n");
 }
 function runtimeImport(runtime) {
-  if (runtime === "next")
-    return 'import { after } from "next/server";';
-  if (runtime === "vercel")
-    return 'import { waitUntil } from "@vercel/functions";';
+  if (runtime === "next") return 'import { after } from "next/server";';
+  if (runtime === "vercel") return 'import { waitUntil } from "@vercel/functions";';
   return "";
 }
 function runtimeDeclare(runtime) {
-  if (runtime !== "supabase-edge")
-    return "";
+  if (runtime !== "supabase-edge") return "";
   return `declare const EdgeRuntime: {
   waitUntil(task: Promise<void>): void;
 };`;
 }
 function providerFlush(runtime) {
-  if (runtime === "node")
-    return "";
-  if (runtime === "next")
-    return "  after(() => client._spurvik.flush());";
-  if (runtime === "vercel")
-    return "  waitUntil(client._spurvik.flush());";
+  if (runtime === "node") return "";
+  if (runtime === "next") return "  after(() => client._spurvik.flush());";
+  if (runtime === "vercel") return "  waitUntil(client._spurvik.flush());";
   return "  EdgeRuntime.waitUntil(client._spurvik.flush());";
 }
 function middlewareFlush(runtime) {
-  if (runtime === "node")
-    return "";
-  if (runtime === "next")
-    return "  after(() => spurvik().flush());";
-  if (runtime === "vercel")
-    return "  waitUntil(spurvik().flush());";
+  if (runtime === "node") return "";
+  if (runtime === "next") return "  after(() => spurvik().flush());";
+  if (runtime === "vercel") return "  waitUntil(spurvik().flush());";
   return "  EdgeRuntime.waitUntil(spurvik().flush());";
 }
 function nodeShutdown(expr) {
@@ -28846,12 +28586,9 @@ function header() {
   ].join("\n");
 }
 function holderFlush(runtime, call) {
-  if (runtime === "node")
-    return "";
-  if (runtime === "next")
-    return `  after(() => ${call});`;
-  if (runtime === "vercel")
-    return `  waitUntil(${call});`;
+  if (runtime === "node") return "";
+  if (runtime === "next") return `  after(() => ${call});`;
+  if (runtime === "vercel") return `  waitUntil(${call});`;
   return `  EdgeRuntime.waitUntil(${call});`;
 }
 function mastraSource(runtime) {
@@ -28946,7 +28683,12 @@ function agentsSource(runtime) {
   return parts.filter((part) => part !== "").join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
 }
 function langgraphSource(runtime) {
-  const { provenanceFromLangGraphState: provenanceFromLangGraphState2, resolveLangGraphInterrupts: resolveLangGraphInterrupts2, spurvikInterrupt: spurvikInterrupt2, withSpurvikLangGraph: withSpurvikLangGraph2 } = sdkExportNames;
+  const {
+    provenanceFromLangGraphState: provenanceFromLangGraphState2,
+    resolveLangGraphInterrupts: resolveLangGraphInterrupts2,
+    spurvikInterrupt: spurvikInterrupt2,
+    withSpurvikLangGraph: withSpurvikLangGraph2
+  } = sdkExportNames;
   const serverless = runtime !== "node";
   const imports = [
     'import { Command, type CompiledStateGraph } from "@langchain/langgraph";',
@@ -29250,10 +28992,8 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   const resolved = resolveSetupFrameworkAndRuntime(frameworkInput, runtimeInput);
   const framework = resolved.framework;
   const runtime = resolved.runtime;
-  if (!isFramework(framework))
-    throw new Error(UNKNOWN_FRAMEWORK);
-  if (!isRuntime(runtime))
-    throw new Error(UNKNOWN_RUNTIME);
+  if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
+  if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
   const host = publicHostname(options.domain);
   const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
   if (isWorkflowFramework(framework)) {
@@ -29265,19 +29005,13 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       ""
     ].join("\n");
   }
-  if (isCmsFramework(framework))
-    return cmsSource(framework, host, locale);
-  if (isPythonVariant(framework, runtime))
-    return pythonSource(framework);
+  if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
+  if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime;
-  if (framework === "vercel-ai-sdk")
-    return middlewareSource(tsRuntime);
-  if (framework === "mastra")
-    return mastraSource(tsRuntime);
-  if (framework === "openai-agents")
-    return agentsSource(tsRuntime);
-  if (framework === "langgraph")
-    return langgraphSource(tsRuntime);
+  if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
+  if (framework === "mastra") return mastraSource(tsRuntime);
+  if (framework === "openai-agents") return agentsSource(tsRuntime);
+  if (framework === "langgraph") return langgraphSource(tsRuntime);
   const base = providerSource(framework, tsRuntime);
   if (resolved.isLovableAlias) {
     return `${base}
@@ -29354,7 +29088,9 @@ ${source}\`\`\`
     `The SDK logs the call and attaches an HMAC receipt. ${DOES_NOT_MARK}`
   ];
   if (framework === "vercel-ai-sdk") {
-    lines.push("This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik.");
+    lines.push(
+      "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik."
+    );
   } else if (framework === "mastra") {
     lines.push("This snippet calls withSpurvikMastra.");
   } else if (framework === "openai-agents") {
@@ -29365,12 +29101,21 @@ ${source}\`\`\`
     lines.push("This snippet calls withSpurvik on the provider client.");
   }
   if (runtime === "vercel") {
-    lines.push("Install @vercel/functions in the app that calls waitUntil. This monorepo does not depend on that package.");
+    lines.push(
+      "Install @vercel/functions in the app that calls waitUntil. This monorepo does not depend on that package."
+    );
   }
   if (runtime !== "node") {
-    lines.push("registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook.");
+    lines.push(
+      "registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook."
+    );
   }
-  lines.push(`Shareable readiness report for your domain: ${reportLink}`, `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`, `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`, PRICE_NOTE);
+  lines.push(
+    `Shareable readiness report for your domain: ${reportLink}`,
+    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+    PRICE_NOTE
+  );
   return `${lines.join("\n")}
 
 \`\`\`ts
@@ -29378,7 +29123,7 @@ ${source}\`\`\`
 `;
 }
 
-// packages/mcp/src/tools/vendor-questionnaire.js
+// packages/mcp/src/tools/vendor-questionnaire.ts
 var QUESTIONNAIRE_PLANS = ["free", "pro", "team", "concierge"];
 var QUESTIONNAIRE_PROVIDERS = [
   "openai",
@@ -29531,8 +29276,7 @@ function resolve(rawInput) {
     return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
   }
   for (const key of ["hasHighRiskActions", "generatesMedia"]) {
-    if (record2[key] !== void 0 && typeof record2[key] !== "boolean")
-      return invalid("invalid_flag", `${key} must be true or false.`);
+    if (record2[key] !== void 0 && typeof record2[key] !== "boolean") return invalid("invalid_flag", `${key} must be true or false.`);
   }
   if (record2.domain !== void 0 && typeof record2.domain !== "string") {
     return invalid("invalid_domain", "domain must be a string, for example acme.eu.");
@@ -29566,22 +29310,34 @@ function q1(product, plan, generatesMedia, isConcierge) {
   ] : [
     `Art. 50(2), from 2 December 2026: ${product} does not generate synthetic images, audio or video today. If it starts to, our own C2PA marking plugs into the Spurvik SDK marking hook (\`marking.media\`), and CI checks published images with \`npx spurvik c2pa <image-url> --fail-on-missing\`.`
   ];
-  return question("Q1: Art. 50(1) & 2 Dec 2026 Art. 50(2) Transparency & Provenance", "Do users know they are interacting with an AI system, and is AI-generated content marked in a machine-readable way?", [
-    `Every AI feature in ${product} shows a visible notice, in the user's language (all 24 official EU languages), that they are interacting with an AI system (Art. 50(1)). It is rendered by Spurvik's \`badge.js\` script or the \`<AIDisclosureLabel />\` React component. ${notice}`,
-    ...media
-  ]);
+  return question(
+    "Q1: Art. 50(1) & 2 Dec 2026 Art. 50(2) Transparency & Provenance",
+    "Do users know they are interacting with an AI system, and is AI-generated content marked in a machine-readable way?",
+    [
+      `Every AI feature in ${product} shows a visible notice, in the user's language (all 24 official EU languages), that they are interacting with an AI system (Art. 50(1)). It is rendered by Spurvik's \`badge.js\` script or the \`<AIDisclosureLabel />\` React component. ${notice}`,
+      ...media
+    ]
+  );
 }
 function q2(product, plan, provider) {
-  return question("Q2: Art. 12 Cryptographic Event Logging", "What do you log about AI interactions, and can the log be tampered with?", [
-    `Every ${provider.label} model call made by ${product} is wrapped with the MIT-licensed Spurvik SDK (${provider.wrapper}), which records one event per call. Prompt and output text are replaced by keyed HMAC-SHA256 fingerprints (\`inputHash\`, \`outputHash\`), computed in our own infrastructure with a key that is never sent to Spurvik, and each call carries an HMAC-SHA256-signed provenance receipt.`,
-    `Stored events form a hash chain: each event's SHA-256 \`recordHash\` is linked to the previous event by \`prevLogHash\`, so an edited, inserted or deleted event breaks verification. When events age out, a signed checkpoint keeps the remaining chain verifiable. Our Spurvik ${plan.name} plan covers ${plan.events} events per month.`
-  ]);
+  return question(
+    "Q2: Art. 12 Cryptographic Event Logging",
+    "What do you log about AI interactions, and can the log be tampered with?",
+    [
+      `Every ${provider.label} model call made by ${product} is wrapped with the MIT-licensed Spurvik SDK (${provider.wrapper}), which records one event per call. Prompt and output text are replaced by keyed HMAC-SHA256 fingerprints (\`inputHash\`, \`outputHash\`), computed in our own infrastructure with a key that is never sent to Spurvik, and each call carries an HMAC-SHA256-signed provenance receipt.`,
+      `Stored events form a hash chain: each event's SHA-256 \`recordHash\` is linked to the previous event by \`prevLogHash\`, so an edited, inserted or deleted event breaks verification. When events age out, a signed checkpoint keeps the remaining chain verifiable. Our Spurvik ${plan.name} plan covers ${plan.events} events per month.`
+    ]
+  );
 }
 function q3(product, plan, provider) {
-  return question("Q3: GDPR Art. 5(1)(c) Zero-Prompt Minimisation & EU Frankfurt Residency", "Is customer prompt or output text stored, and where is AI-related data kept?", [
-    `Data minimisation (GDPR Art. 5(1)(c)): 0 bytes of raw prompt or completion text are persisted by Spurvik. Only the keyed fingerprints and call metadata leave our systems. Keyed fingerprints are pseudonymised data (GDPR Art. 4(5)) while our key exists, not anonymised data.`,
-    `Residency: event records are stored in Frankfurt, Germany (Vercel \`fra1\` for the API, Neon Postgres on AWS \`eu-central-1\`) and kept for ${plan.retention}. Spurvik is operated by EyeTea Solutions ApS, Denmark; its sub-processors are listed at https://spurvik.com/privacy. Model inference runs with ${provider.inference} under our own agreement; Spurvik is not in that data path.`
-  ]);
+  return question(
+    "Q3: GDPR Art. 5(1)(c) Zero-Prompt Minimisation & EU Frankfurt Residency",
+    "Is customer prompt or output text stored, and where is AI-related data kept?",
+    [
+      `Data minimisation (GDPR Art. 5(1)(c)): 0 bytes of raw prompt or completion text are persisted by Spurvik. Only the keyed fingerprints and call metadata leave our systems. Keyed fingerprints are pseudonymised data (GDPR Art. 4(5)) while our key exists, not anonymised data.`,
+      `Residency: event records are stored in Frankfurt, Germany (Vercel \`fra1\` for the API, Neon Postgres on AWS \`eu-central-1\`) and kept for ${plan.retention}. Spurvik is operated by EyeTea Solutions ApS, Denmark; its sub-processors are listed at https://spurvik.com/privacy. Model inference runs with ${provider.inference} under our own agreement; Spurvik is not in that data path.`
+    ]
+  );
 }
 function q4(product, plan, provider, hasHighRiskActions) {
   const gate = plan.hostedQueue ? [
@@ -29591,27 +29347,32 @@ function q4(product, plan, provider, hasHighRiskActions) {
     "The action waits for a named reviewer to approve it through signed Slack or Microsoft Teams approval links, routed by `createMultiChannelApprovalRouter` (`spurvik/channels`) in our own stack. Only an explicit approval lets it run; a rejected or expired request does not."
   ];
   const intro = hasHighRiskActions ? `AI agents and tools in ${product} that can issue refunds, send emails, change permissions or delete data are gated deterministically in code before they run, not by a model prompt.` : `AI features in ${product} do not trigger refunds, outbound emails, permission changes or deletions on their own today; they return output to a person who decides. Any such action we add is gated deterministically in code before it runs.`;
-  return question("Q4: Art. 14 Deterministic Human Oversight Gates", "How does a human oversee consequential actions taken by your AI features?", [intro, ...gate]);
+  return question(
+    "Q4: Art. 14 Deterministic Human Oversight Gates",
+    "How does a human oversee consequential actions taken by your AI features?",
+    [intro, ...gate]
+  );
 }
 function q5(product, plan, isConcierge) {
   const evidence = [];
-  if (plan.dpoSummary)
-    evidence.push("a DPO engineering summary (`.md`) downloaded from the signed event log");
-  if (plan.annexIv)
-    evidence.push("an Annex IV technical documentation draft (Art. 11), exported as PDF or Markdown");
-  if (plan.webhookExport)
-    evidence.push("a webhook export of signed events into our own systems");
+  if (plan.dpoSummary) evidence.push("a DPO engineering summary (`.md`) downloaded from the signed event log");
+  if (plan.annexIv) evidence.push("an Annex IV technical documentation draft (Art. 11), exported as PDF or Markdown");
+  if (plan.webhookExport) evidence.push("a webhook export of signed events into our own systems");
   const answer = [
     `Signed AI events for ${product} are kept for ${plan.retention} in Frankfurt (Spurvik ${plan.name}, ${plan.events} events per month), and the hash chain can be re-verified at any point in that window.`
   ];
-  if (evidence.length > 0)
-    answer.push(`Evidence we can share with your DPO: ${evidence.join("; ")}.`);
-  else
-    answer.push("Evidence we can share with your DPO: the event record and receipt fields described in Q2, on request.");
+  if (evidence.length > 0) answer.push(`Evidence we can share with your DPO: ${evidence.join("; ")}.`);
+  else answer.push("Evidence we can share with your DPO: the event record and receipt fields described in Q2, on request.");
   if (isConcierge) {
-    answer.push("Our setup was installed by a Spurvik engineer within 24 hours (pull request or CMS snippet), and we hold a signed DPO Readiness & C2PA Art. 50(2) provenance report.");
+    answer.push(
+      "Our setup was installed by a Spurvik engineer within 24 hours (pull request or CMS snippet), and we hold a signed DPO Readiness & C2PA Art. 50(2) provenance report."
+    );
   }
-  return question("Q5: Audit Retention, DPO Evidence & Annex IV Documentation", "How long do you keep AI audit records, and what evidence can you share with our DPO?", answer);
+  return question(
+    "Q5: Audit Retention, DPO Evidence & Annex IV Documentation",
+    "How long do you keep AI audit records, and what evidence can you share with our DPO?",
+    answer
+  );
 }
 function planTable() {
   return [
@@ -29634,9 +29395,14 @@ function planTable() {
 }
 function nextSteps(host) {
   const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
-  if (host)
-    lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
-  lines.push(`- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`, `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`, `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`, `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`, "");
+  if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
+  lines.push(
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
+    `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
+    `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
+    ""
+  );
   return lines;
 }
 function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
@@ -29937,8 +29703,7 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
 }
 function vendorQuestionnaireAnswers(rawInput = {}) {
   const resolved = resolve(rawInput);
-  if ("ok" in resolved)
-    return resolved;
+  if ("ok" in resolved) return resolved;
   const plan = PLAN_FACTS[resolved.plan];
   const provider = PROVIDER_FACTS[resolved.provider];
   if (resolved.locale !== "en") {
@@ -29972,13 +29737,12 @@ function vendorQuestionnaireAnswers(rawInput = {}) {
 ` };
 }
 
-// packages/mcp/src/server.js
+// packages/mcp/src/server.ts
 function text(value) {
   return { content: [{ type: "text", text: value }] };
 }
 function withMarkdown(result, markdown) {
-  if (result.isError || !markdown)
-    return result;
+  if (result.isError || !markdown) return result;
   return { content: [...result.content, { type: "text", text: markdown }] };
 }
 function json(outcome) {
@@ -29993,136 +29757,179 @@ function serverVersion() {
     const here = dirname(fileURLToPath(import.meta.url));
     const raw = readFileSync3(join2(here, "..", "package.json"), "utf8");
     const parsed = JSON.parse(raw);
-    if (typeof parsed.version === "string" && parsed.version.length > 0)
-      return parsed.version;
+    if (typeof parsed.version === "string" && parsed.version.length > 0) return parsed.version;
   } catch {
     return MCP_VERSION;
   }
   return MCP_VERSION;
 }
 function createServer(workspaceRoot, options = {}) {
-  const server = new McpServer({ name: "spurvik", version: serverVersion() }, { instructions: SERVER_INSTRUCTIONS });
-  server.registerTool("spurvik_setup_snippet", {
-    title: SETUP_TITLE,
-    description: SETUP_DESCRIPTION,
-    inputSchema: {
-      framework: external_exports.string().max(64).optional().describe(FRAMEWORK_FIELD),
-      target: external_exports.string().max(64).optional().describe("Alias for framework (e.g. openai, lovable, nextjs, n8n, python, shopify)."),
-      runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
-      domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
-      locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
+  const server = new McpServer(
+    { name: "spurvik", version: serverVersion() },
+    { instructions: SERVER_INSTRUCTIONS }
+  );
+  server.registerTool(
+    "spurvik_setup_snippet",
+    {
+      title: SETUP_TITLE,
+      description: SETUP_DESCRIPTION,
+      inputSchema: {
+        framework: external_exports.string().max(64).optional().describe(FRAMEWORK_FIELD),
+        target: external_exports.string().max(64).optional().describe("Alias for framework (e.g. openai, lovable, nextjs, n8n, python, shopify)."),
+        runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async ({ framework, target, runtime, domain, locale }) => text(`${setupSnippet(framework ?? target ?? "openai", runtime, { domain, locale })}${setupNextSteps(domain, locale)}`));
-  server.registerTool("spurvik_find_unwrapped_calls", {
-    title: FIND_TITLE,
-    description: FIND_DESCRIPTION,
-    inputSchema: {
-      directory: external_exports.string().min(1).describe(DIRECTORY_FIELD)
+    async ({ framework, target, runtime, domain, locale }) => text(
+      `${setupSnippet(framework ?? target ?? "openai", runtime, { domain, locale })}${setupNextSteps(domain, locale)}`
+    )
+  );
+  server.registerTool(
+    "spurvik_find_unwrapped_calls",
+    {
+      title: FIND_TITLE,
+      description: FIND_DESCRIPTION,
+      inputSchema: {
+        directory: external_exports.string().min(1).describe(DIRECTORY_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`));
-  server.registerTool("spurvik_explain_receipt", {
-    title: RECEIPT_TITLE,
-    description: RECEIPT_DESCRIPTION,
-    inputSchema: {
-      receipt: external_exports.string().min(1).describe(RECEIPT_FIELD),
-      signingSecret: external_exports.string().optional().describe(SIGNING_INPUT_HELP)
+    async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`)
+  );
+  server.registerTool(
+    "spurvik_explain_receipt",
+    {
+      title: RECEIPT_TITLE,
+      description: RECEIPT_DESCRIPTION,
+      inputSchema: {
+        receipt: external_exports.string().min(1).describe(RECEIPT_FIELD),
+        signingSecret: external_exports.string().optional().describe(SIGNING_INPUT_HELP)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async ({ receipt, signingSecret }) => {
-    let secret;
-    try {
-      secret = resolveSigningSecret(signingSecret);
-      return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
-    } catch (error2) {
-      const message = error2 instanceof Error ? error2.message : "The receipt could not be explained.";
-      throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));
+    async ({ receipt, signingSecret }) => {
+      let secret;
+      try {
+        secret = resolveSigningSecret(signingSecret);
+        return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
+      } catch (error2) {
+        const message = error2 instanceof Error ? error2.message : "The receipt could not be explained.";
+        throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));
+      }
     }
-  });
-  server.registerTool("spurvik_marking_hooks", {
-    title: MARKING_TITLE,
-    description: MARKING_DESCRIPTION,
-    inputSchema: {
-      surface: external_exports.enum(["text", "media", "both"]).optional().describe(SURFACE_FIELD)
+  );
+  server.registerTool(
+    "spurvik_marking_hooks",
+    {
+      title: MARKING_TITLE,
+      description: MARKING_DESCRIPTION,
+      inputSchema: {
+        surface: external_exports.enum(["text", "media", "both"]).optional().describe(SURFACE_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`));
-  server.registerTool("spurvik_scan_live_url", {
-    title: SCAN_TITLE,
-    description: SCAN_DESCRIPTION,
-    inputSchema: {
-      url: external_exports.string().min(1).max(2048).describe(SCAN_URL_FIELD)
+    async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`)
+  );
+  server.registerTool(
+    "spurvik_scan_live_url",
+    {
+      title: SCAN_TITLE,
+      description: SCAN_DESCRIPTION,
+      inputSchema: {
+        url: external_exports.string().min(1).max(2048).describe(SCAN_URL_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
-    annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
-  }, async ({ url }) => json(await scanLiveUrl(url, options.scan)));
-  server.registerTool("spurvik_batch_scan_domains", {
-    title: BATCH_TITLE,
-    description: BATCH_DESCRIPTION,
-    inputSchema: {
-      domains: external_exports.array(external_exports.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD)
+    async ({ url }) => json(await scanLiveUrl(url, options.scan))
+  );
+  server.registerTool(
+    "spurvik_batch_scan_domains",
+    {
+      title: BATCH_TITLE,
+      description: BATCH_DESCRIPTION,
+      inputSchema: {
+        domains: external_exports.array(external_exports.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
-    annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
-  }, async ({ domains }) => json(await batchScanDomains(domains, options.scan)));
-  server.registerTool("spurvik_check_image_c2pa_url", {
-    title: C2PA_TITLE,
-    description: C2PA_DESCRIPTION,
-    inputSchema: {
-      url: external_exports.string().min(1).max(2048).describe(C2PA_URL_FIELD)
+    async ({ domains }) => json(await batchScanDomains(domains, options.scan))
+  );
+  server.registerTool(
+    "spurvik_check_image_c2pa_url",
+    {
+      title: C2PA_TITLE,
+      description: C2PA_DESCRIPTION,
+      inputSchema: {
+        url: external_exports.string().min(1).max(2048).describe(C2PA_URL_FIELD)
+      },
+      annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
-    annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
-  }, async ({ url }) => json(await checkImageC2paUrl(url, options.c2pa)));
-  server.registerTool("spurvik_classify_ai_act_risk", {
-    title: CLASSIFY_TITLE,
-    description: CLASSIFY_DESCRIPTION,
-    inputSchema: {
-      useCase: external_exports.string().min(1).max(MAX_USE_CASE_CHARS).describe(USE_CASE_FIELD),
-      domain: external_exports.enum(RISK_DOMAINS).optional().describe(DOMAIN_FIELD),
-      interactsWithHumans: external_exports.boolean().optional().describe(INTERACTS_FIELD),
-      generatesSyntheticMedia: external_exports.boolean().optional().describe(SYNTHETIC_FIELD),
-      makesAutomatedDecisionsAboutPeople: external_exports.boolean().optional().describe(DECISIONS_FIELD),
-      siteDomain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(CLASSIFY_SITE_DOMAIN_FIELD),
-      locale: external_exports.string().max(16).optional().describe(CLASSIFY_LOCALE_FIELD)
+    async ({ url }) => json(await checkImageC2paUrl(url, options.c2pa))
+  );
+  server.registerTool(
+    "spurvik_classify_ai_act_risk",
+    {
+      title: CLASSIFY_TITLE,
+      description: CLASSIFY_DESCRIPTION,
+      inputSchema: {
+        useCase: external_exports.string().min(1).max(MAX_USE_CASE_CHARS).describe(USE_CASE_FIELD),
+        domain: external_exports.enum(RISK_DOMAINS).optional().describe(DOMAIN_FIELD),
+        interactsWithHumans: external_exports.boolean().optional().describe(INTERACTS_FIELD),
+        generatesSyntheticMedia: external_exports.boolean().optional().describe(SYNTHETIC_FIELD),
+        makesAutomatedDecisionsAboutPeople: external_exports.boolean().optional().describe(DECISIONS_FIELD),
+        siteDomain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(CLASSIFY_SITE_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(CLASSIFY_LOCALE_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async (args) => {
-    const outcome = classifyAiActRisk(args);
-    return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier, args.siteDomain, args.locale) : null);
-  });
-  server.registerTool("spurvik_generate_art50_badge", {
-    title: BADGE_TITLE,
-    description: BADGE_DESCRIPTION,
-    inputSchema: {
-      locale: external_exports.string().max(16).optional().describe(LOCALE_FIELD),
-      position: external_exports.enum(BADGE_POSITIONS).optional().describe(POSITION_FIELD),
-      theme: external_exports.enum(BADGE_THEMES).optional().describe(THEME_FIELD),
-      systemName: external_exports.string().max(200).optional().describe(SYSTEM_NAME_FIELD),
-      attribution: external_exports.boolean().optional().describe(ATTRIBUTION_FIELD)
+    async (args) => {
+      const outcome = classifyAiActRisk(args);
+      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier, args.siteDomain, args.locale) : null);
+    }
+  );
+  server.registerTool(
+    "spurvik_generate_art50_badge",
+    {
+      title: BADGE_TITLE,
+      description: BADGE_DESCRIPTION,
+      inputSchema: {
+        locale: external_exports.string().max(16).optional().describe(LOCALE_FIELD),
+        position: external_exports.enum(BADGE_POSITIONS).optional().describe(POSITION_FIELD),
+        theme: external_exports.enum(BADGE_THEMES).optional().describe(THEME_FIELD),
+        systemName: external_exports.string().max(200).optional().describe(SYSTEM_NAME_FIELD),
+        attribution: external_exports.boolean().optional().describe(ATTRIBUTION_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async (args) => withMarkdown(json(generateArt50Badge(args)), badgeNextSteps(args.systemName)));
-  server.registerTool("spurvik_vendor_questionnaire_answers", {
-    title: VQ_TITLE,
-    description: VQ_DESCRIPTION,
-    inputSchema: {
-      plan: external_exports.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
-      provider: external_exports.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
-      hasHighRiskActions: external_exports.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
-      generatesMedia: external_exports.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
-      domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
-      locale: external_exports.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD)
+    async (args) => withMarkdown(json(generateArt50Badge(args)), badgeNextSteps(args.systemName))
+  );
+  server.registerTool(
+    "spurvik_vendor_questionnaire_answers",
+    {
+      title: VQ_TITLE,
+      description: VQ_DESCRIPTION,
+      inputSchema: {
+        plan: external_exports.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
+        provider: external_exports.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
+        hasHighRiskActions: external_exports.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
+        generatesMedia: external_exports.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
+        locale: external_exports.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD)
+      },
+      annotations: READ_ONLY_ANNOTATIONS
     },
-    annotations: READ_ONLY_ANNOTATIONS
-  }, async (args) => {
-    const outcome = vendorQuestionnaireAnswers(args);
-    if (!outcome.ok)
-      return json(outcome);
-    return text(outcome.text);
-  });
+    async (args) => {
+      const outcome = vendorQuestionnaireAnswers(args);
+      if (!outcome.ok) return json(outcome);
+      return text(outcome.text);
+    }
+  );
   return server;
 }
 
-// packages/mcp/src/cli.js
+// packages/mcp/src/cli.ts
 var DEFAULT_IO = {
   stdout: (chunk) => process.stdout.write(chunk),
   stderr: (chunk) => process.stderr.write(chunk),
@@ -30207,30 +30014,38 @@ function tryRunCli(argv, io = DEFAULT_IO) {
     }
     const report = scanForUnwrappedCalls(root, ".");
     if (jsonMode) {
-      io.stdout(`${JSON.stringify({
-        status: report.findings.length === 0 && !report.partial ? "clean" : report.findings.length > 0 ? "unwrapped_calls_found" : "partial_scan",
-        filesScanned: report.filesScanned,
-        unwrappedCount: report.findings.length,
-        findings: report.findings,
-        partial: report.partial,
-        truncated: report.truncated,
-        timedOut: report.timedOut,
-        depthLimited: report.depthLimited,
-        sandboxUrl: "https://console.spurvik.com/sandbox",
-        proUpgradeUrl: "https://console.spurvik.com/?upgrade=pro"
-      }, null, 2)}
-`);
+      io.stdout(
+        `${JSON.stringify(
+          {
+            status: report.findings.length === 0 && !report.partial ? "clean" : report.findings.length > 0 ? "unwrapped_calls_found" : "partial_scan",
+            filesScanned: report.filesScanned,
+            unwrappedCount: report.findings.length,
+            findings: report.findings,
+            partial: report.partial,
+            truncated: report.truncated,
+            timedOut: report.timedOut,
+            depthLimited: report.depthLimited,
+            sandboxUrl: "https://console.spurvik.com/sandbox",
+            proUpgradeUrl: "https://console.spurvik.com/?upgrade=pro"
+          },
+          null,
+          2
+        )}
+`
+      );
     } else {
       io.stdout(formatScanReport(report));
-      io.stdout([
-        "",
-        "Next steps:",
-        "- Wrap model clients with `withSpurvik(client, config)` (`npm i spurvik`)",
-        "- Python (FastAPI / LangChain / PydanticAI): `spurvik-mcp-server snippet fastapi` (`https://spurvik.com/r/spurvik_guard.py`)",
-        "- Test in the interactive 2x2 browser sandbox (0 login): https://console.spurvik.com/sandbox",
-        "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro",
-        ""
-      ].join("\n"));
+      io.stdout(
+        [
+          "",
+          "Next steps:",
+          "- Wrap model clients with `withSpurvik(client, config)` (`npm i spurvik`)",
+          "- Python (FastAPI / LangChain / PydanticAI): `spurvik-mcp-server snippet fastapi` (`https://spurvik.com/r/spurvik_guard.py`)",
+          "- Test in the interactive 2x2 browser sandbox (0 login): https://console.spurvik.com/sandbox",
+          "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro",
+          ""
+        ].join("\n")
+      );
     }
     if (ciMode && (report.findings.length > 0 || report.partial)) {
       return 1;
