@@ -22121,6 +22121,18 @@ function lovableCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function supportWidgetCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/intercom-fin-zendesk-tidio-hubspot-ki-verordnung-artikel-50" : code === "fr" ? "/fr/intercom-fin-zendesk-tidio-hubspot-reglement-ia-article-50" : code === "nl" ? "/nl/intercom-fin-zendesk-trengo-tidio-ai-verordening-artikel-50" : code === "da" ? "/da/intercom-fin-zendesk-dixa-tidio-eu-ai-act-artikel-50" : code === "sv" ? "/sv/intercom-fin-zendesk-tidio-hubspot-ai-forordningen-artikel-50" : code === "es" ? "/es/intercom-fin-zendesk-tidio-hubspot-reglamento-ia-articulo-50" : code === "it" ? "/it/intercom-fin-zendesk-tidio-hubspot-regolamento-ia-articolo-50" : "/intercom-zendesk-tidio-hubspot-eu-ai-act-disclosure";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+function ecommerceCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/shopify-shopware-woocommerce-ki-hinweis-artikel-50" : code === "fr" ? "/fr/shopify-prestashop-gorgias-crisp-mention-ia-article-50" : code === "nl" ? "/nl/shopify-woocommerce-trengo-ai-melding-artikel-50" : code === "da" ? "/da/shopify-woocommerce-dandomain-ai-oplysning-artikel-50" : code === "sv" ? "/sv/shopify-woocommerce-centra-ai-upplysning-artikel-50" : code === "es" ? "/es/shopify-woocommerce-prestashop-aviso-ia-articulo-50" : code === "it" ? "/it/shopify-woocommerce-prestashop-informativa-ia-articolo-50" : "/shopify-gorgias-crisp-eu-ai-act-disclosure";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -22405,6 +22417,8 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: c2paCheckUrlFor(host, heroImageUrl, locale),
     rfpQuestionnaireUrl: rfpQuestionnaireUrlFor(host, locale),
+    supportWidgetCockpitUrl: supportWidgetCockpitUrlFor(host, locale),
+    ecommerceCockpitUrl: ecommerceCockpitUrlFor(host, locale),
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
@@ -28502,8 +28516,43 @@ var SETUP_FRAMEWORK_ALIASES = {
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
+  intercom: "html",
+  "intercom-fin": "html",
+  zendesk: "html",
+  "zendesk-ai": "html",
+  tidio: "html",
+  lyro: "html",
+  hubspot: "html",
+  dixa: "html",
+  trengo: "html",
+  gorgias: "html",
+  crisp: "html",
+  freshchat: "html",
+  drift: "html",
+  livechat: "html",
+  helpscout: "html",
+  tawk: "html",
   "make.com": "make"
 };
+var SUPPORT_WIDGET_ALIASES = /* @__PURE__ */ new Set([
+  "intercom",
+  "intercom-fin",
+  "zendesk",
+  "zendesk-ai",
+  "tidio",
+  "lyro",
+  "hubspot",
+  "dixa",
+  "trengo",
+  "gorgias",
+  "crisp",
+  "freshchat",
+  "drift",
+  "livechat",
+  "helpscout",
+  "tawk"
+]);
+var ECOMMERCE_WIDGET_ALIASES = /* @__PURE__ */ new Set(["gorgias", "crisp"]);
 var SETUP_DEFAULT_RUNTIME_BY_ALIAS = {
   next: "next",
   nextjs: "next",
@@ -29073,8 +29122,26 @@ ${source}\`\`\`
 `;
   }
   if (isCmsFramework(framework)) {
+    const rawLowerCms = frameworkInput.trim().toLowerCase();
+    if (SUPPORT_WIDGET_ALIASES.has(rawLowerCms)) {
+      const cockpitHref = ECOMMERCE_WIDGET_ALIASES.has(rawLowerCms) ? ecommerceCockpitUrlFor(host, effectiveLocale) : supportWidgetCockpitUrlFor(host, effectiveLocale);
+      const swLines = [
+        `Framework: ${rawLowerCms}. Runtime: browser Shadow DOM alongside your support widget (0 cookies, 24 EU languages).`,
+        `EU AI Act Art. 50(1) applies as soon as AI replies or AI routing interact with visitors — human-only live chat needs no AI notice. Paste one \`<script>\` tag before \`</body>\` (\`data-position="bottom-left"\` keeps your bottom-right launcher clear). Interactive cockpit: ${cockpitHref}. ${DOES_NOT_MARK}`,
+        `Shareable readiness report for your domain: ${reportLink}`,
+        `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+        `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+        `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+        PRICE_NOTE
+      ];
+      return `${swLines.join("\n")}
+
+\`\`\`html
+${source}\`\`\`
+`;
+    }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
-    const guideLine = framework === "shopify" ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure" : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,

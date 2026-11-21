@@ -8,6 +8,7 @@ import {
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   conciergeSignupUrlFor,
+  ecommerceCockpitUrlFor,
   lovableCockpitUrlFor,
   PRICE_NOTE,
   PRO_PRICE,
@@ -16,6 +17,7 @@ import {
   pythonCockpitUrlFor,
   REPORT_URL,
   reportUrlFor,
+  supportWidgetCockpitUrlFor,
   TEAM_PRICE,
   TEAM_SIGNUP_URL,
   teamSignupUrlFor,
@@ -74,8 +76,44 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
+  intercom: "html",
+  "intercom-fin": "html",
+  zendesk: "html",
+  "zendesk-ai": "html",
+  tidio: "html",
+  lyro: "html",
+  hubspot: "html",
+  dixa: "html",
+  trengo: "html",
+  gorgias: "html",
+  crisp: "html",
+  freshchat: "html",
+  drift: "html",
+  livechat: "html",
+  helpscout: "html",
+  tawk: "html",
   "make.com": "make",
 };
+
+const SUPPORT_WIDGET_ALIASES = new Set([
+  "intercom",
+  "intercom-fin",
+  "zendesk",
+  "zendesk-ai",
+  "tidio",
+  "lyro",
+  "hubspot",
+  "dixa",
+  "trengo",
+  "gorgias",
+  "crisp",
+  "freshchat",
+  "drift",
+  "livechat",
+  "helpscout",
+  "tawk",
+]);
+const ECOMMERCE_WIDGET_ALIASES = new Set(["gorgias", "crisp"]);
 
 const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, Runtime>> = {
   next: "next",
@@ -695,10 +733,26 @@ export function setupSnippet(
     return `${wfLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
   }
   if (isCmsFramework(framework)) {
+    const rawLowerCms = frameworkInput.trim().toLowerCase();
+    if (SUPPORT_WIDGET_ALIASES.has(rawLowerCms)) {
+      const cockpitHref = ECOMMERCE_WIDGET_ALIASES.has(rawLowerCms)
+        ? ecommerceCockpitUrlFor(host, effectiveLocale)
+        : supportWidgetCockpitUrlFor(host, effectiveLocale);
+      const swLines = [
+        `Framework: ${rawLowerCms}. Runtime: browser Shadow DOM alongside your support widget (0 cookies, 24 EU languages).`,
+        `EU AI Act Art. 50(1) applies as soon as AI replies or AI routing interact with visitors — human-only live chat needs no AI notice. Paste one \`<script>\` tag before \`</body>\` (\`data-position="bottom-left"\` keeps your bottom-right launcher clear). Interactive cockpit: ${cockpitHref}. ${DOES_NOT_MARK}`,
+        `Shareable readiness report for your domain: ${reportLink}`,
+        `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+        `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+        `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+        PRICE_NOTE,
+      ];
+      return `${swLines.join("\n")}\n\n\`\`\`html\n${source}\`\`\`\n`;
+    }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const guideLine =
       framework === "shopify"
-        ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure"
+        ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
         : framework === "wordpress"
           ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge"
           : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";

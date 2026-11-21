@@ -157,6 +157,52 @@ export function lovableCockpitUrlFor(host?: string | null, locale = "en"): strin
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language Intercom Fin, Zendesk AI, Tidio Lyro, HubSpot Breeze, Dixa & Trengo support-widget cockpit URL prefilled with `?domain=`. */
+export function supportWidgetCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/intercom-fin-zendesk-tidio-hubspot-ki-verordnung-artikel-50"
+      : code === "fr"
+        ? "/fr/intercom-fin-zendesk-tidio-hubspot-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/intercom-fin-zendesk-trengo-tidio-ai-verordening-artikel-50"
+          : code === "da"
+            ? "/da/intercom-fin-zendesk-dixa-tidio-eu-ai-act-artikel-50"
+            : code === "sv"
+              ? "/sv/intercom-fin-zendesk-tidio-hubspot-ai-forordningen-artikel-50"
+              : code === "es"
+                ? "/es/intercom-fin-zendesk-tidio-hubspot-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/intercom-fin-zendesk-tidio-hubspot-regolamento-ia-articolo-50"
+                  : "/intercom-zendesk-tidio-hubspot-eu-ai-act-disclosure";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
+/** 8-language Shopify, Gorgias, Crisp, WooCommerce, Shopware, PrestaShop, DanDomain & Centra e-commerce cockpit URL prefilled with `?domain=`. */
+export function ecommerceCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/shopify-shopware-woocommerce-ki-hinweis-artikel-50"
+      : code === "fr"
+        ? "/fr/shopify-prestashop-gorgias-crisp-mention-ia-article-50"
+        : code === "nl"
+          ? "/nl/shopify-woocommerce-trengo-ai-melding-artikel-50"
+          : code === "da"
+            ? "/da/shopify-woocommerce-dandomain-ai-oplysning-artikel-50"
+            : code === "sv"
+              ? "/sv/shopify-woocommerce-centra-ai-upplysning-artikel-50"
+              : code === "es"
+                ? "/es/shopify-woocommerce-prestashop-aviso-ia-articulo-50"
+                : code === "it"
+                  ? "/it/shopify-woocommerce-prestashop-informativa-ia-articolo-50"
+                  : "/shopify-gorgias-crisp-eu-ai-act-disclosure";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;

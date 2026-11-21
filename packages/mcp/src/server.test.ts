@@ -547,4 +547,26 @@ describe("createServer", () => {
     expect(bad.isError).toBe(true);
     await client.close();
   });
+
+  it("spurvik_setup_snippet supports support-widget targets (intercom, zendesk, trengo, dixa, gorgias) and 8-language cockpits (H134b)", async () => {
+    const client = await connect();
+    const trengoNl = textOf(
+      await client.callTool({
+        name: "spurvik_setup_snippet",
+        arguments: { framework: "trengo", domain: "coolblue.nl" },
+      }),
+    );
+    expect(trengoNl).toContain("/nl/intercom-fin-zendesk-trengo-tidio-ai-verordening-artikel-50?domain=coolblue.nl");
+    expect(trengoNl).toContain("human-only live chat needs no AI notice");
+    expect(trengoNl).toContain('data-position="bottom-left"');
+
+    const shopifyDe = textOf(
+      await client.callTool({
+        name: "spurvik_setup_snippet",
+        arguments: { framework: "shopify", domain: "armedangels.com", locale: "de" },
+      }),
+    );
+    expect(shopifyDe).toContain("/de/shopify-shopware-woocommerce-ki-hinweis-artikel-50?domain=armedangels.com");
+    await client.close();
+  });
 });

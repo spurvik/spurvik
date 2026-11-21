@@ -2,6 +2,7 @@ import {
   c2paCheckUrlFor,
   conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
+  ecommerceCockpitUrlFor,
   PORTFOLIO_URL,
   PRICE_NOTE,
   proSignupUrlFor,
@@ -10,6 +11,7 @@ import {
   sandboxUrlFor,
   statusShieldMarkdownFor,
   statusShieldUrlFor,
+  supportWidgetCockpitUrlFor,
   teamSignupUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
@@ -65,6 +67,10 @@ export interface ScanLiveUrlLinks {
   c2paCheckUrl: string;
   /** 8-language EU AI Act vendor security questionnaire & DPO RFP answers prefilled with `?domain=`. */
   rfpQuestionnaireUrl: string;
+  /** 8-language Intercom Fin, Zendesk AI, Tidio Lyro, HubSpot Breeze, Dixa & Trengo AI notice cockpit prefilled with `?domain=`. */
+  supportWidgetCockpitUrl: string;
+  /** 8-language Shopify, Gorgias, Crisp, WooCommerce & Shopware e-commerce AI notice cockpit prefilled with `?domain=`. */
+  ecommerceCockpitUrl: string;
   /** Live Art. 50 status shield SVG for this host. */
   statusShieldUrl: string;
   /** README Markdown: the status shield linked to reportUrl. */
@@ -292,6 +298,8 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: c2paCheckUrlFor(host, heroImageUrl, locale),
     rfpQuestionnaireUrl: rfpQuestionnaireUrlFor(host, locale),
+    supportWidgetCockpitUrl: supportWidgetCockpitUrlFor(host, locale),
+    ecommerceCockpitUrl: ecommerceCockpitUrlFor(host, locale),
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
