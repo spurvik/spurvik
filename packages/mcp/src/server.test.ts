@@ -357,6 +357,17 @@ describe("createServer", () => {
     expect(JSON.parse(textOf(prohibited)).tier).toBe("prohibited_art5");
     expect((prohibited.content as unknown[]).length).toBe(1);
     expect(JSON.stringify(prohibited.content)).not.toContain("Next steps");
+
+    const localized = await client.callTool({
+      name: "spurvik_classify_ai_act_risk",
+      arguments: { useCase: "CV screening that ranks job applicants", siteDomain: "personio.de" },
+    });
+    const localizedBody = JSON.parse(textOf(localized));
+    expect(localizedBody.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check?domain=personio.de&locale=de");
+    expect(localizedBody.selfAssessmentMarkdown).toContain("personio.de");
+    const localizedSteps = nextStepsOf(localized);
+    expect(localizedSteps).toContain("https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
+    expect(localizedSteps).toContain("https://console.spurvik.com/signup?plan=team&appUrl=personio.de&locale=de");
     await client.close();
   });
 

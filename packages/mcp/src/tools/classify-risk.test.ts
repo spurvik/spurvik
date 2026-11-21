@@ -181,10 +181,34 @@ describe("classifyAiActRisk output contract", () => {
     [{ useCase: "x".repeat(4001) }, "invalid_use_case"],
     [{ useCase: "chatbot", domain: "healthcare" }, "invalid_domain"],
     [{ useCase: "chatbot", interactsWithHumans: "yes" }, "invalid_flag"],
+    [{ useCase: "chatbot", siteDomain: 42 }, "invalid_site_domain"],
+    [{ useCase: "chatbot", locale: true }, "invalid_locale"],
     [null, "invalid_input"],
   ])("rejects invalid input %j", (input, error) => {
     const outcome = classifyAiActRisk(input);
     expect(outcome.ok).toBe(false);
     if (!outcome.ok) expect(outcome.error).toBe(error);
+  });
+
+  it("prefills siteDomain + locale across interactiveClassifierUrl, reportUrl, upgradeUrls and selfAssessmentMarkdown while scrubbing SSRF hosts", () => {
+    const de = classify({ useCase: "AI CV screening that ranks job applicants", siteDomain: "https://personio.de/jobs" });
+    expect(de.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check?domain=personio.de&locale=de");
+    expect(de.reportUrl).toBe("https://console.spurvik.com/report?domain=personio.de&locale=de");
+    expect(de.upgradeUrls.team.url).toBe("https://console.spurvik.com/signup?plan=team&appUrl=personio.de&locale=de");
+    expect(de.upgradeUrls.pro.url).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=personio.de&locale=de");
+    expect(de.upgradeUrls.concierge.url).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=personio.de&locale=de");
+    expect(de.selfAssessmentMarkdown).toContain("# EU AI Act Self-Assessment Record — personio.de");
+    expect(de.selfAssessmentMarkdown).toContain("high_risk_annex_iii");
+    expect(JSON.stringify(de).match(/legal advice/g)?.length).toBeLessThanOrEqual(2);
+
+    const esCom = classify({ useCase: "Customer support chatbot", siteDomain: "hawkersco.com", locale: "es-ES" });
+    expect(esCom.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check?domain=hawkersco.com&locale=es");
+    expect(esCom.upgradeUrls.pro.url).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=hawkersco.com&locale=es");
+
+    const ssrf = classify({ useCase: "Customer support chatbot", siteDomain: "http://169.254.169.254/latest" });
+    expect(ssrf.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check");
+    expect(ssrf.reportUrl).toBeUndefined();
+    expect(ssrf.selfAssessmentMarkdown).toBeUndefined();
+    expect(JSON.stringify(ssrf)).not.toContain("169.254");
   });
 });

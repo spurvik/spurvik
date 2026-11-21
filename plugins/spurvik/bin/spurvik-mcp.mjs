@@ -13569,6 +13569,8 @@ var DOMAIN_FIELD = "Annex III area, or general (default): biometrics, critical_i
 var INTERACTS_FIELD = "People talk to or chat with the system (Art. 50(1)). Inferred from useCase when omitted.";
 var SYNTHETIC_FIELD = "The system generates audio, images, video or text (Art. 50(2)). Inferred from useCase when omitted.";
 var DECISIONS_FIELD = "The system decides about, ranks or scores natural persons, or materially influences such decisions. Inferred from useCase when omitted.";
+var CLASSIFY_SITE_DOMAIN_FIELD = "Optional public hostname of the app or store (for example personio.de or hawkersco.com). Prefills interactiveClassifierUrl, reportUrl, upgradeUrls and selfAssessmentMarkdown; non-public values are ignored.";
+var CLASSIFY_LOCALE_FIELD = "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, fi, pl) to localize Console signup, report and RFP links.";
 var BADGE_TITLE = "Generate an Art. 50(1) badge";
 var BADGE_DESCRIPTION = 'Zero-network generator for an EU AI Act Article 50(1) notice in any of the 24 official EU languages: a one-line badge.js <script>, a Next.js <Script>, the WordPress plugin .zip, the Framer component and the shadcn/v0 registry item. Returns JSON. attribution defaults to true (Free) and shows a subtle "Art. 50 · Spurvik" link; attribution: false is white-label on Pro (€19/mo) or Done-For-You (€199 once). The language is inferred from a domain-like systemName when locale is omitted. Not legal advice.';
 var LOCALE_FIELD = "One of the 24 official EU language codes: en, da, de, fr, es, nl, sv, pl, it, pt, fi, cs, bg, el, et, ga, hr, hu, lt, lv, mt, ro, sk, sl.";
@@ -22515,6 +22517,15 @@ function publicHostname(raw) {
 }
 
 // packages/mcp/src/next-steps.ts
+var QUESTIONNAIRE_URL_BY_LOCALE = {
+  de: "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb",
+  fr: "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur",
+  nl: "https://spurvik.com/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging",
+  da: "https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed",
+  sv: "https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso",
+  es: "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd",
+  it: "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo"
+};
 var FREE_KEY_STEP = `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`;
 var PRO_STEP = `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}`;
 var TEAM_STEP = `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`;
@@ -22563,14 +22574,41 @@ var MARKING_NEXT_STEPS = block(
   `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`,
   `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`
 );
-function classifyNextSteps(tier) {
+function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
   if (tier === "prohibited_art5") return null;
+  const host = publicHostname(rawSiteDomain);
+  const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
+  const explicitLoc = primaryLocale && EU_LANGUAGES.some((l) => l.code === primaryLocale) && primaryLocale !== "en" ? primaryLocale : null;
+  const hostLoc = host ? inferLocaleFromDomain(host) : "en";
+  const loc = explicitLoc ?? (hostLoc !== "en" ? hostLoc : null);
+  if (!host && !loc) {
+    const steps2 = [
+      `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
+      FREE_KEY_STEP,
+      PRO_STEP
+    ];
+    if (tier === "high_risk_annex_iii") steps2.push(TEAM_STEP, CONCIERGE_STEP);
+    return block(...steps2).trimStart();
+  }
+  const rfpBase = loc && QUESTIONNAIRE_URL_BY_LOCALE[loc] || VENDOR_QUESTIONNAIRE_URL;
+  const rfpUrl = host ? `${rfpBase}?domain=${encodeURIComponent(host)}` : rfpBase;
+  const freeParams = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const paidSuffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${loc}` : ""}`;
   const steps = [
-    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-    FREE_KEY_STEP,
-    PRO_STEP
+    ...host ? [`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`] : [],
+    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${rfpUrl} (or call \`spurvik_vendor_questionnaire_answers\`)`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
   ];
-  if (tier === "high_risk_annex_iii") steps.push(TEAM_STEP, CONCIERGE_STEP);
+  if (tier === "high_risk_annex_iii") {
+    steps.push(
+      `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}${paidSuffix}`,
+      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`
+    );
+  }
   return block(...steps).trimStart();
 }
 function badgeNextSteps(systemName) {
@@ -23220,6 +23258,16 @@ var CLASSIFY_RISK_INPUT_JSON_SCHEMA = {
     makesAutomatedDecisionsAboutPeople: {
       type: "boolean",
       description: "The system decides about, ranks or scores natural persons, or materially influences such decisions."
+    },
+    siteDomain: {
+      type: "string",
+      maxLength: 2048,
+      description: "Optional public hostname of the app or store (for example personio.de). Prefills Console links and selfAssessmentMarkdown."
+    },
+    locale: {
+      type: "string",
+      maxLength: 16,
+      description: "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, fi, pl) for Console links."
     }
   },
   required: ["useCase"],
@@ -23337,12 +23385,48 @@ function signal(explicit, text2, pattern) {
   if (typeof explicit === "boolean") return { value: explicit, source: "input" };
   return { value: pattern.test(text2), source: "useCase_keywords" };
 }
-function upgradeOffers() {
+function resolveClassifyLocale(rawLocale, host) {
+  if (typeof rawLocale === "string" && rawLocale.trim()) {
+    const primary = rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "";
+    if (EU_LANGUAGES.some((l) => l.code === primary)) return primary === "en" ? null : primary;
+  }
+  if (host) {
+    const fromHost = inferLocaleFromDomain(host);
+    if (fromHost && fromHost !== "en") return fromHost;
+  }
+  return null;
+}
+function upgradeOffers(host, loc) {
+  const suffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}`;
   return {
-    pro: { url: PRO_SIGNUP_URL, price: `${PRO_PRICE} (${PRICE_NOTE})`, includes: "White-label Art. 50 badge and hosted Slack/Teams approval gates (Art. 14)." },
-    team: { url: TEAM_SIGNUP_URL, price: `${TEAM_PRICE} (${PRICE_NOTE})`, includes: "Annex IV technical documentation draft (Art. 11) and webhook export." },
-    concierge: { url: CONCIERGE_SIGNUP_URL, price: `${CONCIERGE_PRICE} (${PRICE_NOTE})`, includes: "Done-For-You 24h setup, includes 1 year of Pro." }
+    pro: { url: `${PRO_SIGNUP_URL}${suffix}`, price: `${PRO_PRICE} (${PRICE_NOTE})`, includes: "White-label Art. 50 badge and hosted Slack/Teams approval gates (Art. 14)." },
+    team: { url: `${TEAM_SIGNUP_URL}${suffix}`, price: `${TEAM_PRICE} (${PRICE_NOTE})`, includes: "Annex IV technical documentation draft (Art. 11) and webhook export." },
+    concierge: { url: `${CONCIERGE_SIGNUP_URL}${suffix}`, price: `${CONCIERGE_PRICE} (${PRICE_NOTE})`, includes: "Done-For-You 24h setup, includes 1 year of Pro." }
   };
+}
+function buildSelfAssessmentMd(input) {
+  const target = input.host ?? "EU AI System";
+  const lines = [
+    `# EU AI Act Self-Assessment Record — ${target}`,
+    "",
+    `- **Tier**: \`${input.tier}\` — ${input.tierLabel}`,
+    ...input.annexIiiPoint ? [`- **Annex III Area**: ${input.annexIiiPoint}`] : [],
+    ...input.rationale.map((r) => `- **Rationale**: ${r}`)
+  ];
+  if (input.obligations.length > 0) {
+    lines.push("", "## Mapped Duties & Dates", ...input.obligations.map((o) => `- **${o.article}** (from ${o.appliesFrom}): ${o.duty}`));
+  }
+  lines.push("", "## Verification & Console Links", `- Interactive Risk Check: ${input.classifierUrl}`);
+  if (input.reportUrl) lines.push(`- Shareable Readiness Brief: ${input.reportUrl}`);
+  if (input.tier !== "prohibited_art5") {
+    lines.push(
+      `- Pro (${PRO_PRICE}): ${input.upgrades.pro.url}`,
+      ...input.tier === "high_risk_annex_iii" ? [`- Team (${TEAM_PRICE}): ${input.upgrades.team.url}`] : [],
+      `- Done-For-You 24h Setup (${CONCIERGE_PRICE}): ${input.upgrades.concierge.url}`
+    );
+  }
+  return `${lines.join("\n")}
+`;
 }
 function validate(input) {
   if (!input || typeof input !== "object") return { error: "invalid_input", message: "Pass an object with useCase." };
@@ -23360,6 +23444,12 @@ function validate(input) {
     if (record2[key] !== void 0 && typeof record2[key] !== "boolean") {
       return { error: "invalid_flag", message: `${key} must be true or false.` };
     }
+  }
+  if (record2.siteDomain !== void 0 && typeof record2.siteDomain !== "string") {
+    return { error: "invalid_site_domain", message: "siteDomain must be a string." };
+  }
+  if (record2.locale !== void 0 && typeof record2.locale !== "string") {
+    return { error: "invalid_locale", message: "locale must be a string." };
   }
   return record2;
 }
@@ -23495,6 +23585,28 @@ function classifyAiActRisk(rawInput) {
       });
     }
   }
+  const host = publicHostname(input.siteDomain);
+  const loc = resolveClassifyLocale(input.locale, host);
+  const classifierParams = new URLSearchParams();
+  if (host) classifierParams.set("domain", host);
+  if (loc) classifierParams.set("locale", loc);
+  const interactiveClassifierUrl = classifierParams.size > 0 ? `${RISK_CHECK_URL}?${classifierParams.toString()}` : RISK_CHECK_URL;
+  const reportUrl = host ? `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}` : void 0;
+  const upgrades = upgradeOffers(host, loc);
+  const annexIiiPointOut = tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea];
+  const hasContext = host !== null || loc !== null;
+  const selfAssessmentMarkdown = hasContext ? buildSelfAssessmentMd({
+    host,
+    loc,
+    tier,
+    tierLabel: TIER_LABELS[tier],
+    annexIiiPoint: annexIiiPointOut,
+    rationale,
+    obligations,
+    upgrades,
+    classifierUrl: interactiveClassifierUrl,
+    reportUrl
+  }) : void 0;
   return {
     ok: true,
     result: {
@@ -23502,7 +23614,7 @@ function classifyAiActRisk(rawInput) {
       tier,
       tierLabel: TIER_LABELS[tier],
       annexIiiArea: tier === "prohibited_art5" ? null : annexArea,
-      annexIiiPoint: tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea],
+      annexIiiPoint: annexIiiPointOut,
       domainSource: tier === "prohibited_art5" ? null : domainSource,
       prohibitedPractices: prohibited,
       signals,
@@ -23510,8 +23622,10 @@ function classifyAiActRisk(rawInput) {
       reviewFlags,
       obligations,
       recommendedSpurvikControls: controls,
-      interactiveClassifierUrl: RISK_CHECK_URL,
-      upgradeUrls: upgradeOffers(),
+      interactiveClassifierUrl,
+      ...reportUrl ? { reportUrl } : {},
+      ...selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {},
+      upgradeUrls: upgrades,
       scopeNote: SCOPE_NOTE
     }
   };
@@ -29613,13 +29727,15 @@ function createServer(workspaceRoot, options = {}) {
         domain: external_exports.enum(RISK_DOMAINS).optional().describe(DOMAIN_FIELD),
         interactsWithHumans: external_exports.boolean().optional().describe(INTERACTS_FIELD),
         generatesSyntheticMedia: external_exports.boolean().optional().describe(SYNTHETIC_FIELD),
-        makesAutomatedDecisionsAboutPeople: external_exports.boolean().optional().describe(DECISIONS_FIELD)
+        makesAutomatedDecisionsAboutPeople: external_exports.boolean().optional().describe(DECISIONS_FIELD),
+        siteDomain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(CLASSIFY_SITE_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(CLASSIFY_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
     async (args) => {
       const outcome = classifyAiActRisk(args);
-      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier) : null);
+      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier, args.siteDomain, args.locale) : null);
     }
   );
   server.registerTool(

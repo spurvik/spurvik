@@ -124,6 +124,10 @@ export const INTERACTS_FIELD = "People talk to or chat with the system (Art. 50(
 export const SYNTHETIC_FIELD = "The system generates audio, images, video or text (Art. 50(2)). Inferred from useCase when omitted.";
 export const DECISIONS_FIELD =
   "The system decides about, ranks or scores natural persons, or materially influences such decisions. Inferred from useCase when omitted.";
+export const CLASSIFY_SITE_DOMAIN_FIELD =
+  "Optional public hostname of the app or store (for example personio.de or hawkersco.com). Prefills interactiveClassifierUrl, reportUrl, upgradeUrls and selfAssessmentMarkdown; non-public values are ignored.";
+export const CLASSIFY_LOCALE_FIELD =
+  "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, fi, pl) to localize Console signup, report and RFP links.";
 
 export const BADGE_TITLE = "Generate an Art. 50(1) badge";
 export const BADGE_DESCRIPTION =

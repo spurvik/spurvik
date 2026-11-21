@@ -14,6 +14,8 @@ import {
   C2PA_TITLE,
   C2PA_URL_FIELD,
   CLASSIFY_DESCRIPTION,
+  CLASSIFY_LOCALE_FIELD,
+  CLASSIFY_SITE_DOMAIN_FIELD,
   CLASSIFY_TITLE,
   DECISIONS_FIELD,
   DIRECTORY_FIELD,
@@ -261,12 +263,14 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
         interactsWithHumans: z.boolean().optional().describe(INTERACTS_FIELD),
         generatesSyntheticMedia: z.boolean().optional().describe(SYNTHETIC_FIELD),
         makesAutomatedDecisionsAboutPeople: z.boolean().optional().describe(DECISIONS_FIELD),
+        siteDomain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(CLASSIFY_SITE_DOMAIN_FIELD),
+        locale: z.string().max(16).optional().describe(CLASSIFY_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
     async (args) => {
       const outcome = classifyAiActRisk(args);
-      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier) : null);
+      return withMarkdown(json(outcome), outcome.ok ? classifyNextSteps(outcome.result.tier, args.siteDomain, args.locale) : null);
     },
   );
 

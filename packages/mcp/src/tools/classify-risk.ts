@@ -5,10 +5,13 @@ import {
   PRICE_NOTE,
   PRO_PRICE,
   PRO_SIGNUP_URL,
+  REPORT_URL,
   RISK_CHECK_URL,
   TEAM_PRICE,
   TEAM_SIGNUP_URL,
 } from "../links.js";
+import { EU_LANGUAGES, inferLocaleFromDomain } from "./badge-copy.js";
+import { publicHostname } from "./public-hostname.js";
 
 /**
  * Deterministic, zero-network EU AI Act risk-tier mapping for spurvik_classify_ai_act_risk.
@@ -42,6 +45,8 @@ export interface ClassifyRiskInput {
   interactsWithHumans?: boolean;
   generatesSyntheticMedia?: boolean;
   makesAutomatedDecisionsAboutPeople?: boolean;
+  siteDomain?: string;
+  locale?: string;
 }
 
 export interface Signal {
@@ -86,6 +91,8 @@ export interface ClassifyRiskResult {
   obligations: Obligation[];
   recommendedSpurvikControls: SpurvikControl[];
   interactiveClassifierUrl: string;
+  reportUrl?: string;
+  selfAssessmentMarkdown?: string;
   upgradeUrls: { pro: UpgradeOffer; team: UpgradeOffer; concierge: UpgradeOffer };
   scopeNote: string;
 }
@@ -103,6 +110,16 @@ export const CLASSIFY_RISK_INPUT_JSON_SCHEMA = {
     makesAutomatedDecisionsAboutPeople: {
       type: "boolean",
       description: "The system decides about, ranks or scores natural persons, or materially influences such decisions.",
+    },
+    siteDomain: {
+      type: "string",
+      maxLength: 2048,
+      description: "Optional public hostname of the app or store (for example personio.de). Prefills Console links and selfAssessmentMarkdown.",
+    },
+    locale: {
+      type: "string",
+      maxLength: 16,
+      description: "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, fi, pl) for Console links.",
     },
   },
   required: ["useCase"],
@@ -239,12 +256,60 @@ function signal(explicit: boolean | undefined, text: string, pattern: RegExp): S
   return { value: pattern.test(text), source: "useCase_keywords" };
 }
 
-function upgradeOffers(): ClassifyRiskResult["upgradeUrls"] {
+function resolveClassifyLocale(rawLocale: unknown, host: string | null): string | null {
+  if (typeof rawLocale === "string" && rawLocale.trim()) {
+    const primary = rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "";
+    if (EU_LANGUAGES.some((l) => l.code === primary)) return primary === "en" ? null : primary;
+  }
+  if (host) {
+    const fromHost = inferLocaleFromDomain(host);
+    if (fromHost && fromHost !== "en") return fromHost;
+  }
+  return null;
+}
+
+function upgradeOffers(host: string | null, loc: string | null): ClassifyRiskResult["upgradeUrls"] {
+  const suffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}`;
   return {
-    pro: { url: PRO_SIGNUP_URL, price: `${PRO_PRICE} (${PRICE_NOTE})`, includes: "White-label Art. 50 badge and hosted Slack/Teams approval gates (Art. 14)." },
-    team: { url: TEAM_SIGNUP_URL, price: `${TEAM_PRICE} (${PRICE_NOTE})`, includes: "Annex IV technical documentation draft (Art. 11) and webhook export." },
-    concierge: { url: CONCIERGE_SIGNUP_URL, price: `${CONCIERGE_PRICE} (${PRICE_NOTE})`, includes: "Done-For-You 24h setup, includes 1 year of Pro." },
+    pro: { url: `${PRO_SIGNUP_URL}${suffix}`, price: `${PRO_PRICE} (${PRICE_NOTE})`, includes: "White-label Art. 50 badge and hosted Slack/Teams approval gates (Art. 14)." },
+    team: { url: `${TEAM_SIGNUP_URL}${suffix}`, price: `${TEAM_PRICE} (${PRICE_NOTE})`, includes: "Annex IV technical documentation draft (Art. 11) and webhook export." },
+    concierge: { url: `${CONCIERGE_SIGNUP_URL}${suffix}`, price: `${CONCIERGE_PRICE} (${PRICE_NOTE})`, includes: "Done-For-You 24h setup, includes 1 year of Pro." },
   };
+}
+
+function buildSelfAssessmentMd(input: {
+  host: string | null;
+  loc: string | null;
+  tier: RiskTier;
+  tierLabel: string;
+  annexIiiPoint: string | null;
+  rationale: readonly string[];
+  obligations: readonly Obligation[];
+  upgrades: ClassifyRiskResult["upgradeUrls"];
+  classifierUrl: string;
+  reportUrl?: string;
+}): string {
+  const target = input.host ?? "EU AI System";
+  const lines = [
+    `# EU AI Act Self-Assessment Record — ${target}`,
+    "",
+    `- **Tier**: \`${input.tier}\` — ${input.tierLabel}`,
+    ...(input.annexIiiPoint ? [`- **Annex III Area**: ${input.annexIiiPoint}`] : []),
+    ...input.rationale.map((r) => `- **Rationale**: ${r}`),
+  ];
+  if (input.obligations.length > 0) {
+    lines.push("", "## Mapped Duties & Dates", ...input.obligations.map((o) => `- **${o.article}** (from ${o.appliesFrom}): ${o.duty}`));
+  }
+  lines.push("", "## Verification & Console Links", `- Interactive Risk Check: ${input.classifierUrl}`);
+  if (input.reportUrl) lines.push(`- Shareable Readiness Brief: ${input.reportUrl}`);
+  if (input.tier !== "prohibited_art5") {
+    lines.push(
+      `- Pro (${PRO_PRICE}): ${input.upgrades.pro.url}`,
+      ...(input.tier === "high_risk_annex_iii" ? [`- Team (${TEAM_PRICE}): ${input.upgrades.team.url}`] : []),
+      `- Done-For-You 24h Setup (${CONCIERGE_PRICE}): ${input.upgrades.concierge.url}`,
+    );
+  }
+  return `${lines.join("\n")}\n`;
 }
 
 function validate(input: unknown): ClassifyRiskInput | { error: string; message: string } {
@@ -263,6 +328,12 @@ function validate(input: unknown): ClassifyRiskInput | { error: string; message:
     if (record[key] !== undefined && typeof record[key] !== "boolean") {
       return { error: "invalid_flag", message: `${key} must be true or false.` };
     }
+  }
+  if (record.siteDomain !== undefined && typeof record.siteDomain !== "string") {
+    return { error: "invalid_site_domain", message: "siteDomain must be a string." };
+  }
+  if (record.locale !== undefined && typeof record.locale !== "string") {
+    return { error: "invalid_locale", message: "locale must be a string." };
   }
   return record as unknown as ClassifyRiskInput;
 }
@@ -413,6 +484,32 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
     }
   }
 
+  const host = publicHostname(input.siteDomain);
+  const loc = resolveClassifyLocale(input.locale, host);
+  const classifierParams = new URLSearchParams();
+  if (host) classifierParams.set("domain", host);
+  if (loc) classifierParams.set("locale", loc);
+  const interactiveClassifierUrl =
+    classifierParams.size > 0 ? `${RISK_CHECK_URL}?${classifierParams.toString()}` : RISK_CHECK_URL;
+  const reportUrl = host ? `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}` : undefined;
+  const upgrades = upgradeOffers(host, loc);
+  const annexIiiPointOut = tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea];
+  const hasContext = host !== null || loc !== null;
+  const selfAssessmentMarkdown = hasContext
+    ? buildSelfAssessmentMd({
+        host,
+        loc,
+        tier,
+        tierLabel: TIER_LABELS[tier],
+        annexIiiPoint: annexIiiPointOut,
+        rationale,
+        obligations,
+        upgrades,
+        classifierUrl: interactiveClassifierUrl,
+        reportUrl,
+      })
+    : undefined;
+
   return {
     ok: true,
     result: {
@@ -420,7 +517,7 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
       tier,
       tierLabel: TIER_LABELS[tier],
       annexIiiArea: tier === "prohibited_art5" ? null : annexArea,
-      annexIiiPoint: tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea],
+      annexIiiPoint: annexIiiPointOut,
       domainSource: tier === "prohibited_art5" ? null : domainSource,
       prohibitedPractices: prohibited,
       signals,
@@ -428,8 +525,10 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
       reviewFlags,
       obligations,
       recommendedSpurvikControls: controls,
-      interactiveClassifierUrl: RISK_CHECK_URL,
-      upgradeUrls: upgradeOffers(),
+      interactiveClassifierUrl,
+      ...(reportUrl ? { reportUrl } : {}),
+      ...(selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {}),
+      upgradeUrls: upgrades,
       scopeNote: SCOPE_NOTE,
     },
   };

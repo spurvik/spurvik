@@ -10,9 +10,19 @@ import {
   TEAM_SIGNUP_URL,
   VENDOR_QUESTIONNAIRE_URL,
 } from "./links.js";
-import { EU_LANGUAGES } from "./tools/badge-copy.js";
+import { EU_LANGUAGES, inferLocaleFromDomain } from "./tools/badge-copy.js";
 import type { RiskTier } from "./tools/classify-risk.js";
 import { publicHostname } from "./tools/public-hostname.js";
+
+const QUESTIONNAIRE_URL_BY_LOCALE: Readonly<Record<string, string>> = {
+  de: "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb",
+  fr: "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur",
+  nl: "https://spurvik.com/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging",
+  da: "https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed",
+  sv: "https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso",
+  es: "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd",
+  it: "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo",
+};
 
 /**
  * `## Next steps` action links appended to stdio tool output, the same lines as the hosted
@@ -78,14 +88,42 @@ export const MARKING_NEXT_STEPS = block(
 );
 
 /** Risk-tier links. None for a prohibited practice: Spurvik offers no setup for it. */
-export function classifyNextSteps(tier: RiskTier): string | null {
+export function classifyNextSteps(tier: RiskTier, rawSiteDomain?: string, rawLocale?: string): string | null {
   if (tier === "prohibited_art5") return null;
+  const host = publicHostname(rawSiteDomain);
+  const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
+  const explicitLoc =
+    primaryLocale && EU_LANGUAGES.some((l) => l.code === primaryLocale) && primaryLocale !== "en" ? primaryLocale : null;
+  const hostLoc = host ? inferLocaleFromDomain(host) : "en";
+  const loc = explicitLoc ?? (hostLoc !== "en" ? hostLoc : null);
+  if (!host && !loc) {
+    const steps = [
+      `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
+      FREE_KEY_STEP,
+      PRO_STEP,
+    ];
+    if (tier === "high_risk_annex_iii") steps.push(TEAM_STEP, CONCIERGE_STEP);
+    return block(...steps).trimStart();
+  }
+  const rfpBase = (loc && QUESTIONNAIRE_URL_BY_LOCALE[loc]) || VENDOR_QUESTIONNAIRE_URL;
+  const rfpUrl = host ? `${rfpBase}?domain=${encodeURIComponent(host)}` : rfpBase;
+  const freeParams: string[] = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const paidSuffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${loc}` : ""}`;
   const steps = [
-    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-    FREE_KEY_STEP,
-    PRO_STEP,
+    ...(host ? [`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`] : []),
+    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${rfpUrl} (or call \`spurvik_vendor_questionnaire_answers\`)`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`,
   ];
-  if (tier === "high_risk_annex_iii") steps.push(TEAM_STEP, CONCIERGE_STEP);
+  if (tier === "high_risk_annex_iii") {
+    steps.push(
+      `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}${paidSuffix}`,
+      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`,
+    );
+  }
   return block(...steps).trimStart();
 }
 
