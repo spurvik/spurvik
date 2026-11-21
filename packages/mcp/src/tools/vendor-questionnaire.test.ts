@@ -230,7 +230,7 @@ describe("vendorQuestionnaireAnswers input validation", () => {
     if (!outcome.ok) expect(outcome.error).toBe(error);
   });
 
-  it("renders native de, fr, nl and da questionnaire answers with localized RFP cockpit & signup links", () => {
+  it("renders native de, fr, nl, da, sv, es and it questionnaire answers with localized RFP cockpit & signup links", () => {
     const de = answers({ plan: "team", provider: "python", domain: "personio.de", locale: "de" });
     expect(de).toContain("# EU-KI-Verordnung Sicherheitsfragebogen für Lieferanten: Antworten für personio.de");
     expect(de).toContain("https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
@@ -243,12 +243,27 @@ describe("vendorQuestionnaireAnswers input validation", () => {
     const da = answers({ plan: "concierge", domain: "stepnetwork.dk", locale: "da" });
     expect(da).toContain("EyeTea Solutions ApS, CVR 37093378");
     expect(da).toContain("https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed?domain=stepnetwork.dk");
+
+    const sv = answers({ plan: "team", provider: "python", domain: "myrqvist.se", locale: "sv" });
+    expect(sv).toContain("Bilaga IV");
+    expect(sv).toContain("https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso?domain=myrqvist.se");
+    expect(sv).toContain("&appUrl=myrqvist.se&locale=sv");
+
+    const es = answers({ plan: "team", provider: "openai", domain: "factorialhr.es", locale: "es" });
+    expect(es).toContain("Anexo IV");
+    expect(es).toContain("https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd?domain=factorialhr.es");
+    expect(es).toContain("&appUrl=factorialhr.es&locale=es");
+
+    const it = answers({ plan: "pro", provider: "anthropic", domain: "velasca.com", locale: "it" });
+    expect(it).toContain("RPD/DPO");
+    expect(it).toContain("https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo?domain=velasca.com");
+    expect(it).toContain("&appUrl=velasca.com&locale=it");
   });
 
   it("publishes a JSON schema with no required fields", () => {
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA).not.toHaveProperty("required");
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.plan.enum).toEqual(["free", "pro", "team", "concierge"]);
-    expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.locale.enum).toEqual(["en", "de", "fr", "nl", "da"]);
+    expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.locale.enum).toEqual(["en", "de", "fr", "nl", "da", "sv", "es", "it"]);
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.provider.enum).toEqual([
       "openai",
       "anthropic",

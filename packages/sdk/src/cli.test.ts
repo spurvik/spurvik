@@ -1190,12 +1190,38 @@ describe("spurvik setup / init (H107b)", () => {
 
     for (const bad of [
       ["scan", "folk.app", "--runtime", "next"],
+      ["scan", "folk.app", "--domain", "acme.eu"],
       ["setup", "--runtime", "deno"],
+      ["setup", "--lang", "ja"],
       ["setup", "not-a-framework-or-dir"],
       ["setup", "--fail-on-gap"],
     ]) {
       const errH = harness();
       expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
+  });
+
+  it("supports --domain and --lang on setup and 8-language --lang sv|es|it on rfp (H109b + H110)", async () => {
+    const setupH = harness();
+    expect(await runCli(["setup", "react", "--domain", "velasca.com", "--lang", "it", "--json"], setupH.deps)).toBe(EXIT_OK);
+    const setupJson = JSON.parse(setupH.out());
+    expect(setupJson.domain).toBe("velasca.com");
+    expect(setupJson.locale).toBe("it");
+    expect(setupJson.snippet).toContain('locale="it" systemName="velasca.com"');
+    expect(setupJson.links.reportUrl).toBe("https://console.spurvik.com/report?domain=velasca.com&locale=it");
+    expect(setupJson.links.proUpgradeUrl).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=velasca.com&locale=it");
+    expect(setupJson.links.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=velasca.com&locale=it");
+
+    for (const [lang, host, slug] of [
+      ["sv", "myrqvist.se", "sv/ai-forordningen-leverantorssakerhetsformular-dso"],
+      ["es", "factorialhr.es", "es/cuestionario-seguridad-proveedor-reglamento-ia-dpd"],
+      ["it", "velasca.com", "it/questionario-sicurezza-fornitori-regolamento-ia-dpo"],
+    ] as const) {
+      const rfpH = harness();
+      expect(await runCli(["rfp", host, "--lang", lang, "--plan", "team", "--json"], rfpH.deps)).toBe(EXIT_OK);
+      const rfpJson = JSON.parse(rfpH.out());
+      expect(rfpJson.interactiveUrl).toBe(`https://spurvik.com/${slug}?domain=${host}`);
+      expect(rfpJson.upgradeUrls.proWhiteLabelEur19).toContain(`&appUrl=${host}&locale=${lang}`);
     }
   });
 });

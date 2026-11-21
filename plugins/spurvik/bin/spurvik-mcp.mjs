@@ -13509,6 +13509,8 @@ var SETUP_TITLE = "Spurvik setup snippet";
 var SETUP_DESCRIPTION = "Return a setup snippet for openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html. TypeScript provider clients are wrapped with withSpurvik; the Vercel AI SDK snippet passes spurvikMiddleware to wrapLanguageModel; Mastra calls withSpurvikMastra; OpenAI Agents calls withSpurvikModelProvider; LangGraph calls withSpurvikLangGraph and spurvikInterrupt; Python stacks (python, fastapi, langchain, pydantic-ai) use the zero-dependency Python 3.10+ stdlib helper at https://spurvik.com/r/spurvik_guard.py; CMS and storefront stacks (shopify, wordpress, webflow, html) install the 24-language Shadow DOM Art. 50(1) notice via .liquid, wp_footer / .zip, or badge.js. TypeScript snippets are built from the installed spurvik exports. `riskTier` is a sample value. Set your own classification (as provider or deployer); Spurvik does not classify your use case. The SDK logs the call and attaches an HMAC receipt. It does not mark content.";
 var FRAMEWORK_FIELD = "Provider, framework, or storefront to wire: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 var RUNTIME_FIELD = "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
+var SETUP_DOMAIN_FIELD = "Optional public hostname of the app or store, for example acme.eu. Prefills the report and signup links; non-public values are ignored.";
+var SETUP_LOCALE_FIELD = "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, pl, pt, fi) to localize badge snippets and signup links.";
 var UNKNOWN_FRAMEWORK = "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 var UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
 var FIND_TITLE = "Find unwrapped AI calls";
@@ -13581,7 +13583,7 @@ var VQ_PROVIDER_FIELD = "Model provider or agent framework: openai (default), an
 var VQ_HIGH_RISK_ACTIONS_FIELD = "Agents or tools can trigger refunds, emails, permission changes or deletions. Defaults to true.";
 var VQ_GENERATES_MEDIA_FIELD = "The product generates synthetic images, audio or video (Art. 50(2)). Defaults to false.";
 var VQ_DOMAIN_FIELD = "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
-var VQ_LOCALE_FIELD = "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG) or da (Danish DPO).";
+var VQ_LOCALE_FIELD = "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO).";
 
 // packages/mcp/src/root.ts
 var WorkspacePathError = class extends Error {
@@ -22088,10 +22090,6 @@ function statusShieldMarkdownFor(host) {
   return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
 }
 
-// packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.9";
-var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
-
 // packages/mcp/src/tools/badge-copy.ts
 var EU_LANGUAGES = [
   { code: "en", label: "English (en)", interaction: "You are interacting with an AI system." },
@@ -22190,6 +22188,10 @@ function buildBadgeScript(input) {
   return input.position === "inline" ? `<div data-spurvik-badge></div>
 ${tag}` : tag;
 }
+
+// packages/mcp/src/version.ts
+var MCP_VERSION = "1.0.9";
+var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/scan-live-url.ts
 var SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
@@ -22524,7 +22526,27 @@ function block(...steps) {
 ${steps.join("\n")}
 `;
 }
-var SETUP_NEXT_STEPS = block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+function setupNextSteps(rawDomain, rawLocale) {
+  const host = publicHostname(rawDomain);
+  const loc = typeof rawLocale === "string" && EU_LANGUAGES.some((l) => l.code === rawLocale) && rawLocale !== "en" ? rawLocale : null;
+  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, CONCIERGE_STEP);
+  const freeParams = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const locSuffix = loc ? `&locale=${loc}` : "";
+  const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  const steps = [];
+  if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
+  steps.push(
+    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`
+  );
+  return block(...steps);
+}
+var SETUP_NEXT_STEPS = setupNextSteps();
 var FIND_NEXT_STEPS = block(
   "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
   FREE_KEY_STEP,
@@ -28706,7 +28728,7 @@ function pythonSource(framework) {
     '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)'
   ].join("\n") + "\n";
 }
-function cmsSource(framework) {
+function cmsSource(framework, host = null, locale = "en") {
   if (framework === "shopify") {
     return [
       "{%- comment -%} Option A (recommended): curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid -> sections/spurvik-art50-notice.liquid {%- endcomment -%}",
@@ -28736,12 +28758,16 @@ function cmsSource(framework) {
       "});"
     ].join("\n") + "\n";
   }
-  return '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>\n';
+  const sys = host ?? "Support Assistant";
+  return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>
+`;
 }
-function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
+function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? "python" : "node", options = {}) {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
-  if (isCmsFramework(framework)) return cmsSource(framework);
+  const host = publicHostname(options.domain);
+  const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime;
   if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
@@ -28750,17 +28776,23 @@ function setupSnippetSource(framework, runtime = isPythonFramework(framework) ? 
   if (framework === "langgraph") return langgraphSource(tsRuntime);
   return providerSource(framework, tsRuntime);
 }
-function setupSnippet(framework, runtime = isPythonFramework(framework) ? "python" : "node") {
-  const source = setupSnippetSource(framework, runtime);
+function setupSnippet(framework, runtime = isPythonFramework(framework) ? "python" : "node", options = {}) {
+  const source = setupSnippetSource(framework, runtime, options);
+  const host = publicHostname(options.domain);
+  const loc = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en" ? options.locale : null;
+  const locSuffix = loc ? `&locale=${loc}` : "";
+  const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
+  const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   if (isCmsFramework(framework)) {
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const guideLine = framework === "shopify" ? "Save https://spurvik.com/r/spurvik-shopify-art50.liquid as `sections/spurvik-art50-notice.liquid` (auto-maps `request.locale.iso_code` across all 24 official EU languages and defaults to `bottom-left`), or paste the 1-line tag before `</body>` in `layout/theme.liquid`. Interactive cockpit: https://spurvik.com/shopify-gorgias-crisp-eu-ai-act-disclosure" : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
-      `Shareable readiness report for your domain: ${REPORT_URL}`,
-      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE
     ];
     return `${cmsLines.join("\n")}
@@ -28774,9 +28806,9 @@ ${source}\`\`\`
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
-      `Shareable readiness report for your domain: ${REPORT_URL}`,
-      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE
     ];
     return `${pyLines.join("\n")}
@@ -28815,9 +28847,9 @@ ${source}\`\`\`
     );
   }
   lines.push(
-    `Shareable readiness report for your domain: ${REPORT_URL}`,
-    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+    `Shareable readiness report for your domain: ${reportLink}`,
+    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
     PRICE_NOTE
   );
   return `${lines.join("\n")}
@@ -28840,13 +28872,16 @@ var QUESTIONNAIRE_PROVIDERS = [
   "python",
   "custom"
 ];
-var QUESTIONNAIRE_LOCALES = ["en", "de", "fr", "nl", "da"];
+var QUESTIONNAIRE_LOCALES = ["en", "de", "fr", "nl", "da", "sv", "es", "it"];
 var LOCALIZED_RFP_COCKPIT_URLS = {
   en: VENDOR_QUESTIONNAIRE_URL,
   de: "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb",
   fr: "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur",
   nl: "https://spurvik.com/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging",
-  da: "https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed"
+  da: "https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed",
+  sv: "https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso",
+  es: "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd",
+  it: "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo"
 };
 var VENDOR_QUESTIONNAIRE_DEFAULTS = {
   plan: "pro",
@@ -28880,7 +28915,7 @@ var VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
     locale: {
       type: "string",
       enum: [...QUESTIONNAIRE_LOCALES],
-      description: "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG) or da (Danish DPO)."
+      description: "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO)."
     }
   },
   additionalProperties: false
@@ -29239,6 +29274,129 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
     return `${lines2.join("\n")}
 `;
   }
+  if (locale === "sv") {
+    const product2 = resolved.host ?? "vår produkt";
+    const lines2 = [
+      `# EU AI-förordningen säkerhetsformulär för leverantörer (DSO / DPO): svar för ${product2}`,
+      "",
+      `Spurvik-plan: ${plan.name} (${plan.price}) · Modellleverantör: ${provider.label} · Konsekventa agentåtgärder: ${resolved.hasHighRiskActions ? "ja" : "nej"} · Syntetiska medier: ${resolved.generatesMedia ? "ja" : "nej"}`,
+      "",
+      ...resolved.domainIgnored ? ["Den angivna domänen är inte ett publikt värdnamn och utelämnades.", ""] : [],
+      "## F1: Art. 50.1 & 2 dec. 2026 Art. 50.2 Transparens & ursprung",
+      "",
+      `**Svar:** Varje AI-funktion i ${product2} visar en tydlig AI-upplysning på alla 24 officiella EU-språk (\`badge.js\` eller \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `Märkningen körs som white-label (\`data-attribution="false"\`).` : 'Märkningen innehåller länken "Art. 50 · Spurvik".'} ${resolved.generatesMedia ? `För syntetiska medier (art. 50.2 från 2 december 2026) kontrollerar CI publicerade bilder med \`npx spurvik c2pa <image-url> --fail-on-missing\` och ${C2PA_PAGE_URL} avseende C2PA-JUMBF-manifest (skrivskyddad kontroll; Spurvik signerar inte medier).` : `${product2} genererar inte syntetiska medier idag; vid framtida lansering kontrollerar \`npx spurvik c2pa <image-url> --fail-on-missing\` C2PA-manifest.`}`,
+      "",
+      "## F2: Art. 12 Kryptografisk händelseloggning",
+      "",
+      `**Svar:** Varje ${provider.label}-anrop från ${product2} kapslas in med MIT-licensierade Spurvik SDK (${provider.wrapper}). Promptar och svar ersätts av nyckelbaserade HMAC-SHA256-fingeravtryck (\`inputHash\`, \`outputHash\`), kedjade med SHA-256 \`recordHash\` och \`prevLogHash\` (${plan.events} händelser/mån).`,
+      "",
+      "## F3: GDPR art. 5.1 c Uppgiftsminimering & EU-lagring i Frankfurt",
+      "",
+      `**Svar:** 0 byte rå prompt- eller svarstext lagras hos Spurvik (pseudonymiserade fingeravtryck enligt GDPR art. 4.5). Loggposter lagras i Frankfurt, Tyskland (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) i ${plan.retention}; drivs av EyeTea Solutions ApS, Danmark (https://spurvik.com/privacy).`,
+      "",
+      "## F4: Art. 14 Deterministiska mänskliga godkännandegrindar",
+      "",
+      `**Svar:** ${resolved.hasHighRiskActions ? `Agentåtgärder såsom återbetalningar, mejl, behörighetsändringar och raderingar stoppas deterministiskt i kod före körning` : `AI-funktioner i ${product2} utför inte självständiga återbetalningar, mejl eller raderingar idag; framtida åtgärder stoppas deterministiskt i kod`} (${plan.hostedQueue ? `hostad godkännandekö med \`verifyHitlWebhook\` och ${provider.approval}` : "signerade Slack-/Teams-länkar via `spurvik/channels`"}).`,
+      "",
+      "## F5: Lagringstid, DSO-underlag & Bilaga IV-dokumentation",
+      "",
+      `**Svar:** Signerade AI-händelser för ${product2} lagras i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " En teknisk DSO/DPO-sammanfattning (`.md`) kan laddas ner direkt." : ""}${plan.annexIv ? " Utkast till teknisk dokumentation enligt Bilaga IV (art. 11, PDF/Markdown) samt webhook-export ingår." : ""}${isConcierge ? " Installationen utfördes inom 24 timmar av en Spurvik-ingenjör inklusive signerad DSO/DPO- & C2PA-rapport." : ""}`,
+      "",
+      "## Nästa steg",
+      `- Interaktivt svenskt DSO- & leverantörsformulär: ${cockpitUrl}`,
+      ...resolved.host ? [`- Live Art. 50(1)-rapport för ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${freeUrl}`,
+      `- Pro (19 €/mån — white-label, 90 dagar Frankfurt, DSO-rapport): ${proUrl}`,
+      `- Team (79 €/mån — 12 månader, Bilaga IV-utkast, webhook): ${teamUrl}`,
+      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${conciergeUrl}`,
+      "",
+      "_Tekniska svar baserade på levererade Spurvik-kontroller. Inte juridisk rådgivning._"
+    ];
+    return `${lines2.join("\n")}
+`;
+  }
+  if (locale === "es") {
+    const product2 = resolved.host ?? "nuestro producto";
+    const lines2 = [
+      `# Cuestionario de seguridad para proveedores Reglamento de IA UE (DPD / DPO): respuestas para ${product2}`,
+      "",
+      `Plan Spurvik: ${plan.name} (${plan.price}) · Proveedor: ${provider.label} · Acciones sensibles de agentes: ${resolved.hasHighRiskActions ? "sí" : "no"} · Medios sintéticos: ${resolved.generatesMedia ? "sí" : "no"}`,
+      "",
+      ...resolved.domainIgnored ? ["El dominio indicado no es un nombre de host público y se omitió.", ""] : [],
+      "## P1: Art. 50(1) y 2 dic. 2026 Art. 50(2) Transparencia y procedencia",
+      "",
+      `**Respuesta:** Cada función de IA en ${product2} muestra un aviso de IA visible en los 24 idiomas oficiales de la UE (\`badge.js\` o \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `El aviso opera en marca blanca (\`data-attribution="false"\`).` : 'El aviso incluye el enlace "Art. 50 · Spurvik".'} ${resolved.generatesMedia ? `Para medios sintéticos (art. 50(2) desde el 2 de diciembre de 2026), CI comprueba las imágenes publicadas con \`npx spurvik c2pa <image-url> --fail-on-missing\` y ${C2PA_PAGE_URL} para manifiestos C2PA JUMBF (control de solo lectura; Spurvik no firma medios).` : `${product2} no genera medios sintéticos actualmente; en caso de activarse, \`npx spurvik c2pa <image-url> --fail-on-missing\` comprueba los manifiestos C2PA.`}`,
+      "",
+      "## P2: Art. 12 Registro criptográfico de eventos",
+      "",
+      `**Respuesta:** Cada llamada a ${provider.label} desde ${product2} se envuelve con el SDK MIT de Spurvik (${provider.wrapper}). Los prompts y respuestas se sustituyen por huellas HMAC-SHA256 con clave secreta (\`inputHash\`, \`outputHash\`), encadenadas mediante SHA-256 \`recordHash\` y \`prevLogHash\` (${plan.events} eventos/mes).`,
+      "",
+      "## P3: RGPD art. 5(1)(c) Minimización de datos y alojamiento UE en Fráncfort",
+      "",
+      `**Respuesta:** 0 bytes de texto bruto de prompts o respuestas se almacenan en Spurvik (huellas seudonimizadas según RGPD art. 4(5)). Los registros residen en Fráncfort, Alemania (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) durante ${plan.retention}; operado por EyeTea Solutions ApS, Dinamarca (https://spurvik.com/privacy).`,
+      "",
+      "## P4: Art. 14 Compuertas deterministas de supervisión humana",
+      "",
+      `**Respuesta:** ${resolved.hasHighRiskActions ? `Las acciones de agentes como reembolsos, correos, cambios de permisos o borrados se detienen de forma determinista en código antes de ejecutarse` : `Las funciones de IA en ${product2} no ejecutan reembolsos, correos ni borrados autónomos hoy; cualquier acción futura se detienen de forma determinista en código`} (${plan.hostedQueue ? `cola de aprobación alojada con \`verifyHitlWebhook\` y ${provider.approval}` : "enlaces firmados de Slack / Teams vía `spurvik/channels`"}).`,
+      "",
+      "## P5: Retención, evidencias DPD y documentación Anexo IV",
+      "",
+      `**Respuesta:** Los eventos firmados de ${product2} se conservan durante ${plan.retention} en Fráncfort.${plan.dpoSummary ? " Un informe técnico DPD/DPO (`.md`) puede descargarse directamente." : ""}${plan.annexIv ? " Incluye borrador de documentación técnica del Anexo IV (art. 11, PDF/Markdown) y exportación por webhook." : ""}${isConcierge ? " La instalación fue realizada en 24 horas por un ingeniero de Spurvik incluyendo informe DPD y C2PA Art. 50(2)." : ""}`,
+      "",
+      "## Próximos pasos",
+      `- Cuestionario interactivo DPD / compras: ${cockpitUrl}`,
+      ...resolved.host ? [`- Informe Art. 50(1) en vivo para ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      `- SPURVIK_API_KEY gratuita en 10 s (Fráncfort fra1): ${freeUrl}`,
+      `- Pro (19 €/mes — marca blanca, 90 días Fráncfort, resumen DPD): ${proUrl}`,
+      `- Team (79 €/mes — 12 meses, borrador Anexo IV, webhook): ${teamUrl}`,
+      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${conciergeUrl}`,
+      "",
+      "_Respuestas técnicas basadas en los controles implementados de Spurvik. No constituye asesoramiento jurídico._"
+    ];
+    return `${lines2.join("\n")}
+`;
+  }
+  if (locale === "it") {
+    const product2 = resolved.host ?? "il nostro prodotto";
+    const lines2 = [
+      `# Questionario sicurezza fornitori Regolamento IA UE (RPD / DPO): risposte per ${product2}`,
+      "",
+      `Piano Spurvik: ${plan.name} (${plan.price}) · Provider: ${provider.label} · Azioni sensibili degli agenti: ${resolved.hasHighRiskActions ? "sì" : "no"} · Media sintetici: ${resolved.generatesMedia ? "sì" : "no"}`,
+      "",
+      ...resolved.domainIgnored ? ["Il dominio indicato non è un nome host pubblico ed è stato omesso.", ""] : [],
+      "## D1: Art. 50(1) e 2 dic. 2026 Art. 50(2) Trasparenza e provenienza",
+      "",
+      `**Risposta:** Ogni funzione IA in ${product2} mostra un’informativa IA visibile in tutte le 24 lingue ufficiali dell’UE (\`badge.js\` o \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `L’informativa opera in modalità white-label (\`data-attribution="false"\`).` : 'L’informativa include il link "Art. 50 · Spurvik".'} ${resolved.generatesMedia ? `Per i media sintetici (art. 50(2) dal 2 dicembre 2026), la CI controlla le immagini pubblicate con \`npx spurvik c2pa <image-url> --fail-on-missing\` e ${C2PA_PAGE_URL} per i manifesti C2PA JUMBF (controllo in sola lettura; Spurvik non firma i media).` : `${product2} non genera media sintetici oggi; in caso di attivazione futura, \`npx spurvik c2pa <image-url> --fail-on-missing\` controlla i manifesti C2PA.`}`,
+      "",
+      "## D2: Art. 12 Registrazione crittografica degli eventi",
+      "",
+      `**Risposta:** Ogni chiamata ${provider.label} da ${product2} è incapsulata con lo Spurvik SDK con licenza MIT (${provider.wrapper}). Prompt e risposte sono sostituiti da impronte HMAC-SHA256 con chiave segreta (\`inputHash\`, \`outputHash\`), concatenate tramite SHA-256 \`recordHash\` e \`prevLogHash\` (${plan.events} eventi/mese).`,
+      "",
+      "## D3: GDPR art. 5(1)(c) Minimizzazione dei dati e residenza UE a Francoforte",
+      "",
+      `**Risposta:** 0 byte di testo grezzo di prompt o risposte sono memorizzati da Spurvik (impronte pseudonimizzate ai sensi del GDPR art. 4(5)). I log risiedono a Francoforte, Germania (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) per ${plan.retention}; gestito da EyeTea Solutions ApS, Danimarca (https://spurvik.com/privacy).`,
+      "",
+      "## D4: Art. 14 Varchi deterministici di sorveglianza umana",
+      "",
+      `**Risposta:** ${resolved.hasHighRiskActions ? `Le azioni degli agenti come rimborsi, email, modifiche di permessi o cancellazioni vengono bloccate in modo deterministico nel codice prima dell’esecuzione` : `Le funzioni IA in ${product2} non eseguono rimborsi, email o cancellazioni autonome oggi; eventuali azioni future sono bloccate in modo deterministico nel codice`} (${plan.hostedQueue ? `coda di approvazione ospitata con \`verifyHitlWebhook\` e ${provider.approval}` : "link firmati Slack / Teams tramite `spurvik/channels`"}).`,
+      "",
+      "## D5: Conservazione, prove RPD/DPO e documentazione Allegato IV",
+      "",
+      `**Risposta:** Gli eventi firmati di ${product2} sono conservati per ${plan.retention} a Francoforte.${plan.dpoSummary ? " Un riepilogo tecnico RPD/DPO (`.md`) è scaricabile direttamente." : ""}${plan.annexIv ? " Include bozza di documentazione tecnica Allegato IV (art. 11, PDF/Markdown) ed esportazione webhook." : ""}${isConcierge ? " L’installazione è stata completata in 24 ore da un ingegnere Spurvik con report RPD/DPO e C2PA Art. 50(2)." : ""}`,
+      "",
+      "## Prossimi passi",
+      `- Questionario interattivo RPD / DPO fornitori: ${cockpitUrl}`,
+      ...resolved.host ? [`- Report Art. 50(1) live per ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      `- SPURVIK_API_KEY gratuita in 10 s (Francoforte fra1): ${freeUrl}`,
+      `- Pro (19 €/mese — white-label, 90 gg Francoforte, riepilogo RPD): ${proUrl}`,
+      `- Team (79 €/mese — 12 mesi, bozza Allegato IV, webhook): ${teamUrl}`,
+      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${conciergeUrl}`,
+      "",
+      "_Risposte tecniche basate sui controlli Spurvik distribuiti. Non costituisce consulenza legale._"
+    ];
+    return `${lines2.join("\n")}
+`;
+  }
   const product = resolved.host ?? "vores produkt";
   const lines = [
     `# EU AI Act leverandørspørgeskema (DPO / IT-sikkerhed): svar for ${product}`,
@@ -29353,11 +29511,15 @@ function createServer(workspaceRoot, options = {}) {
       description: SETUP_DESCRIPTION,
       inputSchema: {
         framework: external_exports.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
-        runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD)
+        runtime: external_exports.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ framework, runtime }) => text(`${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"))}${SETUP_NEXT_STEPS}`)
+    async ({ framework, runtime, domain, locale }) => text(
+      `${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"), { domain, locale })}${setupNextSteps(domain, locale)}`
+    )
   );
   server.registerTool(
     "spurvik_find_unwrapped_calls",

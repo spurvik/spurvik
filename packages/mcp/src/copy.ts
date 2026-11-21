@@ -23,6 +23,10 @@ export const FRAMEWORK_FIELD =
   "Provider, framework, or storefront to wire: openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 export const RUNTIME_FIELD =
   "Where the process runs: node, next, vercel, supabase-edge, or python. Optional (defaults to python for Python frameworks and node otherwise).";
+export const SETUP_DOMAIN_FIELD =
+  "Optional public hostname of the app or store, for example acme.eu. Prefills the report and signup links; non-public values are ignored.";
+export const SETUP_LOCALE_FIELD =
+  "Optional 2-letter EU locale (for example en, de, fr, nl, da, sv, es, it, pl, pt, fi) to localize badge snippets and signup links.";
 export const UNKNOWN_FRAMEWORK =
   "The framework must be openai, anthropic, google-genai, vercel-ai-sdk, mastra, openai-agents, langgraph, python, fastapi, langchain, pydantic-ai, shopify, wordpress, webflow, or html.";
 export const UNKNOWN_RUNTIME = "The runtime must be node, next, vercel, supabase-edge, or python.";
@@ -145,4 +149,4 @@ export const VQ_GENERATES_MEDIA_FIELD =
 export const VQ_DOMAIN_FIELD =
   "Optional public hostname of the product, for example acme.eu. Prefills the report and signup links; a value that is not a public hostname is ignored and not echoed.";
 export const VQ_LOCALE_FIELD =
-  "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG) or da (Danish DPO).";
+  "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO).";

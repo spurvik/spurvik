@@ -224,6 +224,9 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         { name: "Français — DPO (fr)", value: "fr" },
         { name: "Nederlands — FG (nl)", value: "nl" },
         { name: "Dansk — DPO (da)", value: "da" },
+        { name: "Svenska — DSO / DPO (sv)", value: "sv" },
+        { name: "Español — DPD (es)", value: "es" },
+        { name: "Italiano — RPD / DPO (it)", value: "it" },
       ],
     },
     {

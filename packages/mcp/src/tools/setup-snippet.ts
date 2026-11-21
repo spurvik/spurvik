@@ -7,12 +7,17 @@ import {
 import {
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
+  conciergeSignupUrlFor,
   PRICE_NOTE,
   PRO_PRICE,
   PRO_SIGNUP_URL,
+  proSignupUrlFor,
   REPORT_URL,
+  reportUrlFor,
 } from "../links.js";
 import { sdkExportNames } from "../sdk-exports.js";
+import { EU_LANGUAGES } from "./badge-copy.js";
+import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
 export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"] as const;
@@ -512,7 +517,7 @@ function pythonSource(framework: Framework): string {
   ].join("\n") + "\n";
 }
 
-function cmsSource(framework: CmsFramework): string {
+function cmsSource(framework: CmsFramework, host: string | null = null, locale = "en"): string {
   if (framework === "shopify") {
     return [
       "{%- comment -%} Option A (recommended): curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid -> sections/spurvik-art50-notice.liquid {%- endcomment -%}",
@@ -542,14 +547,27 @@ function cmsSource(framework: CmsFramework): string {
       "});",
     ].join("\n") + "\n";
   }
-  return '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>\n';
+  const sys = host ?? "Support Assistant";
+  return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
+}
+
+export interface SetupSnippetOptions {
+  domain?: string;
+  locale?: string;
 }
 
 /** Source of the setup snippet (TypeScript, Python 3.10+ stdlib, or CMS/HTML snippet), with no surrounding prose. */
-export function setupSnippetSource(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
+export function setupSnippetSource(
+  framework: string,
+  runtime: string = isPythonFramework(framework) ? "python" : "node",
+  options: SetupSnippetOptions = {},
+): string {
   if (!isFramework(framework)) throw new Error(UNKNOWN_FRAMEWORK);
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
-  if (isCmsFramework(framework)) return cmsSource(framework);
+  const host = publicHostname(options.domain);
+  const locale =
+    typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
   const tsRuntime = runtime as TsRuntime;
   if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
@@ -560,8 +578,21 @@ export function setupSnippetSource(framework: string, runtime: string = isPython
 }
 
 /** Tool text: a short note, then the snippet. */
-export function setupSnippet(framework: string, runtime: string = isPythonFramework(framework) ? "python" : "node"): string {
-  const source = setupSnippetSource(framework, runtime);
+export function setupSnippet(
+  framework: string,
+  runtime: string = isPythonFramework(framework) ? "python" : "node",
+  options: SetupSnippetOptions = {},
+): string {
+  const source = setupSnippetSource(framework, runtime, options);
+  const host = publicHostname(options.domain);
+  const loc =
+    typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) && options.locale !== "en"
+      ? options.locale
+      : null;
+  const locSuffix = loc ? `&locale=${loc}` : "";
+  const reportLink = host ? `${reportUrlFor(host)}${locSuffix}` : REPORT_URL;
+  const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   if (isCmsFramework(framework)) {
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const guideLine =
@@ -573,9 +604,9 @@ export function setupSnippet(framework: string, runtime: string = isPythonFramew
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
-      `Shareable readiness report for your domain: ${REPORT_URL}`,
-      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE,
     ];
     return `${cmsLines.join("\n")}\n\n\`\`\`${langFence}\n${source}\`\`\`\n`;
@@ -585,9 +616,9 @@ export function setupSnippet(framework: string, runtime: string = isPythonFramew
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${PYTHON_GUIDE_URL}`,
-      `Shareable readiness report for your domain: ${REPORT_URL}`,
-      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE,
     ];
     return `${pyLines.join("\n")}\n\n\`\`\`python\n${source}\`\`\`\n`;
@@ -622,9 +653,9 @@ export function setupSnippet(framework: string, runtime: string = isPythonFramew
     );
   }
   lines.push(
-    `Shareable readiness report for your domain: ${REPORT_URL}`,
-    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${PRO_SIGNUP_URL}`,
-    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${CONCIERGE_SIGNUP_URL}`,
+    `Shareable readiness report for your domain: ${reportLink}`,
+    `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+    `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
     PRICE_NOTE,
   );
   return `${lines.join("\n")}\n\n\`\`\`ts\n${source}\`\`\`\n`;

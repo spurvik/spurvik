@@ -37,6 +37,8 @@ import {
   SCAN_URL_FIELD,
   SERVER_INSTRUCTIONS,
   SETUP_DESCRIPTION,
+  SETUP_DOMAIN_FIELD,
+  SETUP_LOCALE_FIELD,
   SETUP_TITLE,
   SIGNING_INPUT_HELP,
   SURFACE_FIELD,
@@ -59,7 +61,7 @@ import {
   FIND_NEXT_STEPS,
   MARKING_NEXT_STEPS,
   RECEIPT_NEXT_STEPS,
-  SETUP_NEXT_STEPS,
+  setupNextSteps,
 } from "./next-steps.js";
 import { generateArt50Badge } from "./tools/art50-badge.js";
 import { BADGE_POSITIONS, BADGE_THEMES } from "./tools/badge-copy.js";
@@ -148,11 +150,15 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       inputSchema: {
         framework: z.enum(FRAMEWORKS).describe(FRAMEWORK_FIELD),
         runtime: z.enum(RUNTIMES).optional().describe(RUNTIME_FIELD),
+        domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: z.string().max(16).optional().describe(SETUP_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ framework, runtime }) =>
-      text(`${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"))}${SETUP_NEXT_STEPS}`),
+    async ({ framework, runtime, domain, locale }) =>
+      text(
+        `${setupSnippet(framework, runtime ?? (isPythonFramework(framework) ? "python" : "node"), { domain, locale })}${setupNextSteps(domain, locale)}`,
+      ),
   );
 
   server.registerTool(

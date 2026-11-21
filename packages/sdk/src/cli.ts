@@ -9,6 +9,7 @@ import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "no
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  questionnaireHostname,
   SPURVIK_QUESTIONNAIRE_LOCALES,
   SPURVIK_QUESTIONNAIRE_PLANS,
   SPURVIK_QUESTIONNAIRE_PROVIDERS,
@@ -916,10 +917,13 @@ export interface SetupReport {
   target: SetupTarget;
   runtime: SetupRuntime | "browser";
   detected: boolean;
+  domain?: string;
+  locale?: string;
   installCommand: string;
   snippet: string;
   envTemplate: string[];
   links: {
+    reportUrl?: string;
     freeSignupUrl: string;
     proUpgradeUrl: string;
     teamUpgradeUrl: string;
@@ -1036,15 +1040,32 @@ export function buildSetupReport(
   target: SetupTarget,
   requestedRuntime: SetupRuntime | undefined,
   detected: boolean,
+  options: { domain?: string; locale?: string } = {},
 ): SetupReport {
-  const links = {
-    freeSignupUrl: SIGNUP_URL,
-    proUpgradeUrl: PRO_SIGNUP_URL,
-    teamUpgradeUrl: TEAM_SIGNUP_URL,
-    doneForYouUrl: CONCIERGE_SIGNUP_URL,
+  const host = options.domain ? questionnaireHostname(options.domain) : null;
+  const loc =
+    options.locale && (BADGE_LANGS as readonly string[]).includes(options.locale) ? options.locale : undefined;
+  const nonEnLoc = loc && loc !== "en" ? loc : undefined;
+  const freeParams: string[] = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (nonEnLoc) freeParams.push(`locale=${nonEnLoc}`);
+  const appParam = host ? `&appUrl=${encodeURIComponent(host)}` : "";
+  const locParam = nonEnLoc ? `&locale=${nonEnLoc}` : "";
+  const links: SetupReport["links"] = {
+    ...(host ? { reportUrl: `${CONSOLE_ORIGIN}/report?domain=${encodeURIComponent(host)}${locParam}` } : {}),
+    freeSignupUrl: freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL,
+    proUpgradeUrl: `${PRO_SIGNUP_URL}${appParam}${locParam}`,
+    teamUpgradeUrl: `${TEAM_SIGNUP_URL}${appParam}${locParam}`,
+    doneForYouUrl: `${CONCIERGE_SIGNUP_URL}${appParam}${locParam}`,
+  };
+  const metaFields = {
+    ...(host ? { domain: host } : {}),
+    ...(loc ? { locale: loc } : {}),
   };
 
   if (CMS_SETUP_TARGETS.includes(target) || target === "react") {
+    const snippetLocale = loc ?? "en";
+    const snippetSystem = host ?? "Support Assistant";
     const snippet =
       target === "shopify"
         ? [
@@ -1063,9 +1084,9 @@ export function buildSetupReport(
             ? [
                 'import { AIDisclosureLabel } from "spurvik/react";',
                 "",
-                '<AIDisclosureLabel notice="interaction" locale="en" systemName="Support Assistant" />',
+                `<AIDisclosureLabel notice="interaction" locale="${snippetLocale}" systemName="${snippetSystem}" />`,
               ].join("\n")
-            : '<script src="https://spurvik.com/badge.js" data-system="Support Assistant" data-locale="en" data-position="bottom-left" data-attribution="true" defer></script>';
+            : `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-attribution="true" defer></script>`;
     const installCommand =
       target === "react"
         ? "npm install spurvik"
@@ -1078,6 +1099,7 @@ export function buildSetupReport(
       target,
       runtime: "browser",
       detected,
+      ...metaFields,
       installCommand,
       snippet,
       envTemplate: [],
@@ -1112,6 +1134,7 @@ export function buildSetupReport(
       target,
       runtime: "python",
       detected,
+      ...metaFields,
       installCommand: "curl -fsSLO https://spurvik.com/r/spurvik_guard.py",
       snippet,
       envTemplate: [
@@ -1224,6 +1247,7 @@ export function buildSetupReport(
     target,
     runtime: tsRuntime,
     detected,
+    ...metaFields,
     installCommand: "npm install spurvik",
     snippet: [
       `// The SDK logs the call and attaches an HMAC receipt (${CLI_VERSION}, MIT). It does not mark content.`,
@@ -1242,11 +1266,15 @@ export function buildSetupReport(
 
 function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
   if (args.positionals.length > 1) {
-    io.err(`Usage: spurvik setup [target|dir] [--runtime ${SETUP_RUNTIMES.join("|")}] [--json]`);
+    io.err(`Usage: spurvik setup [target|dir] [--runtime ${SETUP_RUNTIMES.join("|")}] [--domain <domain>] [--lang <eu-locale>] [--json]`);
     return EXIT_ERROR;
   }
   if (args.runtime !== undefined && !SETUP_RUNTIMES.includes(args.runtime as SetupRuntime)) {
     io.err(`spurvik setup: --runtime must be one of ${SETUP_RUNTIMES.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && !(BADGE_LANGS as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik setup: --lang must be one of the 24 EU language codes: ${BADGE_LANGS.join(", ")}`);
     return EXIT_ERROR;
   }
   const base = deps.cwd ?? process.cwd();
@@ -1276,7 +1304,7 @@ function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
   }
 
   const runtime = (args.runtime as SetupRuntime | undefined) ?? autoRuntime;
-  const report = buildSetupReport(target, runtime, detected);
+  const report = buildSetupReport(target, runtime, detected, { domain: args.domain, locale: args.lang });
 
   if (args.json) {
     io.out(JSON.stringify(report, null, 2));
@@ -1303,6 +1331,9 @@ function cmdSetup(args: ParsedArgs, deps: CliDeps, io: Io): number {
   }
   out();
   out(`  ${c.bold("Next steps")} ${c.dim("(hosted EU console, Frankfurt fra1; prices excl. VAT)")}`);
+  if (report.links.reportUrl) {
+    out(`    Live Art. 50(1) report for ${report.domain}: ${c.cyan(report.links.reportUrl)}`);
+  }
   out(`    Free SPURVIK_API_KEY in 10s (€0, no card): ${c.cyan(report.links.freeSignupUrl)}`);
   out(`    White-label badge + 90d Frankfurt vault + Slack/Teams gates (Pro €19/mo): ${c.cyan(report.links.proUpgradeUrl)}`);
   out(`    24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro): ${c.cyan(report.links.doneForYouUrl)}`);
@@ -1792,7 +1823,7 @@ async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
 export type RfpReport = SpurvikVendorQuestionnaireOutput;
 
 const RFP_USAGE =
-  "Usage: spurvik rfp [domain] [--lang en|de|fr|nl|da] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|custom] [--generates-media] [--no-high-risk-actions] [--json]";
+  "Usage: spurvik rfp [domain] [--lang en|de|fr|nl|da|sv|es|it] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|custom] [--generates-media] [--no-high-risk-actions] [--json]";
 
 /** Answers built from plan and provider facts only. The domain is used only when it is a public hostname. */
 export function rfpReport(options: {
@@ -1861,6 +1892,7 @@ interface ParsedArgs {
   help: boolean;
   version: boolean;
   lang?: string;
+  domain?: string;
   cms?: string;
   runtime?: string;
   plan?: string;
@@ -1899,6 +1931,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (arg === "-v" || arg === "--version") parsed.version = true;
     else if (arg === "--lang") parsed.lang = argv[++i] ?? "";
     else if (arg.startsWith("--lang=")) parsed.lang = arg.slice("--lang=".length);
+    else if (arg === "--domain") parsed.domain = argv[++i] ?? "";
+    else if (arg.startsWith("--domain=")) parsed.domain = arg.slice("--domain=".length);
     else if (arg === "--cms") parsed.cms = argv[++i] ?? "";
     else if (arg.startsWith("--cms=")) parsed.cms = arg.slice("--cms=".length);
     else if (arg === "--runtime") parsed.runtime = argv[++i] ?? "";
@@ -1991,8 +2025,12 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --runtime applies to the setup command only.");
     return EXIT_ERROR;
   }
-  if (args.lang !== undefined && args.command !== "badge" && args.command !== "rfp") {
-    io.err("spurvik: --lang applies to the badge and rfp commands only.");
+  if (args.domain !== undefined && args.command !== "setup" && args.command !== "init") {
+    io.err("spurvik: --domain applies to the setup command only.");
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && args.command !== "badge" && args.command !== "rfp" && args.command !== "setup" && args.command !== "init") {
+    io.err("spurvik: --lang applies to the badge, rfp and setup commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {

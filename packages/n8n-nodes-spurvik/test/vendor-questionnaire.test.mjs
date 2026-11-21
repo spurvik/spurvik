@@ -203,12 +203,27 @@ describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)",
     const locale = byName("questionnaireLocale");
     assert.equal(locale.type, "options");
     assert.equal(locale.default, "en");
-    assert.deepEqual(locale.options.map((option) => option.value), ["en", "de", "fr", "nl", "da"]);
+    assert.deepEqual(locale.options.map((option) => option.value), ["en", "de", "fr", "nl", "da", "sv", "es", "it"]);
 
     const de = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "python", domain: "personio.de", locale: "de" });
     assert.equal(de.interactiveUrl, "https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
     assert.match(de.markdown, /EU-KI-Verordnung Sicherheitsfragebogen/);
     assert.match(de.upgradeUrls.proWhiteLabelEur19, /locale=de/);
+
+    const sv = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "openai", domain: "nudiejeans.com", locale: "sv" });
+    assert.equal(sv.interactiveUrl, "https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso?domain=nudiejeans.com");
+    assert.match(sv.markdown, /Bilaga IV/);
+    assert.match(sv.upgradeUrls.proWhiteLabelEur19, /locale=sv/);
+
+    const es = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "anthropic", domain: "hawkersco.com", locale: "es" });
+    assert.equal(es.interactiveUrl, "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd?domain=hawkersco.com");
+    assert.match(es.markdown, /Anexo IV/);
+    assert.match(es.upgradeUrls.proWhiteLabelEur19, /locale=es/);
+
+    const it = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "python", domain: "velasca.com", locale: "it" });
+    assert.equal(it.interactiveUrl, "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo?domain=velasca.com");
+    assert.match(it.markdown, /Allegato IV/);
+    assert.match(it.upgradeUrls.proWhiteLabelEur19, /locale=it/);
 
     for (const name of QUESTIONNAIRE_FIELDS) {
       assert.deepEqual(byName(name).displayOptions, { show: { operation: ["vendorQuestionnaireAnswers"] } }, name);

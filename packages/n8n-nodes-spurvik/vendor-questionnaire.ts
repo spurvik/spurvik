@@ -34,7 +34,7 @@ export const SPURVIK_QUESTIONNAIRE_PROVIDERS = [
 ] as const;
 export type SpurvikQuestionnaireProvider = (typeof SPURVIK_QUESTIONNAIRE_PROVIDERS)[number];
 
-export const SPURVIK_QUESTIONNAIRE_LOCALES = ["en", "de", "fr", "nl", "da"] as const;
+export const SPURVIK_QUESTIONNAIRE_LOCALES = ["en", "de", "fr", "nl", "da", "sv", "es", "it"] as const;
 export type SpurvikQuestionnaireLocale = (typeof SPURVIK_QUESTIONNAIRE_LOCALES)[number];
 
 const LOCALIZED_RFP_COCKPIT_URLS: Record<SpurvikQuestionnaireLocale, string> = {
@@ -43,6 +43,9 @@ const LOCALIZED_RFP_COCKPIT_URLS: Record<SpurvikQuestionnaireLocale, string> = {
   fr: "https://spurvik.com/fr/questionnaire-securite-reglement-ia-dpo-fournisseur",
   nl: "https://spurvik.com/nl/ai-verordening-leveranciersvragenlijst-fg-beveiliging",
   da: "https://spurvik.com/da/eu-ai-act-leverandoerspoergeskema-dpo-sikkerhed",
+  sv: "https://spurvik.com/sv/ai-forordningen-leverantorssakerhetsformular-dso",
+  es: "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd",
+  it: "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo",
 };
 
 export interface SpurvikVendorQuestionnaireInput {
@@ -518,6 +521,123 @@ function renderLocalizedMarkdown(input: {
       `- Done-For-You 24u-setup (€199 eenmalig, incl. 1 jaar Pro): ${upgradeUrls.doneForYou24hEur199}`,
       "",
       "_Technische antwoorden op basis van geleverde Spurvik-controles. Geen juridisch advies._",
+    ].join("\n")}\n`;
+  }
+  if (locale === "sv") {
+    const product = host ?? "vår produkt";
+    return `${[
+      `# EU AI-förordningen säkerhetsformulär för leverantörer (DSO / DPO): svar för ${product}`,
+      "",
+      `Spurvik-plan: ${plan.name} (${plan.price}) · Modellleverantör: ${provider.label} · Konsekventa agentåtgärder: ${hasHighRiskActions ? "ja" : "nej"} · Syntetiska medier: ${generatesMedia ? "ja" : "nej"}`,
+      "",
+      ...(domainIgnored ? ["Den angivna domänen är inte ett publikt värdnamn och utelämnades.", ""] : []),
+      "## F1: Art. 50.1 & 2 dec. 2026 Art. 50.2 Transparens & ursprung",
+      "",
+      `**Svar:** Varje AI-funktion i ${product} visar en tydlig AI-upplysning på alla 24 officiella EU-språk (\`badge.js\` eller \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `Märkningen körs som white-label (\`data-attribution="false"\`).` : 'Märkningen innehåller länken "Art. 50 · Spurvik".'} ${generatesMedia ? `För syntetiska medier (art. 50.2 från 2 december 2026) kontrollerar CI publicerade bilder med \`npx spurvik c2pa <image-url> --fail-on-missing\` och ${C2PA_PAGE_URL} avseende C2PA-JUMBF-manifest (skrivskyddad kontroll; Spurvik signerar inte medier).` : `${product} genererar inte syntetiska medier idag; vid framtida lansering kontrollerar \`npx spurvik c2pa <image-url> --fail-on-missing\` C2PA-manifest.`}`,
+      "",
+      "## F2: Art. 12 Kryptografisk händelseloggning",
+      "",
+      `**Svar:** Varje ${provider.label}-anrop från ${product} kapslas in med MIT-licensierade Spurvik SDK (${provider.wrapper}). Promptar och svar ersätts av nyckelbaserade HMAC-SHA256-fingeravtryck (\`inputHash\`, \`outputHash\`), kedjade med SHA-256 \`recordHash\` och \`prevLogHash\` (${plan.events} händelser/mån).`,
+      "",
+      "## F3: GDPR art. 5.1 c Uppgiftsminimering & EU-lagring i Frankfurt",
+      "",
+      `**Svar:** 0 byte rå prompt- eller svarstext lagras hos Spurvik (pseudonymiserade fingeravtryck enligt GDPR art. 4.5). Loggposter lagras i Frankfurt, Tyskland (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) i ${plan.retention}; drivs av EyeTea Solutions ApS, Danmark (https://spurvik.com/privacy).`,
+      "",
+      "## F4: Art. 14 Deterministiska mänskliga godkännandegrindar",
+      "",
+      `**Svar:** ${hasHighRiskActions ? `Agentåtgärder såsom återbetalningar, mejl, behörighetsändringar och raderingar stoppas deterministiskt i kod före körning` : `AI-funktioner i ${product} utför inte självständiga återbetalningar, mejl eller raderingar idag; framtida åtgärder stoppas deterministiskt i kod`} (${plan.hostedQueue ? `hostad godkännandekö med \`verifyHitlWebhook\` och ${provider.approval}` : "signerade Slack-/Teams-länkar via `spurvik/channels`"}).`,
+      "",
+      "## F5: Lagringstid, DSO-underlag & Bilaga IV-dokumentation",
+      "",
+      `**Svar:** Signerade AI-händelser för ${product} lagras i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " En teknisk DSO/DPO-sammanfattning (`.md`) kan laddas ner direkt." : ""}${plan.annexIv ? " Utkast till teknisk dokumentation enligt Bilaga IV (art. 11, PDF/Markdown) samt webhook-export ingår." : ""}${isConcierge ? " Installationen utfördes inom 24 timmar av en Spurvik-ingenjör inklusive signerad DSO/DPO- & C2PA-rapport." : ""}`,
+      "",
+      "## Nästa steg",
+      `- Interaktivt svenskt DSO- & leverantörsformulär: ${interactiveUrl}`,
+      ...(host ? [`- Live Art. 50(1)-rapport för ${host}: ${reportUrlFor(host)}`] : []),
+      `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${upgradeUrls.freeApiKey10sEur0}`,
+      `- Pro (19 €/mån — white-label, 90 dagar Frankfurt, DSO-rapport): ${upgradeUrls.proWhiteLabelEur19}`,
+      `- Team (79 €/mån — 12 månader, Bilaga IV-utkast, webhook): ${upgradeUrls.teamAgencyEur79}`,
+      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${upgradeUrls.doneForYou24hEur199}`,
+      "",
+      "_Tekniska svar baserade på levererade Spurvik-kontroller. Inte juridisk rådgivning._",
+    ].join("\n")}\n`;
+  }
+  if (locale === "es") {
+    const product = host ?? "nuestro producto";
+    return `${[
+      `# Cuestionario de seguridad para proveedores Reglamento de IA UE (DPD / DPO): respuestas para ${product}`,
+      "",
+      `Plan Spurvik: ${plan.name} (${plan.price}) · Proveedor: ${provider.label} · Acciones sensibles de agentes: ${hasHighRiskActions ? "sí" : "no"} · Medios sintéticos: ${generatesMedia ? "sí" : "no"}`,
+      "",
+      ...(domainIgnored ? ["El dominio indicado no es un nombre de host público y se omitió.", ""] : []),
+      "## P1: Art. 50(1) y 2 dic. 2026 Art. 50(2) Transparencia y procedencia",
+      "",
+      `**Respuesta:** Cada función de IA en ${product} muestra un aviso de IA visible en los 24 idiomas oficiales de la UE (\`badge.js\` o \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `El aviso opera en marca blanca (\`data-attribution="false"\`).` : 'El aviso incluye el enlace "Art. 50 · Spurvik".'} ${generatesMedia ? `Para medios sintéticos (art. 50(2) desde el 2 de diciembre de 2026), CI comprueba las imágenes publicadas con \`npx spurvik c2pa <image-url> --fail-on-missing\` y ${C2PA_PAGE_URL} para manifiestos C2PA JUMBF (control de solo lectura; Spurvik no firma medios).` : `${product} no genera medios sintéticos actualmente; en caso de activarse, \`npx spurvik c2pa <image-url> --fail-on-missing\` comprueba los manifiestos C2PA.`}`,
+      "",
+      "## P2: Art. 12 Registro criptográfico de eventos",
+      "",
+      `**Respuesta:** Cada llamada a ${provider.label} desde ${product} se envuelve con el SDK MIT de Spurvik (${provider.wrapper}). Los prompts y respuestas se sustituyen por huellas HMAC-SHA256 con clave secreta (\`inputHash\`, \`outputHash\`), encadenadas mediante SHA-256 \`recordHash\` y \`prevLogHash\` (${plan.events} eventos/mes).`,
+      "",
+      "## P3: RGPD art. 5(1)(c) Minimización de datos y alojamiento UE en Fráncfort",
+      "",
+      `**Respuesta:** 0 bytes de texto bruto de prompts o respuestas se almacenan en Spurvik (huellas seudonimizadas según RGPD art. 4(5)). Los registros residen en Fráncfort, Alemania (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) durante ${plan.retention}; operado por EyeTea Solutions ApS, Dinamarca (https://spurvik.com/privacy).`,
+      "",
+      "## P4: Art. 14 Compuertas deterministas de supervisión humana",
+      "",
+      `**Respuesta:** ${hasHighRiskActions ? `Las acciones de agentes como reembolsos, correos, cambios de permisos o borrados se detienen de forma determinista en código antes de ejecutarse` : `Las funciones de IA en ${product} no ejecutan reembolsos, correos ni borrados autónomos hoy; cualquier acción futura se detiene de forma determinista en código`} (${plan.hostedQueue ? `cola de aprobación alojada con \`verifyHitlWebhook\` y ${provider.approval}` : "enlaces firmados de Slack / Teams vía `spurvik/channels`"}).`,
+      "",
+      "## P5: Retención, evidencias DPD y documentación Anexo IV",
+      "",
+      `**Respuesta:** Los eventos firmados de ${product} se conservan durante ${plan.retention} en Fráncfort.${plan.dpoSummary ? " Un informe técnico DPD/DPO (`.md`) puede descargarse directamente." : ""}${plan.annexIv ? " Incluye borrador de documentación técnica del Anexo IV (art. 11, PDF/Markdown) y exportación por webhook." : ""}${isConcierge ? " La instalación fue realizada en 24 horas por un ingeniero de Spurvik incluyendo informe DPD y C2PA Art. 50(2)." : ""}`,
+      "",
+      "## Próximos pasos",
+      `- Cuestionario interactivo DPD / compras: ${interactiveUrl}`,
+      ...(host ? [`- Informe Art. 50(1) en vivo para ${host}: ${reportUrlFor(host)}`] : []),
+      `- SPURVIK_API_KEY gratuita en 10 s (Fráncfort fra1): ${upgradeUrls.freeApiKey10sEur0}`,
+      `- Pro (19 €/mes — marca blanca, 90 días Fráncfort, resumen DPD): ${upgradeUrls.proWhiteLabelEur19}`,
+      `- Team (79 €/mes — 12 meses, borrador Anexo IV, webhook): ${upgradeUrls.teamAgencyEur79}`,
+      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${upgradeUrls.doneForYou24hEur199}`,
+      "",
+      "_Respuestas técnicas basadas en los controles implementados de Spurvik. No constituye asesoramiento jurídico._",
+    ].join("\n")}\n`;
+  }
+  if (locale === "it") {
+    const product = host ?? "il nostro prodotto";
+    return `${[
+      `# Questionario sicurezza fornitori Regolamento IA UE (RPD / DPO): risposte per ${product}`,
+      "",
+      `Piano Spurvik: ${plan.name} (${plan.price}) · Provider: ${provider.label} · Azioni sensibili degli agenti: ${hasHighRiskActions ? "sì" : "no"} · Media sintetici: ${generatesMedia ? "sì" : "no"}`,
+      "",
+      ...(domainIgnored ? ["Il dominio indicato non è un nome host pubblico ed è stato omesso.", ""] : []),
+      "## D1: Art. 50(1) e 2 dic. 2026 Art. 50(2) Trasparenza e provenienza",
+      "",
+      `**Risposta:** Ogni funzione IA in ${product} mostra un’informativa IA visibile in tutte le 24 lingue ufficiali dell’UE (\`badge.js\` o \`<AIDisclosureLabel />\`). ${plan.whiteLabel ? `L’informativa opera in modalità white-label (\`data-attribution="false"\`).` : 'L’informativa include il link "Art. 50 · Spurvik".'} ${generatesMedia ? `Per i media sintetici (art. 50(2) dal 2 dicembre 2026), la CI controlla le immagini pubblicate con \`npx spurvik c2pa <image-url> --fail-on-missing\` e ${C2PA_PAGE_URL} per i manifesti C2PA JUMBF (controllo in sola lettura; Spurvik non firma i media).` : `${product} non genera media sintetici oggi; in caso di attivazione futura, \`npx spurvik c2pa <image-url> --fail-on-missing\` controlla i manifesti C2PA.`}`,
+      "",
+      "## D2: Art. 12 Registrazione crittografica degli eventi",
+      "",
+      `**Risposta:** Ogni chiamata ${provider.label} da ${product} è incapsulata con lo Spurvik SDK con licenza MIT (${provider.wrapper}). Prompt e risposte sono sostituiti da impronte HMAC-SHA256 con chiave segreta (\`inputHash\`, \`outputHash\`), concatenate tramite SHA-256 \`recordHash\` e \`prevLogHash\` (${plan.events} eventi/mese).`,
+      "",
+      "## D3: GDPR art. 5(1)(c) Minimizzazione dei dati e residenza UE a Francoforte",
+      "",
+      `**Risposta:** 0 byte di testo grezzo di prompt o risposte sono memorizzati da Spurvik (impronte pseudonimizzate ai sensi del GDPR art. 4(5)). I log risiedono a Francoforte, Germania (Vercel \`fra1\`, Neon Postgres AWS \`eu-central-1\`) per ${plan.retention}; gestito da EyeTea Solutions ApS, Danimarca (https://spurvik.com/privacy).`,
+      "",
+      "## D4: Art. 14 Varchi deterministici di sorveglianza umana",
+      "",
+      `**Risposta:** ${hasHighRiskActions ? `Le azioni degli agenti come rimborsi, email, modifiche di permessi o cancellazioni vengono bloccate in modo deterministico nel codice prima dell’esecuzione` : `Le funzioni IA in ${product} non eseguono rimborsi, email o cancellazioni autonome oggi; eventuali azioni future sono bloccate in modo deterministico nel codice`} (${plan.hostedQueue ? `coda di approvazione ospitata con \`verifyHitlWebhook\` e ${provider.approval}` : "link firmati Slack / Teams tramite `spurvik/channels`"}).`,
+      "",
+      "## D5: Conservazione, prove RPD/DPO e documentazione Allegato IV",
+      "",
+      `**Risposta:** Gli eventi firmati di ${product} sono conservati per ${plan.retention} a Francoforte.${plan.dpoSummary ? " Un riepilogo tecnico RPD/DPO (`.md`) è scaricabile direttamente." : ""}${plan.annexIv ? " Include bozza di documentazione tecnica Allegato IV (art. 11, PDF/Markdown) ed esportazione webhook." : ""}${isConcierge ? " L’installazione è stata completata in 24 ore da un ingegnere Spurvik con report RPD/DPO e C2PA Art. 50(2)." : ""}`,
+      "",
+      "## Prossimi passi",
+      `- Questionario interattivo RPD / DPO fornitori: ${interactiveUrl}`,
+      ...(host ? [`- Report Art. 50(1) live per ${host}: ${reportUrlFor(host)}`] : []),
+      `- SPURVIK_API_KEY gratuita in 10 s (Francoforte fra1): ${upgradeUrls.freeApiKey10sEur0}`,
+      `- Pro (19 €/mese — white-label, 90 gg Francoforte, riepilogo RPD): ${upgradeUrls.proWhiteLabelEur19}`,
+      `- Team (79 €/mese — 12 mesi, bozza Allegato IV, webhook): ${upgradeUrls.teamAgencyEur79}`,
+      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${upgradeUrls.doneForYou24hEur199}`,
+      "",
+      "_Risposte tecniche basate sui controlli Spurvik distribuiti. Non costituisce consulenza legale._",
     ].join("\n")}\n`;
   }
   const product = host ?? "vores produkt";
