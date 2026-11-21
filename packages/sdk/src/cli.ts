@@ -848,8 +848,12 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
   const host = hostForSnippet(args.positionals[0]);
   const lang = (args.lang as BadgeLang | undefined) ?? langForHost(host);
   const systemName = sanitizeSystemName(host);
-  const proUrl = host ? scanLinks(host).proUpgradeUrl : PRO_SIGNUP_URL;
-  const conciergeUrl = host ? scanLinks(host).doneForYouUrl : CONCIERGE_SIGNUP_URL;
+  const localeSuffix =
+    args.lang !== undefined && host && langForHost(host) === "en" && lang !== "en"
+      ? `&locale=${encodeURIComponent(lang)}`
+      : "";
+  const proUrl = host ? `${scanLinks(host).proUpgradeUrl}${localeSuffix}` : PRO_SIGNUP_URL;
+  const conciergeUrl = host ? `${scanLinks(host).doneForYouUrl}${localeSuffix}` : CONCIERGE_SIGNUP_URL;
   const tag = badgeScriptTag(systemName, lang);
   const cms = args.cms as BadgeCmsTarget | undefined;
   const { c, out } = io;
@@ -883,6 +887,7 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  <AIDisclosureLabel notice="interaction" locale="${lang}" systemName="${systemName}" />`);
   }
   out();
+  out(`  ${c.bold("Accessibility")} ${c.dim(`(role="status", aria-live="polite", lang="${lang}" — WCAG 2.1 AA / EN 301 549)`)}`);
   out(`  ${c.bold("White-label")} ${c.dim('(data-attribution="false") — Pro €19/mo:')} ${proUrl}`);
   out(`  ${c.bold("24h Setup")} ${c.dim("(engineer installs in PR or CMS, €199 once):")} ${conciergeUrl}`);
   out();

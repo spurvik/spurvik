@@ -22639,6 +22639,14 @@ var ART50_BADGE_INPUT_JSON_SCHEMA = {
   additionalProperties: false
 };
 var MAX_SYSTEM_NAME_INPUT = 200;
+var PUBLIC_DOMAIN_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+var BLOCKED_DOMAIN_SUFFIXES = ["localhost", "local", "internal", "arpa"];
+function publicDomainFromSystemName(raw) {
+  const host = hostFromDomainLike(raw);
+  if (!host || !PUBLIC_DOMAIN_RE.test(host)) return "";
+  if (BLOCKED_DOMAIN_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) return "";
+  return host;
+}
 function nextJsSnippet(attrs, position) {
   const lines = [
     'import Script from "next/script";',
@@ -22691,6 +22699,10 @@ function generateArt50Badge(input = {}) {
   const attribution = input.attribution !== false;
   const systemName = sanitizeSystemName(input.systemName);
   const language = euLanguage(resolved.locale);
+  const previewText = `${systemName}. ${language.interaction}`;
+  const domain = publicDomainFromSystemName(input.systemName);
+  const localeSuffix = domain && resolved.source === "input" && inferLocaleFromDomain(domain) === "en" && resolved.locale !== "en" ? `&locale=${encodeURIComponent(resolved.locale)}` : "";
+  const appUrlSuffix = domain ? `&appUrl=${encodeURIComponent(domain)}${localeSuffix}` : "";
   const badge = { systemName, locale: resolved.locale, theme, position, attribution };
   const attrs = badgeDataAttributes(badge);
   const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
@@ -22707,7 +22719,14 @@ function generateArt50Badge(input = {}) {
       theme,
       attribution,
       attributionLabel: attribution ? ATTRIBUTION_LABEL : null,
-      previewText: `${systemName}. ${language.interaction}`,
+      previewText,
+      accessibility: {
+        role: "status",
+        ariaLive: "polite",
+        lang: resolved.locale,
+        screenReaderAnnouncement: previewText,
+        standard: "WCAG 2.1 AA / EN 301 549 (European Accessibility Act)"
+      },
       script: buildBadgeScript(badge),
       nextjs: nextJsSnippet(attrs, position),
       wordpress: {
@@ -22727,8 +22746,8 @@ function generateArt50Badge(input = {}) {
       plan: {
         attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
         whiteLabel: attribution ? whiteLabelNote : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
-        proUrl: PRO_SIGNUP_URL,
-        doneForYouUrl: CONCIERGE_SIGNUP_URL
+        proUrl: `${PRO_SIGNUP_URL}${appUrlSuffix}`,
+        doneForYouUrl: `${CONCIERGE_SIGNUP_URL}${appUrlSuffix}`
       },
       note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
     }

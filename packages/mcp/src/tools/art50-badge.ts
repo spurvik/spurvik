@@ -18,6 +18,7 @@ import {
   EU_LANGUAGES,
   EU_LOCALE_CODES,
   euLanguage,
+  hostFromDomainLike,
   inferLocaleFromDomain,
   sanitizeSystemName,
   type BadgePosition,
@@ -32,6 +33,14 @@ export interface Art50BadgeInput {
   attribution?: boolean;
 }
 
+export interface Art50BadgeAccessibility {
+  role: "status";
+  ariaLive: "polite";
+  lang: string;
+  screenReaderAnnouncement: string;
+  standard: "WCAG 2.1 AA / EN 301 549 (European Accessibility Act)";
+}
+
 export interface Art50BadgeResult {
   tool: "spurvik_generate_art50_badge";
   notice: "art50_1_interaction";
@@ -44,6 +53,7 @@ export interface Art50BadgeResult {
   attribution: boolean;
   attributionLabel: string | null;
   previewText: string;
+  accessibility: Art50BadgeAccessibility;
   script: string;
   nextjs: string;
   wordpress: { pluginZipUrl: string; steps: string };
@@ -77,6 +87,16 @@ export const ART50_BADGE_INPUT_JSON_SCHEMA = {
 } as const;
 
 const MAX_SYSTEM_NAME_INPUT = 200;
+const PUBLIC_DOMAIN_RE =
+  /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+const BLOCKED_DOMAIN_SUFFIXES = ["localhost", "local", "internal", "arpa"] as const;
+
+function publicDomainFromSystemName(raw: string | undefined): string {
+  const host = hostFromDomainLike(raw);
+  if (!host || !PUBLIC_DOMAIN_RE.test(host)) return "";
+  if (BLOCKED_DOMAIN_SUFFIXES.some((suffix) => host === suffix || host.endsWith(`.${suffix}`))) return "";
+  return host;
+}
 
 function nextJsSnippet(attrs: Array<[string, string]>, position: BadgePosition): string {
   const lines = [
@@ -133,6 +153,13 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
   const attribution = input.attribution !== false;
   const systemName = sanitizeSystemName(input.systemName);
   const language = euLanguage(resolved.locale);
+  const previewText = `${systemName}. ${language.interaction}`;
+  const domain = publicDomainFromSystemName(input.systemName);
+  const localeSuffix =
+    domain && resolved.source === "input" && inferLocaleFromDomain(domain) === "en" && resolved.locale !== "en"
+      ? `&locale=${encodeURIComponent(resolved.locale)}`
+      : "";
+  const appUrlSuffix = domain ? `&appUrl=${encodeURIComponent(domain)}${localeSuffix}` : "";
   const badge = { systemName, locale: resolved.locale, theme, position, attribution };
   const attrs = badgeDataAttributes(badge);
   const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
@@ -149,7 +176,14 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
       theme,
       attribution,
       attributionLabel: attribution ? ATTRIBUTION_LABEL : null,
-      previewText: `${systemName}. ${language.interaction}`,
+      previewText,
+      accessibility: {
+        role: "status",
+        ariaLive: "polite",
+        lang: resolved.locale,
+        screenReaderAnnouncement: previewText,
+        standard: "WCAG 2.1 AA / EN 301 549 (European Accessibility Act)",
+      },
       script: buildBadgeScript(badge),
       nextjs: nextJsSnippet(attrs, position),
       wordpress: {
@@ -171,8 +205,8 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
         whiteLabel: attribution
           ? whiteLabelNote
           : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
-        proUrl: PRO_SIGNUP_URL,
-        doneForYouUrl: CONCIERGE_SIGNUP_URL,
+        proUrl: `${PRO_SIGNUP_URL}${appUrlSuffix}`,
+        doneForYouUrl: `${CONCIERGE_SIGNUP_URL}${appUrlSuffix}`,
       },
       note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice.",
     },

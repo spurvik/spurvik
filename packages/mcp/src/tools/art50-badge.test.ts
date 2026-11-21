@@ -47,8 +47,25 @@ describe("generateArt50Badge", () => {
     expect(outcome).toMatchObject({ ok: false, error: "invalid_locale" });
   });
 
-  it("infers the language from a domain-like systemName", () => {
-    expect(badge({ systemName: "stepnetwork.dk" })).toMatchObject({ locale: "da", localeSource: "systemName_domain", language: "Dansk (da)" });
+  it("infers the language from a domain-like systemName and prefills appUrl + WCAG/EAA accessibility metadata", () => {
+    const dk = badge({ systemName: "stepnetwork.dk" });
+    expect(dk).toMatchObject({
+      locale: "da",
+      localeSource: "systemName_domain",
+      language: "Dansk (da)",
+      accessibility: {
+        role: "status",
+        ariaLive: "polite",
+        lang: "da",
+        screenReaderAnnouncement: "stepnetwork.dk. Du interagerer med et AI-system.",
+        standard: "WCAG 2.1 AA / EN 301 549 (European Accessibility Act)",
+      },
+    });
+    expect(dk.plan.proUrl).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=stepnetwork.dk");
+    expect(dk.plan.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=stepnetwork.dk");
+    const comFr = badge({ systemName: "charlie-paris.com", locale: "fr" });
+    expect(comFr.plan.proUrl).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com&locale=fr");
+    expect(comFr.plan.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com&locale=fr");
     expect(badge({ systemName: "https://shop.example.de/path" }).locale).toBe("de");
     expect(badge({ systemName: "example.com" }).localeSource).toBe("default");
     expect(badge({ systemName: "example.dk", locale: "fr" })).toMatchObject({ locale: "fr", localeSource: "input" });

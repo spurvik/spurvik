@@ -785,6 +785,9 @@ describe("spurvik badge", () => {
     expect(await runCli(["badge", "charlie-paris.com", "--lang=fr"], fr.deps)).toBe(EXIT_OK);
     expect(fr.out()).toContain('data-locale="fr"');
     expect(fr.out()).toContain('locale="fr"');
+    expect(fr.out()).toContain('role="status", aria-live="polite", lang="fr" — WCAG 2.1 AA / EN 301 549');
+    expect(fr.out()).toContain("https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com&locale=fr");
+    expect(fr.out()).toContain("https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com&locale=fr");
 
     const bad = harness();
     expect(await runCli(["badge", "--lang=zz"], bad.deps)).toBe(EXIT_ERROR);
