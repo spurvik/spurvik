@@ -567,6 +567,15 @@ describe("createServer", () => {
       }),
     );
     expect(shopifyDe).toContain("/de/shopify-shopware-woocommerce-ki-hinweis-artikel-50?domain=armedangels.com");
+
+    const ciDe = textOf(
+      await client.callTool({
+        name: "spurvik_setup_snippet",
+        arguments: { framework: "github-actions", domain: "personio.de" },
+      }),
+    );
+    expect(ciDe).toContain("/de/cursor-claude-mcp-github-actions-ki-verordnung?domain=personio.de");
+    expect(ciDe).toContain("github-action-spurvik-check.yml");
     await client.close();
   });
 });

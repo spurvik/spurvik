@@ -22133,6 +22133,12 @@ function ecommerceCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function mcpCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/cursor-claude-mcp-github-actions-ki-verordnung" : code === "fr" ? "/fr/cursor-claude-mcp-github-actions-reglement-ia" : code === "nl" ? "/nl/cursor-claude-mcp-github-actions-ai-verordening" : code === "da" ? "/da/cursor-claude-mcp-github-actions-eu-ai-act" : code === "sv" ? "/sv/cursor-claude-mcp-github-actions-ai-forordningen" : code === "es" ? "/es/cursor-claude-mcp-github-actions-reglamento-ia" : code === "it" ? "/it/cursor-claude-mcp-github-actions-regolamento-ia" : "/cursor-claude-mcp-eu-ai-act";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -28477,6 +28483,7 @@ var sdkExportNames = {
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
 var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
+var IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28487,7 +28494,8 @@ var FRAMEWORKS = [
   "langgraph",
   ...PYTHON_FRAMEWORKS,
   ...CMS_FRAMEWORKS,
-  ...WORKFLOW_FRAMEWORKS
+  ...WORKFLOW_FRAMEWORKS,
+  ...IDE_CI_FRAMEWORKS
 ];
 var RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"];
 var SETUP_FRAMEWORK_ALIASES = {
@@ -28532,7 +28540,8 @@ var SETUP_FRAMEWORK_ALIASES = {
   livechat: "html",
   helpscout: "html",
   tawk: "html",
-  "make.com": "make"
+  "make.com": "make",
+  "github-action": "github-actions"
 };
 var SUPPORT_WIDGET_ALIASES = /* @__PURE__ */ new Set([
   "intercom",
@@ -28577,6 +28586,9 @@ function isCmsFramework(value) {
 }
 function isWorkflowFramework(value) {
   return WORKFLOW_FRAMEWORKS.includes(value);
+}
+function isIdeCiFramework(value) {
+  return IDE_CI_FRAMEWORKS.includes(value);
 }
 function isPythonVariant(framework, runtime) {
   return isPythonFramework(framework) || runtime === "python";
@@ -29065,6 +29077,17 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   if (!isRuntime(runtime)) throw new Error(UNKNOWN_RUNTIME);
   const host = publicHostname(options.domain);
   const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isIdeCiFramework(framework)) {
+    return [
+      "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 4 agent skills):",
+      "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
+      "npx skills add spurvik/skills",
+      "",
+      "# GitHub Actions PR-Gate (blocks unwrapped TS/JS & Python AI calls on pull requests):",
+      "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
+      ""
+    ].join("\n");
+  }
   if (isWorkflowFramework(framework)) {
     return [
       "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
@@ -29103,6 +29126,24 @@ function setupSnippet(frameworkInput, runtimeInput, options = {}) {
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const teamLink = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  if (isIdeCiFramework(framework)) {
+    const guideHref = mcpCockpitUrlFor(host, effectiveLocale);
+    const ideLines = [
+      `Framework: ${framework}. Runtime: Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate (10 zero-key tools, MIT).`,
+      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.9\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
+      `Interactive MCP & GitHub Actions cockpit: ${guideHref}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${ideLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
   if (isWorkflowFramework(framework)) {
     const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [

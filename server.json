@@ -5,6 +5,13 @@
   "description": "EU AI Act Art. 50 URL & C2PA checks, Art. 12/14 snippets, HMAC receipts, DPO questionnaire answers.",
   "version": "1.0.9",
   "websiteUrl": "https://spurvik.com/docs",
+  "icons": [
+    {
+      "src": "https://spurvik.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
   "repository": {
     "url": "https://github.com/spurvik/spurvik",
     "source": "github",

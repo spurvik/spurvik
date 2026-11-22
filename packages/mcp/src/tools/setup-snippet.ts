@@ -10,6 +10,7 @@ import {
   conciergeSignupUrlFor,
   ecommerceCockpitUrlFor,
   lovableCockpitUrlFor,
+  mcpCockpitUrlFor,
   PRICE_NOTE,
   PRO_PRICE,
   PRO_SIGNUP_URL,
@@ -30,6 +31,7 @@ import { publicHostname } from "./public-hostname.js";
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
 export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
+export const IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -41,11 +43,13 @@ export const FRAMEWORKS = [
   ...PYTHON_FRAMEWORKS,
   ...CMS_FRAMEWORKS,
   ...WORKFLOW_FRAMEWORKS,
+  ...IDE_CI_FRAMEWORKS,
 ] as const;
 export const RUNTIMES = ["node", "next", "vercel", "supabase-edge", "python"] as const;
 export type PythonFramework = (typeof PYTHON_FRAMEWORKS)[number];
 export type CmsFramework = (typeof CMS_FRAMEWORKS)[number];
 export type WorkflowFramework = (typeof WORKFLOW_FRAMEWORKS)[number];
+export type IdeCiFramework = (typeof IDE_CI_FRAMEWORKS)[number];
 export type Framework = (typeof FRAMEWORKS)[number];
 export type Runtime = (typeof RUNTIMES)[number];
 type TsRuntime = Exclude<Runtime, "python">;
@@ -93,6 +97,7 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   helpscout: "html",
   tawk: "html",
   "make.com": "make",
+  "github-action": "github-actions",
 };
 
 const SUPPORT_WIDGET_ALIASES = new Set([
@@ -149,6 +154,10 @@ export function isCmsFramework(value: string): value is CmsFramework {
 
 export function isWorkflowFramework(value: string): value is WorkflowFramework {
   return (WORKFLOW_FRAMEWORKS as readonly string[]).includes(value);
+}
+
+export function isIdeCiFramework(value: string): value is IdeCiFramework {
+  return (IDE_CI_FRAMEWORKS as readonly string[]).includes(value);
 }
 
 export function isPythonVariant(framework: string, runtime: string): boolean {
@@ -673,6 +682,17 @@ export function setupSnippetSource(
   const host = publicHostname(options.domain);
   const locale =
     typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
+  if (isIdeCiFramework(framework)) {
+    return [
+      "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 4 agent skills):",
+      "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
+      "npx skills add spurvik/skills",
+      "",
+      "# GitHub Actions PR-Gate (blocks unwrapped TS/JS & Python AI calls on pull requests):",
+      "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
+      "",
+    ].join("\n");
+  }
   if (isWorkflowFramework(framework)) {
     return [
       "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
@@ -718,6 +738,20 @@ export function setupSnippet(
   const proLink = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const teamLink = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeLink = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  if (isIdeCiFramework(framework)) {
+    const guideHref = mcpCockpitUrlFor(host, effectiveLocale);
+    const ideLines = [
+      `Framework: ${framework}. Runtime: Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate (10 zero-key tools, MIT).`,
+      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.9\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
+      `Interactive MCP & GitHub Actions cockpit: ${guideHref}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${ideLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+  }
   if (isWorkflowFramework(framework)) {
     const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [

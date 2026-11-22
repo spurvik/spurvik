@@ -808,10 +808,14 @@ const PYTHON_WRAP_SNIPPET = [
   'send_telemetry_event("openai", "gpt-4o", prompt, reply, latency_ms=140) # 0B raw prompt text',
 ];
 
+const MCP_PR_GATE_URL = "https://spurvik.com/cursor-claude-mcp-eu-ai-act";
+
 const AUDIT_NEXT_STEPS: ReadonlyArray<readonly [string, string]> = [
   ["Free SPURVIK_API_KEY in 10s (€0, 10,000 events/mo, no card)", SIGNUP_URL],
   ["White-label badge + 90d Frankfurt vault + HITL queue (Pro €19/mo)", PRO_SIGNUP_URL],
   ["24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro)", CONCIERGE_SIGNUP_URL],
+  ["12-mo Frankfurt retention + Annex IV draft (Team €79/mo)", TEAM_SIGNUP_URL],
+  ["GitHub Actions PR-Gate & 10-tool Cursor/Claude MCP", MCP_PR_GATE_URL],
 ];
 
 function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
@@ -843,7 +847,9 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
           truncated: report.truncated,
           consoleUrl: PRO_SIGNUP_URL,
           freeSignupUrl: SIGNUP_URL,
+          teamUpgradeUrl: TEAM_SIGNUP_URL,
           doneForYouUrl: CONCIERGE_SIGNUP_URL,
+          mcpGuideUrl: MCP_PR_GATE_URL,
         },
         null,
         2,

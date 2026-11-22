@@ -696,9 +696,17 @@ describe("spurvik audit", () => {
       const dfy = lines.indexOf(
         "  24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge",
       );
+      const team = lines.indexOf(
+        "  12-mo Frankfurt retention + Annex IV draft (Team €79/mo): https://console.spurvik.com/signup?plan=team",
+      );
+      const mcp = lines.indexOf(
+        "  GitHub Actions PR-Gate & 10-tool Cursor/Claude MCP: https://spurvik.com/cursor-claude-mcp-eu-ai-act",
+      );
       expect(free).toBeGreaterThan(0);
       expect(pro).toBe(free + 1);
       expect(dfy).toBe(free + 2);
+      expect(team).toBe(free + 3);
+      expect(mcp).toBe(free + 4);
       expect(h.out()).not.toContain("€49");
       expect(h.out().match(/legal advice/gi)).toBeNull();
       if (fixture !== dir) rmSync(fixture, { recursive: true, force: true });
@@ -719,7 +727,9 @@ describe("spurvik audit", () => {
     // consoleUrl stays for existing consumers; the Free and Done-For-You links are added beside it.
     expect(body.consoleUrl).toBe("https://console.spurvik.com/signup?plan=pro");
     expect(body.freeSignupUrl).toBe("https://console.spurvik.com/signup");
+    expect(body.teamUpgradeUrl).toBe("https://console.spurvik.com/signup?plan=team");
     expect(body.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge");
+    expect(body.mcpGuideUrl).toBe("https://spurvik.com/cursor-claude-mcp-eu-ai-act");
     expect(Object.keys(body)).toEqual([
       "directory",
       "filesScanned",
@@ -729,7 +739,9 @@ describe("spurvik audit", () => {
       "truncated",
       "consoleUrl",
       "freeSignupUrl",
+      "teamUpgradeUrl",
       "doneForYouUrl",
+      "mcpGuideUrl",
     ]);
 
     rmSync(path.join(dir, "src", "chat.ts"));

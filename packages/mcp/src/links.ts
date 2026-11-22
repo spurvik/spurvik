@@ -203,6 +203,29 @@ export function ecommerceCockpitUrlFor(host?: string | null, locale = "en"): str
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate cockpit URL prefilled with `?domain=`. */
+export function mcpCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/cursor-claude-mcp-github-actions-ki-verordnung"
+      : code === "fr"
+        ? "/fr/cursor-claude-mcp-github-actions-reglement-ia"
+        : code === "nl"
+          ? "/nl/cursor-claude-mcp-github-actions-ai-verordening"
+          : code === "da"
+            ? "/da/cursor-claude-mcp-github-actions-eu-ai-act"
+            : code === "sv"
+              ? "/sv/cursor-claude-mcp-github-actions-ai-forordningen"
+              : code === "es"
+                ? "/es/cursor-claude-mcp-github-actions-reglamento-ia"
+                : code === "it"
+                  ? "/it/cursor-claude-mcp-github-actions-regolamento-ia"
+                  : "/cursor-claude-mcp-eu-ai-act";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
