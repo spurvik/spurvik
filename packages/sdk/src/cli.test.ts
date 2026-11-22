@@ -1361,5 +1361,14 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(tsJson.links.cockpitUrl).toBe(
       "https://spurvik.com/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac?domain=personio.de",
     );
+
+    // H145b: Agent / Slack / Teams setup targets route to 8-language Art. 14 HITL cockpits
+    const hitlSetup = harness();
+    expect(await runCli(["setup", "slack", "--domain", "doctolib.fr", "--json"], hitlSetup.deps)).toBe(EXIT_OK);
+    const hitlJson = JSON.parse(hitlSetup.out());
+    expect(hitlJson.target).toBe("langgraph");
+    expect(hitlJson.links.cockpitUrl).toBe(
+      "https://spurvik.com/fr/reglement-ia-article-14-controle-humain-validation-slack-teams?domain=doctolib.fr",
+    );
   });
 });

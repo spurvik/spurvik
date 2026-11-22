@@ -926,6 +926,30 @@ function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string 
     : `https://spurvik.com${slug}`;
 }
 
+function hitlCockpitUrl(host: string | null | undefined, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe"
+      : code === "fr"
+        ? "/fr/reglement-ia-article-14-controle-humain-validation-slack-teams"
+        : code === "nl"
+          ? "/nl/ai-verordening-artikel-14-menselijk-toezicht-slack-teams-goedkeuring"
+          : code === "da"
+            ? "/da/eu-ai-act-artikel-14-menneskeligt-tilsyn-slack-teams-godkendelse"
+            : code === "sv"
+              ? "/sv/ai-forordningen-artikel-14-mansklig-tillsyn-slack-teams-godkannande"
+              : code === "es"
+                ? "/es/reglamento-ia-articulo-14-supervision-humana-aprobacion-slack-teams"
+                : code === "it"
+                  ? "/it/regolamento-ia-articolo-14-sorveglianza-umana-approvazione-slack-teams"
+                  : "/langgraph-openai-agents-approval-check";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost && cleanHost !== "your-app.example"
+    ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}`
+    : `https://spurvik.com${slug}`;
+}
+
 function wordpressCockpitUrl(host: string | null | undefined, locale = "en"): string {
   const code = (locale || "en").trim().toLowerCase();
   const slug =
@@ -1099,6 +1123,12 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   helpscout: "html",
   tawk: "html",
   "make.com": "make",
+  hitl: "langgraph",
+  slack: "langgraph",
+  teams: "langgraph",
+  "microsoft-teams": "langgraph",
+  approval: "langgraph",
+  "human-in-the-loop": "langgraph",
 };
 
 const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
@@ -1512,7 +1542,10 @@ export function buildSetupReport(
     ],
     links: {
       ...links,
-      cockpitUrl: hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
+      cockpitUrl:
+        target === "langgraph" || target === "openai-agents" || target === "mastra"
+          ? hitlCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
+          : hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
     },
   };
 }

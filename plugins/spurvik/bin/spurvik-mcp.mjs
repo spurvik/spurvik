@@ -22151,6 +22151,12 @@ function hmacCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function hitlCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe" : code === "fr" ? "/fr/reglement-ia-article-14-controle-humain-validation-slack-teams" : code === "nl" ? "/nl/ai-verordening-artikel-14-menselijk-toezicht-slack-teams-goedkeuring" : code === "da" ? "/da/eu-ai-act-artikel-14-menneskeligt-tilsyn-slack-teams-godkendelse" : code === "sv" ? "/sv/ai-forordningen-artikel-14-mansklig-tillsyn-slack-teams-godkannande" : code === "es" ? "/es/reglamento-ia-articulo-14-supervision-humana-aprobacion-slack-teams" : code === "it" ? "/it/regolamento-ia-articolo-14-sorveglianza-umana-approvazione-slack-teams" : "/langgraph-openai-agents-approval-check";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -28572,7 +28578,13 @@ var SETUP_FRAMEWORK_ALIASES = {
   helpscout: "html",
   tawk: "html",
   "make.com": "make",
-  "github-action": "github-actions"
+  "github-action": "github-actions",
+  hitl: "langgraph",
+  slack: "langgraph",
+  teams: "langgraph",
+  "microsoft-teams": "langgraph",
+  approval: "langgraph",
+  "human-in-the-loop": "langgraph"
 };
 var SUPPORT_WIDGET_ALIASES = /* @__PURE__ */ new Set([
   "intercom",
@@ -29237,6 +29249,7 @@ ${source}\`\`\`
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${pyGuideHref}`,
       `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Interactive Art. 14 Slack & Teams approval gate cockpit: ${hitlCockpitUrlFor(host, effectiveLocale)}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
       `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
@@ -29281,6 +29294,11 @@ ${source}\`\`\`
   if (runtime !== "node") {
     lines.push(
       "registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook."
+    );
+  }
+  if (framework === "mastra" || framework === "openai-agents" || framework === "langgraph") {
+    lines.push(
+      `Interactive Art. 14 Slack & Teams approval gate cockpit: ${hitlCockpitUrlFor(host, effectiveLocale)}`
     );
   }
   lines.push(

@@ -9,6 +9,7 @@ import {
   CONCIERGE_SIGNUP_URL,
   conciergeSignupUrlFor,
   ecommerceCockpitUrlFor,
+  hitlCockpitUrlFor,
   hmacCockpitUrlFor,
   lovableCockpitUrlFor,
   mcpCockpitUrlFor,
@@ -103,6 +104,12 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   tawk: "html",
   "make.com": "make",
   "github-action": "github-actions",
+  hitl: "langgraph",
+  slack: "langgraph",
+  teams: "langgraph",
+  "microsoft-teams": "langgraph",
+  approval: "langgraph",
+  "human-in-the-loop": "langgraph",
 };
 
 const SUPPORT_WIDGET_ALIASES = new Set([
@@ -816,6 +823,7 @@ export function setupSnippet(
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${pyGuideHref}`,
       `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Interactive Art. 14 Slack & Teams approval gate cockpit: ${hitlCockpitUrlFor(host, effectiveLocale)}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
       `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
@@ -856,6 +864,11 @@ export function setupSnippet(
   if (runtime !== "node") {
     lines.push(
       "registerProcessHooks is off. Flush once with the helper for this runtime. The isolate may stop before the process exit hook.",
+    );
+  }
+  if (framework === "mastra" || framework === "openai-agents" || framework === "langgraph") {
+    lines.push(
+      `Interactive Art. 14 Slack & Teams approval gate cockpit: ${hitlCockpitUrlFor(host, effectiveLocale)}`,
     );
   }
   lines.push(

@@ -272,6 +272,29 @@ export function hmacCockpitUrlFor(host?: string | null, locale = "en"): string {
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language EU AI Act Art. 14 Human-in-the-Loop Pre-Execution Approval Gate (Slack, Teams, LangGraph, OpenAI Agents & Python) cockpit URL prefilled with `?domain=`. */
+export function hitlCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe"
+      : code === "fr"
+        ? "/fr/reglement-ia-article-14-controle-humain-validation-slack-teams"
+        : code === "nl"
+          ? "/nl/ai-verordening-artikel-14-menselijk-toezicht-slack-teams-goedkeuring"
+          : code === "da"
+            ? "/da/eu-ai-act-artikel-14-menneskeligt-tilsyn-slack-teams-godkendelse"
+            : code === "sv"
+              ? "/sv/ai-forordningen-artikel-14-mansklig-tillsyn-slack-teams-godkannande"
+              : code === "es"
+                ? "/es/reglamento-ia-articulo-14-supervision-humana-aprobacion-slack-teams"
+                : code === "it"
+                  ? "/it/regolamento-ia-articolo-14-sorveglianza-umana-approvazione-slack-teams"
+                  : "/langgraph-openai-agents-approval-check";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;

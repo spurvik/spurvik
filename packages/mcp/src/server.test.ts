@@ -614,6 +614,16 @@ describe("createServer", () => {
     );
     expect(receiptDe).toContain("/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac?domain=personio.de");
     expect(receiptDe).toContain("https://console.spurvik.com/signup?plan=team&appUrl=personio.de");
+
+    // H145b: 8-language Art. 14 Slack/Teams/LangGraph HITL cockpit routing & slack/teams aliases
+    const slackDe = textOf(
+      await client.callTool({
+        name: "spurvik_setup_snippet",
+        arguments: { framework: "slack", domain: "personio.de" },
+      }),
+    );
+    expect(slackDe).toContain("Framework: langgraph.");
+    expect(slackDe).toContain("/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe?domain=personio.de");
     await client.close();
   });
 });
