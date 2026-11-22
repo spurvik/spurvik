@@ -809,12 +809,14 @@ const PYTHON_WRAP_SNIPPET = [
 ];
 
 const MCP_PR_GATE_URL = "https://spurvik.com/cursor-claude-mcp-eu-ai-act";
+const HMAC_RECEIPT_GUIDE_URL = "https://spurvik.com/ai-event-logging-hmac-receipts";
 
 const AUDIT_NEXT_STEPS: ReadonlyArray<readonly [string, string]> = [
   ["Free SPURVIK_API_KEY in 10s (€0, 10,000 events/mo, no card)", SIGNUP_URL],
   ["White-label badge + 90d Frankfurt vault + HITL queue (Pro €19/mo)", PRO_SIGNUP_URL],
   ["24h Done-For-You engineer setup (€199 once, incl. 1 yr Pro)", CONCIERGE_SIGNUP_URL],
   ["12-mo Frankfurt retention + Annex IV draft (Team €79/mo)", TEAM_SIGNUP_URL],
+  ["Art. 12 & GDPR zero-prompt-text HMAC receipt cockpit", HMAC_RECEIPT_GUIDE_URL],
   ["GitHub Actions PR-Gate & 10-tool Cursor/Claude MCP", MCP_PR_GATE_URL],
 ];
 
@@ -849,6 +851,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
           freeSignupUrl: SIGNUP_URL,
           teamUpgradeUrl: TEAM_SIGNUP_URL,
           doneForYouUrl: CONCIERGE_SIGNUP_URL,
+          hmacGuideUrl: HMAC_RECEIPT_GUIDE_URL,
           mcpGuideUrl: MCP_PR_GATE_URL,
         },
         null,
@@ -898,6 +901,30 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 
 export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "html", "react"] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
+
+function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac"
+      : code === "fr"
+        ? "/fr/reglement-ia-article-12-journalisation-rgpd-hmac"
+        : code === "nl"
+          ? "/nl/ai-verordening-artikel-12-logging-avg-hmac"
+          : code === "da"
+            ? "/da/eu-ai-act-artikel-12-logning-gdpr-hmac"
+            : code === "sv"
+              ? "/sv/ai-forordningen-artikel-12-loggning-gdpr-hmac"
+              : code === "es"
+                ? "/es/reglamento-ia-articulo-12-registro-rgpd-hmac"
+                : code === "it"
+                  ? "/it/regolamento-ia-articolo-12-registrazione-gdpr-hmac"
+                  : "/ai-event-logging-hmac-receipts";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost && cleanHost !== "your-app.example"
+    ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}`
+    : `https://spurvik.com${slug}`;
+}
 
 function wordpressCockpitUrl(host: string | null | undefined, locale = "en"): string {
   const code = (locale || "en").trim().toLowerCase();
@@ -1267,7 +1294,10 @@ export function buildSetupReport(
         "SPURVIK_BASE_URL=https://console.spurvik.com",
         "SPURVIK_API_KEY=",
       ],
-      links,
+      links: {
+        ...links,
+        cockpitUrl: hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
+      },
     };
   }
 
@@ -1360,7 +1390,10 @@ export function buildSetupReport(
         "# Generate >= 16-byte secret locally (never sent to Spurvik): openssl rand -hex 32",
         "SPURVIK_CONTENT_HASH_SECRET=",
       ],
-      links,
+      links: {
+        ...links,
+        cockpitUrl: hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
+      },
     };
   }
 
@@ -1477,7 +1510,10 @@ export function buildSetupReport(
       "SPURVIK_SIGNING_SECRET=",
       "SPURVIK_CONTENT_HASH_SECRET=",
     ],
-    links,
+    links: {
+      ...links,
+      cockpitUrl: hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
+    },
   };
 }
 

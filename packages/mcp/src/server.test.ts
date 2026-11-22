@@ -592,6 +592,28 @@ describe("createServer", () => {
     );
     expect(ciDe).toContain("/de/cursor-claude-mcp-github-actions-ki-verordnung?domain=personio.de");
     expect(ciDe).toContain("github-action-spurvik-check.yml");
+
+    // H142b: main TypeScript SDK branch includes Team €79/mo + 8-language Art. 12 HMAC cockpit, and explain_receipt accepts domain/locale
+    const tsFr = textOf(
+      await client.callTool({
+        name: "spurvik_setup_snippet",
+        arguments: { framework: "openai", domain: "doctolib.fr" },
+      }),
+    );
+    expect(tsFr).toContain("/fr/reglement-ia-article-12-journalisation-rgpd-hmac?domain=doctolib.fr");
+    expect(tsFr).toContain("Team (€79/mo): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: https://console.spurvik.com/signup?plan=team&appUrl=doctolib.fr");
+
+    const receiptDe = textOf(
+      await client.callTool({
+        name: "spurvik_explain_receipt",
+        arguments: {
+          receipt: JSON.stringify({ kind: "provenance_record", signatureAlg: "HMAC-SHA-256", inputHash: "abc" }),
+          domain: "personio.de",
+        },
+      }),
+    );
+    expect(receiptDe).toContain("/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac?domain=personio.de");
+    expect(receiptDe).toContain("https://console.spurvik.com/signup?plan=team&appUrl=personio.de");
     await client.close();
   });
 });

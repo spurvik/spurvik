@@ -62,7 +62,7 @@ import {
   classifyNextSteps,
   FIND_NEXT_STEPS,
   MARKING_NEXT_STEPS,
-  RECEIPT_NEXT_STEPS,
+  receiptNextSteps,
   setupNextSteps,
 } from "./next-steps.js";
 import { generateArt50Badge } from "./tools/art50-badge.js";
@@ -185,15 +185,17 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       inputSchema: {
         receipt: z.string().min(1).describe(RECEIPT_FIELD),
         signingSecret: z.string().optional().describe(SIGNING_INPUT_HELP),
+        domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: z.string().max(16).optional().describe(SETUP_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ receipt, signingSecret }) => {
+    async ({ receipt, signingSecret, domain, locale }) => {
       let secret: string | undefined;
       try {
         secret = resolveSigningSecret(signingSecret);
-        // The links are static, so they cannot carry a secret; they are added on success only.
-        return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
+        // The links use validated public host/locale only; they are added on success only.
+        return text(`${await explainReceipt(receipt, secret)}${receiptNextSteps(domain, locale)}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : "The receipt could not be explained.";
         throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));

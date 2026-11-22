@@ -699,6 +699,9 @@ describe("spurvik audit", () => {
       const team = lines.indexOf(
         "  12-mo Frankfurt retention + Annex IV draft (Team €79/mo): https://console.spurvik.com/signup?plan=team",
       );
+      const hmac = lines.indexOf(
+        "  Art. 12 & GDPR zero-prompt-text HMAC receipt cockpit: https://spurvik.com/ai-event-logging-hmac-receipts",
+      );
       const mcp = lines.indexOf(
         "  GitHub Actions PR-Gate & 10-tool Cursor/Claude MCP: https://spurvik.com/cursor-claude-mcp-eu-ai-act",
       );
@@ -706,7 +709,8 @@ describe("spurvik audit", () => {
       expect(pro).toBe(free + 1);
       expect(dfy).toBe(free + 2);
       expect(team).toBe(free + 3);
-      expect(mcp).toBe(free + 4);
+      expect(hmac).toBe(free + 4);
+      expect(mcp).toBe(free + 5);
       expect(h.out()).not.toContain("€49");
       expect(h.out().match(/legal advice/gi)).toBeNull();
       if (fixture !== dir) rmSync(fixture, { recursive: true, force: true });
@@ -729,6 +733,7 @@ describe("spurvik audit", () => {
     expect(body.freeSignupUrl).toBe("https://console.spurvik.com/signup");
     expect(body.teamUpgradeUrl).toBe("https://console.spurvik.com/signup?plan=team");
     expect(body.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge");
+    expect(body.hmacGuideUrl).toBe("https://spurvik.com/ai-event-logging-hmac-receipts");
     expect(body.mcpGuideUrl).toBe("https://spurvik.com/cursor-claude-mcp-eu-ai-act");
     expect(Object.keys(body)).toEqual([
       "directory",
@@ -741,6 +746,7 @@ describe("spurvik audit", () => {
       "freeSignupUrl",
       "teamUpgradeUrl",
       "doneForYouUrl",
+      "hmacGuideUrl",
       "mcpGuideUrl",
     ]);
 
@@ -1346,6 +1352,14 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(elemJson.target).toBe("wordpress");
     expect(elemJson.links.cockpitUrl).toBe(
       "https://spurvik.com/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50?domain=webbureau-utrecht.nl",
+    );
+
+    // H142b: SDK & Python setup targets route to 8-language Art. 12 & GDPR HMAC cockpits
+    const tsSetup = harness();
+    expect(await runCli(["setup", "openai", "--domain", "personio.de", "--json"], tsSetup.deps)).toBe(EXIT_OK);
+    const tsJson = JSON.parse(tsSetup.out());
+    expect(tsJson.links.cockpitUrl).toBe(
+      "https://spurvik.com/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac?domain=personio.de",
     );
   });
 });

@@ -249,6 +249,29 @@ export function wordpressCockpitUrlFor(host?: string | null, locale = "en"): str
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language EU AI Act Art. 12 & GDPR Art. 5(1)(c) Zero-Prompt-Text HMAC-SHA256 Receipt + Annex IV cockpit URL prefilled with `?domain=`. */
+export function hmacCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac"
+      : code === "fr"
+        ? "/fr/reglement-ia-article-12-journalisation-rgpd-hmac"
+        : code === "nl"
+          ? "/nl/ai-verordening-artikel-12-logging-avg-hmac"
+          : code === "da"
+            ? "/da/eu-ai-act-artikel-12-logning-gdpr-hmac"
+            : code === "sv"
+              ? "/sv/ai-forordningen-artikel-12-loggning-gdpr-hmac"
+              : code === "es"
+                ? "/es/reglamento-ia-articulo-12-registro-rgpd-hmac"
+                : code === "it"
+                  ? "/it/regolamento-ia-articolo-12-registrazione-gdpr-hmac"
+                  : "/ai-event-logging-hmac-receipts";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;

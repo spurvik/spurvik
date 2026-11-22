@@ -2,6 +2,7 @@ import {
   C2PA_PAGE_URL,
   CONCIERGE_SIGNUP_URL,
   conciergeSignupUrlFor,
+  hmacCockpitUrlFor,
   LABELS_URL,
   PRO_SIGNUP_URL,
   proSignupUrlFor,
@@ -79,11 +80,29 @@ export const FIND_NEXT_STEPS = block(
   CONCIERGE_STEP,
 );
 
-export const RECEIPT_NEXT_STEPS = block(
-  `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${SIGNUP_URL}`,
-  `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${PRO_SIGNUP_URL}`,
-  TEAM_STEP,
-);
+export function receiptNextSteps(rawDomain?: string, rawLocale?: string): string {
+  const host = publicHostname(rawDomain);
+  const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
+  const explicitLoc =
+    primaryLocale && EU_LANGUAGES.some((l) => l.code === primaryLocale) && primaryLocale !== "en" ? primaryLocale : null;
+  const effectiveLocale = explicitLoc ?? (host ? inferLocaleFromDomain(host) : "en");
+  const needLocParam = effectiveLocale !== "en" && (explicitLoc !== null || (host !== null && inferLocaleFromDomain(host) === "en"));
+  const freeParams: string[] = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (needLocParam) freeParams.push(`locale=${effectiveLocale}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const locSuffix = needLocParam ? `&locale=${effectiveLocale}` : "";
+  const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
+  return block(
+    `- Interactive Art. 12 & GDPR Art. 5(1)(c) HMAC-SHA256 receipt cockpit (0 bytes of prompt text): ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+    `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${freeUrl}`,
+    `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${proUrl}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
+  );
+}
+
+export const RECEIPT_NEXT_STEPS = receiptNextSteps();
 
 export const MARKING_NEXT_STEPS = block(
   `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,

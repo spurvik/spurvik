@@ -22145,6 +22145,12 @@ function wordpressCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function hmacCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/ki-verordnung-artikel-12-protokollierung-dsgvo-hmac" : code === "fr" ? "/fr/reglement-ia-article-12-journalisation-rgpd-hmac" : code === "nl" ? "/nl/ai-verordening-artikel-12-logging-avg-hmac" : code === "da" ? "/da/eu-ai-act-artikel-12-logning-gdpr-hmac" : code === "sv" ? "/sv/ai-forordningen-artikel-12-loggning-gdpr-hmac" : code === "es" ? "/es/reglamento-ia-articulo-12-registro-rgpd-hmac" : code === "it" ? "/it/regolamento-ia-articolo-12-registrazione-gdpr-hmac" : "/ai-event-logging-hmac-receipts";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -22655,11 +22661,27 @@ var FIND_NEXT_STEPS = block(
   TEAM_STEP,
   CONCIERGE_STEP
 );
-var RECEIPT_NEXT_STEPS = block(
-  `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${SIGNUP_URL}`,
-  `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${PRO_SIGNUP_URL}`,
-  TEAM_STEP
-);
+function receiptNextSteps(rawDomain, rawLocale) {
+  const host = publicHostname(rawDomain);
+  const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
+  const explicitLoc = primaryLocale && EU_LANGUAGES.some((l) => l.code === primaryLocale) && primaryLocale !== "en" ? primaryLocale : null;
+  const effectiveLocale = explicitLoc ?? (host ? inferLocaleFromDomain(host) : "en");
+  const needLocParam = effectiveLocale !== "en" && (explicitLoc !== null || host !== null && inferLocaleFromDomain(host) === "en");
+  const freeParams = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (needLocParam) freeParams.push(`locale=${effectiveLocale}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const locSuffix = needLocParam ? `&locale=${effectiveLocale}` : "";
+  const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
+  return block(
+    `- Interactive Art. 12 & GDPR Art. 5(1)(c) HMAC-SHA256 receipt cockpit (0 bytes of prompt text): ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+    `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${freeUrl}`,
+    `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${proUrl}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`
+  );
+}
+var RECEIPT_NEXT_STEPS = receiptNextSteps();
 var MARKING_NEXT_STEPS = block(
   `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
   `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`,
@@ -29214,6 +29236,7 @@ ${source}\`\`\`
       `Framework: ${framework}. Runtime: python (Python 3.10+, zero pip dependencies).`,
       `Download the 1-file MIT stdlib helper (\`curl -fsSLO ${PYTHON_GUARD_URL}\`) and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 \`inputHash\` and \`outputHash\` receipts (chained into \`recordHash\` / \`prevLogHash\` in EU Frankfurt \`fra1\`) with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Python & FastAPI guide: ${pyGuideHref}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
       `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
@@ -29261,8 +29284,10 @@ ${source}\`\`\`
     );
   }
   lines.push(
+    `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
     `Shareable readiness report for your domain: ${reportLink}`,
     `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+    `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
     `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
     PRICE_NOTE
   );
@@ -29955,15 +29980,17 @@ function createServer(workspaceRoot, options = {}) {
       description: RECEIPT_DESCRIPTION,
       inputSchema: {
         receipt: external_exports.string().min(1).describe(RECEIPT_FIELD),
-        signingSecret: external_exports.string().optional().describe(SIGNING_INPUT_HELP)
+        signingSecret: external_exports.string().optional().describe(SIGNING_INPUT_HELP),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ receipt, signingSecret }) => {
+    async ({ receipt, signingSecret, domain, locale }) => {
       let secret;
       try {
         secret = resolveSigningSecret(signingSecret);
-        return text(`${await explainReceipt(receipt, secret)}${RECEIPT_NEXT_STEPS}`);
+        return text(`${await explainReceipt(receipt, secret)}${receiptNextSteps(domain, locale)}`);
       } catch (error2) {
         const message = error2 instanceof Error ? error2.message : "The receipt could not be explained.";
         throw new Error(scrubSecrets(message, knownSigningSecrets(secret ?? signingSecret)));
