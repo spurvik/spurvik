@@ -204,6 +204,23 @@ describe("spurvik scan", () => {
     expect(await runCli(["scan", "acme.co.uk"], dualUse.deps)).toBe(EXIT_OK);
     expect(dualUse.out()).toContain("human-only chat needs none");
     expect(dualUse.out()).toContain("https://console.spurvik.com/c2pa?domain=acme.co.uk&url=https%3A%2F%2Facme.co.uk%2Fhero.webp");
+
+    const shopifyGtm = harness(
+      (async () =>
+        jsonResponse({
+          ok: true,
+          scan: {
+            ...FOLK_GAP.scan,
+            domain: "charlie-paris.com",
+            scannedUrl: "https://charlie-paris.com/",
+            detectedPlatforms: ["Shopify", "Google Tag Manager"],
+          },
+        })) as unknown as typeof fetch,
+    );
+    expect(await runCli(["scan", "charlie-paris.com"], shopifyGtm.deps)).toBe(EXIT_OK);
+    expect(shopifyGtm.out()).toContain("Shopify, Google Tag Manager");
+    expect(shopifyGtm.out()).toContain("https://spurvik.com/r/spurvik-shopify-art50.liquid");
+    expect(shopifyGtm.out()).toContain("https://spurvik.com/r/spurvik-gtm-art50-container.json");
   });
 
   it("network errors and timeouts exit 2 with a short message and no stack", async () => {

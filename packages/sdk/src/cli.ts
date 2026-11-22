@@ -360,6 +360,7 @@ export interface ScanReport {
   reachable: boolean;
   httpStatus: number | null;
   detectedWidgets: string[];
+  detectedPlatforms?: string[];
   /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
   confirmedAiSurface: boolean | null;
   heroImageUrl: string | null;
@@ -414,6 +415,7 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
   const art50Card = isRecord(cards.art50_1) ? cards.art50_1 : {};
   const disclosure = markers.art50_1_disclosure === true || art50Card.status === "detected";
   const widgets = pageRead ? cleanList(scan.detectedWidgets, scan.detectedSdks) : [];
+  const platforms = pageRead ? cleanList(scan.detectedPlatforms) : [];
   const confirmedAiSurface = pageRead
     ? (Array.isArray(scan.detectedSdks) && cleanList(scan.detectedSdks).length > 0) ||
       widgets.some((w) => CLI_CONFIRMED_AI_RE.test(w))
@@ -433,6 +435,7 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
     reachable: scan.reachable,
     httpStatus,
     detectedWidgets: widgets,
+    ...(platforms.length > 0 ? { detectedPlatforms: platforms } : {}),
     confirmedAiSurface,
     heroImageUrl,
     covered: pageRead ? disclosure : null,
@@ -485,6 +488,19 @@ const STATUS_LABEL: Record<ScanStatus, string> = {
   unreachable: "NOT SCANNED — page could not be read",
 };
 
+function cliPlatformInstallerSteps(platforms: readonly string[] | undefined): Array<[string, string]> {
+  if (!platforms || platforms.length === 0) return [];
+  const out: Array<[string, string]> = [];
+  for (const p of platforms) {
+    if (p === "Shopify") out.push(["1-click Shopify (.liquid)", "https://spurvik.com/r/spurvik-shopify-art50.liquid"]);
+    else if (p === "WordPress") out.push(["1-click WordPress (.zip)", "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"]);
+    else if (p === "Google Tag Manager") out.push(["1-click Google Tag Manager (.json)", "https://spurvik.com/r/spurvik-gtm-art50-container.json"]);
+    else if (p === "Framer") out.push(["1-click Framer (.tsx)", "https://spurvik.com/r/spurvik-framer-badge.tsx"]);
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
 function printScan(report: ScanReport, io: Io): void {
   const { c, out } = io;
   const row = (label: string, value: string) => out(`  ${c.dim(label.padEnd(18))}${value}`);
@@ -507,6 +523,9 @@ function printScan(report: ScanReport, io: Io): void {
     report.httpStatus !== null ? `${report.httpStatus} (page not read)` : report.reachable ? "reachable, page read" : "unreachable",
   );
   row("AI widgets", report.detectedWidgets.length ? report.detectedWidgets.join(", ") : "none detected");
+  if (report.detectedPlatforms?.length) {
+    row("Platform stack", report.detectedPlatforms.join(", "));
+  }
   row("Art. 50(1) notice", statusText);
   out();
   if (report.status !== "covered") {
@@ -519,6 +538,9 @@ function printScan(report: ScanReport, io: Io): void {
     out(`  › ${label}`);
     out(`    ${c.cyan(url)}`);
   };
+  for (const [label, url] of cliPlatformInstallerSteps(report.detectedPlatforms)) {
+    step(label, url);
+  }
   step("Client / DPO PDF brief", report.links.reportUrl);
   step("2 Dec 2026 C2PA hero-image check", report.links.c2paCheckUrl);
   step("White-label Pro (€19/mo)", report.links.proUpgradeUrl);
@@ -571,7 +593,8 @@ function printBatchScan(batch: BatchScanReport, io: Io): void {
             ? c.yellow("UNREACHABLE")
             : c.cyan("NO WIDGET");
     const widgets = r.detectedWidgets.length ? r.detectedWidgets.join(", ") : "none";
-    out(`  ${tag.padEnd(14)} ${r.domain.padEnd(26)} ${c.dim(`widgets: ${widgets}`)} · ${c.cyan(r.links.reportUrl)}`);
+    const stackSuffix = r.detectedPlatforms?.length ? ` · stack: ${r.detectedPlatforms.join(", ")}` : "";
+    out(`  ${tag.padEnd(14)} ${r.domain.padEnd(26)} ${c.dim(`widgets: ${widgets}${stackSuffix}`)} · ${c.cyan(r.links.reportUrl)}`);
   }
   out();
   out(
