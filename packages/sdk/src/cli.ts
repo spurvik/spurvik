@@ -896,12 +896,36 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
-export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "html", "react"] as const;
+export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "html", "react"] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
+
+function wordpressCockpitUrl(host: string | null | undefined, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50"
+      : code === "fr"
+        ? "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50"
+          : code === "da"
+            ? "/da/wordpress-elementor-webflow-eu-ai-act-plugin-artikel-50"
+            : code === "sv"
+              ? "/sv/wordpress-elementor-webflow-ai-forordningen-plugin-artikel-50"
+              : code === "es"
+                ? "/es/wordpress-elementor-webflow-plugin-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/wordpress-elementor-webflow-plugin-regolamento-ia-articolo-50"
+                  : "/wordpress-shopify-webflow-eu-ai-act-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost && cleanHost !== "your-app.example"
+    ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}`
+    : `https://spurvik.com${slug}`;
+}
 
 function cmdBadge(args: ParsedArgs, io: Io): number {
   if (args.positionals.length > 1) {
-    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>] [--cms shopify|wordpress|webflow|html|react]");
+    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>] [--cms shopify|wordpress|webflow|framer|html|react]");
     return EXIT_ERROR;
   }
   if (args.lang !== undefined && !BADGE_LANGS.includes(args.lang as BadgeLang)) {
@@ -935,9 +959,16 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  ${c.bold("WordPress / WooCommerce")} ${c.dim("(wp_footer hook or 1-click .zip plugin)")}`);
     out(`  add_action('wp_footer', function () { echo '${tag}'; });`);
     out(`  ${c.dim("Plugin (.zip):")} https://spurvik.com/r/spurvik-eu-ai-act-wp.zip`);
+    out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
   } else if (cms === "webflow") {
     out(`  ${c.bold("Webflow")} ${c.dim("(Site Settings -> Custom Code -> Footer Code)")}`);
     out(`  ${tag}`);
+    out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
+  } else if (cms === "framer") {
+    out(`  ${c.bold("Framer")} ${c.dim("(Code Component TSX or Site Settings -> Custom Code)")}`);
+    out(`  ${tag}`);
+    out(`  ${c.dim("Framer TSX:")} https://spurvik.com/r/spurvik-framer-badge.tsx`);
+    out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
   } else if (cms === "html") {
     out(`  ${c.bold("Static HTML")} ${c.dim("(paste before </body>)")}`);
     out(`  ${tag}`);
@@ -981,6 +1012,7 @@ export const SETUP_TARGETS = [
   "shopify",
   "wordpress",
   "webflow",
+  "framer",
   "html",
   "n8n",
   "make",
@@ -991,7 +1023,7 @@ export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "pytho
 export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
-const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "html"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "framer", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make"];
 
 const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
@@ -1015,6 +1047,9 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   django: "python",
   flask: "python",
   woocommerce: "wordpress",
+  elementor: "wordpress",
+  divi: "wordpress",
+  wp: "wordpress",
   prestashop: "html",
   shopware: "html",
   centra: "html",
@@ -1060,6 +1095,7 @@ export interface SetupReport {
   envTemplate: string[];
   links: {
     reportUrl?: string;
+    cockpitUrl?: string;
     freeSignupUrl: string;
     proUpgradeUrl: string;
     teamUpgradeUrl: string;
@@ -1266,7 +1302,13 @@ export function buildSetupReport(
           ? "curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid"
           : target === "wordpress"
             ? "curl -fsSLO https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"
-            : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
+            : target === "framer"
+              ? "curl -fsSLO https://spurvik.com/r/spurvik-framer-badge.tsx"
+              : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
+    const cmsCockpit =
+      target === "wordpress" || target === "webflow" || target === "framer"
+        ? wordpressCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
+        : undefined;
     return {
       target,
       runtime: "browser",
@@ -1275,7 +1317,10 @@ export function buildSetupReport(
       installCommand,
       snippet,
       envTemplate: [],
-      links,
+      links: {
+        ...links,
+        ...(cmsCockpit ? { cockpitUrl: cmsCockpit } : {}),
+      },
     };
   }
 

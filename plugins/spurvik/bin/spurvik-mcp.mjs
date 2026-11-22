@@ -22139,6 +22139,12 @@ function mcpCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function wordpressCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50" : code === "fr" ? "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50" : code === "nl" ? "/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50" : code === "da" ? "/da/wordpress-elementor-webflow-eu-ai-act-plugin-artikel-50" : code === "sv" ? "/sv/wordpress-elementor-webflow-ai-forordningen-plugin-artikel-50" : code === "es" ? "/es/wordpress-elementor-webflow-plugin-reglamento-ia-articulo-50" : code === "it" ? "/it/wordpress-elementor-webflow-plugin-regolamento-ia-articolo-50" : "/wordpress-shopify-webflow-eu-ai-act-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -28481,7 +28487,7 @@ var sdkExportNames = {
 
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
-var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "html"];
+var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "html"];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
 var IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
 var FRAMEWORKS = [
@@ -28519,6 +28525,9 @@ var SETUP_FRAMEWORK_ALIASES = {
   django: "python",
   flask: "python",
   woocommerce: "wordpress",
+  elementor: "wordpress",
+  divi: "wordpress",
+  wp: "wordpress",
   prestashop: "html",
   shopware: "html",
   centra: "html",
@@ -29182,12 +29191,14 @@ ${source}\`\`\`
 `;
     }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
-    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? "Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes `[spurvik_status_shield]`), or add this `wp_footer` hook in `functions.php`. Interactive cockpit: https://spurvik.com/wordpress-shopify-webflow-eu-ai-act-badge" : "Paste one `<script>` tag before `</body>` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: `footer.tpl`; Shopware 6: `base.html.twig`). Interactive Label Studio: https://console.spurvik.com/labels";
+    const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge (data-attribution="false") and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
       `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
       PRICE_NOTE
     ];

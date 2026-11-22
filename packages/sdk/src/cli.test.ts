@@ -849,7 +849,7 @@ describe("spurvik badge", () => {
 
     const badCms = harness();
     expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
-    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, html, react");
+    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, html, react");
 
     const wrongCmd = harness();
     expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);
@@ -1322,5 +1322,30 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       const errH = harness();
       expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
     }
+  });
+
+  it("routes wordpress, elementor, webflow, and framer CLI badge & setup targets to 8-language cockpits (H140b)", async () => {
+    const wpBadge = harness();
+    expect(await runCli(["badge", "agentur-berlin.de", "--cms", "wordpress"], wpBadge.deps)).toBe(EXIT_OK);
+    expect(wpBadge.out()).toContain(
+      "https://spurvik.com/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50?domain=agentur-berlin.de",
+    );
+
+    const framerBadge = harness();
+    expect(await runCli(["badge", "studio-paris.fr", "--cms", "framer"], framerBadge.deps)).toBe(EXIT_OK);
+    expect(framerBadge.out()).toContain("https://spurvik.com/r/spurvik-framer-badge.tsx");
+    expect(framerBadge.out()).toContain(
+      "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=studio-paris.fr",
+    );
+
+    const elemSetup = harness();
+    expect(await runCli(["setup", "elementor", "--domain", "webbureau-utrecht.nl", "--json"], elemSetup.deps)).toBe(
+      EXIT_OK,
+    );
+    const elemJson = JSON.parse(elemSetup.out());
+    expect(elemJson.target).toBe("wordpress");
+    expect(elemJson.links.cockpitUrl).toBe(
+      "https://spurvik.com/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50?domain=webbureau-utrecht.nl",
+    );
   });
 });

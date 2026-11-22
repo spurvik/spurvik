@@ -444,6 +444,22 @@ describe("createServer", () => {
     );
     expect(pyDeOut).toContain("/de/python-fastapi-langchain-ki-verordnung-logging?domain=personio.de");
     expect(pyDeOut).toContain("plan=team&appUrl=personio.de");
+
+    const wpDeOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "elementor", domain: "agentur-berlin.de" } }),
+    );
+    expect(wpDeOut).toContain(
+      "/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50?domain=agentur-berlin.de",
+    );
+    expect(wpDeOut).toContain("plan=team&appUrl=agentur-berlin.de");
+
+    const framerFrOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "framer", domain: "studio-paris.fr" } }),
+    );
+    expect(framerFrOut).toContain("spurvik-framer-badge.tsx");
+    expect(framerFrOut).toContain(
+      "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=studio-paris.fr",
+    );
     await client.close();
   });
 

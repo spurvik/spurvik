@@ -226,6 +226,29 @@ export function mcpCockpitUrlFor(host?: string | null, locale = "en"): string {
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language WordPress (v1.1.0 .zip + [spurvik_status_shield]), Elementor, Webflow & Framer cockpit URL prefilled with `?domain=`. */
+export function wordpressCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50"
+      : code === "fr"
+        ? "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50"
+          : code === "da"
+            ? "/da/wordpress-elementor-webflow-eu-ai-act-plugin-artikel-50"
+            : code === "sv"
+              ? "/sv/wordpress-elementor-webflow-ai-forordningen-plugin-artikel-50"
+              : code === "es"
+                ? "/es/wordpress-elementor-webflow-plugin-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/wordpress-elementor-webflow-plugin-regolamento-ia-articolo-50"
+                  : "/wordpress-shopify-webflow-eu-ai-act-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
