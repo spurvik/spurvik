@@ -291,15 +291,28 @@ describe("batchScanDomains", () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const u = String(input);
       if (u.includes("charlie-paris.com")) {
-        return jsonResponse({ scan: { ...pageScan({ detectedWidgets: ["Gorgias"] }), domain: "charlie-paris.com", htmlLocale: "fr" } });
+        return jsonResponse({
+          scan: {
+            ...pageScan({ detectedWidgets: ["Gorgias"] }),
+            domain: "charlie-paris.com",
+            htmlLocale: "fr",
+            detectedPlatforms: ["Shopify", "Google Tag Manager"],
+          },
+        });
       }
       return jsonResponse({ scan: { ...pageScan({ detectedWidgets: ["Intercom"] }), domain: "petgood.com", htmlLocale: "sv" } });
     });
     const result = await expectOk(batchScanDomains(["charlie-paris.com", "petgood.com"], { fetch: fetchMock as unknown as typeof fetch }));
     expect(result.results[0]?.suggestedLocale).toBe("fr");
     expect(result.results[0]?.badgeSnippet).toContain('data-locale="fr"');
+    expect(result.results[0]?.detectedPlatforms).toEqual(["Shopify", "Google Tag Manager"]);
+    expect(result.results[0]?.platformInstallerUrls).toEqual({
+      shopifyLiquid: "https://spurvik.com/r/spurvik-shopify-art50.liquid",
+      gtmContainerJson: "https://spurvik.com/r/spurvik-gtm-art50-container.json",
+    });
     expect(result.results[1]?.suggestedLocale).toBe("sv");
     expect(result.results[1]?.badgeSnippet).toContain('data-locale="sv"');
+    expect(result.results[1]?.platformInstallerUrls).toBeUndefined();
   });
 
   it("never logs the domains or the responses", async () => {

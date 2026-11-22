@@ -393,6 +393,42 @@ describe("scanLiveUrl", () => {
       vi.fn(async () =>
         jsonResponse({
           ok: true,
+          scan: {
+            ...UPSTREAM_SCAN,
+            domain: "charlie-paris.com",
+            scannedUrl: "https://charlie-paris.com/",
+            detectedWidgets: ["Gorgias"],
+            detectedSdks: [],
+            detectedPlatforms: ["Shopify", "Google Tag Manager", "Webflow", "WordPress", "Framer", "Next.js"],
+            htmlLocale: "fr",
+          },
+        }),
+      ),
+    );
+    const withStack = await expectOk(scanLiveUrl("charlie-paris.com"));
+    expect(withStack.detectedPlatforms).toEqual([
+      "Shopify",
+      "Google Tag Manager",
+      "Webflow",
+      "WordPress",
+      "Framer",
+      "Next.js",
+    ]);
+    expect(withStack.platformInstallerUrls).toEqual({
+      shopifyLiquid: "https://spurvik.com/r/spurvik-shopify-art50.liquid",
+      gtmContainerJson: "https://spurvik.com/r/spurvik-gtm-art50-container.json",
+      webflowGuide:
+        "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=charlie-paris.com",
+      wordpressPluginZip: "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip",
+      framerComponentTsx: "https://spurvik.com/r/spurvik-framer-badge.tsx",
+      nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
           scan: { ...UPSTREAM_SCAN, heroImageUrl: "https://127.0.0.1/secret.png" },
         }),
       ),

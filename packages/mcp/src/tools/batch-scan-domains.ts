@@ -49,6 +49,7 @@ export interface BatchDomainResult {
   detectedWidgets: string[];
   detectedSdks: string[];
   detectedPlatforms?: string[];
+  platformInstallerUrls?: Record<string, string>;
   art50NoticeDetected: boolean | null;
   /** The page was read, an AI chat widget or AI SDK was found, and no Art. 50(1) notice was detected. */
   gap: boolean;
@@ -120,6 +121,9 @@ function toDomainResult(result: ScanLiveUrlResult): BatchDomainResult {
     detectedWidgets: result.detectedWidgets,
     detectedSdks: result.detectedSdks,
     ...(result.detectedPlatforms?.length ? { detectedPlatforms: result.detectedPlatforms } : {}),
+    ...(result.platformInstallerUrls && Object.keys(result.platformInstallerUrls).length > 0
+      ? { platformInstallerUrls: result.platformInstallerUrls }
+      : {}),
     art50NoticeDetected: result.art50NoticeDetected,
     gap: isGap(result),
     suggestedLocale: result.suggestedLocale,

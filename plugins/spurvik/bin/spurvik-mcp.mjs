@@ -22066,9 +22066,24 @@ var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 var LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
 var VENDOR_QUESTIONNAIRE_URL = "https://spurvik.com/eu-ai-act-vendor-security-questionnaire";
+var SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.liquid";
 var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+var GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-container.json";
 var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
+function platformInstallerUrlsFor(detectedPlatforms, host, locale = "en") {
+  const out = {};
+  if (!detectedPlatforms || detectedPlatforms.length === 0) return out;
+  for (const platform of detectedPlatforms) {
+    if (platform === "Shopify") out.shopifyLiquid = SHOPIFY_LIQUID_URL;
+    else if (platform === "WordPress") out.wordpressPluginZip = WORDPRESS_PLUGIN_URL;
+    else if (platform === "Google Tag Manager") out.gtmContainerJson = GTM_CONTAINER_URL;
+    else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
+    else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Next.js") out.nextjsShadcnRegistry = SHADCN_REGISTRY_URL;
+  }
+  return out;
+}
 var PRO_PRICE = "€19/mo";
 var TEAM_PRICE = "€79/mo";
 var CONCIERGE_PRICE = "€199 once";
@@ -22538,6 +22553,7 @@ function fromUpstream(target, scan) {
   const detectedWidgets = pageRead ? stringList(scan.detectedWidgets) : [];
   const detectedSdks = pageRead ? stringList(scan.detectedSdks) : [];
   const detectedPlatforms = pageRead ? stringList(scan.detectedPlatforms) : [];
+  const platformInstallerUrls = platformInstallerUrlsFor(detectedPlatforms, target.host, locale);
   const confirmedAiSurface = pageRead ? detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_RE.test(w)) : null;
   const dualUseOnly = pageRead && detectedWidgets.length > 0 && !confirmedAiSurface;
   const dualUseClause = dualUseOnly ? " Dual-use support widget detected: Art. 50(1) notice is required if AI replies or routing are enabled (human-only live chat needs none)." : "";
@@ -22551,6 +22567,7 @@ function fromUpstream(target, scan) {
     detectedWidgets,
     detectedSdks,
     ...detectedPlatforms.length > 0 ? { detectedPlatforms } : {},
+    ...Object.keys(platformInstallerUrls).length > 0 ? { platformInstallerUrls } : {},
     detectedModel: pageRead ? model : null,
     confirmedAiSurface,
     heroImageUrl,
@@ -22911,6 +22928,7 @@ function toDomainResult(result) {
     detectedWidgets: result.detectedWidgets,
     detectedSdks: result.detectedSdks,
     ...result.detectedPlatforms?.length ? { detectedPlatforms: result.detectedPlatforms } : {},
+    ...result.platformInstallerUrls && Object.keys(result.platformInstallerUrls).length > 0 ? { platformInstallerUrls: result.platformInstallerUrls } : {},
     art50NoticeDetected: result.art50NoticeDetected,
     gap: isGap(result),
     suggestedLocale: result.suggestedLocale,

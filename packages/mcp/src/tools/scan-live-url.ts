@@ -3,6 +3,7 @@ import {
   conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
   ecommerceCockpitUrlFor,
+  platformInstallerUrlsFor,
   PORTFOLIO_URL,
   PRICE_NOTE,
   proSignupUrlFor,
@@ -99,6 +100,8 @@ export interface ScanLiveUrlResult extends ScanLiveUrlLinks {
   detectedSdks: string[];
   /** Detected storefront, CMS, tag manager, or frontend framework (`Shopify`, `WordPress`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`). */
   detectedPlatforms?: string[];
+  /** 1-click CMS / storefront / Google Tag Manager installer download URLs when `detectedPlatforms` is non-empty. */
+  platformInstallerUrls?: Record<string, string>;
   detectedModel: string | null;
   /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
   confirmedAiSurface: boolean | null;
@@ -407,6 +410,7 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
   const detectedWidgets = pageRead ? stringList(scan.detectedWidgets) : [];
   const detectedSdks = pageRead ? stringList(scan.detectedSdks) : [];
   const detectedPlatforms = pageRead ? stringList(scan.detectedPlatforms) : [];
+  const platformInstallerUrls = platformInstallerUrlsFor(detectedPlatforms, target.host, locale);
   const confirmedAiSurface = pageRead
     ? detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_RE.test(w))
     : null;
@@ -424,6 +428,7 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
     detectedWidgets,
     detectedSdks,
     ...(detectedPlatforms.length > 0 ? { detectedPlatforms } : {}),
+    ...(Object.keys(platformInstallerUrls).length > 0 ? { platformInstallerUrls } : {}),
     detectedModel: pageRead ? model : null,
     confirmedAiSurface,
     heroImageUrl,

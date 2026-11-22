@@ -17,6 +17,11 @@ export const N8N_NODES_SPURVIK_USER_AGENT = `n8n-nodes-spurvik/${N8N_NODES_SPURV
 
 export const SPURVIK_CONSOLE_ORIGIN = "https://console.spurvik.com";
 export const SPURVIK_BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
+export const SPURVIK_SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.liquid";
+export const SPURVIK_WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+export const SPURVIK_GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-container.json";
+export const SPURVIK_FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
+export const SPURVIK_SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
 export const SPURVIK_AGENCY_CALCULATOR_URL = "https://spurvik.com/eu-ai-act-for-agencies";
 export const SPURVIK_PORTFOLIO_URL = `${SPURVIK_CONSOLE_ORIGIN}/portfolio`;
 export const SPURVIK_STATUS_SHIELD_URL = `${SPURVIK_CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
@@ -88,6 +93,10 @@ export interface SpurvikScanDomainOutput {
   reachable: boolean;
   detectedWidgets: string[];
   detectedSdks: string[];
+  /** Detected storefront, CMS, tag manager, or framework (`Shopify`, `WordPress`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`), present when non-empty. */
+  detectedPlatforms?: string[];
+  /** 1-click zero-code CMS / storefront / Google Tag Manager installer download URLs, present when `detectedPlatforms` is non-empty. */
+  platformInstallerUrls?: Record<string, string>;
   art50NoticeDetected: boolean;
   badgeSnippet: string;
   reportUrl: string;
@@ -262,18 +271,64 @@ function readUpstreamScan(body: unknown): Record<string, unknown> | null {
 type ScanFacts = Pick<
   SpurvikScanDomainOutput,
   "reachable" | "detectedWidgets" | "detectedSdks" | "art50NoticeDetected" | "scanStatus" | "reason" | "markers"
-> & { htmlLocale?: unknown };
+> & { detectedPlatforms?: string[]; htmlLocale?: unknown };
+
+function wordpressCockpitUrlFor(host: string, locale: string): string {
+  const slug =
+    locale === "de"
+      ? "/de/wordpress-elementor-webflow-ki-verordnung-plugin-artikel-50"
+      : locale === "fr"
+        ? "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50"
+        : locale === "nl"
+          ? "/nl/wordpress-elementor-webflow-ai-verordening-plugin-artikel-50"
+          : locale === "da"
+            ? "/da/wordpress-elementor-webflow-eu-ai-act-plugin-artikel-50"
+            : locale === "sv"
+              ? "/sv/wordpress-elementor-webflow-ai-forordningen-plugin-artikel-50"
+              : locale === "es"
+                ? "/es/wordpress-elementor-webflow-plugin-reglamento-ia-articulo-50"
+                : locale === "it"
+                  ? "/it/wordpress-elementor-webflow-plugin-regolamento-ia-articolo-50"
+                  : "/wordpress-shopify-webflow-eu-ai-act-badge";
+  return `https://spurvik.com${slug}?domain=${encodeURIComponent(host)}`;
+}
+
+function platformInstallerUrlsFor(
+  detectedPlatforms: readonly string[] | undefined,
+  host: string,
+  locale: string,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!detectedPlatforms || detectedPlatforms.length === 0) return out;
+  for (const platform of detectedPlatforms) {
+    if (platform === "Shopify") out.shopifyLiquid = SPURVIK_SHOPIFY_LIQUID_URL;
+    else if (platform === "WordPress") out.wordpressPluginZip = SPURVIK_WORDPRESS_PLUGIN_URL;
+    else if (platform === "Google Tag Manager") out.gtmContainerJson = SPURVIK_GTM_CONTAINER_URL;
+    else if (platform === "Framer") out.framerComponentTsx = SPURVIK_FRAMER_COMPONENT_URL;
+    else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Next.js") out.nextjsShadcnRegistry = SPURVIK_SHADCN_REGISTRY_URL;
+  }
+  return out;
+}
 
 /** Output in a fixed key order. Links use the public console origin and the encoded host only. */
 function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
   const encoded = encodeURIComponent(host);
   const reportUrl = `${SPURVIK_CONSOLE_ORIGIN}/report?domain=${encoded}`;
   const statusShieldUrl = `${SPURVIK_STATUS_SHIELD_URL}?domain=${encoded}`;
+  const tldLocale = localeForHost(host);
+  const effectiveLocale =
+    tldLocale === "en" && typeof facts.htmlLocale === "string" && facts.htmlLocale !== "en" && EU_LOCALE_CODES.includes(facts.htmlLocale)
+      ? facts.htmlLocale
+      : tldLocale;
+  const platformInstallerUrls = platformInstallerUrlsFor(facts.detectedPlatforms, host, effectiveLocale);
   return {
     domain: host,
     reachable: facts.reachable,
     detectedWidgets: facts.detectedWidgets,
     detectedSdks: facts.detectedSdks,
+    ...(facts.detectedPlatforms?.length ? { detectedPlatforms: facts.detectedPlatforms } : {}),
+    ...(Object.keys(platformInstallerUrls).length > 0 ? { platformInstallerUrls } : {}),
     art50NoticeDetected: facts.art50NoticeDetected,
     badgeSnippet: badgeSnippetForDomain(host, facts.htmlLocale),
     reportUrl,
@@ -322,6 +377,7 @@ function fromUpstream(host: string, scan: Record<string, unknown>): SpurvikScanD
     reachable,
     detectedWidgets: pageRead ? stringList(scan.detectedWidgets) : [],
     detectedSdks: pageRead ? stringList(scan.detectedSdks) : [],
+    detectedPlatforms: pageRead ? stringList(scan.detectedPlatforms) : [],
     art50NoticeDetected: markers?.art50_1_disclosure === true,
     scanStatus: !reachable ? "unreachable" : scan.measured === true ? "measured" : "not_measured",
     reason: shortCode(scan.reason),

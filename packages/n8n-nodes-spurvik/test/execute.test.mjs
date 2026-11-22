@@ -910,6 +910,44 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     });
   });
 
+  it("maps detectedPlatforms to 1-click platformInstallerUrls when present and omits them when empty", async () => {
+    await withFetch(
+      async () =>
+        json({
+          ok: true,
+          scan: {
+            ...LIVE_SCAN.scan,
+            domain: "charlie-paris.com",
+            measured: true,
+            detectedWidgets: ["Gorgias"],
+            detectedPlatforms: ["Shopify", "Google Tag Manager", "WordPress", "Framer", "Webflow", "Next.js"],
+            htmlLocale: "fr",
+          },
+        }),
+      async () => {
+        const [out] = await node.execute.call(scanCtx({ domainOrUrl: "charlie-paris.com" }));
+        const row = out[0].json;
+        assert.deepEqual(row.detectedPlatforms, [
+          "Shopify",
+          "Google Tag Manager",
+          "WordPress",
+          "Framer",
+          "Webflow",
+          "Next.js",
+        ]);
+        assert.deepEqual(row.platformInstallerUrls, {
+          shopifyLiquid: "https://spurvik.com/r/spurvik-shopify-art50.liquid",
+          gtmContainerJson: "https://spurvik.com/r/spurvik-gtm-art50-container.json",
+          wordpressPluginZip: "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip",
+          framerComponentTsx: "https://spurvik.com/r/spurvik-framer-badge.tsx",
+          webflowGuide:
+            "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=charlie-paris.com",
+          nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
+        });
+      },
+    );
+  });
+
   describe("batchScanDomains (zero-key Batch Scan, agency roster)", () => {
     const BATCH_KEYS = ["totalDomains", "gapsFound", "results", "portfolioUrl", "agencyCalculatorUrl", "upgradeUrls"];
     const BATCH_UPGRADES = {

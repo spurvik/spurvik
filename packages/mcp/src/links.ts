@@ -20,9 +20,30 @@ export const LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
 /** Interactive EU AI Act vendor security questionnaire and DPO RFP answers. */
 export const VENDOR_QUESTIONNAIRE_URL = "https://spurvik.com/eu-ai-act-vendor-security-questionnaire";
 
+export const SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.liquid";
 export const WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+export const GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-container.json";
 export const FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 export const SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
+
+/** Maps detected CMS / storefront / tag-manager stacks to 1-click zero-code installer download URLs. */
+export function platformInstallerUrlsFor(
+  detectedPlatforms: readonly string[] | undefined,
+  host?: string | null,
+  locale = "en",
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!detectedPlatforms || detectedPlatforms.length === 0) return out;
+  for (const platform of detectedPlatforms) {
+    if (platform === "Shopify") out.shopifyLiquid = SHOPIFY_LIQUID_URL;
+    else if (platform === "WordPress") out.wordpressPluginZip = WORDPRESS_PLUGIN_URL;
+    else if (platform === "Google Tag Manager") out.gtmContainerJson = GTM_CONTAINER_URL;
+    else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
+    else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Next.js") out.nextjsShadcnRegistry = SHADCN_REGISTRY_URL;
+  }
+  return out;
+}
 
 export const PRO_PRICE = "€19/mo";
 export const TEAM_PRICE = "€79/mo";
