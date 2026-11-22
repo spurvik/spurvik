@@ -179,11 +179,19 @@ describe("spurvik scan", () => {
       (async () =>
         jsonResponse({
           ok: true,
-          scan: { ...FOLK_GAP.scan, domain: "charlie-paris.com", scannedUrl: "https://charlie-paris.com/", htmlLocale: "fr" },
+          scan: {
+            ...FOLK_GAP.scan,
+            domain: "charlie-paris.com",
+            scannedUrl: "https://charlie-paris.com/",
+            htmlLocale: "fr",
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0001/hero.jpg",
+          },
         })) as unknown as typeof fetch,
     );
     expect(await runCli(["scan", "charlie-paris.com"], frHtml.deps)).toBe(EXIT_OK);
     expect(frHtml.out()).toContain('data-locale="fr"');
+    expect(frHtml.out()).toContain("2 Dec C2PA CDN");
+    expect(frHtml.out()).toContain("Shopify CDN (/cdn/shop/)");
     expect(frHtml.out()).toContain("https://console.spurvik.com/report?domain=charlie-paris.com&locale=fr");
     expect(frHtml.out()).toContain("https://console.spurvik.com/signup?plan=team&appUrl=charlie-paris.com&locale=fr");
 

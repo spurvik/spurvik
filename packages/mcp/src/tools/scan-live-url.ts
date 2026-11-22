@@ -17,6 +17,7 @@ import {
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
+import { detectImageProxy } from "./check-image-c2pa-url.js";
 
 /** Upstream scan endpoint on the hosted console. The origin is fixed; only the `url` query value varies. */
 export const SCAN_ENDPOINT = `${CONSOLE_ORIGIN}/api/v1/sandbox/scan`;
@@ -107,6 +108,8 @@ export interface ScanLiveUrlResult extends ScanLiveUrlLinks {
   confirmedAiSurface: boolean | null;
   /** First public HTTPS raster hero/OG image URL discovered on the frontpage for Art. 50(2) C2PA inspection. */
   heroImageUrl: string | null;
+  /** Present when `heroImageUrl` is served through an image-optimizing CDN known to strip C2PA JUMBF manifests on re-encode (2 Dec 2026 Art. 50(2)). */
+  heroImageProxy?: { name: string; fix: string; c2paCheckUrl: string };
   art50NoticeDetected: boolean | null;
   markers: { art50_1_disclosure: boolean; art50_2_provenance: boolean; art50_4_synthetic: boolean; art12_telemetry: boolean } | null;
   suggestedLocale: string;
@@ -418,8 +421,10 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
   const dualUseClause = dualUseOnly
     ? " Dual-use support widget detected: Art. 50(1) notice is required if AI replies or routing are enabled (human-only live chat needs none)."
     : "";
+  const base = baseResult(target, locale, heroImageUrl);
+  const detectedHeroProxy = heroImageUrl ? detectImageProxy(heroImageUrl) : null;
   return {
-    ...baseResult(target, locale, heroImageUrl),
+    ...base,
     offlineFallback: false,
     status: !reachable ? "unreachable" : measured ? "measured" : "not_measured",
     reason: shortCode(scan.reason),
@@ -432,6 +437,15 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
     detectedModel: pageRead ? model : null,
     confirmedAiSurface,
     heroImageUrl,
+    ...(detectedHeroProxy
+      ? {
+          heroImageProxy: {
+            name: detectedHeroProxy.name,
+            fix: detectedHeroProxy.fix,
+            c2paCheckUrl: base.c2paCheckUrl,
+          },
+        }
+      : {}),
     art50NoticeDetected: pageRead && markers ? markers.art50_1_disclosure : null,
     markers: pageRead ? markers : null,
     note: `Heuristic check of one public page. It can miss a widget or a notice that loads later.${dualUseClause} Not legal advice. ${PRICE_NOTE}`,

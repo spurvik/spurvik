@@ -297,6 +297,7 @@ describe("batchScanDomains", () => {
             domain: "charlie-paris.com",
             htmlLocale: "fr",
             detectedPlatforms: ["Shopify", "Google Tag Manager"],
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0001/hero.jpg",
           },
         });
       }
@@ -310,9 +311,11 @@ describe("batchScanDomains", () => {
       shopifyLiquid: "https://spurvik.com/r/spurvik-shopify-art50.liquid",
       gtmContainerJson: "https://spurvik.com/r/spurvik-gtm-art50-container.json",
     });
+    expect(result.results[0]?.heroImageProxy?.name).toBe("Shopify CDN (/cdn/shop/)");
     expect(result.results[1]?.suggestedLocale).toBe("sv");
     expect(result.results[1]?.badgeSnippet).toContain('data-locale="sv"');
     expect(result.results[1]?.platformInstallerUrls).toBeUndefined();
+    expect(result.results[1]?.heroImageProxy).toBeUndefined();
   });
 
   it("never logs the domains or the responses", async () => {

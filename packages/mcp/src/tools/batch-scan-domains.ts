@@ -50,6 +50,7 @@ export interface BatchDomainResult {
   detectedSdks: string[];
   detectedPlatforms?: string[];
   platformInstallerUrls?: Record<string, string>;
+  heroImageProxy?: { name: string; fix: string; c2paCheckUrl: string };
   art50NoticeDetected: boolean | null;
   /** The page was read, an AI chat widget or AI SDK was found, and no Art. 50(1) notice was detected. */
   gap: boolean;
@@ -124,6 +125,7 @@ function toDomainResult(result: ScanLiveUrlResult): BatchDomainResult {
     ...(result.platformInstallerUrls && Object.keys(result.platformInstallerUrls).length > 0
       ? { platformInstallerUrls: result.platformInstallerUrls }
       : {}),
+    ...(result.heroImageProxy ? { heroImageProxy: result.heroImageProxy } : {}),
     art50NoticeDetected: result.art50NoticeDetected,
     gap: isGap(result),
     suggestedLocale: result.suggestedLocale,

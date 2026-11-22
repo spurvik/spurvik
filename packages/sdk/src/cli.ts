@@ -364,6 +364,7 @@ export interface ScanReport {
   /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
   confirmedAiSurface: boolean | null;
   heroImageUrl: string | null;
+  heroImageProxy?: { name: string; fix: string; c2paCheckUrl: string };
   /** Art. 50(1) interaction notice found on the page. null when the page could not be read. */
   covered: boolean | null;
   badgeSnippet: string;
@@ -428,6 +429,8 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
     tldLang === "en" && pageRead && typeof scan.htmlLocale === "string" && scan.htmlLocale !== "en" && (BADGE_LANGS as readonly string[]).includes(scan.htmlLocale)
       ? (scan.htmlLocale as BadgeLang)
       : tldLang;
+  const links = scanLinks(target.host, resolvedLang, heroImageUrl);
+  const detectedHeroProxy = heroImageUrl ? detectImageProxy(heroImageUrl) : null;
   return {
     domain: target.host,
     scannedUrl: /^https:\/\//.test(scannedUrl) ? scannedUrl : target.url,
@@ -438,9 +441,18 @@ export function reportFromScan(target: ScanTarget, body: unknown): ScanReport | 
     ...(platforms.length > 0 ? { detectedPlatforms: platforms } : {}),
     confirmedAiSurface,
     heroImageUrl,
+    ...(detectedHeroProxy
+      ? {
+          heroImageProxy: {
+            name: detectedHeroProxy.name,
+            fix: detectedHeroProxy.fix,
+            c2paCheckUrl: links.c2paCheckUrl,
+          },
+        }
+      : {}),
     covered: pageRead ? disclosure : null,
     badgeSnippet: badgeScriptTag(target.host, resolvedLang),
-    links: scanLinks(target.host, resolvedLang, heroImageUrl),
+    links,
   };
 }
 
@@ -525,6 +537,9 @@ function printScan(report: ScanReport, io: Io): void {
   row("AI widgets", report.detectedWidgets.length ? report.detectedWidgets.join(", ") : "none detected");
   if (report.detectedPlatforms?.length) {
     row("Platform stack", report.detectedPlatforms.join(", "));
+  }
+  if (report.heroImageProxy) {
+    row("2 Dec C2PA CDN", c.yellow(`${report.heroImageProxy.name} (re-encode strips C2PA JUMBF on AI media)`));
   }
   row("Art. 50(1) notice", statusText);
   out();

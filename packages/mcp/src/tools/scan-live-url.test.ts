@@ -401,6 +401,7 @@ describe("scanLiveUrl", () => {
             detectedSdks: [],
             detectedPlatforms: ["Shopify", "Google Tag Manager", "Webflow", "WordPress", "Framer", "Next.js"],
             htmlLocale: "fr",
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0001/hero.jpg",
           },
         }),
       ),
@@ -423,6 +424,12 @@ describe("scanLiveUrl", () => {
       framerComponentTsx: "https://spurvik.com/r/spurvik-framer-badge.tsx",
       nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
     });
+    expect(withStack.heroImageProxy).toMatchObject({
+      name: "Shopify CDN (/cdn/shop/)",
+      c2paCheckUrl:
+        "https://console.spurvik.com/c2pa?domain=charlie-paris.com&locale=fr&url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0001%2Fhero.jpg",
+    });
+    expect(dualUse.heroImageProxy).toBeUndefined();
 
     vi.stubGlobal(
       "fetch",
