@@ -22059,7 +22059,9 @@ var SANDBOX_URL = `${CONSOLE_ORIGIN}/sandbox`;
 var RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
 var SIGNUP_URL = `${CONSOLE_ORIGIN}/signup`;
 var PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
+var PRO_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro&interval=annual`;
 var TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
+var TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual`;
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
@@ -22095,13 +22097,25 @@ function reportUrlFor(host, extraLocale) {
 function sandboxUrlFor(host) {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
 }
+function freeSignupUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${SIGNUP_URL}?appUrl=${encodeURIComponent(host)}${loc}`;
+}
 function proSignupUrlFor(host, extraLocale) {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
   return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
 }
+function proAnnualSignupUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${PRO_ANNUAL_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
 function teamSignupUrlFor(host, extraLocale) {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
   return `${TEAM_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
+function teamAnnualSignupUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${TEAM_ANNUAL_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
 }
 function conciergeSignupUrlFor(host, extraLocale) {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
@@ -22838,7 +22852,7 @@ function normalizeScanTarget(raw) {
   if (nonDefaultPort) throw new ScanTargetRejected("invalid_url", "Only the default http(s) port is allowed.");
   return { url: url.toString(), host };
 }
-var CONFIRMED_AI_RE = /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
+var CONFIRMED_AI_RE = /\b(?:Intercom Fin|Zendesk AI|Ultimate|Tidio Lyro|Lyro|Gorgias AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|CustomGPT|Sierra|Decagon|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
 function sanitizeHeroImageUrl(raw) {
   if (typeof raw !== "string") return null;
   const trimmed = raw.trim();
@@ -22863,8 +22877,11 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
+      freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),
+      proAnnual2MonthsFree: proAnnualSignupUrlFor(host, extraLocale),
       teamAuditAndAnnexIv: teamSignupUrlFor(host, extraLocale),
+      teamAnnual2MonthsFree: teamAnnualSignupUrlFor(host, extraLocale),
       doneForYou24hSetup: conciergeSignupUrlFor(host, extraLocale)
     }
   };
@@ -23402,7 +23419,13 @@ async function batchScanDomains(domains, deps = {}) {
       offlineFallbacks,
       results,
       portfolioUrl: PORTFOLIO_URL,
-      upgradeUrls: { teamAgencyPack: TEAM_SIGNUP_URL, doneForYouPerSite: CONCIERGE_SIGNUP_URL },
+      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${results.map((r) => encodeURIComponent(r.host)).join(",")}`,
+      upgradeUrls: {
+        proAnnual2MonthsFree: PRO_ANNUAL_SIGNUP_URL,
+        teamAgencyPack: TEAM_SIGNUP_URL,
+        teamAnnual2MonthsFree: TEAM_ANNUAL_SIGNUP_URL,
+        doneForYouPerSite: CONCIERGE_SIGNUP_URL
+      },
       prices: { teamAgencyPack: TEAM_PRICE, doneForYouPerSite: CONCIERGE_PRICE },
       note: `Heuristic check of one public page per domain. It can miss a widget or a notice that loads later. A row with offlineFallback: true was not measured; rerun it later or open portfolioUrl. Not legal advice. ${PRICE_NOTE}`
     }

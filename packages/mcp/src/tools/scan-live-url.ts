@@ -3,9 +3,11 @@ import {
   conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
   ecommerceCockpitUrlFor,
+  freeSignupUrlFor,
   platformInstallerUrlsFor,
   PORTFOLIO_URL,
   PRICE_NOTE,
+  proAnnualSignupUrlFor,
   proSignupUrlFor,
   reportUrlFor,
   rfpQuestionnaireUrlFor,
@@ -13,6 +15,7 @@ import {
   statusShieldMarkdownFor,
   statusShieldUrlFor,
   supportWidgetCockpitUrlFor,
+  teamAnnualSignupUrlFor,
   teamSignupUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
@@ -79,8 +82,11 @@ export interface ScanLiveUrlLinks {
   statusShieldMarkdown: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: {
+    freeApiKey: string;
     proWhiteLabelAndAuditVault: string;
+    proAnnual2MonthsFree: string;
     teamAuditAndAnnexIv: string;
+    teamAnnual2MonthsFree: string;
     doneForYou24hSetup: string;
   };
 }
@@ -284,7 +290,7 @@ export function normalizeScanTarget(raw: unknown): ScanTarget {
 }
 
 const CONFIRMED_AI_RE =
-  /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
+  /\b(?:Intercom Fin|Zendesk AI|Ultimate|Tidio Lyro|Lyro|Gorgias AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|CustomGPT|Sierra|Decagon|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
 
 function sanitizeHeroImageUrl(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
@@ -311,8 +317,11 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     upgradeUrls: {
+      freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),
+      proAnnual2MonthsFree: proAnnualSignupUrlFor(host, extraLocale),
       teamAuditAndAnnexIv: teamSignupUrlFor(host, extraLocale),
+      teamAnnual2MonthsFree: teamAnnualSignupUrlFor(host, extraLocale),
       doneForYou24hSetup: conciergeSignupUrlFor(host, extraLocale),
     },
   };

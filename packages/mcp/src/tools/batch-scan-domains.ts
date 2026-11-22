@@ -3,6 +3,8 @@ import {
   CONCIERGE_SIGNUP_URL,
   PORTFOLIO_URL,
   PRICE_NOTE,
+  PRO_ANNUAL_SIGNUP_URL,
+  TEAM_ANNUAL_SIGNUP_URL,
   TEAM_PRICE,
   TEAM_SIGNUP_URL,
 } from "../links.js";
@@ -74,7 +76,14 @@ export interface BatchScanDomainsResult {
   offlineFallbacks: number;
   results: BatchDomainResult[];
   portfolioUrl: string;
-  upgradeUrls: { teamAgencyPack: string; doneForYouPerSite: string };
+  /** Direct 1-click Console portfolio URL prefilled with `?domains=` for all scanned hosts. */
+  prefilledPortfolioUrl: string;
+  upgradeUrls: {
+    proAnnual2MonthsFree: string;
+    teamAgencyPack: string;
+    teamAnnual2MonthsFree: string;
+    doneForYouPerSite: string;
+  };
   prices: { teamAgencyPack: string; doneForYouPerSite: string };
   note: string;
 }
@@ -208,7 +217,13 @@ export async function batchScanDomains(domains: unknown, deps: ScanLiveUrlDeps =
       offlineFallbacks,
       results,
       portfolioUrl: PORTFOLIO_URL,
-      upgradeUrls: { teamAgencyPack: TEAM_SIGNUP_URL, doneForYouPerSite: CONCIERGE_SIGNUP_URL },
+      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${results.map((r) => encodeURIComponent(r.host)).join(",")}`,
+      upgradeUrls: {
+        proAnnual2MonthsFree: PRO_ANNUAL_SIGNUP_URL,
+        teamAgencyPack: TEAM_SIGNUP_URL,
+        teamAnnual2MonthsFree: TEAM_ANNUAL_SIGNUP_URL,
+        doneForYouPerSite: CONCIERGE_SIGNUP_URL,
+      },
       prices: { teamAgencyPack: TEAM_PRICE, doneForYouPerSite: CONCIERGE_PRICE },
       note: `Heuristic check of one public page per domain. It can miss a widget or a notice that loads later. A row with offlineFallback: true was not measured; rerun it later or open portfolioUrl. Not legal advice. ${PRICE_NOTE}`,
     },

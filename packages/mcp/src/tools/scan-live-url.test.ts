@@ -476,4 +476,26 @@ describe("scanLiveUrl", () => {
     for (const spy of spies) expect(spy).not.toHaveBeenCalled();
     expect(writeSpy).not.toHaveBeenCalled();
   });
+
+  it("includes freeApiKey, proAnnual2MonthsFree, teamAnnual2MonthsFree in upgradeUrls and classifies Tidio Lyro / Gorgias AI as confirmedAiSurface (H171c)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
+          scan: { ...UPSTREAM_SCAN, domain: "charlie-paris.com", htmlLocale: "fr", detectedWidgets: ["Tidio Lyro"], detectedSdks: [] },
+        }),
+      ),
+    );
+    const res = await expectOk(scanLiveUrl("charlie-paris.com"));
+    expect(res.confirmedAiSurface).toBe(true);
+    expect(res.upgradeUrls).toEqual({
+      freeApiKey: "https://console.spurvik.com/signup?appUrl=charlie-paris.com&locale=fr",
+      proWhiteLabelAndAuditVault: "https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com&locale=fr",
+      proAnnual2MonthsFree: "https://console.spurvik.com/signup?plan=pro&interval=annual&appUrl=charlie-paris.com&locale=fr",
+      teamAuditAndAnnexIv: "https://console.spurvik.com/signup?plan=team&appUrl=charlie-paris.com&locale=fr",
+      teamAnnual2MonthsFree: "https://console.spurvik.com/signup?plan=team&interval=annual&appUrl=charlie-paris.com&locale=fr",
+      doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com&locale=fr",
+    });
+  });
 });

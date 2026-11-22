@@ -316,6 +316,9 @@ describe("batchScanDomains", () => {
     expect(result.results[1]?.badgeSnippet).toContain('data-locale="sv"');
     expect(result.results[1]?.platformInstallerUrls).toBeUndefined();
     expect(result.results[1]?.heroImageProxy).toBeUndefined();
+    expect(result.prefilledPortfolioUrl).toBe("https://console.spurvik.com/portfolio?domains=charlie-paris.com,petgood.com");
+    expect(result.upgradeUrls.proAnnual2MonthsFree).toBe("https://console.spurvik.com/signup?plan=pro&interval=annual");
+    expect(result.upgradeUrls.teamAnnual2MonthsFree).toBe("https://console.spurvik.com/signup?plan=team&interval=annual");
   });
 
   it("never logs the domains or the responses", async () => {

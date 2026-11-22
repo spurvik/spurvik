@@ -9,7 +9,9 @@ export const RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
 /** Free signup: mints a SPURVIK_API_KEY (work email, no password). */
 export const SIGNUP_URL = `${CONSOLE_ORIGIN}/signup`;
 export const PRO_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro`;
+export const PRO_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=pro&interval=annual`;
 export const TEAM_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team`;
+export const TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual`;
 export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
@@ -61,16 +63,34 @@ export function sandboxUrlFor(host: string): string {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
 }
 
+/** Free signup with the scanned host prefilled as `appUrl` (mints a `SPURVIK_API_KEY` in 10s). */
+export function freeSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${SIGNUP_URL}?appUrl=${encodeURIComponent(host)}${loc}`;
+}
+
 /** Pro signup with the scanned host prefilled as `appUrl`. */
 export function proSignupUrlFor(host: string, extraLocale?: string): string {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
   return `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
 }
 
+/** Pro Annual (€190/yr, 2 months free) signup with the scanned host prefilled as `appUrl`. */
+export function proAnnualSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${PRO_ANNUAL_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
+
 /** Team (€79/mo) signup with the scanned host prefilled as `appUrl`. */
 export function teamSignupUrlFor(host: string, extraLocale?: string): string {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
   return `${TEAM_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
+}
+
+/** Team Annual (€790/yr, 2 months free) signup with the scanned host prefilled as `appUrl`. */
+export function teamAnnualSignupUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${TEAM_ANNUAL_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${loc}`;
 }
 
 /** Done-For-You signup with the scanned host prefilled as `appUrl`. */
