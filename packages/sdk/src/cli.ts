@@ -899,7 +899,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
-export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "html", "react"] as const;
+export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html", "react"] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
 
 function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string {
@@ -1000,7 +1000,7 @@ function wordpressCockpitUrl(host: string | null | undefined, locale = "en"): st
 
 function cmdBadge(args: ParsedArgs, io: Io): number {
   if (args.positionals.length > 1) {
-    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>] [--cms shopify|wordpress|webflow|framer|html|react]");
+    io.err("Usage: spurvik badge [domain] [--lang <eu-locale>] [--cms shopify|wordpress|webflow|framer|gtm|html|react]");
     return EXIT_ERROR;
   }
   if (args.lang !== undefined && !BADGE_LANGS.includes(args.lang as BadgeLang)) {
@@ -1043,6 +1043,11 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  ${c.bold("Framer")} ${c.dim("(Code Component TSX or Site Settings -> Custom Code)")}`);
     out(`  ${tag}`);
     out(`  ${c.dim("Framer TSX:")} https://spurvik.com/r/spurvik-framer-badge.tsx`);
+    out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
+  } else if (cms === "gtm") {
+    out(`  ${c.bold("Google Tag Manager")} ${c.dim("(Admin -> Import Container -> Merge · DOM Ready)")}`);
+    out(`  ${tag}`);
+    out(`  ${c.dim("GTM container (.json):")} https://spurvik.com/r/spurvik-gtm-art50-container.json`);
     out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
   } else if (cms === "html") {
     out(`  ${c.bold("Static HTML")} ${c.dim("(paste before </body>)")}`);
@@ -1088,6 +1093,7 @@ export const SETUP_TARGETS = [
   "wordpress",
   "webflow",
   "framer",
+  "gtm",
   "html",
   "n8n",
   "make",
@@ -1098,7 +1104,7 @@ export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "pytho
 export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
-const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "framer", "html"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make"];
 
 const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
@@ -1125,6 +1131,9 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   elementor: "wordpress",
   divi: "wordpress",
   wp: "wordpress",
+  "google-tag-manager": "gtm",
+  "tag-manager": "gtm",
+  googletagmanager: "gtm",
   prestashop: "html",
   shopware: "html",
   centra: "html",
@@ -1388,9 +1397,11 @@ export function buildSetupReport(
             ? "curl -fsSLO https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"
             : target === "framer"
               ? "curl -fsSLO https://spurvik.com/r/spurvik-framer-badge.tsx"
-              : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
+              : target === "gtm"
+                ? "curl -fsSLO https://spurvik.com/r/spurvik-gtm-art50-container.json"
+                : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
     const cmsCockpit =
-      target === "wordpress" || target === "webflow" || target === "framer"
+      target === "wordpress" || target === "webflow" || target === "framer" || target === "gtm"
         ? wordpressCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
         : target === "react"
           ? nextjsCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))

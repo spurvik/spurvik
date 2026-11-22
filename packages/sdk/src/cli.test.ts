@@ -855,7 +855,7 @@ describe("spurvik badge", () => {
 
     const badCms = harness();
     expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
-    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, html, react");
+    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, html, react");
 
     const wrongCmd = harness();
     expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);
@@ -1370,5 +1370,18 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(hitlJson.links.cockpitUrl).toBe(
       "https://spurvik.com/fr/reglement-ia-article-14-controle-humain-validation-slack-teams?domain=doctolib.fr",
     );
+
+    // H156b: Google Tag Manager (--cms gtm & setup google-tag-manager)
+    const gtmBadge = harness();
+    expect(await runCli(["badge", "agentur-berlin.de", "--cms", "gtm"], gtmBadge.deps)).toBe(EXIT_OK);
+    expect(gtmBadge.out()).toContain("https://spurvik.com/r/spurvik-gtm-art50-container.json");
+
+    const gtmSetup = harness();
+    expect(
+      await runCli(["setup", "google-tag-manager", "--domain", "agentur-berlin.de", "--json"], gtmSetup.deps),
+    ).toBe(EXIT_OK);
+    const gtmJson = JSON.parse(gtmSetup.out());
+    expect(gtmJson.target).toBe("gtm");
+    expect(gtmJson.installCommand).toContain("spurvik-gtm-art50-container.json");
   });
 });

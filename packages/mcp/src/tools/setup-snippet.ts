@@ -33,7 +33,7 @@ import { EU_LANGUAGES, inferLocaleFromDomain } from "./badge-copy.js";
 import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
-export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "html"] as const;
+export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
 export const IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
 export const FRAMEWORKS = [
@@ -82,6 +82,9 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   elementor: "wordpress",
   divi: "wordpress",
   wp: "wordpress",
+  "google-tag-manager": "gtm",
+  "tag-manager": "gtm",
+  googletagmanager: "gtm",
   prestashop: "html",
   shopware: "html",
   centra: "html",
@@ -803,7 +806,9 @@ export function setupSnippet(
         ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
         : framework === "wordpress"
           ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}`
-          : framework === "framer"
+          : framework === "gtm"
+            ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}`
+            : framework === "framer"
             ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}`
             : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [

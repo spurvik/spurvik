@@ -22537,6 +22537,7 @@ function fromUpstream(target, scan) {
   const heroImageUrl = pageRead ? sanitizeHeroImageUrl(scan.heroImageUrl) : null;
   const detectedWidgets = pageRead ? stringList(scan.detectedWidgets) : [];
   const detectedSdks = pageRead ? stringList(scan.detectedSdks) : [];
+  const detectedPlatforms = pageRead ? stringList(scan.detectedPlatforms) : [];
   const confirmedAiSurface = pageRead ? detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_RE.test(w)) : null;
   const dualUseOnly = pageRead && detectedWidgets.length > 0 && !confirmedAiSurface;
   const dualUseClause = dualUseOnly ? " Dual-use support widget detected: Art. 50(1) notice is required if AI replies or routing are enabled (human-only live chat needs none)." : "";
@@ -22549,6 +22550,7 @@ function fromUpstream(target, scan) {
     score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
     detectedWidgets,
     detectedSdks,
+    ...detectedPlatforms.length > 0 ? { detectedPlatforms } : {},
     detectedModel: pageRead ? model : null,
     confirmedAiSurface,
     heroImageUrl,
@@ -22908,6 +22910,7 @@ function toDomainResult(result) {
     score: result.score,
     detectedWidgets: result.detectedWidgets,
     detectedSdks: result.detectedSdks,
+    ...result.detectedPlatforms?.length ? { detectedPlatforms: result.detectedPlatforms } : {},
     art50NoticeDetected: result.art50NoticeDetected,
     gap: isGap(result),
     suggestedLocale: result.suggestedLocale,
@@ -28521,7 +28524,7 @@ var sdkExportNames = {
 
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
-var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "html"];
+var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
 var IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
 var FRAMEWORKS = [
@@ -28562,6 +28565,9 @@ var SETUP_FRAMEWORK_ALIASES = {
   elementor: "wordpress",
   divi: "wordpress",
   wp: "wordpress",
+  "google-tag-manager": "gtm",
+  "tag-manager": "gtm",
+  googletagmanager: "gtm",
   prestashop: "html",
   shopware: "html",
   centra: "html",
@@ -29232,7 +29238,7 @@ ${source}\`\`\`
     }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
-    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,

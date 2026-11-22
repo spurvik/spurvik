@@ -97,6 +97,8 @@ export interface ScanLiveUrlResult extends ScanLiveUrlLinks {
   score: number | null;
   detectedWidgets: string[];
   detectedSdks: string[];
+  /** Detected storefront, CMS, tag manager, or frontend framework (`Shopify`, `WordPress`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`). */
+  detectedPlatforms?: string[];
   detectedModel: string | null;
   /** True when an AI-native bot or model SDK was detected; false when only dual-use human/AI helpdesk widgets or none were seen; null when unread. */
   confirmedAiSurface: boolean | null;
@@ -404,6 +406,7 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
   const heroImageUrl = pageRead ? sanitizeHeroImageUrl(scan.heroImageUrl) : null;
   const detectedWidgets = pageRead ? stringList(scan.detectedWidgets) : [];
   const detectedSdks = pageRead ? stringList(scan.detectedSdks) : [];
+  const detectedPlatforms = pageRead ? stringList(scan.detectedPlatforms) : [];
   const confirmedAiSurface = pageRead
     ? detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_RE.test(w))
     : null;
@@ -420,6 +423,7 @@ function fromUpstream(target: ScanTarget, scan: Record<string, unknown>): ScanLi
     score: measured ? intOrNull(scan.readinessScore, 0, 100) : null,
     detectedWidgets,
     detectedSdks,
+    ...(detectedPlatforms.length > 0 ? { detectedPlatforms } : {}),
     detectedModel: pageRead ? model : null,
     confirmedAiSurface,
     heroImageUrl,
