@@ -7,6 +7,8 @@
  * instead of throwing. Nothing is logged: the input, the response and any error stay in memory.
  */
 
+import { detectImageProxy, normalizeC2paImageUrl } from "./check-image-c2pa-url";
+
 /** Package version, sent in the User-Agent. A test pins it to package.json. */
 export const N8N_NODES_SPURVIK_VERSION = "1.0.10";
 /**
@@ -97,6 +99,8 @@ export interface SpurvikScanDomainOutput {
   detectedPlatforms?: string[];
   /** 1-click zero-code CMS / storefront / Google Tag Manager installer download URLs, present when `detectedPlatforms` is non-empty. */
   platformInstallerUrls?: Record<string, string>;
+  /** Present when the frontpage hero image runs through an image-optimizing CDN known to strip C2PA JUMBF manifests on re-encode (2 Dec 2026 Art. 50(2)). */
+  heroImageProxy?: { name: string; fix: string; c2paCheckUrl: string };
   art50NoticeDetected: boolean;
   badgeSnippet: string;
   reportUrl: string;
@@ -271,7 +275,15 @@ function readUpstreamScan(body: unknown): Record<string, unknown> | null {
 type ScanFacts = Pick<
   SpurvikScanDomainOutput,
   "reachable" | "detectedWidgets" | "detectedSdks" | "art50NoticeDetected" | "scanStatus" | "reason" | "markers"
-> & { detectedPlatforms?: string[]; htmlLocale?: unknown };
+> & { detectedPlatforms?: string[]; htmlLocale?: unknown; heroImageUrl?: string | null };
+
+function sanitizeHeroImageUrl(raw: unknown): string | null {
+  try {
+    return normalizeC2paImageUrl(raw).url;
+  } catch {
+    return null;
+  }
+}
 
 function wordpressCockpitUrlFor(host: string, locale: string): string {
   const slug =
@@ -322,6 +334,8 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
       ? facts.htmlLocale
       : tldLocale;
   const platformInstallerUrls = platformInstallerUrlsFor(facts.detectedPlatforms, host, effectiveLocale);
+  const detectedHeroProxy = facts.heroImageUrl ? detectImageProxy(facts.heroImageUrl) : null;
+  const locParam = effectiveLocale !== "en" ? `&locale=${encodeURIComponent(effectiveLocale)}` : "";
   return {
     domain: host,
     reachable: facts.reachable,
@@ -329,6 +343,15 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     detectedSdks: facts.detectedSdks,
     ...(facts.detectedPlatforms?.length ? { detectedPlatforms: facts.detectedPlatforms } : {}),
     ...(Object.keys(platformInstallerUrls).length > 0 ? { platformInstallerUrls } : {}),
+    ...(detectedHeroProxy && facts.heroImageUrl
+      ? {
+          heroImageProxy: {
+            name: detectedHeroProxy.name,
+            fix: detectedHeroProxy.fix,
+            c2paCheckUrl: `${SPURVIK_CONSOLE_ORIGIN}/c2pa?domain=${encoded}${locParam}&url=${encodeURIComponent(facts.heroImageUrl)}`,
+          },
+        }
+      : {}),
     art50NoticeDetected: facts.art50NoticeDetected,
     badgeSnippet: badgeSnippetForDomain(host, facts.htmlLocale),
     reportUrl,
@@ -383,6 +406,7 @@ function fromUpstream(host: string, scan: Record<string, unknown>): SpurvikScanD
     reason: shortCode(scan.reason),
     markers,
     htmlLocale: pageRead ? scan.htmlLocale : undefined,
+    heroImageUrl: pageRead ? sanitizeHeroImageUrl(scan.heroImageUrl) : null,
   });
 }
 

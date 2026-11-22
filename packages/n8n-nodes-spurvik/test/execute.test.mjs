@@ -922,6 +922,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
             detectedWidgets: ["Gorgias"],
             detectedPlatforms: ["Shopify", "Google Tag Manager", "WordPress", "Framer", "Webflow", "Next.js"],
             htmlLocale: "fr",
+            heroImageUrl: "https://cdn.shopify.com/s/files/1/0001/hero.jpg",
           },
         }),
       async () => {
@@ -944,6 +945,11 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
             "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=charlie-paris.com",
           nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
         });
+        assert.equal(row.heroImageProxy.name, "Shopify CDN (/cdn/shop/)");
+        assert.equal(
+          row.heroImageProxy.c2paCheckUrl,
+          "https://console.spurvik.com/c2pa?domain=charlie-paris.com&locale=fr&url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0001%2Fhero.jpg",
+        );
       },
     );
   });
