@@ -311,13 +311,28 @@ export interface SignedChannelCallbackResult {
   nonce: string | null;
 }
 
+export interface SignedChannelCallbackOptions {
+  maxAgeSeconds?: number;
+  nowUnixSeconds?: number;
+}
+
 /**
  * Checks Spurvik's own approval-link token.
+ * Accepts either:
+ * 1. `{ gateId, actionHmac, decision, issuedAtUnix, signature, nonce, signingSecret, ... }`, or
+ * 2. `(urlOrSearchParams: string | URL | URLSearchParams, signingSecret: string, opts?)` directly
+ *    from an Express / Next.js GET callback handler (`gateId`, `hmac`, `decision`, `ts`, `sig`, `nonce`).
+ *
  * Returns `{ ok: true, decision, gateId, actionHmac, issuedAtUnix, nonce }` when the token matches.
  * Returns `false` when it does not, including when `signature` is missing or not a string.
  * A missing signature does not throw. A missing or too-short signing secret still throws.
  * This does not verify a Slack, Telegram, Discord, or other platform webhook signature.
  */
+export function verifySignedChannelCallback(
+  urlOrSearchParams: string | URL | URLSearchParams,
+  signingSecret: string,
+  options?: SignedChannelCallbackOptions,
+): SignedChannelCallbackResult | false;
 export function verifySignedChannelCallback(input: {
   gateId?: unknown;
   actionHmac?: unknown;
@@ -328,7 +343,66 @@ export function verifySignedChannelCallback(input: {
   signingSecret: string;
   maxAgeSeconds?: number;
   nowUnixSeconds?: number;
-}): SignedChannelCallbackResult | false {
+}): SignedChannelCallbackResult | false;
+export function verifySignedChannelCallback(
+  inputOrUrl:
+    | string
+    | URL
+    | URLSearchParams
+    | {
+        gateId?: unknown;
+        actionHmac?: unknown;
+        decision?: unknown;
+        issuedAtUnix?: unknown;
+        signature?: unknown;
+        nonce?: unknown;
+        signingSecret: string;
+        maxAgeSeconds?: number;
+        nowUnixSeconds?: number;
+      },
+  signingSecretArg?: string,
+  optionsArg?: SignedChannelCallbackOptions,
+): SignedChannelCallbackResult | false {
+  let input: {
+    gateId?: unknown;
+    actionHmac?: unknown;
+    decision?: unknown;
+    issuedAtUnix?: unknown;
+    signature?: unknown;
+    nonce?: unknown;
+    signingSecret: string;
+    maxAgeSeconds?: number;
+    nowUnixSeconds?: number;
+  };
+
+  if (typeof inputOrUrl === "string" || inputOrUrl instanceof URL || inputOrUrl instanceof URLSearchParams) {
+    assertSigningSecret(signingSecretArg as string);
+    let sp: URLSearchParams;
+    if (inputOrUrl instanceof URLSearchParams) {
+      sp = inputOrUrl;
+    } else if (inputOrUrl instanceof URL) {
+      sp = inputOrUrl.searchParams;
+    } else {
+      const raw = inputOrUrl.trim();
+      const qIdx = raw.indexOf("?");
+      sp = new URLSearchParams(qIdx >= 0 ? raw.slice(qIdx + 1) : raw);
+    }
+    const rawTs = sp.get("ts") ?? sp.get("issuedAtUnix");
+    input = {
+      gateId: sp.get("gateId") ?? undefined,
+      actionHmac: sp.get("hmac") ?? sp.get("actionHmac") ?? undefined,
+      decision: sp.get("decision") ?? undefined,
+      issuedAtUnix: rawTs !== null && rawTs.trim() !== "" ? Number(rawTs) : Number.NaN,
+      signature: sp.get("sig") ?? sp.get("signature") ?? undefined,
+      nonce: sp.get("nonce") ?? undefined,
+      signingSecret: signingSecretArg as string,
+      maxAgeSeconds: optionsArg?.maxAgeSeconds,
+      nowUnixSeconds: optionsArg?.nowUnixSeconds,
+    };
+  } else {
+    input = inputOrUrl;
+  }
+
   if (input == null || typeof input.signature !== "string" || input.signature.length === 0) return false;
   if (typeof input.gateId !== "string" || input.gateId.length === 0) return false;
   if (typeof input.actionHmac !== "string" || input.actionHmac.length === 0) return false;

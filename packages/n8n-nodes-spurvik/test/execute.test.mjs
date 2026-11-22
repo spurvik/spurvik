@@ -1399,4 +1399,37 @@ describe("upgradeUrls on art50_disclosure, art12_hmac_log and art14_ask_human (1
     );
     assert.deepEqual(result.upgradeUrls, linksOn(CONSOLE));
   });
+
+  it("art14_ask_human with a Free-plan consoleApiKey (HTTP 402 on /api/v1/hitl) keeps Slack approval and returns synced:false + upgradeUrls instead of throwing", async () => {
+    const liveKey = "spurvik_live_" + "k".repeat(36);
+    const result = await packageIndex.executeSpurvikWorkflowStep(
+      {
+        operation: "art14_ask_human",
+        hmacSecret: SECRET,
+        systemName: "Bot",
+        actionName: "stripe.refund",
+        actionSummary: "Approve refund",
+        callbackBaseUrl: "https://app.example.eu/api/callback",
+        channel: { type: "slack", webhookUrl: "https://hooks.slack.com/services/T0/B0/X0" },
+        consoleApiKey: liveKey,
+        consoleBaseUrl: "https://console.spurvik.com",
+      },
+      {
+        fetchImpl: async (url) => {
+          if (String(url).includes("/api/v1/hitl")) {
+            return new Response(
+              JSON.stringify({ error: { code: "plan_required", requiredPlan: "pro" } }),
+              { status: 402, headers: { "content-type": "application/json" } },
+            );
+          }
+          return new Response(JSON.stringify({ ok: true }), { status: 200 });
+        },
+      },
+    );
+    assert.equal(result.art14Gate.status, "pending_human_approval");
+    assert.equal(result.consoleSync?.httpStatus, 402);
+    assert.equal(result.consoleSync?.synced, false);
+    assert.equal(result.consoleSync?.planRequired, "pro");
+    assert.equal(result.upgradeUrls?.proWhiteLabelEur19, "https://console.spurvik.com/signup?plan=pro");
+  });
 });

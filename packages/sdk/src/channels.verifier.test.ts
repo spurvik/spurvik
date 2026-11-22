@@ -281,4 +281,25 @@ describe("domain prefixes, legacy tokens, and verifySignedChannelCallback", () =
       nonce: links.nonce,
     });
   });
+
+  it("verifySignedChannelCallback accepts a full callback URL string, URL instance, or URLSearchParams directly", () => {
+    const expected = {
+      ok: true,
+      decision: "approved",
+      gateId: req.gateId,
+      actionHmac: links.actionHmac,
+      issuedAtUnix: T0,
+      nonce: links.nonce,
+    };
+    expect(verifySignedChannelCallback(links.approveUrl, SECRET, { nowUnixSeconds: T0 + 10 })).toEqual(expected);
+    expect(verifySignedChannelCallback(new URL(links.approveUrl), SECRET, { nowUnixSeconds: T0 + 10 })).toEqual(expected);
+    expect(
+      verifySignedChannelCallback(new URL(links.approveUrl).searchParams, SECRET, { nowUnixSeconds: T0 + 10 }),
+    ).toEqual(expected);
+    expect(
+      verifySignedChannelCallback(links.approveUrl.replace("decision=approved", "decision=rejected"), SECRET, {
+        nowUnixSeconds: T0 + 10,
+      }),
+    ).toBe(false);
+  });
 });

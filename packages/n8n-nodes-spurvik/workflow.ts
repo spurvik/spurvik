@@ -45,6 +45,7 @@ export interface SpurvikConsoleSyncReceipt {
   httpStatus: number;
   synced: boolean;
   remoteId: string | null;
+  planRequired?: "pro";
 }
 
 /** Signup links on the console. Set only when no console API key is configured (consoleSync is null). */
@@ -134,6 +135,15 @@ async function postConsoleJson(
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
+    if (response.status === 402 && endpoint === "/api/v1/hitl") {
+      return {
+        endpoint,
+        httpStatus: 402,
+        synced: false,
+        remoteId: null,
+        planRequired: "pro",
+      };
+    }
     throw new Error(`Spurvik console sync to ${endpoint} failed with HTTP ${response.status}.`);
   }
   let remoteId: string | null = null;
@@ -179,7 +189,7 @@ function upgradeUrlsUnlessSynced(
   consoleSync: SpurvikConsoleSyncReceipt | null,
   rawBaseUrl: string | undefined,
 ): SpurvikWorkflowUpgradeUrls | null {
-  return consoleSync === null ? workflowUpgradeUrls(rawBaseUrl) : null;
+  return !consoleSync?.synced ? workflowUpgradeUrls(rawBaseUrl) : null;
 }
 
 function idleGate(): SpurvikWorkflowNodeOutput["art14Gate"] {

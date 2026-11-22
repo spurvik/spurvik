@@ -23,6 +23,6 @@ node --test examples/cloudflare-workers-hono-edge/smoke.test.mjs
 ## Hosted EU Console (`fra1`)
 
 - Interactive zero-cookie browser sandbox: https://console.spurvik.com/sandbox
-- Hosted EU (`fra1`) vault, human-oversight review queue & engineering summary (`Pro €19/mo` excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro
+- Hosted EU (`fra1`) vault, human-oversight review queue & engineering summary (`Pro €19/mo` excl. VAT · B2B): https://console.spurvik.com/signup?plan=pro
 
 *Spurvik provides runtime engineering primitives and cryptographic receipts — it is not legal advice, a conformity assessment, or Art. 50(2) media watermarking.*

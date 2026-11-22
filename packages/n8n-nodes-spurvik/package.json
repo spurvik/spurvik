@@ -42,6 +42,11 @@
   "peerDependencies": {
     "n8n-workflow": "*"
   },
+  "peerDependenciesMeta": {
+    "n8n-workflow": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "spurvik-sdk": "^1.0.8"
   },

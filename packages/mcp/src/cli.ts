@@ -31,7 +31,7 @@ Runtimes:   ${RUNTIMES.join(", ")}
 
 Hosted EU (fra1) console & zero-cookie interactive sandbox:
   Sandbox: https://console.spurvik.com/sandbox
-  Pro (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro
+  Pro (€19/mo excl. VAT · B2B): https://console.spurvik.com/signup?plan=pro
 `;
 
 function isFrameworkArg(value: string): value is Framework {
@@ -116,7 +116,7 @@ export function tryRunCli(argv: readonly string[], io: CliIo = DEFAULT_IO): numb
             timedOut: report.timedOut,
             depthLimited: report.depthLimited,
             sandboxUrl: "https://console.spurvik.com/sandbox",
-            proUpgradeUrl: "https://console.spurvik.com/?upgrade=pro",
+            proUpgradeUrl: "https://console.spurvik.com/signup?plan=pro",
           },
           null,
           2,
@@ -131,7 +131,7 @@ export function tryRunCli(argv: readonly string[], io: CliIo = DEFAULT_IO): numb
           "- Wrap model clients with `withSpurvik(client, config)` (`npm i spurvik`)",
           "- Python (FastAPI / LangChain / PydanticAI): `spurvik-mcp-server snippet fastapi` (`https://spurvik.com/r/spurvik_guard.py`)",
           "- Test in the interactive 2x2 browser sandbox (0 login): https://console.spurvik.com/sandbox",
-          "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro",
+          "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/signup?plan=pro",
           "",
         ].join("\n"),
       );
