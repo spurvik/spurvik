@@ -28709,7 +28709,7 @@ function nodeShutdown(expr) {
   void boundedFlush(${expr}).finally(() => process.exit(0));
 });`;
 }
-var SNIPPET_SDK_VERSION = "1.0.12";
+var SNIPPET_SDK_VERSION = "1.0.13";
 function header() {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",

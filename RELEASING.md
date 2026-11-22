@@ -2,7 +2,7 @@
 
 Run these commands from a clean detached checkout of QA_SHA. `spurvik` and `spurvik-sdk` are the same SDK build under two names. `spurvik-sdk` does not depend on `spurvik`. Do not pass `--provenance`.
 
-When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.6`). `spurvik` does not depend on `spurvik-sdk`; they are the same build under two names. This document's SDK steps describe the `spurvik-sdk@1.0.13` and `spurvik@1.0.13` release. `n8n-nodes-spurvik@1.0.10` is published after them with the n8n section below; it still depends on `spurvik-sdk@^1.0.8` from the registry. Never republish an existing version. For `spurvik-mcp-server@1.0.10`, use the MCP section at the end.
+When a version is new, publish `spurvik-sdk`, then `spurvik`, then `n8n-nodes-spurvik` (it depends on `spurvik-sdk@^1.0.13`). `spurvik` does not depend on `spurvik-sdk`; they are the same build under two names. This document's SDK steps describe the `spurvik-sdk@1.0.13` and `spurvik@1.0.13` release. `n8n-nodes-spurvik@1.0.10` is published after them with the n8n section below; it depends on `spurvik-sdk@^1.0.13` from the registry. Never republish an existing version. For `spurvik-mcp-server@1.0.10`, use the MCP section at the end.
 
 The n8n `outputField` check compares field names, not values.
 

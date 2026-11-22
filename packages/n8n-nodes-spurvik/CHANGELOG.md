@@ -2,7 +2,7 @@
 
 - Marked `n8n-workflow` as an optional peer dependency (`"peerDependenciesMeta": { "n8n-workflow": { "optional": true } }`), preventing bare `npm install n8n-nodes-spurvik` outside an n8n Docker container (including on Node.js 26) from compiling `isolated-vm` C++ addons on the host.
 - `art14_ask_human`: when a Free-plan `consoleApiKey` receives `HTTP 402` on `POST {consoleBaseUrl}/api/v1/hitl`, the node keeps the dispatched channel approval receipt (`status: "pending_human_approval"`) and returns `consoleSync: { endpoint: "/api/v1/hitl", httpStatus: 402, synced: false, remoteId: null, planRequired: "pro" }` alongside `upgradeUrls` instead of failing the workflow.
-- Scan Live Domain, Batch Scan Domains, Check Image C2PA, and console sync now send `User-Agent: n8n-nodes-spurvik/1.0.10`.
+- Scan Live Domain, Batch Scan Domains, Check Image C2PA, and console sync now send `User-Agent: n8n-nodes-spurvik/1.0.10`, and `dependencies.spurvik-sdk` moves to `^1.0.13`.
 
 ## n8n-nodes-spurvik 1.0.9 — 2026-11-18
 

@@ -11,7 +11,7 @@ Published as `spurvik-mcp-server@1.0.10`. Both the local stdio server and the ho
 ### Changed
 
 - `spurvik-mcp-server` CLI (`--help` and `check`): updated legacy `https://console.spurvik.com/?upgrade=pro` links to `https://console.spurvik.com/signup?plan=pro`.
-- `spurvik_setup_snippet` pins `spurvik@1.0.12` (`SNIPPET_SDK_VERSION`, bumped to `1.0.13` once `spurvik@1.0.13` is live on npm) and `n8n-nodes-spurvik@1.0.10`.
+- `spurvik_setup_snippet` pins `spurvik@1.0.13` and `spurvik-sdk@1.0.13` (`SNIPPET_SDK_VERSION`) and `n8n-nodes-spurvik@1.0.10`.
 - `User-Agent` is now `spurvik-mcp-server/1.0.10`. Listing manifests (`server.json` with official `icons`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.10`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.10`.
 
 ## 1.0.9 — 2026-11-18
