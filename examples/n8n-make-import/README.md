@@ -1,6 +1,6 @@
 # n8n and Make.com import guide (`n8n-nodes-spurvik`)
 
-> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.9` is the repo manifest version and npm `latest` (MIT). `0.0.0-stage` is a placeholder.
+> Source: https://github.com/spurvik/spurvik (`packages/n8n-nodes-spurvik`). `n8n-nodes-spurvik` `1.0.10` is the repo manifest version (MIT). `0.0.0-stage` is a placeholder.
 
 Spurvik logs AI calls with HMAC receipts and offers disclosure, marking and human-oversight hooks. It is designed to support that work and not legal advice.
 
@@ -10,10 +10,10 @@ This folder is an import guide for the files that are actually in `packages/n8n-
 
 | Item | Detail |
 | --- | --- |
-| Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.9`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
+| Manifest | `packages/n8n-nodes-spurvik/package.json` version `1.0.10`. `"n8n"."nodes"` is `["dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js"]`. `"n8n"."credentials"` is `["dist/credentials/SpurvikApi.credentials.js"]`. |
 | Runtime | `nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.ts` exports `class SpurvikEuAiActGuard` and `SpurvikN8nNodeDescription`. `workflow.ts` exports `executeSpurvikWorkflowStep`. `index.ts` re-exports both. |
-| Build output | `npm run build` writes `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which `n8n-nodes-spurvik@1.0.9` ships. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js`. |
-| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.9`). `0.0.0-stage` is a placeholder. |
+| Build output | `npm run build` writes `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which `n8n-nodes-spurvik@1.0.10` ships. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js`. |
+| npm | `npm view n8n-nodes-spurvik` resolves to `latest` (`1.0.9` until `1.0.10` is published). `0.0.0-stage` is a placeholder. |
 | Make file already in the package | `packages/n8n-nodes-spurvik/make-com-blueprint.json`. See [Make.com](#makecom) before importing it. |
 
 `SpurvikN8nNodeDescription` fields n8n would read:
@@ -66,14 +66,14 @@ recordHash = HMAC-SHA-256(hmacSecret, "spurvik:workflow:chain:v1|" + previous + 
 
 n8n's install documentation: [Installation and management](https://docs.n8n.io/integrations/community-nodes/installation-and-management) and [GUI installation](https://docs.n8n.io/integrations/community-nodes/installation-and-management/gui-installation).
 
-n8n Cloud installs community nodes from the nodes panel (n8n 1.94.0 or later). Installing a package by npm name is a self-hosted action. `npm install n8n-nodes-spurvik@1.0.9` ships `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which load in n8n 2.46.4. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js` and failed in n8n 2.46.4 with `require(...).index is not a constructor`.
+n8n Cloud installs community nodes from the nodes panel (n8n 1.94.0 or later). Installing a package by npm name is a self-hosted action. `npm install n8n-nodes-spurvik@1.0.10` ships `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js`, which load in n8n 2.46.4. Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js` and failed in n8n 2.46.4 with `require(...).index is not a constructor`.
 
 Self-hosted steps, in order:
 
 1. Run a self-hosted n8n. Community-node installs from npm need `N8N_COMMUNITY_PACKAGES_ENABLED=true` (the documented default). The owner or admin account is the account that can open the install dialog.
 2. Open **Settings → Community Nodes → Install**.
-3. Enter the npm package name `n8n-nodes-spurvik` at `1.0.9`. Accept the community-node risk prompt and select **Install**.
-4. Install saves `n8n-nodes-spurvik@1.0.9` and registers the **Spurvik AI Act Guard** node (`n8n-nodes-spurvik.spurvikEuAiActGuard`) and the `spurvikApi` credential type.
+3. Enter the npm package name `n8n-nodes-spurvik` at `1.0.10`. Accept the community-node risk prompt and select **Install**.
+4. Install saves `n8n-nodes-spurvik@1.0.10` and registers the **Spurvik AI Act Guard** node (`n8n-nodes-spurvik.spurvikEuAiActGuard`) and the `spurvikApi` credential type.
 5. Create a Spurvik credential in n8n. The credential type is `spurvikApi`. Put the signing secret in that credential's password field. Do not put the secret in the workflow JSON. Names for SDK HTTP calls you make yourself are in [`.env.example`](./.env.example). The n8n node does not read those variables.
 6. Import the workflow. In the workflow editor, open the menu and choose **Import from File**. Select [`spurvik-eu-ai-act-guard.workflow.json`](./spurvik-eu-ai-act-guard.workflow.json).
 7. The file's Spurvik nodes use type `n8n-nodes-spurvik.spurvikEuAiActGuard` and `typeVersion` `1`. Each node sets `operation` and `systemName`. The notice node also sets `outputField` (`outputText`). The digest node sets `inputField`. The ask-human node sets `channel`, `callbackBaseUrl`, `actionName`, and `actionSummary`. The scan node sets `domainOrUrl` and has no credential. Each other node references credential `spurvikApi` by `id` and `name` only. There is no signing secret in the file. After import, select your Spurvik credential on each node that asks for one.
@@ -96,7 +96,7 @@ Make.com does not load n8n community nodes. A Make scenario cannot install `n8n-
    - Header `content-type`: `application/json`
    - Body: the Slack shape from `buildChannelOutboundRequest` (`text`, `blocks` with one `section` and one `actions` array). Button URLs in the sample are `https://example.com/hitl?...` placeholders. The real URLs are the `approveUrl` and `rejectUrl` strings from `createSignedApprovalLinks`. Make's HTTP module does not compute those HMAC receipts. The sample body is the shape, with `REPLACE_ME` where the digest and signature would be.
 3. `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts to `https://console.spurvik.com/api/v1/hitl` with JSON keys `actionName` and `payloadSummary` (`Bearer {{var.organization.spurvikApiKey}}`). This blueprint has not been test-imported in Make. Do not map the API key from the webhook payload.
-4. Console rows come from `spurvik@1.0.12` (`SpurvikClient`) or from `n8n-nodes-spurvik@1.0.9` when `consoleApiKey` is configured on `spurvikApi`. To write those rows directly from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For a hosted console workspace the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
+4. Console rows come from `spurvik@1.0.12` (`SpurvikClient`) or from `n8n-nodes-spurvik@1.0.10` when `consoleApiKey` is configured on `spurvikApi`. To write those rows directly from Make, add separate HTTP modules. Base URL placeholder: `{{var.SPURVIK_BASE_URL}}` (`https://example.com` in `.env.example`). For a hosted console workspace the SDK docs use `https://console.spurvik.com`. Headers on every call: `authorization: Bearer {{var.SPURVIK_API_KEY}}`, `accept: application/json`, `content-type: application/json`. The client reads a JSON object with a `data` field.
 
    `POST {{var.SPURVIK_BASE_URL}}/api/v1/telemetry` with:
 
@@ -164,9 +164,9 @@ The script checks every Spurvik node: type `n8n-nodes-spurvik.spurvikEuAiActGuar
 
 ## Gaps
 
-- `n8n-nodes-spurvik@1.0.9` ships `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js` (credential `spurvikApi`), which load in n8n 2.46.4.
+- `n8n-nodes-spurvik@1.0.10` ships `dist/nodes/SpurvikEuAiActGuard/SpurvikEuAiActGuard.node.js` and `dist/credentials/SpurvikApi.credentials.js` (credential `spurvikApi`), which load in n8n 2.46.4.
 - Older `1.0.0` and `1.0.1` tarballs pointed `n8n.nodes` at `dist/index.js` and cannot be loaded by n8n 2.46.4. In 1.0.0–1.0.2 a `passThroughFields` entry equal to a custom `inputField` still copied that value. 1.0.3+ skips that entry (trimmed, any letter case) as well as the fixed prompt names.
 - `art50_disclosure` and `art12_hmac_log` are separate. The notice reads `outputField`. When `consoleApiKey` is left empty, the helper does not call `POST /api/v1/disclosure`, `POST /api/v1/telemetry`, or `POST /api/v1/hitl`; setting `consoleApiKey` on `spurvikApi` enables optional sync to `consoleBaseUrl`.
 - The node depends on `spurvik-sdk`. It does not import `packages/sdk/src`.
 - `packages/n8n-nodes-spurvik/make-com-blueprint.json` posts `actionName` and `payloadSummary`. The bearer token is `{{var.organization.spurvikApiKey}}`. Make organization variables and scenario inputs are plain text, not secret storage. Organization variables need Make Pro, Teams, or Enterprise (https://help.make.com/custom-variables). The `{{var.input.spurvikApiKey}}` option needs scenario inputs (Pro+ and on-demand scheduling), so it likely won't work in a webhook-triggered blueprint. Make's scenario update API returns 422 (IM016) unless scheduling is on-demand, and an older sentence there still says Pro or higher (https://developers.make.com/api-documentation/api-reference/scenarios), while a later release note says scenario inputs were opened to all plans (https://help.make.com/scenario-inputs-now-available-for-all-users). For production, use a Make keychain or connection. This blueprint has not been test-imported in Make. The token is not a field from the webhook payload. It is not a scenario exported from a Make account.
-- This guide's workflow file is checked against the 1.0.9 descriptor.
+- This guide's workflow file is checked against the 1.0.10 descriptor.

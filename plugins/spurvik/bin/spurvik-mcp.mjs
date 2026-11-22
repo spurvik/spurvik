@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.9, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.10, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -22270,7 +22270,7 @@ ${tag}` : tag;
 }
 
 // packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.9";
+var MCP_VERSION = "1.0.10";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/scan-live-url.ts
@@ -29140,7 +29140,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   if (isWorkflowFramework(framework)) {
     return [
       "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
-      "npm install n8n-nodes-spurvik@1.0.9",
+      "npm install n8n-nodes-spurvik@1.0.10",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
       ""
@@ -29179,7 +29179,7 @@ function setupSnippet(frameworkInput, runtimeInput, options = {}) {
     const guideHref = mcpCockpitUrlFor(host, effectiveLocale);
     const ideLines = [
       `Framework: ${framework}. Runtime: Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate (10 zero-key tools, MIT).`,
-      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.9\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
+      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.10\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
       `Interactive MCP & GitHub Actions cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
@@ -30152,7 +30152,7 @@ Runtimes:   ${RUNTIMES.join(", ")}
 
 Hosted EU (fra1) console & zero-cookie interactive sandbox:
   Sandbox: https://console.spurvik.com/sandbox
-  Pro (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro
+  Pro (€19/mo excl. VAT · B2B): https://console.spurvik.com/signup?plan=pro
 `;
 function isFrameworkArg(value) {
   return FRAMEWORKS.includes(value);
@@ -30228,7 +30228,7 @@ function tryRunCli(argv, io = DEFAULT_IO) {
             timedOut: report.timedOut,
             depthLimited: report.depthLimited,
             sandboxUrl: "https://console.spurvik.com/sandbox",
-            proUpgradeUrl: "https://console.spurvik.com/?upgrade=pro"
+            proUpgradeUrl: "https://console.spurvik.com/signup?plan=pro"
           },
           null,
           2
@@ -30244,7 +30244,7 @@ function tryRunCli(argv, io = DEFAULT_IO) {
           "- Wrap model clients with `withSpurvik(client, config)` (`npm i spurvik`)",
           "- Python (FastAPI / LangChain / PydanticAI): `spurvik-mcp-server snippet fastapi` (`https://spurvik.com/r/spurvik_guard.py`)",
           "- Test in the interactive 2x2 browser sandbox (0 login): https://console.spurvik.com/sandbox",
-          "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/?upgrade=pro",
+          "- Hosted EU (fra1) HMAC vault, 9-channel ask_human() queue & DPO summary (€19/mo excl. VAT · B2B): https://console.spurvik.com/signup?plan=pro",
           ""
         ].join("\n")
       );

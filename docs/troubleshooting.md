@@ -1,6 +1,6 @@
 # Troubleshooting
 
-> Applies to `spurvik@1.0.12` and `spurvik-mcp-server@1.0.9`. `spurvik@1.0.12` sets `"engines": { "node": ">=20" }`.
+> Applies to `spurvik@1.0.13` and `spurvik-mcp-server@1.0.10`. `spurvik@1.0.13` sets `"engines": { "node": ">=20" }`.
 
 Quick links:
 
@@ -23,18 +23,18 @@ npm error code E404
 npm error 404 Not Found - GET https://registry.npmjs.org/@spurvik%2fsdk - Not found
 ```
 
-**Cause:** That scoped name is not the published package. The public MIT packages are `spurvik@1.0.12` and `spurvik-sdk@1.0.12`.
+**Cause:** That scoped name is not the published package. The public MIT packages are `spurvik@1.0.13` and `spurvik-sdk@1.0.13`.
 
 **Fix:**
 
 ```bash
-npm install openai spurvik@1.0.12
+npm install openai spurvik@1.0.13
 ```
 
-The local stdio MCP server is `spurvik-mcp-server@1.0.9`:
+The local stdio MCP server is `spurvik-mcp-server@1.0.10`:
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.9
+npm i -D spurvik-mcp-server@1.0.10
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
@@ -184,7 +184,7 @@ What to do:
 3. Keep your provenance records (for example `record.json`) on your side. They do not depend on the control plane. In this release, do not rely on the control plane as your only copy of these events. Keep your own records as well.
 
 In a **long-running server**, `onTelemetryError` is called once, about 4 seconds after the call (about 9 seconds if the control plane never answers). The event is not delivered by those attempts. It stays queued (up to 500 events) and is sent with a later flush, for example with the next wrapped call after the control plane comes back. Nothing retries it on a timer. It is lost if the process stops first, so keep your own records. Calling `await ai._spurvik.shutdown()` before the process exits gives queued events a last try. 
-Use `spurvik@1.0.12`. Call `await ai._spurvik.shutdown()` before a short script exits, and keep `onTelemetryError` where you can see it.
+Use `spurvik@1.0.13`. Call `await ai._spurvik.shutdown()` before a short script exits, and keep `onTelemetryError` where you can see it.
 
 ### `429` with `monthly_quota_exceeded`
 
@@ -241,7 +241,7 @@ Check `SpurvikOversightTimeoutError` before `SpurvikHaltedError`, because a time
 
 **Fix:** Make sure the control plane is reachable and is a Spurvik control plane (see the `curl` check above).
 
-On `spurvik@1.0.12`, a halt check that times out throws `SpurvikOversightTimeoutError`.
+On `spurvik@1.0.13`, a halt check that times out throws `SpurvikOversightTimeoutError`.
 
 ---
 

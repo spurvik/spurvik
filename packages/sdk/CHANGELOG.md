@@ -1,5 +1,18 @@
 # spurvik-sdk
 
+## 1.0.13 — 2026-11-22
+
+Published as `spurvik@1.0.13` and `spurvik-sdk@1.0.13` (same build).
+
+### Added
+
+- `verifySignedChannelCallback(urlOrSearchParams: string | URL | URLSearchParams, signingSecret: string, opts?)`: overloaded `verifySignedChannelCallback` in `spurvik` and `spurvik/channels` so Express, Hono, and Next.js GET callback handlers can pass `req.url`, a `URL` instance, or `URLSearchParams` (`gateId`, `hmac` / `actionHmac`, `decision`, `ts` / `issuedAtUnix`, `sig` / `signature`, `nonce`) directly in one line without manual parameter unpacking. The object-form signature is unchanged.
+- `spurvik setup`: added `hitl`, `slack`, `teams`, and `approval` targets/aliases and localized 8-language (`en`, `de`, `fr`, `nl`, `da`, `sv`, `es`, `it`) interactive cockpit links across Next.js / React / Vercel AI SDK, Art. 14 human approval gates, Art. 12 & GDPR HMAC receipts, WordPress / Elementor / Webflow / Framer, Cursor / Claude Code / GitHub Actions PR-gate, support widgets / e-commerce, and Python / n8n / Lovable, plus `Team €79/mo` links in `spurvik setup` and `spurvik audit`.
+
+### Changed
+
+- `User-Agent` for `scan` and `c2pa` is now `spurvik-cli/1.0.13`.
+
 ## 1.0.12 — 2026-11-18
 
 Published as `spurvik@1.0.12` and `spurvik-sdk@1.0.12` (same build). Library exports are unchanged.

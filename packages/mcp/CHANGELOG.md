@@ -1,5 +1,19 @@
 # spurvik-mcp-server
 
+## 1.0.10 — 2026-11-22
+
+Published as `spurvik-mcp-server@1.0.10`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
+
+### Added
+
+- `spurvik_setup_snippet` and tool `## Next steps` links: 8-language (`en`, `de`, `fr`, `nl`, `da`, `sv`, `es`, `it`) interactive cockpit routing + `Team €79/mo` links across Next.js / React / Vercel AI SDK, Art. 14 Slack / Teams / LangGraph / OpenAI Agents approval gates (`hitl`, `slack`, `teams`, and `approval` aliases), Art. 12 & GDPR HMAC receipts (`spurvik_explain_receipt`), WordPress / Elementor / Webflow / Framer, Cursor / Claude Code / GitHub Actions PR-gate IDE/CI targets, support widgets / e-commerce, and Python / n8n / Lovable.
+
+### Changed
+
+- `spurvik-mcp-server` CLI (`--help` and `check`): updated legacy `https://console.spurvik.com/?upgrade=pro` links to `https://console.spurvik.com/signup?plan=pro`.
+- `spurvik_setup_snippet` pins `spurvik@1.0.12` (`SNIPPET_SDK_VERSION`, bumped to `1.0.13` once `spurvik@1.0.13` is live on npm) and `n8n-nodes-spurvik@1.0.10`.
+- `User-Agent` is now `spurvik-mcp-server/1.0.10`. Listing manifests (`server.json` with official `icons`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.10`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.10`.
+
 ## 1.0.9 — 2026-11-18
 
 Published as `spurvik-mcp-server@1.0.9`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
