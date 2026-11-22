@@ -295,6 +295,29 @@ export function hitlCockpitUrlFor(host?: string | null, locale = "en"): string {
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
 
+/** 8-language Next.js App Router, React `<AIDisclosureLabel />`, `shadcn` / `v0` Registry & Vercel AI SDK (`spurvikMiddleware`) cockpit URL prefilled with `?domain=`. */
+export function nextjsCockpitUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/nextjs-vercel-ai-sdk-ki-verordnung-artikel-50"
+      : code === "fr"
+        ? "/fr/nextjs-vercel-ai-sdk-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/nextjs-vercel-ai-sdk-ai-verordening-artikel-50"
+          : code === "da"
+            ? "/da/nextjs-vercel-ai-sdk-eu-ai-act-artikel-50"
+            : code === "sv"
+              ? "/sv/nextjs-vercel-ai-sdk-ai-forordningen-artikel-50"
+              : code === "es"
+                ? "/es/nextjs-vercel-ai-sdk-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/nextjs-vercel-ai-sdk-regolamento-ia-articolo-50"
+                  : "/nextjs-vercel-ai-sdk-art50-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
 /** Live Art. 50 status shield SVG for one host. */
 export function statusShieldUrlFor(host: string): string {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;

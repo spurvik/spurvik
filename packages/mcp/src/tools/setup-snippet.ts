@@ -13,6 +13,7 @@ import {
   hmacCockpitUrlFor,
   lovableCockpitUrlFor,
   mcpCockpitUrlFor,
+  nextjsCockpitUrlFor,
   PRICE_NOTE,
   PRO_PRICE,
   PRO_SIGNUP_URL,
@@ -846,6 +847,7 @@ export function setupSnippet(
   if (framework === "vercel-ai-sdk") {
     lines.push(
       "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik.",
+      `Interactive Next.js, React & Vercel AI SDK cockpit: ${nextjsCockpitUrlFor(host, effectiveLocale)}`,
     );
   } else if (framework === "mastra") {
     lines.push("This snippet calls withSpurvikMastra.");

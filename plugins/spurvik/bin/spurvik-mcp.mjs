@@ -22157,6 +22157,12 @@ function hitlCockpitUrlFor(host, locale = "en") {
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+function nextjsCockpitUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/nextjs-vercel-ai-sdk-ki-verordnung-artikel-50" : code === "fr" ? "/fr/nextjs-vercel-ai-sdk-reglement-ia-article-50" : code === "nl" ? "/nl/nextjs-vercel-ai-sdk-ai-verordening-artikel-50" : code === "da" ? "/da/nextjs-vercel-ai-sdk-eu-ai-act-artikel-50" : code === "sv" ? "/sv/nextjs-vercel-ai-sdk-ai-forordningen-artikel-50" : code === "es" ? "/es/nextjs-vercel-ai-sdk-reglamento-ia-articulo-50" : code === "it" ? "/it/nextjs-vercel-ai-sdk-regolamento-ia-articolo-50" : "/nextjs-vercel-ai-sdk-art50-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 function statusShieldUrlFor(host) {
   return `${STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
 }
@@ -29275,7 +29281,8 @@ ${source}\`\`\`
   }
   if (framework === "vercel-ai-sdk") {
     lines.push(
-      "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik."
+      "This framework uses spurvikMiddleware with wrapLanguageModel. The snippet does not call withSpurvik.",
+      `Interactive Next.js, React & Vercel AI SDK cockpit: ${nextjsCockpitUrlFor(host, effectiveLocale)}`
     );
   } else if (framework === "mastra") {
     lines.push("This snippet calls withSpurvikMastra.");

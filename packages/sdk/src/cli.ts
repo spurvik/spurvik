@@ -950,6 +950,30 @@ function hitlCockpitUrl(host: string | null | undefined, locale = "en"): string 
     : `https://spurvik.com${slug}`;
 }
 
+function nextjsCockpitUrl(host: string | null | undefined, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/nextjs-vercel-ai-sdk-ki-verordnung-artikel-50"
+      : code === "fr"
+        ? "/fr/nextjs-vercel-ai-sdk-reglement-ia-article-50"
+        : code === "nl"
+          ? "/nl/nextjs-vercel-ai-sdk-ai-verordening-artikel-50"
+          : code === "da"
+            ? "/da/nextjs-vercel-ai-sdk-eu-ai-act-artikel-50"
+            : code === "sv"
+              ? "/sv/nextjs-vercel-ai-sdk-ai-forordningen-artikel-50"
+              : code === "es"
+                ? "/es/nextjs-vercel-ai-sdk-reglamento-ia-articulo-50"
+                : code === "it"
+                  ? "/it/nextjs-vercel-ai-sdk-regolamento-ia-articolo-50"
+                  : "/nextjs-vercel-ai-sdk-art50-badge";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost && cleanHost !== "your-app.example"
+    ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}`
+    : `https://spurvik.com${slug}`;
+}
+
 function wordpressCockpitUrl(host: string | null | undefined, locale = "en"): string {
   const code = (locale || "en").trim().toLowerCase();
   const slug =
@@ -1368,7 +1392,9 @@ export function buildSetupReport(
     const cmsCockpit =
       target === "wordpress" || target === "webflow" || target === "framer"
         ? wordpressCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
-        : undefined;
+        : target === "react"
+          ? nextjsCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
+          : undefined;
     return {
       target,
       runtime: "browser",
@@ -1545,7 +1571,9 @@ export function buildSetupReport(
       cockpitUrl:
         target === "langgraph" || target === "openai-agents" || target === "mastra"
           ? hitlCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
-          : hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
+          : target === "vercel-ai-sdk" || tsRuntime === "next" || tsRuntime === "vercel"
+            ? nextjsCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
+            : hmacCockpitUrl(host, loc ?? (host ? langForHost(host) : "en")),
     },
   };
 }
