@@ -84,9 +84,28 @@ export interface SpurvikScanMarkers {
 }
 
 export interface SpurvikScanUpgradeUrls {
+  freeApiKey10sEur0: string;
   proWhiteLabelEur19: string;
+  proAnnual2MonthsFreeEur190: string;
   teamAgencyEur79: string;
+  teamAnnual2MonthsFreeEur790: string;
   doneForYou24hEur199: string;
+}
+
+export type SpurvikWidgetDisclosureClass = "confirmed_ai" | "dual_use_helpdesk" | "none";
+
+const CONFIRMED_AI_WIDGET_RE =
+  /\b(?:fin|lyro|gorgias\s*ai|zendesk\s*ai|ultimate|ada|chatbase|voiceflow|botpress|customgpt|sierra|decagon|chatkit)\b/i;
+
+export function classifyWidgetDisclosure(
+  detectedWidgets: readonly string[],
+  detectedSdks: readonly string[],
+): SpurvikWidgetDisclosureClass {
+  if (detectedSdks.length > 0 || detectedWidgets.some((w) => CONFIRMED_AI_WIDGET_RE.test(w))) {
+    return "confirmed_ai";
+  }
+  if (detectedWidgets.length > 0) return "dual_use_helpdesk";
+  return "none";
 }
 
 export interface SpurvikScanDomainOutput {
@@ -95,6 +114,12 @@ export interface SpurvikScanDomainOutput {
   reachable: boolean;
   detectedWidgets: string[];
   detectedSdks: string[];
+  /**
+   * H121 dual-use guardrail: `"confirmed_ai"` when a confirmed AI agent/SDK is detected;
+   * `"dual_use_helpdesk"` when a generic chat widget (Intercom, Gorgias, Zendesk, Crisp, Tawk.to) is detected
+   * without confirmed AI answers (human-staffed chat requires zero Art. 50(1) notice); `"none"` when empty.
+   */
+  widgetDisclosureClass: SpurvikWidgetDisclosureClass;
   /** Detected storefront, CMS, tag manager, or framework (`Shopify`, `WordPress`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`), present when non-empty. */
   detectedPlatforms?: string[];
   /** 1-click zero-code CMS / storefront / Google Tag Manager installer download URLs, present when `detectedPlatforms` is non-empty. */
@@ -341,6 +366,7 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     reachable: facts.reachable,
     detectedWidgets: facts.detectedWidgets,
     detectedSdks: facts.detectedSdks,
+    widgetDisclosureClass: classifyWidgetDisclosure(facts.detectedWidgets, facts.detectedSdks),
     ...(facts.detectedPlatforms?.length ? { detectedPlatforms: facts.detectedPlatforms } : {}),
     ...(Object.keys(platformInstallerUrls).length > 0 ? { platformInstallerUrls } : {}),
     ...(detectedHeroProxy && facts.heroImageUrl
@@ -361,8 +387,11 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     statusShieldMarkdown: `[![EU AI Act Art. 50](${statusShieldUrl})](${reportUrl})`,
     agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
     upgradeUrls: {
+      freeApiKey10sEur0: `${SPURVIK_CONSOLE_ORIGIN}/signup?appUrl=${encoded}`,
       proWhiteLabelEur19: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro&appUrl=${encoded}`,
+      proAnnual2MonthsFreeEur190: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro&interval=annual&appUrl=${encoded}`,
       teamAgencyEur79: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team&appUrl=${encoded}`,
+      teamAnnual2MonthsFreeEur790: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team&interval=annual&appUrl=${encoded}`,
       doneForYou24hEur199: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=concierge&appUrl=${encoded}`,
     },
     scanStatus: facts.scanStatus,
@@ -469,6 +498,8 @@ export interface SpurvikBatchScanOutput {
   /** One Scan Live Domain result per distinct host, in input order. */
   results: SpurvikScanDomainOutput[];
   portfolioUrl: string;
+  /** Prefilled /portfolio?domains=... deep link opening all scanned hosts in the visual Agency Portfolio Cockpit. */
+  prefilledPortfolioUrl: string;
   agencyCalculatorUrl: string;
   /** Plan signup links (no single host to prefill; each row carries its own `appUrl` links). */
   upgradeUrls: SpurvikScanUpgradeUrls;
@@ -549,10 +580,14 @@ export async function batchScanSpurvikDomains(
       .length,
     results,
     portfolioUrl: SPURVIK_PORTFOLIO_URL,
+    prefilledPortfolioUrl: `${SPURVIK_PORTFOLIO_URL}?domains=${hosts.map(encodeURIComponent).join(",")}`,
     agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
     upgradeUrls: {
+      freeApiKey10sEur0: `${SPURVIK_CONSOLE_ORIGIN}/signup`,
       proWhiteLabelEur19: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro`,
+      proAnnual2MonthsFreeEur190: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro&interval=annual`,
       teamAgencyEur79: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team`,
+      teamAnnual2MonthsFreeEur790: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team&interval=annual`,
       doneForYou24hEur199: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=concierge`,
     },
   };

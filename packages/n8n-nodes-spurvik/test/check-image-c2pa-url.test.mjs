@@ -130,9 +130,13 @@ function badge(locale) {
 
 function upgradeUrls(appHost) {
   const appUrl = appHost ? `&appUrl=${encodeURIComponent(appHost)}` : "";
+  const freeAppUrl = appHost ? `?appUrl=${encodeURIComponent(appHost)}` : "";
   return {
+    freeApiKey10sEur0: `${CONSOLE}/signup${freeAppUrl}`,
     proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro${appUrl}`,
+    proAnnual2MonthsFreeEur190: `${CONSOLE}/signup?plan=pro&interval=annual${appUrl}`,
     teamAgencyEur79: `${CONSOLE}/signup?plan=team${appUrl}`,
+    teamAnnual2MonthsFreeEur790: `${CONSOLE}/signup?plan=team&interval=annual${appUrl}`,
     doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge${appUrl}`,
   };
 }

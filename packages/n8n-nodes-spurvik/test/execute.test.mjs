@@ -445,6 +445,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
     "reachable",
     "detectedWidgets",
     "detectedSdks",
+    "widgetDisclosureClass",
     "art50NoticeDetected",
     "badgeSnippet",
     "reportUrl",
@@ -469,8 +470,11 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       statusShieldMarkdown: `[![EU AI Act Art. 50](${CONSOLE}/api/v1/badge/status.svg?domain=${encoded})](${CONSOLE}/report?domain=${encoded})`,
       agencyCalculatorUrl: "https://spurvik.com/eu-ai-act-for-agencies",
       upgradeUrls: {
+        freeApiKey10sEur0: `${CONSOLE}/signup?appUrl=${encoded}`,
         proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro&appUrl=${encoded}`,
+        proAnnual2MonthsFreeEur190: `${CONSOLE}/signup?plan=pro&interval=annual&appUrl=${encoded}`,
         teamAgencyEur79: `${CONSOLE}/signup?plan=team&appUrl=${encoded}`,
+        teamAnnual2MonthsFreeEur790: `${CONSOLE}/signup?plan=team&interval=annual&appUrl=${encoded}`,
         doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge&appUrl=${encoded}`,
       },
     };
@@ -486,6 +490,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
       reachable: false,
       detectedWidgets: [],
       detectedSdks: [],
+      widgetDisclosureClass: "none",
       art50NoticeDetected: false,
       badgeSnippet: badge(host, locale),
       ...links(host),
@@ -615,6 +620,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
           reachable: true,
           detectedWidgets: [],
           detectedSdks: [],
+          widgetDisclosureClass: "none",
           art50NoticeDetected: false,
           badgeSnippet: badge("stepnetwork.dk", "da"),
           ...links("stepnetwork.dk"),
@@ -888,9 +894,16 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
           result.statusShieldMarkdown,
           `[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=${host})](https://console.spurvik.com/report?domain=${host})`,
         );
-        assert.deepEqual(Object.keys(result.upgradeUrls), ["proWhiteLabelEur19", "teamAgencyEur79", "doneForYou24hEur199"]);
+        assert.deepEqual(Object.keys(result.upgradeUrls), [
+          "freeApiKey10sEur0",
+          "proWhiteLabelEur19",
+          "proAnnual2MonthsFreeEur190",
+          "teamAgencyEur79",
+          "teamAnnual2MonthsFreeEur790",
+          "doneForYou24hEur199",
+        ]);
         for (const [key, link] of Object.entries(result.upgradeUrls)) {
-          assert.ok(link.endsWith(`&appUrl=${encodeURIComponent(host)}`), key);
+          assert.ok(link.endsWith(`appUrl=${encodeURIComponent(host)}`), key);
           assert.equal(new URL(link).searchParams.get("appUrl"), host, key);
         }
         assert.deepEqual(Object.keys(result), OUTPUT_KEYS);
@@ -945,6 +958,7 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
             "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=charlie-paris.com",
           nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
         });
+        assert.equal(row.widgetDisclosureClass, "dual_use_helpdesk");
         assert.equal(row.heroImageProxy.name, "Shopify CDN (/cdn/shop/)");
         assert.equal(
           row.heroImageProxy.c2paCheckUrl,
@@ -952,13 +966,35 @@ describe("SpurvikEuAiActGuard scanDomain (zero-key Scan Live Domain)", () => {
         );
       },
     );
+    await withFetch(
+      async () =>
+        json({
+          ok: true,
+          scan: { ...LIVE_SCAN.scan, domain: "folk.app", measured: true, detectedWidgets: ["Intercom Fin"] },
+        }),
+      async () => {
+        const [out] = await node.execute.call(scanCtx({ domainOrUrl: "folk.app" }));
+        assert.equal(out[0].json.widgetDisclosureClass, "confirmed_ai");
+      },
+    );
   });
 
   describe("batchScanDomains (zero-key Batch Scan, agency roster)", () => {
-    const BATCH_KEYS = ["totalDomains", "gapsFound", "results", "portfolioUrl", "agencyCalculatorUrl", "upgradeUrls"];
+    const BATCH_KEYS = [
+      "totalDomains",
+      "gapsFound",
+      "results",
+      "portfolioUrl",
+      "prefilledPortfolioUrl",
+      "agencyCalculatorUrl",
+      "upgradeUrls",
+    ];
     const BATCH_UPGRADES = {
+      freeApiKey10sEur0: `${CONSOLE}/signup`,
       proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro`,
+      proAnnual2MonthsFreeEur190: `${CONSOLE}/signup?plan=pro&interval=annual`,
       teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+      teamAnnual2MonthsFreeEur790: `${CONSOLE}/signup?plan=team&interval=annual`,
       doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge`,
     };
 

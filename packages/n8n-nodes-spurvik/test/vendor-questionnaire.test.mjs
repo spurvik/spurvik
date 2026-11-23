@@ -453,7 +453,7 @@ describe("vendorQuestionnaireAnswers execute", () => {
     assert.deepEqual(tail.split("\n").filter((line) => line.startsWith("- ")), [
       `- Interactive questionnaire & DPO RFP auto-responder: ${INTERACTIVE}`,
       `- Live Art. 50(1) report for acme.eu: ${CONSOLE}/report?domain=acme.eu`,
-      `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${CONSOLE}/signup`,
+      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${CONSOLE}/signup`,
       `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${CONSOLE}/signup?plan=pro&appUrl=acme.eu`,
       `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${CONSOLE}/signup?plan=team`,
       `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${CONSOLE}/signup?plan=concierge&appUrl=acme.eu`,

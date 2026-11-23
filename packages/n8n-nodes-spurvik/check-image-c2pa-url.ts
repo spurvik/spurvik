@@ -231,9 +231,13 @@ export function generatedBadgeSnippet(locale: string): string {
 
 function upgradeUrlsFor(siteHost: string | null): SpurvikScanUpgradeUrls {
   const appUrl = siteHost ? `&appUrl=${encodeURIComponent(siteHost)}` : "";
+  const freeAppUrl = siteHost ? `?appUrl=${encodeURIComponent(siteHost)}` : "";
   return {
+    freeApiKey10sEur0: `${SPURVIK_CONSOLE_ORIGIN}/signup${freeAppUrl}`,
     proWhiteLabelEur19: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro${appUrl}`,
+    proAnnual2MonthsFreeEur190: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=pro&interval=annual${appUrl}`,
     teamAgencyEur79: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team${appUrl}`,
+    teamAnnual2MonthsFreeEur790: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=team&interval=annual${appUrl}`,
     doneForYou24hEur199: `${SPURVIK_CONSOLE_ORIGIN}/signup?plan=concierge${appUrl}`,
   };
 }

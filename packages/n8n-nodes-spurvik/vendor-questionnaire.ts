@@ -371,7 +371,7 @@ function nextSteps(host: string | null, upgradeUrls: SpurvikQuestionnaireUpgrade
   const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${SPURVIK_VENDOR_QUESTIONNAIRE_URL}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${upgradeUrls.freeApiKey10sEur0}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${upgradeUrls.freeApiKey10sEur0}`,
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${upgradeUrls.proWhiteLabelEur19}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${upgradeUrls.teamAgencyEur79}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${upgradeUrls.doneForYou24hEur199}`,
