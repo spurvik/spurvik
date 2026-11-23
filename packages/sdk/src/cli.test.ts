@@ -1444,4 +1444,60 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       "https://console.spurvik.com/labels?domain=charlie-paris.com&locale=fr&tab=react",
     );
   });
+
+  it("runs offline 6-vector cryptographic Art. 14 blocking self-test in spurvik gate & block-test (H186b)", async () => {
+    const h = harness(() => {
+      throw new Error("gate must make zero network requests");
+    });
+    expect(await runCli(["gate", "doctolib.fr"], h.deps)).toBe(EXIT_OK);
+    const out = h.out();
+    expect(out).toContain("Spurvik EU AI Act Art. 14 Blocking Self-Test · doctolib.fr");
+    expect(out).toContain("PASS 6/6 · 5/5 adversarial & unapproved calls blocked fail-closed · 0 raw prompt bytes");
+    expect(out).toContain("https://spurvik.com/fr/reglement-ia-article-14-controle-humain-validation-slack-teams?domain=doctolib.fr");
+    expect(out).toContain("https://console.spurvik.com/signup?plan=pro&appUrl=doctolib.fr");
+    expect(out).not.toMatch(/€49|compliant|verified|certified|guaranteed|conforme|zero-pii|Multi-Client/i);
+
+    const aliasJson = harness(() => {
+      throw new Error("block-test must make zero network requests");
+    });
+    expect(await runCli(["block-test", "--domain", "personio.de", "--json"], aliasJson.deps)).toBe(EXIT_OK);
+    const parsed = JSON.parse(aliasJson.out());
+    expect(parsed.allPassed).toBe(true);
+    expect(parsed.blockedAttacks).toBe(5);
+    expect(parsed.totalVectors).toBe(6);
+    expect(parsed.domain).toBe("personio.de");
+    expect(parsed.locale).toBe("de");
+    expect(parsed.sampleAction.rawPromptPersistedBytes).toBe(0);
+    expect(parsed.vectors.map((v: { id: string; actualExecution: string; passed: boolean }) => [v.id, v.actualExecution, v.passed])).toEqual([
+      ["unapproved_default_halt", "blocked", true],
+      ["explicit_human_block", "blocked", true],
+      ["tampered_payload_hmac", "blocked", true],
+      ["decision_flip_forgery", "blocked", true],
+      ["expired_link_replay", "blocked", true],
+      ["authentic_signed_approval", "allowed", true],
+    ]);
+    expect(parsed.links.cockpitUrl).toBe(
+      "https://spurvik.com/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe?domain=personio.de",
+    );
+
+    // Drops private/localhost hostnames silently without echoing them
+    const priv = harness();
+    expect(await runCli(["gate", "localhost", "--lang", "nl", "--json"], priv.deps)).toBe(EXIT_OK);
+    const privJson = JSON.parse(priv.out());
+    expect(privJson.domain).toBeNull();
+    expect(privJson.locale).toBe("nl");
+    expect(privJson.links.cockpitUrl).toBe(
+      "https://spurvik.com/nl/ai-verordening-artikel-14-menselijk-toezicht-slack-teams-goedkeuring",
+    );
+
+    for (const bad of [
+      ["gate", "a.eu", "b.eu"],
+      ["gate", "a.eu", "--domain", "b.eu"],
+      ["gate", "--lang", "ja"],
+      ["gate", "--fail-on-gap"],
+    ]) {
+      const errH = harness();
+      expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
+  });
 });

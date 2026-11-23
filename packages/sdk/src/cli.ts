@@ -5,9 +5,15 @@
  * Nothing here reads environment variables (except NO_COLOR), writes files, or logs input anywhere but stdout/stderr.
  * `audit` never prints source text: only relative `file:line` and a provider label.
  */
+import { createHmac, randomBytes } from "node:crypto";
 import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  createSignedApprovalLinks,
+  verifyChannelApprovalToken,
+  verifySignedChannelCallback,
+} from "./channels.js";
 import {
   classifySpurvikRisk,
   SPURVIK_RISK_AREAS,
@@ -2334,6 +2340,307 @@ function cmdRisk(args: ParsedArgs, io: Io): number {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// gate / block-test — Offline cryptographic EU AI Act Art. 14 fail-closed blocking self-test (0 network requests)
+// ---------------------------------------------------------------------------------------------------------------
+
+export type GateVectorId =
+  | "unapproved_default_halt"
+  | "explicit_human_block"
+  | "tampered_payload_hmac"
+  | "decision_flip_forgery"
+  | "expired_link_replay"
+  | "authentic_signed_approval";
+
+export interface GateVectorResult {
+  id: GateVectorId;
+  scenario: string;
+  expectedExecution: "blocked" | "allowed";
+  actualExecution: "blocked" | "allowed";
+  reason: string;
+  passed: boolean;
+}
+
+export interface GateReport {
+  article: "EU AI Act Art. 14 + Art. 12";
+  domain: string | null;
+  locale: BadgeLang;
+  allPassed: boolean;
+  blockedAttacks: number;
+  totalVectors: number;
+  sampleAction: {
+    gateId: string;
+    actionName: string;
+    actionHmacPrefix: string;
+    rawPromptPersistedBytes: 0;
+  };
+  vectors: GateVectorResult[];
+  snippet: string;
+  links: {
+    cockpitUrl: string;
+    sandboxUrl: string;
+    freeSignupUrl: string;
+    proUpgradeUrl: string;
+    proAnnualUrl: string;
+    teamUpgradeUrl: string;
+    teamAnnualUrl: string;
+    doneForYouUrl: string;
+  };
+}
+
+const GATE_USAGE = "Usage: spurvik gate [domain] [--domain <domain>] [--lang <eu-locale>] [--json]";
+
+function publicGateHost(raw: string | undefined): string | null {
+  if (!raw) return null;
+  try {
+    return normalizeScanTarget(raw).host;
+  } catch {
+    return null;
+  }
+}
+
+export function gateReport(options: { domain?: string; locale?: string } = {}): GateReport {
+  const domain = publicGateHost(options.domain);
+  const requestedLang = options.locale && BADGE_LANGS.includes(options.locale as BadgeLang)
+    ? (options.locale as BadgeLang)
+    : undefined;
+  const locale: BadgeLang = requestedLang ?? (domain ? langForHost(domain) : "en");
+
+  const ephemeralSecret = randomBytes(32).toString("hex");
+  const issuedAtUnix = 1_795_000_000;
+  const maxAgeSeconds = 900;
+  const gateId = "gate_art14_selftest_01";
+  const actionName = "stripe.refunds.create";
+  const callbackBaseUrl = "https://app.example/api/spurvik/callback";
+
+  const signed = createSignedApprovalLinks(
+    {
+      gateId,
+      actionName,
+      summary: "Refund EUR 240",
+      context: { amountEur: 240, currency: "EUR" },
+      callbackBaseUrl,
+    },
+    ephemeralSecret,
+    issuedAtUnix,
+  );
+
+  // 1. Default fail-closed halt before any human click
+  const unapprovedCheck = verifySignedChannelCallback(
+    `${callbackBaseUrl}?gateId=${gateId}`,
+    ephemeralSecret,
+    { maxAgeSeconds, nowUnixSeconds: issuedAtUnix + 5 },
+  );
+  const v1Actual: "blocked" | "allowed" =
+    unapprovedCheck !== false && unapprovedCheck.decision === "approved" ? "allowed" : "blocked";
+
+  // 2. Explicit human Block click (signed decision=rejected)
+  const rejectCheck = verifySignedChannelCallback(signed.rejectUrl, ephemeralSecret, {
+    maxAgeSeconds,
+    nowUnixSeconds: issuedAtUnix + 5,
+  });
+  const v2Actual: "blocked" | "allowed" =
+    rejectCheck !== false && rejectCheck.decision === "approved" ? "allowed" : "blocked";
+
+  // 3. Payload parameter tampering (amountEur mutated 240 -> 24000 after signing)
+  const tamperedActionHmac = createHmac("sha256", ephemeralSecret)
+    .update(`spurvik:art12:v1|${gateId}|${actionName}|amountEur=24000&currency=EUR`, "utf8")
+    .digest("hex");
+  const tamperedOk = verifyChannelApprovalToken({
+    gateId,
+    actionHmac: tamperedActionHmac,
+    decision: "approved",
+    issuedAtUnix,
+    signature: signed.approveToken,
+    signingSecret: ephemeralSecret,
+    nonce: signed.nonce,
+    maxAgeSeconds,
+    nowUnixSeconds: issuedAtUnix + 5,
+  });
+  const v3Actual: "blocked" | "allowed" = tamperedOk ? "allowed" : "blocked";
+
+  // 4. Decision-flip forgery (swapping decision=rejected -> decision=approved on a signed Block URL)
+  const flippedUrl = signed.rejectUrl.replace("decision=rejected", "decision=approved");
+  const flippedCheck = verifySignedChannelCallback(flippedUrl, ephemeralSecret, {
+    maxAgeSeconds,
+    nowUnixSeconds: issuedAtUnix + 5,
+  });
+  const v4Actual: "blocked" | "allowed" =
+    flippedCheck !== false && flippedCheck.decision === "approved" ? "allowed" : "blocked";
+
+  // 5. Expired link replay (+901s past 900s TTL window)
+  const expiredCheck = verifySignedChannelCallback(signed.approveUrl, ephemeralSecret, {
+    maxAgeSeconds,
+    nowUnixSeconds: issuedAtUnix + maxAgeSeconds + 1,
+  });
+  const v5Actual: "blocked" | "allowed" =
+    expiredCheck !== false && expiredCheck.decision === "approved" ? "allowed" : "blocked";
+
+  // 6. Authentic unmodified human Approve click within TTL
+  const approveCheck = verifySignedChannelCallback(signed.approveUrl, ephemeralSecret, {
+    maxAgeSeconds,
+    nowUnixSeconds: issuedAtUnix + 12,
+  });
+  const v6Actual: "blocked" | "allowed" =
+    approveCheck !== false && approveCheck.decision === "approved" ? "allowed" : "blocked";
+
+  const vectors: GateVectorResult[] = [
+    {
+      id: "unapproved_default_halt",
+      scenario: "Unapproved tool call (missing human signature)",
+      expectedExecution: "blocked",
+      actualExecution: v1Actual,
+      reason: "Fail-closed default halts tool execution until a signed human token arrives",
+      passed: unapprovedCheck === false && v1Actual === "blocked",
+    },
+    {
+      id: "explicit_human_block",
+      scenario: "Reviewer clicks signed Block link (decision=rejected)",
+      expectedExecution: "blocked",
+      actualExecution: v2Actual,
+      reason: "Constant-time MAC confirms decision=rejected and blocks execution",
+      passed: rejectCheck !== false && rejectCheck.decision === "rejected" && v2Actual === "blocked",
+    },
+    {
+      id: "tampered_payload_hmac",
+      scenario: "Payload mutation (amountEur 240 -> 24000 with original sig)",
+      expectedExecution: "blocked",
+      actualExecution: v3Actual,
+      reason: "spurvik:art12:v1 context digest mismatch rejects forged parameters",
+      passed: !tamperedOk && v3Actual === "blocked",
+    },
+    {
+      id: "decision_flip_forgery",
+      scenario: "Decision-flip forgery (decision=rejected -> decision=approved)",
+      expectedExecution: "blocked",
+      actualExecution: v4Actual,
+      reason: "spurvik:art14:decision:v1 domain-separated HMAC rejects swapped decision",
+      passed: flippedCheck === false && v4Actual === "blocked",
+    },
+    {
+      id: "expired_link_replay",
+      scenario: "Replay of genuine Approve link past TTL (+901s > 900s)",
+      expectedExecution: "blocked",
+      actualExecution: v5Actual,
+      reason: "Bounded maxAgeSeconds window blocks stale replay attempts",
+      passed: expiredCheck === false && v5Actual === "blocked",
+    },
+    {
+      id: "authentic_signed_approval",
+      scenario: "Unmodified Approve link within TTL + matching nonce",
+      expectedExecution: "allowed",
+      actualExecution: v6Actual,
+      reason: "Constant-time HMAC-SHA256 + nonce + TTL check permits single gated action",
+      passed: approveCheck !== false && approveCheck.decision === "approved" && v6Actual === "allowed",
+    },
+  ];
+
+  const allPassed = vectors.every((v) => v.passed);
+  const blockedAttacks = vectors.filter((v) => v.expectedExecution === "blocked" && v.actualExecution === "blocked").length;
+
+  const snippet = [
+    'import { createSignedApprovalLinks, verifySignedChannelCallback } from "spurvik/channels";',
+    "",
+    "const gate = createSignedApprovalLinks(",
+    '  { gateId: crypto.randomUUID(), actionName: "stripe.refunds.create", summary: "Refund EUR 240", context: { amountEur: 240, currency: "EUR" }, callbackBaseUrl: "https://your-app.eu/api/spurvik/callback" },',
+    "  process.env.SPURVIK_CHANNEL_SECRET!,",
+    ");",
+    "// Inside GET /api/spurvik/callback — fail-closed unless ok && decision === \"approved\":",
+    "const check = verifySignedChannelCallback(req.url, process.env.SPURVIK_CHANNEL_SECRET!, { maxAgeSeconds: 900 });",
+    'if (!check || check.decision !== "approved") throw new Error("Blocked by EU AI Act Art. 14 human gate");',
+  ].join("\n");
+
+  const domainLinks = domain ? scanLinks(domain, locale) : null;
+  const localeParam = locale !== "en" ? `&locale=${encodeURIComponent(locale)}` : "";
+
+  return {
+    article: "EU AI Act Art. 14 + Art. 12",
+    domain,
+    locale,
+    allPassed,
+    blockedAttacks,
+    totalVectors: vectors.length,
+    sampleAction: {
+      gateId,
+      actionName,
+      actionHmacPrefix: signed.actionHmac.slice(0, 16),
+      rawPromptPersistedBytes: 0,
+    },
+    vectors,
+    snippet,
+    links: {
+      cockpitUrl: hitlCockpitUrl(domain, locale),
+      sandboxUrl: domainLinks ? domainLinks.sandboxUrl : `${CONSOLE_ORIGIN}/sandbox`,
+      freeSignupUrl: domainLinks
+        ? domainLinks.freeSignupUrl
+        : `${SIGNUP_URL}${locale !== "en" ? `?locale=${encodeURIComponent(locale)}` : ""}`,
+      proUpgradeUrl: domainLinks ? domainLinks.proUpgradeUrl : `${PRO_SIGNUP_URL}${localeParam}`,
+      proAnnualUrl: domainLinks
+        ? domainLinks.proAnnualUrl
+        : `${CONSOLE_ORIGIN}/signup?plan=pro&interval=annual${localeParam}`,
+      teamUpgradeUrl: domainLinks ? domainLinks.teamUpgradeUrl : `${TEAM_SIGNUP_URL}${localeParam}`,
+      teamAnnualUrl: domainLinks
+        ? domainLinks.teamAnnualUrl
+        : `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual${localeParam}`,
+      doneForYouUrl: domainLinks ? domainLinks.doneForYouUrl : `${CONCIERGE_SIGNUP_URL}${localeParam}`,
+    },
+  };
+}
+
+function cmdGate(args: ParsedArgs, io: Io): number {
+  if (args.positionals.length > 1 || (args.positionals.length === 1 && args.domain !== undefined)) {
+    io.err(GATE_USAGE);
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && !(BADGE_LANGS as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik gate: --lang must be one of ${BADGE_LANGS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  const report = gateReport({
+    domain: args.domain ?? args.positionals[0],
+    locale: args.lang,
+  });
+  if (args.json) {
+    io.out(JSON.stringify(report, null, 2));
+    return report.allPassed ? EXIT_OK : EXIT_GAP;
+  }
+  const { c, out } = io;
+  const targetSuffix = report.domain ? ` · ${report.domain}` : "";
+  out();
+  out(`  ${c.bold(`Spurvik EU AI Act Art. 14 Blocking Self-Test${targetSuffix}`)} ${c.dim(`(spurvik/channels ${CLI_VERSION})`)}`);
+  out(
+    `  ${report.allPassed ? c.green(`PASS ${report.totalVectors}/${report.totalVectors}`) : c.red("FAIL")} · ${report.blockedAttacks}/5 adversarial & unapproved calls blocked fail-closed · 0 raw prompt bytes`,
+  );
+  out();
+  for (const v of report.vectors) {
+    const badge =
+      v.actualExecution === "blocked" ? c.yellow("BLOCKED") : c.green("ALLOWED");
+    const mark = v.passed ? c.green("✓") : c.red("✗");
+    out(`  ${mark} [${badge}] ${c.bold(v.scenario)}`);
+    out(`      ${c.dim(v.reason)}`);
+  }
+  out();
+  out(`  ${c.bold("Drop-in TypeScript gate")} ${c.dim("(npm install spurvik — Slack, Teams, Telegram, Discord, Email, Linear, Jira, Asana)")}`);
+  for (const line of report.snippet.split("\n")) {
+    out(`    ${line}`);
+  }
+  out();
+  out(`  ${c.bold("Next steps")} ${c.dim("(prices excl. VAT)")}`);
+  const step = (label: string, url: string) => {
+    out(`  › ${label}`);
+    out(`    ${c.cyan(url)}`);
+  };
+  step("Interactive Art. 14 Slack/Teams approval cockpit", report.links.cockpitUrl);
+  step("Free API key (€0, 5k Art. 12 HMAC events/mo, no card)", report.links.freeSignupUrl);
+  step("Pro human-in-the-loop gates + 100k events (€19/mo or €190/yr)", report.links.proUpgradeUrl);
+  step("Team 2M events + Annex IV & auditor verification (€79/mo or €790/yr)", report.links.teamUpgradeUrl);
+  step("24h engineer Done-For-You (€199 once, incl. 1 year of Pro)", report.links.doneForYouUrl);
+  out();
+  out(`  ${c.dim("Offline cryptographic self-test using an ephemeral in-memory key; 0 network requests. Not legal advice.")}`);
+  out();
+  return report.allPassed ? EXIT_OK : EXIT_GAP;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -2361,7 +2668,21 @@ interface ParsedArgs {
   unknown: string[];
 }
 
-const COMMANDS = new Set(["scan", "portfolio", "c2pa", "audit", "badge", "setup", "init", "rfp", "risk", "help", "version"]);
+const COMMANDS = new Set([
+  "scan",
+  "portfolio",
+  "c2pa",
+  "audit",
+  "badge",
+  "setup",
+  "init",
+  "rfp",
+  "risk",
+  "gate",
+  "block-test",
+  "help",
+  "version",
+]);
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = {
@@ -2441,6 +2762,7 @@ export function helpText(): string {
     "  spurvik audit [dir] [--json] [--fail-on-gap]             Find unwrapped TS/JS & Python AI model calls",
     "  spurvik setup [target|dir] [--runtime <r>] [--json]      Auto-detect stack & print SDK/Python/CMS setup + .env",
     "  spurvik badge [domain] [--lang <eu-locale>] [--cms <c>]  24-language badge.js, Shopify, WP, Webflow & React snippets",
+    "  spurvik gate [domain] [--lang <eu-locale>] [--json]      Offline 6-vector Art. 14 fail-closed blocking self-test",
     "  spurvik risk [domain] [--use-case <text>] [--area <a>]   EU AI Act risk classifier & DPO self-assessment Markdown",
     "  spurvik rfp [domain] [--plan <plan>] [--provider <p>] [--json]",
     "                                                           EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)",
@@ -2458,11 +2780,12 @@ export function helpText(): string {
     "  npx spurvik c2pa charlie-paris.com",
     "  npx spurvik audit . --fail-on-gap",
     "  npx spurvik badge example.de",
+    "  npx spurvik gate doctolib.fr",
     "  npx spurvik risk acme.eu --use-case \"Customer support chatbot\" > AI_ACT_RISK.md",
     "  npx spurvik rfp acme.eu --plan team --provider langgraph",
     "",
     "scan and c2pa send only the domain or URL you pass to console.spurvik.com; audit runs locally and prints file:line only;",
-    "risk and rfp make no request. Not legal advice.",
+    "gate, risk and rfp make no request. Not legal advice.",
   ].join("\n");
 }
 
@@ -2496,8 +2819,14 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --runtime applies to the setup command only.");
     return EXIT_ERROR;
   }
-  if (args.domain !== undefined && args.command !== "setup" && args.command !== "init") {
-    io.err("spurvik: --domain applies to the setup command only.");
+  if (
+    args.domain !== undefined &&
+    args.command !== "setup" &&
+    args.command !== "init" &&
+    args.command !== "gate" &&
+    args.command !== "block-test"
+  ) {
+    io.err("spurvik: --domain applies to the setup and gate commands only.");
     return EXIT_ERROR;
   }
   if (
@@ -2506,9 +2835,11 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "rfp" &&
     args.command !== "risk" &&
     args.command !== "setup" &&
-    args.command !== "init"
+    args.command !== "init" &&
+    args.command !== "gate" &&
+    args.command !== "block-test"
   ) {
-    io.err("spurvik: --lang applies to the badge, rfp, risk and setup commands only.");
+    io.err("spurvik: --lang applies to the badge, gate, rfp, risk and setup commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {
@@ -2519,7 +2850,15 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: use --fail-on-missing with c2pa (--fail-on-gap is for scan and audit).");
     return EXIT_ERROR;
   }
-  if (args.failOnGap && (args.command === "rfp" || args.command === "risk" || args.command === "setup" || args.command === "init")) {
+  if (
+    args.failOnGap &&
+    (args.command === "rfp" ||
+      args.command === "risk" ||
+      args.command === "setup" ||
+      args.command === "init" ||
+      args.command === "gate" ||
+      args.command === "block-test")
+  ) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
   }
@@ -2558,6 +2897,9 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       return cmdRfp(args, io);
     case "risk":
       return cmdRisk(args, io);
+    case "gate":
+    case "block-test":
+      return cmdGate(args, io);
     default:
       io.err(`spurvik: unknown command "${cleanText(args.command, 40)}". Run spurvik --help.`);
       return EXIT_ERROR;
