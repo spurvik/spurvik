@@ -91,6 +91,8 @@ export interface ClassifyRiskResult {
   obligations: Obligation[];
   recommendedSpurvikControls: SpurvikControl[];
   interactiveClassifierUrl: string;
+  /** Deep link to /risk-check with ?preset=cv-screener|media-generator|support-chatbot preselected for 1-click colleague sharing. */
+  prefilledRiskCheckUrl: string;
   reportUrl?: string;
   selfAssessmentMarkdown?: string;
   upgradeUrls: { pro: UpgradeOffer; team: UpgradeOffer; concierge: UpgradeOffer };
@@ -491,6 +493,18 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
   if (loc) classifierParams.set("locale", loc);
   const interactiveClassifierUrl =
     classifierParams.size > 0 ? `${RISK_CHECK_URL}?${classifierParams.toString()}` : RISK_CHECK_URL;
+  const presetSlug =
+    tier === "high_risk_annex_iii"
+      ? "cv-screener"
+      : signals.generatesSyntheticMedia.value
+        ? "media-generator"
+        : "support-chatbot";
+  const prefillParams = new URLSearchParams();
+  if (host) prefillParams.set("domain", host);
+  if (presetSlug !== "support-chatbot") prefillParams.set("preset", presetSlug);
+  if (loc) prefillParams.set("locale", loc);
+  const prefilledRiskCheckUrl =
+    prefillParams.size > 0 ? `${RISK_CHECK_URL}?${prefillParams.toString()}` : RISK_CHECK_URL;
   const reportUrl = host ? `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}` : undefined;
   const upgrades = upgradeOffers(host, loc);
   const annexIiiPointOut = tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea];
@@ -526,6 +540,7 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
       obligations,
       recommendedSpurvikControls: controls,
       interactiveClassifierUrl,
+      prefilledRiskCheckUrl,
       ...(reportUrl ? { reportUrl } : {}),
       ...(selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {}),
       upgradeUrls: upgrades,

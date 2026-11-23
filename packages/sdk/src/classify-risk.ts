@@ -101,6 +101,7 @@ export interface SpurvikClassifyRiskReport {
   obligations: SpurvikRiskObligation[];
   recommendedSpurvikControls: SpurvikRiskControl[];
   interactiveClassifierUrl: string;
+  prefilledRiskCheckUrl: string;
   reportUrl: string | null;
   upgradeUrls: {
     free: SpurvikRiskUpgradeOffer;
@@ -532,6 +533,18 @@ export function classifySpurvikRisk(input: SpurvikClassifyRiskInput): SpurvikCla
   ];
   const freeSignupUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const interactiveClassifierUrl = domain ? `${RISK_CHECK_URL}?domain=${encodeURIComponent(domain)}` : RISK_CHECK_URL;
+  const presetSlug =
+    tier === "high_risk_annex_iii"
+      ? "cv-screener"
+      : signals.generatesSyntheticMedia.value
+        ? "media-generator"
+        : "support-chatbot";
+  const prefillParts = [
+    ...(domain ? [`domain=${encodeURIComponent(domain)}`] : []),
+    ...(presetSlug !== "support-chatbot" ? [`preset=${presetSlug}`] : []),
+    ...(locale !== "en" ? [`locale=${encodeURIComponent(locale)}`] : []),
+  ];
+  const prefilledRiskCheckUrl = prefillParts.length > 0 ? `${RISK_CHECK_URL}?${prefillParts.join("&")}` : RISK_CHECK_URL;
   const reportUrl = domain ? `${REPORT_URL}?domain=${encodeURIComponent(domain)}${localeParam}` : null;
 
   const upgradeUrls =
@@ -576,6 +589,7 @@ export function classifySpurvikRisk(input: SpurvikClassifyRiskInput): SpurvikCla
     obligations,
     recommendedSpurvikControls: controls,
     interactiveClassifierUrl,
+    prefilledRiskCheckUrl,
     reportUrl,
     upgradeUrls,
     scopeNote: RISK_SCOPE_NOTE,

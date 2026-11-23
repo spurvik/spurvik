@@ -364,6 +364,9 @@ describe("createServer", () => {
     });
     const localizedBody = JSON.parse(textOf(localized));
     expect(localizedBody.interactiveClassifierUrl).toBe("https://console.spurvik.com/risk-check?domain=personio.de&locale=de");
+    expect(localizedBody.prefilledRiskCheckUrl).toBe(
+      "https://console.spurvik.com/risk-check?domain=personio.de&preset=cv-screener&locale=de",
+    );
     expect(localizedBody.selfAssessmentMarkdown).toContain("personio.de");
     const localizedSteps = nextStepsOf(localized);
     expect(localizedSteps).toContain("https://spurvik.com/de/ki-verordnung-sicherheitsfragebogen-lieferanten-dsb?domain=personio.de");
