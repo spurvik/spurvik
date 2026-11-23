@@ -116,6 +116,6 @@ export {
   type VendorQuestionnaireInput,
   type VendorQuestionnaireOutcome,
 } from "./tools/vendor-questionnaire.js";
-export { classifyNextSteps, setupNextSteps } from "./next-steps.js";
+export { classifyNextSteps, findNextSteps, markingNextSteps, setupNextSteps } from "./next-steps.js";
 export { publicHostname } from "./tools/public-hostname.js";
 export { MCP_USER_AGENT, MCP_VERSION } from "./version.js";

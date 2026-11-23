@@ -475,7 +475,17 @@ describe("createServer", () => {
     expect(steps).toContain("- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).");
     expect(steps).toContain("https://console.spurvik.com/signup\n");
     expect(steps).toContain("https://console.spurvik.com/signup?plan=pro\n");
+    expect(steps).toContain("https://console.spurvik.com/signup?plan=pro&interval=annual\n");
     expect(steps).toContain("https://console.spurvik.com/signup?plan=concierge\n");
+
+    const localizedFind = textOf(
+      await client.callTool({
+        name: "spurvik_find_unwrapped_calls",
+        arguments: { directory: ".", domain: "doctolib.fr", locale: "fr" },
+      }),
+    );
+    expect(localizedFind).toContain("https://console.spurvik.com/signup?appUrl=doctolib.fr&locale=fr\n");
+    expect(localizedFind).toContain("https://console.spurvik.com/signup?plan=pro&interval=annual&appUrl=doctolib.fr&locale=fr\n");
 
     const pyDir = mkdtempSync(join(tmpdir(), "spurvik-mcp-py-test-"));
     try {
@@ -545,6 +555,16 @@ describe("createServer", () => {
     expect(text).toMatch(/\n\n## Next steps\n- Check live image URLs for C2PA JUMBF manifests & CDN stripping \(2 Dec 2026 Art\. 50\(2\)\): call `spurvik_check_image_c2pa_url` or open https:\/\/console\.spurvik\.com\/c2pa\n/);
     expect(text).toContain("- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): https://console.spurvik.com/signup\n");
     expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
+    expect(text).toContain("https://console.spurvik.com/signup?plan=pro&interval=annual\n");
+
+    const localizedHooks = textOf(
+      await client.callTool({
+        name: "spurvik_marking_hooks",
+        arguments: { surface: "media", domain: "charlie-paris.com", locale: "fr" },
+      }),
+    );
+    expect(localizedHooks).toContain("https://console.spurvik.com/c2pa?domain=charlie-paris.com&locale=fr\n");
+    expect(localizedHooks).toContain("https://console.spurvik.com/signup?plan=pro&interval=annual&appUrl=charlie-paris.com&locale=fr\n");
     await client.close();
   });
 

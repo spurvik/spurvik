@@ -60,8 +60,8 @@ import {
 import {
   badgeNextSteps,
   classifyNextSteps,
-  FIND_NEXT_STEPS,
-  MARKING_NEXT_STEPS,
+  findNextSteps,
+  markingNextSteps,
   receiptNextSteps,
   setupNextSteps,
 } from "./next-steps.js";
@@ -171,10 +171,13 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       description: FIND_DESCRIPTION,
       inputSchema: {
         directory: z.string().min(1).describe(DIRECTORY_FIELD),
+        domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: z.string().max(16).optional().describe(SETUP_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`),
+    async ({ directory, domain, locale }) =>
+      text(`${scanWorkspace(workspaceRoot, directory)}${findNextSteps(domain, locale)}`),
   );
 
   server.registerTool(
@@ -210,10 +213,13 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       description: MARKING_DESCRIPTION,
       inputSchema: {
         surface: z.enum(["text", "media", "both"]).optional().describe(SURFACE_FIELD),
+        domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: z.string().max(16).optional().describe(SETUP_LOCALE_FIELD),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },
-    async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`),
+    async ({ surface, domain, locale }) =>
+      text(`${markingHooksText(surface ?? "both")}${markingNextSteps(domain, locale)}`),
   );
 
   server.registerTool(

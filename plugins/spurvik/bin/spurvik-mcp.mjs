@@ -23073,8 +23073,9 @@ var QUESTIONNAIRE_URL_BY_LOCALE = {
   es: "https://spurvik.com/es/cuestionario-seguridad-proveedor-reglamento-ia-dpd",
   it: "https://spurvik.com/it/questionario-sicurezza-fornitori-regolamento-ia-dpo"
 };
-var FREE_KEY_STEP = `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`;
+var FREE_KEY_STEP = `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`;
 var PRO_STEP = `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}`;
+var PRO_ANNUAL_STEP = `- Pro Annual (2 months free · €190/yr single invoice): ${PRO_ANNUAL_SIGNUP_URL}`;
 var TEAM_STEP = `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`;
 var CONCIERGE_LABEL = "- Done-For-You 24h setup (€199 once, incl. 1 yr Pro):";
 var CONCIERGE_STEP = `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}`;
@@ -23084,36 +23085,61 @@ function block(...steps) {
 ${steps.join("\n")}
 `;
 }
+function resolveOptionalLocale(rawLocale) {
+  const primary = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
+  return primary && EU_LANGUAGES.some((l) => l.code === primary) && primary !== "en" ? primary : null;
+}
 function setupNextSteps(rawDomain, rawLocale) {
   const host = publicHostname(rawDomain);
-  const loc = typeof rawLocale === "string" && EU_LANGUAGES.some((l) => l.code === rawLocale) && rawLocale !== "en" ? rawLocale : null;
-  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, TEAM_STEP, CONCIERGE_STEP);
+  const loc = resolveOptionalLocale(rawLocale);
+  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, PRO_ANNUAL_STEP, TEAM_STEP, CONCIERGE_STEP);
   const freeParams = [];
   if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
   if (loc) freeParams.push(`locale=${loc}`);
   const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
   const locSuffix = loc ? `&locale=${loc}` : "";
   const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const proAnnualUrl = `${host ? proAnnualSignupUrlFor(host) : PRO_ANNUAL_SIGNUP_URL}${locSuffix}`;
   const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   const steps = [];
   if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
   steps.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
     `${CONCIERGE_LABEL} ${conciergeUrl}`
   );
   return block(...steps);
 }
 var SETUP_NEXT_STEPS = setupNextSteps();
-var FIND_NEXT_STEPS = block(
-  "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).",
-  FREE_KEY_STEP,
-  PRO_STEP,
-  TEAM_STEP,
-  CONCIERGE_STEP
-);
+function findNextSteps(rawDomain, rawLocale) {
+  const host = publicHostname(rawDomain);
+  const loc = resolveOptionalLocale(rawLocale);
+  const wrapLead = "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).";
+  if (!host && !loc) {
+    return block(wrapLead, FREE_KEY_STEP, PRO_STEP, PRO_ANNUAL_STEP, TEAM_STEP, CONCIERGE_STEP);
+  }
+  const freeParams = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
+  const freeUrl = freeParams.length > 0 ? `${SIGNUP_URL}?${freeParams.join("&")}` : SIGNUP_URL;
+  const locSuffix = loc ? `&locale=${loc}` : "";
+  const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const proAnnualUrl = `${host ? proAnnualSignupUrlFor(host) : PRO_ANNUAL_SIGNUP_URL}${locSuffix}`;
+  const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
+  const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  return block(
+    wrapLead,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
+    `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`
+  );
+}
+var FIND_NEXT_STEPS = findNextSteps();
 function receiptNextSteps(rawDomain, rawLocale) {
   const host = publicHostname(rawDomain);
   const primaryLocale = typeof rawLocale === "string" ? rawLocale.trim().split(/[-_,;]/)[0]?.toLowerCase() ?? "" : "";
@@ -23135,11 +23161,36 @@ function receiptNextSteps(rawDomain, rawLocale) {
   );
 }
 var RECEIPT_NEXT_STEPS = receiptNextSteps();
-var MARKING_NEXT_STEPS = block(
-  `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
-  `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): ${SIGNUP_URL}`,
-  `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`
-);
+function markingNextSteps(rawDomain, rawLocale) {
+  const host = publicHostname(rawDomain);
+  const loc = resolveOptionalLocale(rawLocale);
+  if (!host && !loc) {
+    return block(
+      `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
+      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${SIGNUP_URL}`,
+      `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`,
+      PRO_ANNUAL_STEP
+    );
+  }
+  const c2paParams = [];
+  if (host) c2paParams.push(`domain=${encodeURIComponent(host)}`);
+  if (loc) c2paParams.push(`locale=${loc}`);
+  const c2paUrl = `${C2PA_PAGE_URL}?${c2paParams.join("&")}`;
+  const freeParams = [];
+  if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
+  if (loc) freeParams.push(`locale=${loc}`);
+  const freeUrl = `${SIGNUP_URL}?${freeParams.join("&")}`;
+  const locSuffix = loc ? `&locale=${loc}` : "";
+  const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const proAnnualUrl = `${host ? proAnnualSignupUrlFor(host) : PRO_ANNUAL_SIGNUP_URL}${locSuffix}`;
+  return block(
+    `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${c2paUrl}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${freeUrl}`,
+    `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${proUrl}`,
+    `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`
+  );
+}
+var MARKING_NEXT_STEPS = markingNextSteps();
 function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
   if (tier === "prohibited_art5") return null;
   const host = publicHostname(rawSiteDomain);
@@ -23166,7 +23217,7 @@ function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
   const steps = [
     ...host ? [`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`] : [],
     `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${rfpUrl} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${freeUrl}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
   ];
   if (tier === "high_risk_annex_iii") {
@@ -23269,6 +23320,19 @@ function generateArt50Badge(input = {}) {
   const domain = publicDomainFromSystemName(input.systemName);
   const localeSuffix = domain && resolved.source === "input" && inferLocaleFromDomain(domain) === "en" && resolved.locale !== "en" ? `&locale=${encodeURIComponent(resolved.locale)}` : "";
   const appUrlSuffix = domain ? `&appUrl=${encodeURIComponent(domain)}${localeSuffix}` : "";
+  const studioParams = new URLSearchParams();
+  if (domain) studioParams.set("domain", domain);
+  if (resolved.locale !== "en" && (!domain || inferLocaleFromDomain(domain) === "en")) {
+    studioParams.set("locale", resolved.locale);
+  }
+  if (input.position !== void 0 && position !== "bottom-left") {
+    studioParams.set("pos", position);
+  }
+  if (theme === "light") {
+    studioParams.set("theme", "light");
+  }
+  const studioQs = studioParams.toString();
+  const labelStudioUrl = studioQs ? `${LABELS_URL}?${studioQs}` : LABELS_URL;
   const badge = { systemName, locale: resolved.locale, theme, position, attribution };
   const attrs = badgeDataAttributes(badge);
   const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
@@ -23309,10 +23373,12 @@ function generateArt50Badge(input = {}) {
         v0: `In v0, ask it to add the shadcn registry item ${SHADCN_REGISTRY_URL}.`
       },
       supportedLocales: EU_LANGUAGES.map((entry) => entry.code),
+      labelStudioUrl,
       plan: {
         attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
         whiteLabel: attribution ? whiteLabelNote : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
         proUrl: `${PRO_SIGNUP_URL}${appUrlSuffix}`,
+        proAnnualUrl: `${PRO_ANNUAL_SIGNUP_URL}${appUrlSuffix}`,
         doneForYouUrl: `${CONCIERGE_SIGNUP_URL}${appUrlSuffix}`
       },
       note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice."
@@ -23789,6 +23855,12 @@ function classifyAiActRisk(rawInput) {
   if (host) classifierParams.set("domain", host);
   if (loc) classifierParams.set("locale", loc);
   const interactiveClassifierUrl = classifierParams.size > 0 ? `${RISK_CHECK_URL}?${classifierParams.toString()}` : RISK_CHECK_URL;
+  const presetSlug = tier === "high_risk_annex_iii" ? "cv-screener" : signals.generatesSyntheticMedia.value ? "media-generator" : "support-chatbot";
+  const prefillParams = new URLSearchParams();
+  if (host) prefillParams.set("domain", host);
+  if (presetSlug !== "support-chatbot") prefillParams.set("preset", presetSlug);
+  if (loc) prefillParams.set("locale", loc);
+  const prefilledRiskCheckUrl = prefillParams.size > 0 ? `${RISK_CHECK_URL}?${prefillParams.toString()}` : RISK_CHECK_URL;
   const reportUrl = host ? `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc ? `&locale=${encodeURIComponent(loc)}` : ""}` : void 0;
   const upgrades = upgradeOffers(host, loc);
   const annexIiiPointOut = tier === "prohibited_art5" || !annexArea ? null : ANNEX_POINTS[annexArea];
@@ -23821,6 +23893,7 @@ function classifyAiActRisk(rawInput) {
       obligations,
       recommendedSpurvikControls: controls,
       interactiveClassifierUrl,
+      prefilledRiskCheckUrl,
       ...reportUrl ? { reportUrl } : {},
       ...selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {},
       upgradeUrls: upgrades,
@@ -29654,7 +29727,7 @@ function nextSteps(host) {
   const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
@@ -30049,11 +30122,13 @@ function createServer(workspaceRoot, options = {}) {
       title: FIND_TITLE,
       description: FIND_DESCRIPTION,
       inputSchema: {
-        directory: external_exports.string().min(1).describe(DIRECTORY_FIELD)
+        directory: external_exports.string().min(1).describe(DIRECTORY_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ directory }) => text(`${scanWorkspace(workspaceRoot, directory)}${FIND_NEXT_STEPS}`)
+    async ({ directory, domain, locale }) => text(`${scanWorkspace(workspaceRoot, directory)}${findNextSteps(domain, locale)}`)
   );
   server.registerTool(
     "spurvik_explain_receipt",
@@ -30085,11 +30160,13 @@ function createServer(workspaceRoot, options = {}) {
       title: MARKING_TITLE,
       description: MARKING_DESCRIPTION,
       inputSchema: {
-        surface: external_exports.enum(["text", "media", "both"]).optional().describe(SURFACE_FIELD)
+        surface: external_exports.enum(["text", "media", "both"]).optional().describe(SURFACE_FIELD),
+        domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(SETUP_DOMAIN_FIELD),
+        locale: external_exports.string().max(16).optional().describe(SETUP_LOCALE_FIELD)
       },
       annotations: READ_ONLY_ANNOTATIONS
     },
-    async ({ surface }) => text(`${markingHooksText(surface ?? "both")}${MARKING_NEXT_STEPS}`)
+    async ({ surface, domain, locale }) => text(`${markingHooksText(surface ?? "both")}${markingNextSteps(domain, locale)}`)
   );
   server.registerTool(
     "spurvik_scan_live_url",
