@@ -2630,8 +2630,8 @@ function cmdGate(args: ParsedArgs, io: Io): number {
     out(`    ${c.cyan(url)}`);
   };
   step("Interactive Art. 14 Slack/Teams approval cockpit", report.links.cockpitUrl);
-  step("Free API key (€0, 5k Art. 12 HMAC events/mo, no card)", report.links.freeSignupUrl);
-  step("Pro human-in-the-loop gates + 100k events (€19/mo or €190/yr)", report.links.proUpgradeUrl);
+  step("Free API key (€0, 10k Art. 12 HMAC events/mo, no card)", report.links.freeSignupUrl);
+  step("Pro human-in-the-loop gates + 250k events (€19/mo or €190/yr)", report.links.proUpgradeUrl);
   step("Team 2M events + Annex IV & auditor verification (€79/mo or €790/yr)", report.links.teamUpgradeUrl);
   step("24h engineer Done-For-You (€199 once, incl. 1 year of Pro)", report.links.doneForYouUrl);
   out();
