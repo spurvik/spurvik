@@ -1409,4 +1409,29 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(gtmJson.target).toBe("gtm");
     expect(gtmJson.installCommand).toContain("spurvik-gtm-art50-container.json");
   });
+
+  it("distinguishes dual-use helpdesk CHECK (if AI) from confirmed AI GAP in batch scans, surfaces annual & free links, and removes Multi-Client Team wording (H174c)", async () => {
+    const h = harness(async (input) => {
+      const url = String(input);
+      const isConfirmed = url.includes("folk.app");
+      return jsonResponse({
+        ok: true,
+        scan: {
+          reachable: true,
+          detectedWidgets: isConfirmed ? ["Tidio Lyro"] : ["Gorgias"],
+          detectedSdks: [],
+          detectedPlatforms: ["Shopify"],
+          heroImageUrl: "https://cdn.shopify.com/s/files/1/0001/hero.webp",
+          markers: { art50_1_disclosure: false },
+        },
+      });
+    });
+    expect(await runCli(["scan", "folk.app", "charlie-paris.com"], h.deps)).toBe(EXIT_OK);
+    expect(h.out()).toContain("GAP");
+    expect(h.out()).toContain("CHECK (if AI)");
+    expect(h.out()).toContain("2 Dec C2PA: Shopify CDN");
+    expect(h.out()).toContain("https://console.spurvik.com/signup?plan=pro&interval=annual");
+    expect(h.out()).toContain("Team 2M events + Annex IV (€79/mo or €790/yr)");
+    expect(h.out()).not.toContain("Multi-Client");
+  });
 });

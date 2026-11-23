@@ -287,13 +287,16 @@ export interface ScanLinks {
   portfolioUrl: string;
   c2paCheckUrl: string;
   rfpQuestionnaireUrl: string;
+  freeSignupUrl: string;
   proUpgradeUrl: string;
+  proAnnualUrl: string;
   teamUpgradeUrl: string;
+  teamAnnualUrl: string;
   doneForYouUrl: string;
 }
 
 const CLI_CONFIRMED_AI_RE =
-  /\b(?:Intercom Fin|Zendesk AI|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
+  /\b(?:Intercom Fin|Zendesk AI|Ultimate|Tidio Lyro|Gorgias AI|CustomGPT|Sierra|Decagon|Botpress|Voiceflow|ElevenLabs ConvAI|Chatbase|OpenAI ChatKit|Ada|Vercel AI SDK|OpenAI|Anthropic|Google Gemini|LangChain|Mastra)\b/i;
 
 function cliRfpQuestionnaireUrl(host: string, locale = "en"): string {
   const code = (locale || "en").trim().toLowerCase();
@@ -341,8 +344,11 @@ export function scanLinks(host: string, resolvedLang?: BadgeLang, heroImageUrl?:
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: `${CONSOLE_ORIGIN}/c2pa?${c2paParts.join("&")}`,
     rfpQuestionnaireUrl: cliRfpQuestionnaireUrl(host, lang),
+    freeSignupUrl: `${CONSOLE_ORIGIN}/signup?appUrl=${h}${extraLocale}`,
     proUpgradeUrl: `${CONSOLE_ORIGIN}/signup?plan=pro&appUrl=${h}${extraLocale}`,
+    proAnnualUrl: `${CONSOLE_ORIGIN}/signup?plan=pro&interval=annual&appUrl=${h}${extraLocale}`,
     teamUpgradeUrl: `${CONSOLE_ORIGIN}/signup?plan=team&appUrl=${h}${extraLocale}`,
+    teamAnnualUrl: `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual&appUrl=${h}${extraLocale}`,
     doneForYouUrl: `${CONSOLE_ORIGIN}/signup?plan=concierge&appUrl=${h}${extraLocale}`,
   };
 }
@@ -558,8 +564,9 @@ function printScan(report: ScanReport, io: Io): void {
   }
   step("Client / DPO PDF brief", report.links.reportUrl);
   step("2 Dec 2026 C2PA hero-image check", report.links.c2paCheckUrl);
-  step("White-label Pro (€19/mo)", report.links.proUpgradeUrl);
-  step("Team 2M events + Annex IV (€79/mo)", report.links.teamUpgradeUrl);
+  step("Free API key (€0)", report.links.freeSignupUrl);
+  step("White-label Pro (€19/mo or €190/yr)", report.links.proUpgradeUrl);
+  step("Team 2M events + Annex IV (€79/mo or €790/yr)", report.links.teamUpgradeUrl);
   step("24h engineer Done-For-You (€199 once, incl. 1 year of Pro)", report.links.doneForYouUrl);
   step("Batch scan 10 domains", report.links.portfolioUrl);
   out();
@@ -575,7 +582,10 @@ export interface BatchScanReport {
   results: ScanReport[];
   links: {
     portfolioUrl: string;
+    freeSignupUrl: string;
+    proAnnualUrl: string;
     teamUpgradeUrl: string;
+    teamAnnualUrl: string;
     doneForYouUrl: string;
   };
 }
@@ -603,23 +613,28 @@ function printBatchScan(batch: BatchScanReport, io: Io): void {
       r.status === "covered"
         ? c.green("COVERED")
         : r.status === "gap"
-          ? c.red("GAP")
+          ? r.confirmedAiSurface === false
+            ? c.yellow("CHECK (if AI)")
+            : c.red("GAP")
           : r.status === "unreachable"
             ? c.yellow("UNREACHABLE")
             : c.cyan("NO WIDGET");
     const widgets = r.detectedWidgets.length ? r.detectedWidgets.join(", ") : "none";
     const stackSuffix = r.detectedPlatforms?.length ? ` · stack: ${r.detectedPlatforms.join(", ")}` : "";
-    out(`  ${tag.padEnd(14)} ${r.domain.padEnd(26)} ${c.dim(`widgets: ${widgets}${stackSuffix}`)} · ${c.cyan(r.links.reportUrl)}`);
+    const c2paSuffix = r.heroImageProxy ? ` · 2 Dec C2PA: ${r.heroImageProxy.name.split(" (")[0]}` : "";
+    out(`  ${tag.padEnd(14)} ${r.domain.padEnd(26)} ${c.dim(`widgets: ${widgets}${stackSuffix}${c2paSuffix}`)} · ${c.cyan(r.links.reportUrl)}`);
   }
   out();
   out(
-    `  ${batch.gapsFound > 0 ? c.yellow(`⚠ ${batch.gapsFound} of ${batch.totalDomains} domain(s) missing a visible Art. 50(1) AI notice.`) : c.green("✓ Zero Art. 50(1) notice gaps detected across scanned domains.")}`,
+    `  ${batch.gapsFound > 0 ? c.yellow(`⚠ ${batch.gapsFound} of ${batch.totalDomains} domain(s) missing a visible Art. 50(1) AI notice (human-only live chat needs none).`) : c.green("✓ Zero Art. 50(1) notice gaps detected across scanned domains.")}`,
   );
   out();
   out(`  ${c.bold("Next steps")} ${c.dim("(prices excl. VAT)")}`);
   out(`  › Interactive portfolio matrix & CSV/Markdown export`);
   out(`    ${c.cyan(batch.links.portfolioUrl)}`);
-  out(`  › Multi-Client Agency Team (€79/mo, incl. 12mo Frankfurt logs & Annex IV draft)`);
+  out(`  › White-label Pro Annual (€190/yr · 2 months free)`);
+  out(`    ${c.cyan(batch.links.proAnnualUrl)}`);
+  out(`  › Team 2M events + Annex IV (€79/mo or €790/yr)`);
   out(`    ${c.cyan(batch.links.teamUpgradeUrl)}`);
   out(`  › 24h engineer Done-For-You setup (€199/site, incl. 1 year of Pro)`);
   out(`    ${c.cyan(batch.links.doneForYouUrl)}`);
@@ -702,7 +717,10 @@ async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
     results,
     links: {
       portfolioUrl,
+      freeSignupUrl: SIGNUP_URL,
+      proAnnualUrl: `${PRO_SIGNUP_URL}&interval=annual`,
       teamUpgradeUrl: TEAM_SIGNUP_URL,
+      teamAnnualUrl: `${TEAM_SIGNUP_URL}&interval=annual`,
       doneForYouUrl: CONCIERGE_SIGNUP_URL,
     },
   };
