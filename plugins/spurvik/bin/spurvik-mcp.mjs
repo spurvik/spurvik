@@ -24740,7 +24740,7 @@ function findUnwrappedPythonInSource(source, pathHint, control) {
     source
   );
   if (!looksPython) return [];
-  if (/\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(
+  if (/\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bverify_signed_callback\b|\bwithSpurvik\b/.test(
     source
   )) {
     return [];
@@ -29126,7 +29126,7 @@ function pythonSource(framework) {
     "from fastapi import BackgroundTasks, FastAPI",
     "from openai import AsyncOpenAI",
     "from pydantic import BaseModel",
-    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event, verify_signed_callback",
     "",
     "app = FastAPI()",
     "client = AsyncOpenAI()",
@@ -29150,7 +29150,7 @@ function pythonSource(framework) {
     '    return {"reply": output, "art50Badge": art50_badge_html(system_name="Support AI", locale="en")}'
   ] : framework === "langchain" || framework === "langgraph" ? [
     "from langchain_openai import ChatOpenAI",
-    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event, verify_signed_callback",
     "",
     'llm = ChatOpenAI(model="gpt-4o")',
     "",
@@ -29168,7 +29168,7 @@ function pythonSource(framework) {
     "    return output"
   ] : framework === "pydantic-ai" ? [
     "from pydantic_ai import Agent",
-    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event, verify_signed_callback",
     "",
     'agent = Agent("openai:gpt-4o")',
     "",
@@ -29186,7 +29186,7 @@ function pythonSource(framework) {
     "    return output"
   ] : [
     "from openai import OpenAI",
-    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event",
+    "from spurvik_guard import art50_badge_html, request_human_approval, send_telemetry_event, verify_signed_callback",
     "",
     "client = OpenAI()",
     "",
@@ -29207,8 +29207,9 @@ function pythonSource(framework) {
     ...headerLines,
     ...body,
     "",
-    "# Pre-execution human approval gate (Pro €19/mo & Team €79/mo, field names only):",
+    "# Pre-execution human approval gate & signed callback verification (Pro €19/mo & Team €79/mo):",
     '# approval = request_human_approval("issue_refund", {"order_id": 4821, "amount_eur": 120})',
+    "# verified = verify_signed_callback(callback_url, expected_action_hmac=expected_hmac)  # self-test: python3 spurvik_guard.py",
     "",
     "# Visible 24-language Art. 50(1) HTML notice for Jinja2 / FastAPI / Django templates:",
     '# badge_tag = art50_badge_html(system_name="Support AI", locale="en", white_label=False)'

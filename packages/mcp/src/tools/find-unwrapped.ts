@@ -729,7 +729,7 @@ export function findUnwrappedPythonInSource(
     );
   if (!looksPython) return [];
   if (
-    /\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bwithSpurvik\b/.test(
+    /\bspurvik_guard\b|\bsend_telemetry_event\b|\bbuild_telemetry_event\b|\brequest_human_approval\b|\bverify_signed_callback\b|\bwithSpurvik\b/.test(
       source,
     )
   ) {
