@@ -1,6 +1,6 @@
 {
   "name": "@spurvik/mcp",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "mcpName": "io.github.spurvik/spurvik-mcp-server",
   "author": "EyeTea Solutions ApS",
   "private": true,

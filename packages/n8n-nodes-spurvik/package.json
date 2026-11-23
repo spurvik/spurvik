@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-spurvik",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Designed to support Article 50 interaction notices, and Article 12 HMAC-SHA256 record-keeping and Article 14 human approval requests for high-risk AI systems, for n8n, with optional console.spurvik.com sync. Channels: Slack, Telegram, Email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com (create-item only), and Asana. Also scans one live public site, or an agency roster of up to 10, for AI widgets and an Art. 50 notice, and checks one public https image URL for a C2PA JUMBF manifest and CDN stripping (read-only, never signs), with no API key. Also drafts EU AI Act vendor security questionnaire and DPO RFP answers locally, with no request and no API key.",
   "author": "EyeTea Solutions ApS",
   "license": "MIT",

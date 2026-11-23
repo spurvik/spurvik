@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.10, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.11, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -22299,7 +22299,7 @@ ${tag}` : tag;
 }
 
 // packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.10";
+var MCP_VERSION = "1.0.11";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/check-image-c2pa-url.ts
@@ -29270,7 +29270,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   if (isWorkflowFramework(framework)) {
     return [
       "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
-      "npm install n8n-nodes-spurvik@1.0.10",
+      "npm install n8n-nodes-spurvik@1.0.11",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
       ""
@@ -29309,7 +29309,7 @@ function setupSnippet(frameworkInput, runtimeInput, options = {}) {
     const guideHref = mcpCockpitUrlFor(host, effectiveLocale);
     const ideLines = [
       `Framework: ${framework}. Runtime: Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate (10 zero-key tools, MIT).`,
-      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.10\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
+      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.11\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
       `Interactive MCP & GitHub Actions cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,

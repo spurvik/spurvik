@@ -109,7 +109,7 @@ describe("spurvik scan", () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(`${SCAN_ENDPOINT}?url=${encodeURIComponent("https://folk.app/")}`);
     expect(url.startsWith("https://console.spurvik.com/api/v1/sandbox/scan?url=")).toBe(true);
-    expect((init.headers as Record<string, string>)["User-Agent"]).toBe("spurvik-cli/1.0.13");
+    expect((init.headers as Record<string, string>)["User-Agent"]).toBe("spurvik-cli/1.0.14");
     expect(init.signal).toBeInstanceOf(AbortSignal);
 
     const text = h.out();
@@ -377,7 +377,7 @@ describe("spurvik c2pa", () => {
     expect(url).toBe(C2PA_ENDPOINT);
     expect(init.method).toBe("POST");
     expect(init.redirect).toBe("error");
-    expect(init.headers).toMatchObject({ "Content-Type": "application/json", Accept: "application/json", "User-Agent": "spurvik-cli/1.0.13" });
+    expect(init.headers).toMatchObject({ "Content-Type": "application/json", Accept: "application/json", "User-Agent": "spurvik-cli/1.0.14" });
     // FIRST_PARTY_CLIENT_USER_AGENT_RE in console-git funnel-telemetry.ts counts this client.
     expect((init.headers as Record<string, string>)["User-Agent"]).toMatch(/\bspurvik-(?:cli|mcp|mcp-server|sdk)\//i);
     expect(JSON.parse(String(init.body))).toEqual({ url: "https://www.stepnetwork.dk/hero.png" });
@@ -1132,7 +1132,7 @@ describe("spurvik --version / --help", () => {
     for (const flag of ["--version", "-v"]) {
       const h = harness();
       expect(await runCli([flag], h.deps)).toBe(EXIT_OK);
-      expect(h.out().trim()).toBe("1.0.13");
+      expect(h.out().trim()).toBe("1.0.14");
     }
   });
 

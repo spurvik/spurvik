@@ -1,5 +1,23 @@
 # spurvik-mcp-server
 
+## 1.0.11 — 2026-11-23
+
+Published as `spurvik-mcp-server@1.0.11`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
+
+### Added
+
+- `spurvik_setup_snippet`: Google Tag Manager (`gtm` / `google-tag-manager`) target.
+- `spurvik_scan_live_url` and `spurvik_batch_scan_domains`: surface `detectedPlatforms`, 1-click CMS/GTM `platformInstallerUrls`, 2 Dec 2026 `heroImageProxy` C2PA CDN-strip alert, H121 dual-use AI widget classifiers, `prefilledPortfolioUrl`, and Free €0 + Pro/Team Annual (`€190/yr`, `€790/yr`) signup URLs.
+- `spurvik_generate_art50_badge`: adds deep-linked `/labels` `studioUrl` and `proAnnualUrl`.
+- `spurvik_classify_ai_act_risk`: adds `prefilledRiskCheckUrl` with `?preset=` deep link.
+- `spurvik_find_unwrapped_calls` and `spurvik_marking_hooks`: optional `domain` and `locale` prefill on `## Next steps` plus Pro Annual `€190/yr` link.
+
+### Changed
+
+- Clarified 1-field email signup copy across `## Next steps` and `spurvik_vendor_questionnaire_answers`.
+- `spurvik_setup_snippet` pins `spurvik@1.0.13` (`SNIPPET_SDK_VERSION`, bumped to `1.0.14` once `spurvik@1.0.14` is live on npm) and `n8n-nodes-spurvik@1.0.11`.
+- `User-Agent` is now `spurvik-mcp-server/1.0.11`. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.11`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.11`.
+
 ## 1.0.10 — 2026-11-22
 
 Published as `spurvik-mcp-server@1.0.10`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.

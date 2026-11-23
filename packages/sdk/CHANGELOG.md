@@ -1,5 +1,21 @@
 # spurvik-sdk
 
+## 1.0.14 — 2026-11-23
+
+Published as `spurvik@1.0.14` and `spurvik-sdk@1.0.14` (same build).
+
+### Added
+
+- `spurvik setup`: Google Tag Manager target (`--cms gtm` / `google-tag-manager`).
+- `spurvik scan`: surfaces `detectedPlatforms`, 1-click CMS/GTM `platformInstallerUrls`, and 2 Dec 2026 `heroImageProxy` C2PA CDN-strip diagnosis on single-domain and multi-domain portfolio scans; aligns batch scan H121 dual-use AI widget `CHECK` status, adds Free €0 and Pro/Team Annual (`€190/yr`, `€790/yr`) signup links, and removes legacy "Multi-Client Team" wording.
+- `spurvik badge`: returns deep-linked `/labels` `studioUrl` and `proAnnualUrl` (`https://console.spurvik.com/signup?plan=pro&billing=annual`).
+- `classifyAiActRisk`: adds `prefilledRiskCheckUrl` with `?preset=` deep link to `/risk-check`.
+
+### Changed
+
+- Clarified 1-field email signup copy (personal or work email, 0 credit card) across risk-classifier and vendor-questionnaire helpers.
+- `User-Agent` for `scan` and `c2pa` is now `spurvik-cli/1.0.14`.
+
 ## 1.0.13 — 2026-11-22
 
 Published as `spurvik@1.0.13` and `spurvik-sdk@1.0.13` (same build).

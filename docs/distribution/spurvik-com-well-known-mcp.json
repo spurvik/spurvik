@@ -1,8 +1,8 @@
 {
   "name": "Spurvik",
-  "version": "1.0.13",
-  "description": "Spurvik EU AI Act SDK (1.0.13) & MCP control plane (1.0.10, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
-  "notice": "Spurvik EU AI Act SDK (1.0.13) & MCP control plane (1.0.10, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "version": "1.0.14",
+  "description": "Spurvik EU AI Act SDK (1.0.14) & MCP control plane (1.0.11, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
+  "notice": "Spurvik EU AI Act SDK (1.0.14) & MCP control plane (1.0.11, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you.",
   "transport": "streamable-http",
   "supportedProtocolVersions": [
     "2024-11-05",
@@ -33,16 +33,16 @@
         "spurvik_check_image_c2pa_url",
         "spurvik_vendor_questionnaire_answers"
       ],
-      "description": "Spurvik EU AI Act SDK (1.0.13) & MCP control plane (1.0.10, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
+      "description": "Spurvik EU AI Act SDK (1.0.14) & MCP control plane (1.0.11, MIT). Designed to support Art. 50(1) notices and, for high-risk AI systems, Art. 12 logging and Art. 14 human oversight; responsibility stays with you."
     }
   ],
   "localStdio": {
     "packageName": "spurvik-mcp-server",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "npmPackage": "spurvik-mcp-server",
     "sdkNpmPackages": [
-      "spurvik@1.0.13",
-      "spurvik-sdk@1.0.13"
+      "spurvik@1.0.14",
+      "spurvik-sdk@1.0.14"
     ],
     "license": "MIT",
     "command": "node",
@@ -77,10 +77,10 @@
   "documentation": "https://spurvik.com/docs",
   "sandbox": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
   "packages": {
-    "sdk": "spurvik@1.0.13",
-    "sdkAlias": "spurvik-sdk@1.0.13",
-    "mcpServer": "spurvik-mcp-server@1.0.10",
-    "n8nNodes": "n8n-nodes-spurvik@1.0.10"
+    "sdk": "spurvik@1.0.14",
+    "sdkAlias": "spurvik-sdk@1.0.14",
+    "mcpServer": "spurvik-mcp-server@1.0.11",
+    "n8nNodes": "n8n-nodes-spurvik@1.0.11"
   },
   "autoDiscovery": {
     "mcpRegistry": "https://github.com/spurvik/spurvik/blob/main/server.json",
