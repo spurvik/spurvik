@@ -406,7 +406,7 @@ describe("createServer", () => {
     expect(text).toContain("€199");
     expect(text).toMatch(/import \{[\s\S]*withSpurvik[\s\S]*\} from "spurvik"/);
     expect(text.includes("@spurvik/")).toBe(false);
-    expect(text).toMatch(/```\n\n## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s \(work email only, no password, EU Frankfurt fra1\): https:\/\/console\.spurvik\.com\/signup\n/);
+    expect(text).toMatch(/```\n\n## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s \(1-field email, no password, EU Frankfurt fra1\): https:\/\/console\.spurvik\.com\/signup\n/);
     expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
     expect(text).toContain("- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): https://console.spurvik.com/signup?plan=concierge\n");
     const pyFastapi = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "fastapi" } }));
@@ -540,7 +540,7 @@ describe("createServer", () => {
     const client = await connect();
     const text = textOf(await client.callTool({ name: "spurvik_marking_hooks", arguments: { surface: "media" } }));
     expect(text).toMatch(/\n\n## Next steps\n- Check live image URLs for C2PA JUMBF manifests & CDN stripping \(2 Dec 2026 Art\. 50\(2\)\): call `spurvik_check_image_c2pa_url` or open https:\/\/console\.spurvik\.com\/c2pa\n/);
-    expect(text).toContain("- Mint a Free SPURVIK_API_KEY in 10s (work email only, no password): https://console.spurvik.com/signup\n");
+    expect(text).toContain("- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): https://console.spurvik.com/signup\n");
     expect(text).toContain("- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): https://console.spurvik.com/signup?plan=pro\n");
     await client.close();
   });

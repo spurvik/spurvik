@@ -541,7 +541,7 @@ export function classifySpurvikRisk(input: SpurvikClassifyRiskInput): SpurvikCla
           free: {
             url: freeSignupUrl,
             price: "€0/mo",
-            includes: "Mint a Free SPURVIK_API_KEY in 10s (work email only, EU Frankfurt fra1)",
+            includes: "Mint a Free SPURVIK_API_KEY in 10s (1-field email, EU Frankfurt fra1)",
           },
           pro: {
             url: `${PRO_SIGNUP_URL}${appQuery}`,
