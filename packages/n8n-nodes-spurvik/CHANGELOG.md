@@ -2,7 +2,7 @@
 
 - **Scan Live Domain** (`scanDomain`) and **Batch Scan** (`batchScanDomains`): surface `detectedPlatforms`, 1-click CMS/GTM `platformInstallerUrls`, 2 Dec 2026 `heroImageProxy` C2PA CDN-strip diagnosis, H121 `widgetDisclosureClass` dual-use widget classification, `prefilledPortfolioUrl`, and Free €0 + Pro/Team Annual (`€190/yr`, `€790/yr`) `upgradeUrls`.
 - **Check Image C2PA & CDN Strip** (`checkImageC2paUrl`) and **Answer Vendor Security Questionnaire** (`vendorQuestionnaireAnswers`): add Free €0 and annual `upgradeUrls` and clarify 1-field email signup copy.
-- Scan Live Domain, Batch Scan Domains, Check Image C2PA, and console sync now send `User-Agent: n8n-nodes-spurvik/1.0.11`.
+- Scan Live Domain, Batch Scan Domains, Check Image C2PA, and console sync now send `User-Agent: n8n-nodes-spurvik/1.0.11`, and `dependencies.spurvik-sdk` moves to `^1.0.14`.
 
 ## n8n-nodes-spurvik 1.0.10 — 2026-11-22
 

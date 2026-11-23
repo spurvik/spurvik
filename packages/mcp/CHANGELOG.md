@@ -15,7 +15,7 @@ Published as `spurvik-mcp-server@1.0.11`. Both the local stdio server and the ho
 ### Changed
 
 - Clarified 1-field email signup copy across `## Next steps` and `spurvik_vendor_questionnaire_answers`.
-- `spurvik_setup_snippet` pins `spurvik@1.0.13` (`SNIPPET_SDK_VERSION`, bumped to `1.0.14` once `spurvik@1.0.14` is live on npm) and `n8n-nodes-spurvik@1.0.11`.
+- `spurvik_setup_snippet` pins `spurvik@1.0.14` and `spurvik-sdk@1.0.14` (`SNIPPET_SDK_VERSION`) and `n8n-nodes-spurvik@1.0.11`.
 - `User-Agent` is now `spurvik-mcp-server/1.0.11`. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.11`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.11`.
 
 ## 1.0.10 — 2026-11-22

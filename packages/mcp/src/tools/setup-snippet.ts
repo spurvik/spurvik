@@ -258,7 +258,7 @@ function nodeShutdown(expr: string): string {
 }
 
 /** Published spurvik / spurvik-sdk version interpolated into snippets. Keep in sync with packages/sdk. */
-export const SNIPPET_SDK_VERSION = "1.0.13";
+export const SNIPPET_SDK_VERSION = "1.0.14";
 
 function header(): string {
   return [
