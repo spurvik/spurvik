@@ -1076,8 +1076,13 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
       : "";
   const proUrl = host ? `${scanLinks(host).proUpgradeUrl}${localeSuffix}` : PRO_SIGNUP_URL;
   const conciergeUrl = host ? `${scanLinks(host).doneForYouUrl}${localeSuffix}` : CONCIERGE_SIGNUP_URL;
-  const tag = badgeScriptTag(systemName, lang);
   const cms = args.cms as BadgeCmsTarget | undefined;
+  const studioUrl = host
+    ? `${CONSOLE_ORIGIN}/labels?domain=${encodeURIComponent(host)}${localeSuffix}${cms === "react" ? "&tab=react" : ""}`
+    : lang !== "en"
+      ? `${CONSOLE_ORIGIN}/labels?locale=${encodeURIComponent(lang)}`
+      : `${CONSOLE_ORIGIN}/labels`;
+  const tag = badgeScriptTag(systemName, lang);
   const { c, out } = io;
   out();
   out(`  ${c.bold("Spurvik · Art. 50(1) AI notice")} ${c.dim(`(${systemName}, ${lang}${cms ? `, ${cms}` : ""})`)}`);
@@ -1122,6 +1127,7 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
   }
   out();
   out(`  ${c.bold("Accessibility")} ${c.dim(`(role="status", aria-live="polite", lang="${lang}" — WCAG 2.1 AA / EN 301 549)`)}`);
+  out(`  ${c.bold("Live preview")} ${c.dim("(24 EU langs + colleague share):")} ${studioUrl}`);
   out(`  ${c.bold("White-label")} ${c.dim('(data-attribution="false") — Pro €19/mo:')} ${proUrl}`);
   out(`  ${c.bold("24h Setup")} ${c.dim("(engineer installs in PR or CMS, €199 once):")} ${conciergeUrl}`);
   out();

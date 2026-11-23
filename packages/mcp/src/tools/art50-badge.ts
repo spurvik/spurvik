@@ -3,7 +3,9 @@ import {
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   FRAMER_COMPONENT_URL,
+  LABELS_URL,
   PRICE_NOTE,
+  PRO_ANNUAL_SIGNUP_URL,
   PRO_PRICE,
   PRO_SIGNUP_URL,
   SHADCN_REGISTRY_URL,
@@ -60,7 +62,8 @@ export interface Art50BadgeResult {
   framer: { componentUrl: string; steps: string };
   shadcn: { registryUrl: string; command: string; v0: string };
   supportedLocales: string[];
-  plan: { attributionFree: string; whiteLabel: string; proUrl: string; doneForYouUrl: string };
+  labelStudioUrl: string;
+  plan: { attributionFree: string; whiteLabel: string; proUrl: string; proAnnualUrl: string; doneForYouUrl: string };
   note: string;
 }
 
@@ -160,6 +163,19 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
       ? `&locale=${encodeURIComponent(resolved.locale)}`
       : "";
   const appUrlSuffix = domain ? `&appUrl=${encodeURIComponent(domain)}${localeSuffix}` : "";
+  const studioParams = new URLSearchParams();
+  if (domain) studioParams.set("domain", domain);
+  if (resolved.locale !== "en" && (!domain || inferLocaleFromDomain(domain) === "en")) {
+    studioParams.set("locale", resolved.locale);
+  }
+  if (input.position !== undefined && position !== "bottom-left") {
+    studioParams.set("pos", position);
+  }
+  if (theme === "light") {
+    studioParams.set("theme", "light");
+  }
+  const studioQs = studioParams.toString();
+  const labelStudioUrl = studioQs ? `${LABELS_URL}?${studioQs}` : LABELS_URL;
   const badge = { systemName, locale: resolved.locale, theme, position, attribution };
   const attrs = badgeDataAttributes(badge);
   const whiteLabelNote = `White-label (data-attribution="false") is unlocked on Pro (${PRO_PRICE}) or Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro). ${PRICE_NOTE}`;
@@ -200,12 +216,14 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
         v0: `In v0, ask it to add the shadcn registry item ${SHADCN_REGISTRY_URL}.`,
       },
       supportedLocales: EU_LANGUAGES.map((entry) => entry.code),
+      labelStudioUrl,
       plan: {
         attributionFree: `Free: the badge shows a subtle "${ATTRIBUTION_LABEL}" trust link.`,
         whiteLabel: attribution
           ? whiteLabelNote
           : `${whiteLabelNote} On Free, badge.js keeps the "${ATTRIBUTION_LABEL}" link even with data-attribution="false".`,
         proUrl: `${PRO_SIGNUP_URL}${appUrlSuffix}`,
+        proAnnualUrl: `${PRO_ANNUAL_SIGNUP_URL}${appUrlSuffix}`,
         doneForYouUrl: `${CONCIERGE_SIGNUP_URL}${appUrlSuffix}`,
       },
       note: "Paste the script before </body>. Zero cookies, no network telemetry. Supports Article 50(1) transparency; not legal advice.",

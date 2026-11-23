@@ -1434,4 +1434,14 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(h.out()).toContain("Team 2M events + Annex IV (€79/mo or €790/yr)");
     expect(h.out()).not.toContain("Multi-Client");
   });
+
+  it("prints deep-linked /labels live preview & colleague share URL in spurvik badge (H175c)", async () => {
+    const reactBadge = harness();
+    expect(await runCli(["badge", "charlie-paris.com", "--lang", "fr", "--cms", "react"], reactBadge.deps)).toBe(
+      EXIT_OK,
+    );
+    expect(reactBadge.out()).toContain(
+      "https://console.spurvik.com/labels?domain=charlie-paris.com&locale=fr&tab=react",
+    );
+  });
 });

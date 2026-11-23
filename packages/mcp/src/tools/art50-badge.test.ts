@@ -62,10 +62,14 @@ describe("generateArt50Badge", () => {
       },
     });
     expect(dk.plan.proUrl).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=stepnetwork.dk");
+    expect(dk.plan.proAnnualUrl).toBe("https://console.spurvik.com/signup?plan=pro&interval=annual&appUrl=stepnetwork.dk");
     expect(dk.plan.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=stepnetwork.dk");
-    const comFr = badge({ systemName: "charlie-paris.com", locale: "fr" });
+    expect(dk.labelStudioUrl).toBe("https://console.spurvik.com/labels?domain=stepnetwork.dk");
+    const comFr = badge({ systemName: "charlie-paris.com", locale: "fr", position: "inline", theme: "light" });
     expect(comFr.plan.proUrl).toBe("https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com&locale=fr");
+    expect(comFr.plan.proAnnualUrl).toBe("https://console.spurvik.com/signup?plan=pro&interval=annual&appUrl=charlie-paris.com&locale=fr");
     expect(comFr.plan.doneForYouUrl).toBe("https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com&locale=fr");
+    expect(comFr.labelStudioUrl).toBe("https://console.spurvik.com/labels?domain=charlie-paris.com&locale=fr&pos=inline&theme=light");
     expect(badge({ systemName: "https://shop.example.de/path" }).locale).toBe("de");
     expect(badge({ systemName: "example.com" }).localeSource).toBe("default");
     expect(badge({ systemName: "example.dk", locale: "fr" })).toMatchObject({ locale: "fr", localeSource: "input" });
