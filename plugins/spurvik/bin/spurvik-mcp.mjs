@@ -23902,6 +23902,9 @@ function classifyAiActRisk(rawInput) {
   };
 }
 
+// packages/mcp/src/tools/explain-receipt.ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 // packages/core/src/canonical.ts
 function canonicalJson(value) {
   return JSON.stringify(canonicalize(value));
@@ -24101,6 +24104,172 @@ function formatValue(value, secrets) {
 function canCheck(record2) {
   return record2.kind === PROVENANCE_KIND && record2.signatureAlg === SIGNATURE_ALG && typeof record2.signature === "string";
 }
+var HEX64_RE = /^[0-9a-f]{64}$/;
+var DEFAULT_ART14_MAX_AGE_SECONDS = 86400;
+var MAX_ART14_CLOCK_SKEW_SECONDS = 300;
+function parseArt14CallbackQuery(rawInput) {
+  const trimmed = rawInput.trim();
+  if (!trimmed || trimmed.startsWith("{") || trimmed.startsWith("[") || !trimmed.includes("=")) return null;
+  const qIdx = trimmed.indexOf("?");
+  const query = qIdx >= 0 ? trimmed.slice(qIdx + 1) : trimmed;
+  const sp = new URLSearchParams(query);
+  const gateId = sp.get("gateId")?.trim() ?? "";
+  const actionHmac = (sp.get("hmac") ?? sp.get("actionHmac"))?.trim() ?? "";
+  const decision = sp.get("decision")?.trim() ?? "";
+  const rawTs = (sp.get("ts") ?? sp.get("issuedAtUnix"))?.trim() ?? "";
+  const sig = sp.get("sig")?.trim() ?? "";
+  if (!gateId || !actionHmac || !decision || !rawTs || !sig) return null;
+  return {
+    gateId,
+    actionHmac,
+    decision,
+    rawTs,
+    nonce: sp.get("nonce")?.trim() || null,
+    sig,
+    actionName: sp.get("actionName")?.trim() || null,
+    context: null
+  };
+}
+function parseArt14CallbackObject(body) {
+  if (body.kind === PROVENANCE_KIND) return null;
+  const gateId = typeof body.gateId === "string" ? body.gateId.trim() : "";
+  const actionHmac = typeof body.actionHmac === "string" ? body.actionHmac.trim() : typeof body.hmac === "string" ? body.hmac.trim() : "";
+  const decision = typeof body.decision === "string" ? body.decision.trim() : "";
+  const rawTs = typeof body.issuedAtUnix === "number" || typeof body.issuedAtUnix === "string" ? String(body.issuedAtUnix).trim() : typeof body.ts === "number" || typeof body.ts === "string" ? String(body.ts).trim() : "";
+  const sig = typeof body.sig === "string" ? body.sig.trim() : typeof body.signature === "string" && body.signatureAlg === void 0 ? body.signature.trim() : "";
+  if (!gateId || !actionHmac || !decision || !rawTs || !sig) return null;
+  let context = null;
+  if (isRecord3(body.context)) {
+    const clean = {};
+    let allPrimitive = true;
+    for (const [k, v] of Object.entries(body.context)) {
+      if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        clean[k] = v;
+      } else {
+        allPrimitive = false;
+        break;
+      }
+    }
+    if (allPrimitive) context = clean;
+  }
+  return {
+    gateId,
+    actionHmac,
+    decision,
+    rawTs,
+    nonce: typeof body.nonce === "string" && body.nonce.trim() ? body.nonce.trim() : null,
+    sig,
+    actionName: typeof body.actionName === "string" && body.actionName.trim() ? body.actionName.trim() : null,
+    context,
+    maxAgeSeconds: typeof body.maxAgeSeconds === "number" && Number.isFinite(body.maxAgeSeconds) && body.maxAgeSeconds > 0 ? body.maxAgeSeconds : void 0,
+    nowUnixSeconds: typeof body.nowUnixSeconds === "number" && Number.isFinite(body.nowUnixSeconds) ? body.nowUnixSeconds : void 0
+  };
+}
+function computeArt12ActionHmac(gateId, actionName, context, signingSecret) {
+  const pairs = Object.entries(context).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${String(v)}`).join("&");
+  return createHmac("sha256", signingSecret).update(`spurvik:art12:v1|${gateId}|${actionName}|${pairs}`, "utf8").digest("hex");
+}
+function computeArt14DecisionSig(gateId, actionHmac, decision, issuedAtUnix, nonce, signingSecret) {
+  const base = `spurvik:art14:decision:v1|${gateId}|${actionHmac}|${decision}|${issuedAtUnix}`;
+  const payload = nonce ? `${base}|${nonce}` : base;
+  return createHmac("sha256", signingSecret).update(payload, "utf8").digest("hex");
+}
+function constantTimeHexMatch(actualHex, expectedHex) {
+  if (!HEX64_RE.test(actualHex) || !HEX64_RE.test(expectedHex)) return false;
+  const a = Buffer.from(actualHex, "hex");
+  const b = Buffer.from(expectedHex, "hex");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+function explainArt14Callback(cb, signingSecret, secrets) {
+  const lines = [
+    "Art. 14 human approval callback receipt",
+    "",
+    `gateId: ${formatValue(cb.gateId, secrets)}`,
+    "  Identifier of the pre-execution human oversight gate.",
+    `decision: ${formatValue(cb.decision, secrets)}`,
+    "  Reviewer decision on the signed link: approved or rejected. Any other value blocks execution.",
+    `actionHmac: ${formatValue(cb.actionHmac, secrets)}`,
+    "  HMAC-SHA-256 over spurvik:art12:v1|<gateId>|<actionName>|<sorted_context_pairs>.",
+    `issuedAtUnix: ${formatValue(cb.rawTs, secrets)}`,
+    "  Unix timestamp (seconds) bound into the decision signature for replay protection.",
+    `nonce: ${cb.nonce ? formatValue(cb.nonce, secrets) : "none"}`,
+    "  Optional nonce bound into spurvik:art14:decision:v1 when present.",
+    `sig: ${formatValue(cb.sig, secrets)}`,
+    "  HMAC-SHA-256 over spurvik:art14:decision:v1|<gateId>|<actionHmac>|<decision>|<issuedAtUnix>[|<nonce>]."
+  ];
+  if (cb.actionName) {
+    lines.push(
+      `actionName: ${formatValue(cb.actionName, secrets)}`,
+      "  Action name checked against actionHmac when context is supplied."
+    );
+  }
+  lines.push("");
+  if (!signingSecret) {
+    lines.push(SIGNATURE_NOT_CHECKED);
+    return `${lines.join("\n")}
+`;
+  }
+  const actionHmacLower = cb.actionHmac.toLowerCase();
+  const sigLower = cb.sig.toLowerCase();
+  const issuedAtUnix = Number(cb.rawTs);
+  if (!HEX64_RE.test(actionHmacLower) || !HEX64_RE.test(sigLower) || cb.decision !== "approved" && cb.decision !== "rejected" || !Number.isFinite(issuedAtUnix)) {
+    lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: malformed callback fields)");
+    lines.push(SIGNATURE_CHECK_LIMIT);
+    return `${lines.join("\n")}
+`;
+  }
+  if (cb.actionName && cb.context) {
+    const expectedActionHmac = computeArt12ActionHmac(cb.gateId, cb.actionName, cb.context, signingSecret);
+    if (!constantTimeHexMatch(actionHmacLower, expectedActionHmac)) {
+      lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: tampered action payload — actionHmac mismatch)");
+      lines.push(SIGNATURE_DIFFERS);
+      lines.push(SIGNATURE_CHECK_LIMIT);
+      return `${lines.join("\n")}
+`;
+    }
+  }
+  const expectedSig = computeArt14DecisionSig(
+    cb.gateId,
+    actionHmacLower,
+    cb.decision,
+    issuedAtUnix,
+    cb.nonce,
+    signingSecret
+  );
+  if (!constantTimeHexMatch(sigLower, expectedSig)) {
+    lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: decision signature mismatch)");
+    lines.push(SIGNATURE_DIFFERS);
+    lines.push(SIGNATURE_CHECK_LIMIT);
+    return `${lines.join("\n")}
+`;
+  }
+  const now = cb.nowUnixSeconds ?? Math.floor(Date.now() / 1e3);
+  const maxAge = cb.maxAgeSeconds ?? DEFAULT_ART14_MAX_AGE_SECONDS;
+  if (now - issuedAtUnix > maxAge) {
+    lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: expired callback link replay)");
+    lines.push(SIGNATURE_CHECK_LIMIT);
+    return `${lines.join("\n")}
+`;
+  }
+  if (issuedAtUnix - now > MAX_ART14_CLOCK_SKEW_SECONDS) {
+    lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: future timestamp clock skew)");
+    lines.push(SIGNATURE_CHECK_LIMIT);
+    return `${lines.join("\n")}
+`;
+  }
+  if (cb.decision === "rejected") {
+    lines.push("Art. 14 gate verdict: BLOCK EXECUTION (reason: explicit human rejection, authentic signature)");
+    lines.push(SIGNATURE_MATCHES);
+    lines.push(SIGNATURE_CHECK_LIMIT);
+    return `${lines.join("\n")}
+`;
+  }
+  lines.push("Art. 14 gate verdict: PERMIT EXECUTION (authentic signature, fresh timestamp, human decision=approved)");
+  lines.push(SIGNATURE_MATCHES);
+  lines.push(SIGNATURE_CHECK_LIMIT);
+  return `${lines.join("\n")}
+`;
+}
 async function explainReceipt(receiptJson, signingSecret) {
   let secret = signingSecret;
   if (secret !== void 0) {
@@ -24119,6 +24288,8 @@ async function explainReceipt(receiptJson, signingSecret) {
 async function explainReceiptBody(receiptJson, signingSecret, secrets) {
   if (receiptJson.length > MAX_RECEIPT_CHARS) throw new Error(RECEIPT_TOO_LARGE);
   const secret = signingSecret;
+  const queryCb = parseArt14CallbackQuery(receiptJson);
+  if (queryCb) return explainArt14Callback(queryCb, secret, secrets);
   let parsed;
   try {
     parsed = JSON.parse(receiptJson);
@@ -24135,6 +24306,8 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
     if (typeof parsed.markedOutput === "string") markedOutput = parsed.markedOutput;
   }
   if (!isRecord3(body)) throw new Error(RECEIPT_NOT_OBJECT);
+  const objectCb = parseArt14CallbackObject(body);
+  if (objectCb) return explainArt14Callback(objectCb, secret, secrets);
   const lines = ["HMAC provenance receipt", ""];
   if (readFromWrapper) {
     lines.push(

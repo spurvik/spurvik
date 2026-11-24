@@ -647,6 +647,52 @@ describe("createServer", () => {
     );
     expect(slackDe).toContain("Framework: langgraph.");
     expect(slackDe).toContain("/de/ki-verordnung-artikel-14-menschliche-aufsicht-slack-teams-freigabe?domain=personio.de");
+
+    // H194c: spurvik_explain_receipt verifies Art. 14 signed approval callback URLs & JSON (approve, reject, tampered payload, expired replay)
+    const { createHmac } = await import("node:crypto");
+    const art14Secret = "stdio-art14-signing-secret-0123456789";
+    const gateId = "gate_refund_99";
+    const actionHmac = createHmac("sha256", art14Secret)
+      .update(`spurvik:art12:v1|${gateId}|refund_customer|amountEur=420&customerId=cus_1`, "utf8")
+      .digest("hex");
+    const now = Math.floor(Date.now() / 1000);
+    const approveSig = createHmac("sha256", art14Secret)
+      .update(`spurvik:art14:decision:v1|${gateId}|${actionHmac}|approved|${now}|n1`, "utf8")
+      .digest("hex");
+
+    const okCb = textOf(
+      await client.callTool({
+        name: "spurvik_explain_receipt",
+        arguments: {
+          receipt: `https://personio.de/api/spurvik-callback?gateId=${gateId}&ts=${now}&hmac=${actionHmac}&nonce=n1&decision=approved&sig=${approveSig}`,
+          signingSecret: art14Secret,
+          domain: "personio.de",
+        },
+      }),
+    );
+    expect(okCb).toContain("Art. 14 human approval callback receipt");
+    expect(okCb).toContain("PERMIT EXECUTION");
+    expect(okCb).not.toContain(art14Secret);
+
+    const tamperedCb = textOf(
+      await client.callTool({
+        name: "spurvik_explain_receipt",
+        arguments: {
+          receipt: JSON.stringify({
+            gateId,
+            actionName: "refund_customer",
+            context: { amountEur: 42000, customerId: "cus_1" },
+            actionHmac,
+            decision: "approved",
+            issuedAtUnix: now,
+            nonce: "n1",
+            sig: approveSig,
+          }),
+          signingSecret: art14Secret,
+        },
+      }),
+    );
+    expect(tamperedCb).toContain("BLOCK EXECUTION (reason: tampered action payload");
     await client.close();
   });
 });
