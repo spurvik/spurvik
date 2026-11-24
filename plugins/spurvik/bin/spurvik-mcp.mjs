@@ -23408,6 +23408,11 @@ function generateArt50Badge(input = {}) {
         workerJsUrl: CLOUDFLARE_WORKER_URL,
         steps: "Cloudflare Workers: streaming HTMLRewriter Art. 50(1) notice injection + C2PA polish:'off' passthrough."
       },
+      trustWidget: {
+        scriptUrl: "https://spurvik.com/trust-widget.js",
+        tag: `<script src="https://spurvik.com/trust-widget.js" data-domain="${domain || "yourdomain.com"}" defer></script>`,
+        steps: "Drop into /trust, /security, WordPress, Webflow, Shopify, Wix, or Squarespace for an interactive 10-language Art. 50 & C2PA card."
+      },
       framer: {
         componentUrl: FRAMER_COMPONENT_URL,
         steps: "Add the .tsx file as a Framer code component, then place it on the page."

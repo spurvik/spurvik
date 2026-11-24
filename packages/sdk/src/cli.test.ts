@@ -878,9 +878,16 @@ describe("spurvik badge", () => {
     expect(wp.out()).toContain("wp_footer");
     expect(wp.out()).toContain("https://spurvik.com/r/spurvik-eu-ai-act-wp.zip");
 
+    const trust = harness();
+    expect(await runCli(["badge", "doctolib.fr", "--cms=trust-widget"], trust.deps)).toBe(EXIT_OK);
+    expect(trust.out()).toContain("https://spurvik.com/trust-widget.js");
+    expect(trust.out()).toContain('data-domain="doctolib.fr"');
+    expect(trust.out()).toContain('data-locale="fr"');
+    expect(trust.out()).toContain('data-attribution="false"');
+
     const badCms = harness();
     expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
-    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, html, react");
+    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, trust-widget, html, react");
 
     const wrongCmd = harness();
     expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);

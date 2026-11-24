@@ -969,7 +969,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
-export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html", "react"] as const;
+export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "trust-widget", "html", "react"] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
 
 function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string {
@@ -1124,6 +1124,10 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  ${tag}`);
     out(`  ${c.dim("GTM container (.json):")} https://spurvik.com/r/spurvik-gtm-art50-container.json`);
     out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
+  } else if (cms === "trust-widget") {
+    const widgetHost = host && host !== "your-app.example" ? host : "yourdomain.com";
+    out(`  ${c.bold("Trust-Center & Security Page Widget")} ${c.dim("(Shadow DOM · 0 cookies · 10 EU langs)")}`);
+    out(`  <script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${lang}" defer></script>`);
   } else if (cms === "html") {
     out(`  ${c.bold("Static HTML")} ${c.dim("(paste before </body>)")}`);
     out(`  ${tag}`);
@@ -1138,6 +1142,11 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  ${c.bold("React / Next.js")} ${c.dim("(npm i spurvik)")}`);
     out(`  import { AIDisclosureLabel } from "spurvik/react";`);
     out(`  <AIDisclosureLabel notice="interaction" locale="${lang}" systemName="${systemName}" />`);
+    if (host && host !== "your-app.example") {
+      out();
+      out(`  ${c.bold("Trust-Center card")} ${c.dim("(/trust or /security page · Pro white-label)")}`);
+      out(`  <script src="https://spurvik.com/trust-widget.js" data-domain="${host}" defer></script>`);
+    }
   }
   out();
   out(`  ${c.bold("Accessibility")} ${c.dim(`(role="status", aria-live="polite", lang="${lang}" — WCAG 2.1 AA / EN 301 549)`)}`);

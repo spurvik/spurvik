@@ -67,6 +67,7 @@ export interface Art50BadgeResult {
   prestashop: { moduleZipUrl: string; steps: string };
   shopware: { extensionZipUrl: string; steps: string };
   cloudflare: { workerJsUrl: string; steps: string };
+  trustWidget: { scriptUrl: string; tag: string; steps: string };
   framer: { componentUrl: string; steps: string };
   shadcn: { registryUrl: string; command: string; v0: string };
   supportedLocales: string[];
@@ -229,6 +230,11 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
       cloudflare: {
         workerJsUrl: CLOUDFLARE_WORKER_URL,
         steps: "Cloudflare Workers: streaming HTMLRewriter Art. 50(1) notice injection + C2PA polish:'off' passthrough.",
+      },
+      trustWidget: {
+        scriptUrl: "https://spurvik.com/trust-widget.js",
+        tag: `<script src="https://spurvik.com/trust-widget.js" data-domain="${domain || "yourdomain.com"}" defer></script>`,
+        steps: "Drop into /trust, /security, WordPress, Webflow, Shopify, Wix, or Squarespace for an interactive 10-language Art. 50 & C2PA card.",
       },
       framer: {
         componentUrl: FRAMER_COMPONENT_URL,
