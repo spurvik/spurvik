@@ -1,5 +1,7 @@
 import {
   c2paCheckUrlFor,
+  c2paStatusShieldMarkdownFor,
+  c2paStatusShieldUrlFor,
   conciergeSignupUrlFor,
   CONSOLE_ORIGIN,
   ecommerceCockpitUrlFor,
@@ -9,6 +11,7 @@ import {
   PRICE_NOTE,
   proAnnualSignupUrlFor,
   proSignupUrlFor,
+  reportMarkdownUrlFor,
   reportUrlFor,
   rfpQuestionnaireUrlFor,
   sandboxUrlFor,
@@ -65,6 +68,8 @@ export class ScanTargetRejected extends Error {
 
 export interface ScanLiveUrlLinks {
   reportUrl: string;
+  /** 1-page Markdown export (`text/markdown`) for Notion, Confluence, Linear, Jira & GitHub PRs. */
+  reportMarkdownUrl: string;
   sandboxUrl: string;
   /** Multi-domain cockpit for agencies (up to 10 domains per batch). */
   portfolioUrl: string;
@@ -80,6 +85,10 @@ export interface ScanLiveUrlLinks {
   statusShieldUrl: string;
   /** README Markdown: the status shield linked to reportUrl. */
   statusShieldMarkdown: string;
+  /** Live 2 Dec 2026 Art. 50(2) C2PA status shield SVG for this host. */
+  c2paStatusShieldUrl: string;
+  /** README Markdown: the Art. 50(2) C2PA shield linked to c2paCheckUrl. */
+  c2paStatusShieldMarkdown: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: {
     freeApiKey: string;
@@ -308,6 +317,7 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
   const extraLocale = locale !== "en" && locale !== tldLocale ? locale : undefined;
   return {
     reportUrl: reportUrlFor(host, extraLocale),
+    reportMarkdownUrl: reportMarkdownUrlFor(host, extraLocale),
     sandboxUrl: sandboxUrlFor(host),
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: c2paCheckUrlFor(host, heroImageUrl, locale),
@@ -316,6 +326,8 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     ecommerceCockpitUrl: ecommerceCockpitUrlFor(host, locale),
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
+    c2paStatusShieldUrl: c2paStatusShieldUrlFor(host),
+    c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),

@@ -289,6 +289,7 @@ export function badgeScriptTag(systemName: string, lang: BadgeLang, attribution 
 
 export interface ScanLinks {
   reportUrl: string;
+  reportMarkdownUrl: string;
   sandboxUrl: string;
   portfolioUrl: string;
   c2paCheckUrl: string;
@@ -346,6 +347,7 @@ export function scanLinks(host: string, resolvedLang?: BadgeLang, heroImageUrl?:
   if (heroImageUrl) c2paParts.push(`url=${encodeURIComponent(heroImageUrl)}`);
   return {
     reportUrl: `${CONSOLE_ORIGIN}/report?domain=${h}${extraLocale}`,
+    reportMarkdownUrl: `${CONSOLE_ORIGIN}/api/v1/report/markdown?domain=${h}${extraLocale}&format=raw`,
     sandboxUrl: `${CONSOLE_ORIGIN}/sandbox?scan=${h}`,
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: `${CONSOLE_ORIGIN}/c2pa?${c2paParts.join("&")}`,
@@ -571,6 +573,7 @@ function printScan(report: ScanReport, io: Io): void {
     step(label, url);
   }
   step("Client / DPO PDF brief", report.links.reportUrl);
+  step("1-page Markdown brief (.md)", report.links.reportMarkdownUrl);
   step("2 Dec 2026 C2PA hero-image check", report.links.c2paCheckUrl);
   step("Free API key (€0)", report.links.freeSignupUrl);
   step("White-label Pro (€19/mo or €190/yr)", report.links.proUpgradeUrl);

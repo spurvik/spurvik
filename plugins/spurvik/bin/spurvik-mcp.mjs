@@ -22100,6 +22100,10 @@ function reportUrlFor(host, extraLocale) {
   const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
   return `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc}`;
 }
+function reportMarkdownUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${CONSOLE_ORIGIN}/api/v1/report/markdown?domain=${encodeURIComponent(host)}${loc}&format=raw`;
+}
 function sandboxUrlFor(host) {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
 }
@@ -22203,6 +22207,12 @@ function statusShieldUrlFor(host) {
 }
 function statusShieldMarkdownFor(host) {
   return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
+}
+function c2paStatusShieldUrlFor(host) {
+  return `${C2PA_STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
+}
+function c2paStatusShieldMarkdownFor(host) {
+  return `[![EU AI Act Art. 50(2) C2PA](${c2paStatusShieldUrlFor(host)})](${C2PA_PAGE_URL}?domain=${encodeURIComponent(host)})`;
 }
 
 // packages/mcp/src/tools/badge-copy.ts
@@ -22874,6 +22884,7 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
   const extraLocale = locale !== "en" && locale !== tldLocale ? locale : void 0;
   return {
     reportUrl: reportUrlFor(host, extraLocale),
+    reportMarkdownUrl: reportMarkdownUrlFor(host, extraLocale),
     sandboxUrl: sandboxUrlFor(host),
     portfolioUrl: PORTFOLIO_URL,
     c2paCheckUrl: c2paCheckUrlFor(host, heroImageUrl, locale),
@@ -22882,6 +22893,8 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     ecommerceCockpitUrl: ecommerceCockpitUrlFor(host, locale),
     statusShieldUrl: statusShieldUrlFor(host),
     statusShieldMarkdown: statusShieldMarkdownFor(host),
+    c2paStatusShieldUrl: c2paStatusShieldUrlFor(host),
+    c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),

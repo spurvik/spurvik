@@ -66,6 +66,12 @@ export function reportUrlFor(host: string, extraLocale?: string): string {
   return `${REPORT_URL}?domain=${encodeURIComponent(host)}${loc}`;
 }
 
+/** 1-page Markdown export (`text/markdown`) for Notion, Confluence, Linear, Jira & GitHub PRs. */
+export function reportMarkdownUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${CONSOLE_ORIGIN}/api/v1/report/markdown?domain=${encodeURIComponent(host)}${loc}&format=raw`;
+}
+
 /** `?scan=` sandbox link for one host. */
 export function sandboxUrlFor(host: string): string {
   return `${SANDBOX_URL}?scan=${encodeURIComponent(host)}`;
@@ -375,4 +381,14 @@ export function statusShieldUrlFor(host: string): string {
 /** README Markdown: the live status shield, linked to the host's report. */
 export function statusShieldMarkdownFor(host: string): string {
   return `[![EU AI Act Art. 50](${statusShieldUrlFor(host)})](${reportUrlFor(host)})`;
+}
+
+/** Live 2 Dec 2026 Art. 50(2) C2PA status shield SVG for one host. */
+export function c2paStatusShieldUrlFor(host: string): string {
+  return `${C2PA_STATUS_SHIELD_URL}?domain=${encodeURIComponent(host)}`;
+}
+
+/** README Markdown: the live Art. 50(2) C2PA status shield, linked to the host's /c2pa check. */
+export function c2paStatusShieldMarkdownFor(host: string): string {
+  return `[![EU AI Act Art. 50(2) C2PA](${c2paStatusShieldUrlFor(host)})](${C2PA_PAGE_URL}?domain=${encodeURIComponent(host)})`;
 }
