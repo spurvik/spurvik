@@ -136,6 +136,16 @@ export interface SpurvikScanDomainOutput {
   statusShieldUrl: string;
   /** README Markdown: the status shield linked to `reportUrl`. */
   statusShieldMarkdown: string;
+  /** Raw Markdown DPO & client readiness brief URL (`text/markdown`). */
+  reportMarkdownUrl: string;
+  /** Live 2 Dec 2026 Art. 50(2) C2PA SVG status shield URL. */
+  c2paStatusShieldUrl: string;
+  /** Live 460x148 Obsidian Harbor SaaS Trust Center / Notion SVG readiness card URL. */
+  trustCenterCardUrl: string;
+  /** Drop-in Shadow DOM interactive Trust-Center widget `<script>` tag. */
+  trustWidgetScript: string;
+  /** Machine-readable `/.well-known/ai-act.json` generator URL (`spurvik.ai-act-manifest.v1`). */
+  aiActManifestUrl: string;
   agencyCalculatorUrl: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: SpurvikScanUpgradeUrls;
@@ -340,10 +350,23 @@ function platformInstallerUrlsFor(
   for (const platform of detectedPlatforms) {
     if (platform === "Shopify") out.shopifyLiquid = SPURVIK_SHOPIFY_LIQUID_URL;
     else if (platform === "WordPress") out.wordpressPluginZip = SPURVIK_WORDPRESS_PLUGIN_URL;
+    else if (platform === "PrestaShop") out.prestashopModuleZip = "https://spurvik.com/r/spurvik-prestashop-art50.zip";
+    else if (platform === "Shopware") out.shopware6PluginZip = "https://spurvik.com/r/spurvik-shopware6-art50.zip";
     else if (platform === "Google Tag Manager") out.gtmContainerJson = SPURVIK_GTM_CONTAINER_URL;
     else if (platform === "Framer") out.framerComponentTsx = SPURVIK_FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
     else if (platform === "Next.js") out.nextjsShadcnRegistry = SPURVIK_SHADCN_REGISTRY_URL;
+    else if (
+      platform === "Wix" ||
+      platform === "Squarespace" ||
+      platform === "Magento" ||
+      platform === "BigCommerce" ||
+      platform === "Drupal" ||
+      platform === "Ghost" ||
+      platform === "HubSpot CMS"
+    ) {
+      out.customHtmlGuide = `${SPURVIK_CONSOLE_ORIGIN}/labels?domain=${encodeURIComponent(host)}`;
+    }
   }
   return out;
 }
@@ -385,6 +408,11 @@ function buildOutput(host: string, facts: ScanFacts): SpurvikScanDomainOutput {
     portfolioUrl: SPURVIK_PORTFOLIO_URL,
     statusShieldUrl,
     statusShieldMarkdown: `[![EU AI Act Art. 50](${statusShieldUrl})](${reportUrl})`,
+    reportMarkdownUrl: `${SPURVIK_CONSOLE_ORIGIN}/api/v1/report/markdown?domain=${encoded}&format=raw`,
+    c2paStatusShieldUrl: `${SPURVIK_CONSOLE_ORIGIN}/api/v1/c2pa/status.svg?domain=${encoded}`,
+    trustCenterCardUrl: `${SPURVIK_CONSOLE_ORIGIN}/api/v1/badge/card.svg?domain=${encoded}`,
+    trustWidgetScript: `<script src="https://spurvik.com/trust-widget.js" data-domain="${host}" defer></script>`,
+    aiActManifestUrl: `${SPURVIK_CONSOLE_ORIGIN}/api/v1/badge/ai-act.json?domain=${encoded}`,
     agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
     upgradeUrls: {
       freeApiKey10sEur0: `${SPURVIK_CONSOLE_ORIGIN}/signup?appUrl=${encoded}`,
