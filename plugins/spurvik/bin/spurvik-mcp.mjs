@@ -22065,11 +22065,15 @@ var TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+var C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 var LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
 var VENDOR_QUESTIONNAIRE_URL = "https://spurvik.com/eu-ai-act-vendor-security-questionnaire";
 var SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.liquid";
 var WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+var PRESTASHOP_ZIP_URL = "https://spurvik.com/r/spurvik-prestashop-art50.zip";
+var SHOPWARE_ZIP_URL = "https://spurvik.com/r/spurvik-shopware6-art50.zip";
+var CLOUDFLARE_WORKER_URL = "https://spurvik.com/r/cloudflare-worker-art50-c2pa.js";
 var GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-container.json";
 var FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 var SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
@@ -22079,6 +22083,8 @@ function platformInstallerUrlsFor(detectedPlatforms, host, locale = "en") {
   for (const platform of detectedPlatforms) {
     if (platform === "Shopify") out.shopifyLiquid = SHOPIFY_LIQUID_URL;
     else if (platform === "WordPress") out.wordpressPluginZip = WORDPRESS_PLUGIN_URL;
+    else if (platform === "PrestaShop") out.prestashopModuleZip = PRESTASHOP_ZIP_URL;
+    else if (platform === "Shopware") out.shopwareExtensionZip = SHOPWARE_ZIP_URL;
     else if (platform === "Google Tag Manager") out.gtmContainerJson = GTM_CONTAINER_URL;
     else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
@@ -23359,9 +23365,25 @@ function generateArt50Badge(input = {}) {
       },
       script: buildBadgeScript(badge),
       nextjs: nextJsSnippet(attrs, position),
+      shopify: {
+        liquidUrl: SHOPIFY_LIQUID_URL,
+        steps: "Save as sections/spurvik-art50-notice.liquid in Online Store 2.0 (24 EU locales via request.locale.iso_code)."
+      },
       wordpress: {
         pluginZipUrl: WORDPRESS_PLUGIN_URL,
         steps: "WordPress admin: Plugins > Add New > Upload Plugin, choose the .zip, then activate it."
+      },
+      prestashop: {
+        moduleZipUrl: PRESTASHOP_ZIP_URL,
+        steps: "PrestaShop 1.7 / 8 / 9: Modules > Module Manager > Upload a module, drop spurvik-prestashop-art50.zip."
+      },
+      shopware: {
+        extensionZipUrl: SHOPWARE_ZIP_URL,
+        steps: "Shopware 6.5 / 6.6+: Extensions > My extensions > Upload extension, upload spurvik-shopware6-art50.zip."
+      },
+      cloudflare: {
+        workerJsUrl: CLOUDFLARE_WORKER_URL,
+        steps: "Cloudflare Workers: streaming HTMLRewriter Art. 50(1) notice injection + C2PA polish:'off' passthrough."
       },
       framer: {
         componentUrl: FRAMER_COMPONENT_URL,
@@ -28821,9 +28843,9 @@ var sdkExportNames = {
 
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
-var CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"];
+var CMS_FRAMEWORKS = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
-var IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
+var IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28865,8 +28887,13 @@ var SETUP_FRAMEWORK_ALIASES = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
-  prestashop: "html",
-  shopware: "html",
+  shopware6: "shopware",
+  "cloudflare-worker": "cloudflare",
+  "cf-worker": "cloudflare",
+  "c2pa-cdn": "cloudflare",
+  copilot: "cursor-rules",
+  codex: "cursor-rules",
+  "agents-md": "cursor-rules",
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
@@ -29418,6 +29445,24 @@ function cmsSource(framework, host = null, locale = "en") {
       "});"
     ].join("\n") + "\n";
   }
+  if (framework === "prestashop") {
+    return [
+      "# PrestaShop 1.7 / 8 / 9 zero-code module (Modules -> Module Manager -> Upload a module):",
+      "curl -fsSLO https://spurvik.com/r/spurvik-prestashop-art50.zip"
+    ].join("\n") + "\n";
+  }
+  if (framework === "shopware") {
+    return [
+      "# Shopware 6.5 / 6.6+ zero-code extension (Extensions -> My extensions -> Upload extension):",
+      "curl -fsSLO https://spurvik.com/r/spurvik-shopware6-art50.zip"
+    ].join("\n") + "\n";
+  }
+  if (framework === "cloudflare") {
+    return [
+      "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + 2 Dec 2026 C2PA polish:'off' passthrough:",
+      "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js"
+    ].join("\n") + "\n";
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>
 `;
@@ -29435,6 +29480,10 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 4 agent skills):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "",
+      "# Drop-in Cursor (.mdc) & universal AGENTS.md EU AI Act guardrails:",
+      "mkdir -p .cursor/rules && curl -fsSL https://spurvik.com/r/spurvik-cursor-rules.mdc -o .cursor/rules/spurvik-eu-ai-act.mdc",
+      "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
       "# GitHub Actions PR-Gate (blocks unwrapped TS/JS & Python AI calls on pull requests):",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
@@ -29534,9 +29583,9 @@ ${source}\`\`\`
 ${source}\`\`\`
 `;
     }
-    const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
+    const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : framework === "prestashop" || framework === "shopware" || framework === "cloudflare" ? "bash" : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
-    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "prestashop" ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "shopware" ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "cloudflare" ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
