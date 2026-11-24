@@ -5,9 +5,15 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   spurvik-scan:
     runs-on: ubuntu-latest
+    env:
+      SPURVIK_SCAN_DOMAIN: ${{ vars.SPURVIK_SCAN_DOMAIN }}
+      SPURVIK_C2PA_URL: ${{ vars.SPURVIK_C2PA_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,3 +21,31 @@ jobs:
           node-version: 22
       - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.11)
         run: node examples/github-actions-ci-check/run-mcp-scan.mjs --root . --dir src
+      - name: Run offline 6-vector Art. 14 gate self-test (0 network calls)
+        run: npx --yes spurvik@1.0.14 gate "${SPURVIK_SCAN_DOMAIN:-example.com}"
+      - name: Live domain Art. 50 scan (only when SPURVIK_SCAN_DOMAIN is set)
+        if: ${{ env.SPURVIK_SCAN_DOMAIN != '' }}
+        run: npx --yes spurvik@1.0.14 scan "$SPURVIK_SCAN_DOMAIN" --fail-on-gap
+      - name: Live C2PA manifest & CDN-strip check (only when SPURVIK_C2PA_URL is set)
+        if: ${{ env.SPURVIK_C2PA_URL != '' }}
+        run: npx --yes spurvik@1.0.14 c2pa "$SPURVIK_C2PA_URL" --fail-on-missing
+      - name: Publish Art. 50 status shield & DPO brief to PR summary
+        if: ${{ always() }}
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+            if (!summaryPath) process.exit(0);
+            const raw = (process.env.SPURVIK_SCAN_DOMAIN || "").trim().toLowerCase();
+            const validDomain = /^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/.test(raw) && raw.includes(".");
+            const lines = ["### Spurvik EU AI Act PR Check", ""];
+            if (validDomain) {
+              const enc = encodeURIComponent(raw);
+              const shield = `[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=${enc})](https://console.spurvik.com/report?domain=${enc})`;
+              lines.push(`${shield} · [Shareable DPO Brief](https://console.spurvik.com/report?domain=${enc}) · [2 Dec 2026 C2PA Check](https://console.spurvik.com/c2pa?domain=${enc}) · [24-Lang Label Studio](https://console.spurvik.com/labels?domain=${enc})`);
+            } else {
+              lines.push("Local unwrapped-call & 6-vector Art. 14 gate checks ran offline (`0` bytes sent). Set repository variable `SPURVIK_SCAN_DOMAIN` to add your live [Art. 50 status shield & DPO brief](https://console.spurvik.com/sandbox) or explore [Spurvik Docs](https://spurvik.com/docs).");
+            }
+            lines.push("");
+            fs.appendFileSync(summaryPath, lines.join("\n") + "\n");
+          '

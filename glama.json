@@ -9,6 +9,8 @@
   "homepage": "https://spurvik.com/docs",
   "repository": "https://github.com/spurvik/spurvik",
   "sandboxUrl": "https://console.spurvik.com/sandbox?scan=https://your-app.com",
+  "openApiUrl": "https://console.spurvik.com/openapi.json",
+  "agentCardUrl": "https://console.spurvik.com/.well-known/agent.json",
   "remoteEndpoint": {
     "url": "https://console.spurvik.com/api/mcp",
     "transport": "streamable-http",

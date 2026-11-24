@@ -8,7 +8,7 @@ The scanner runs offline in process, skips `.env` / `.env.*` files, makes zero n
 
 ## 1. Copy the workflow into `.github/workflows/spurvik-ai-act-check.yml`
 
-See [`spurvik-ai-act-check.workflow.yml`](./spurvik-ai-act-check.workflow.yml) and [`run-mcp-scan.mjs`](./run-mcp-scan.mjs).
+See [`spurvik-ai-act-check.workflow.yml`](./spurvik-ai-act-check.workflow.yml) (or install the standalone 1-liner workflow from `curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml`) and [`run-mcp-scan.mjs`](./run-mcp-scan.mjs). Set optional repository variables `SPURVIK_SCAN_DOMAIN` and `SPURVIK_C2PA_URL` under **Settings -> Secrets and variables -> Actions -> Variables** to append a live Art. 50 status shield, DPO brief, and 2 December 2026 C2PA check to `$GITHUB_STEP_SUMMARY` on every PR.
 
 ```bash
 # Run locally against your project directory:
