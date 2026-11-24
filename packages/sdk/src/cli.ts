@@ -969,7 +969,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
-export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "trust-widget", "html", "react"] as const;
+export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "trust-widget", "well-known", "html", "react"] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
 
 function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string {
@@ -1128,6 +1128,12 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     const widgetHost = host && host !== "your-app.example" ? host : "yourdomain.com";
     out(`  ${c.bold("Trust-Center & Security Page Widget")} ${c.dim("(Shadow DOM · 0 cookies · 10 EU langs)")}`);
     out(`  <script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${lang}" defer></script>`);
+  } else if (cms === "well-known") {
+    const manifestHost = host && host !== "your-app.example" ? host : "yourdomain.com";
+    out(`  ${c.bold("Machine-Readable /.well-known/ai-act.json")} ${c.dim("(spurvik.ai-act-manifest.v1 · Art. 50 & C2PA)")}`);
+    out(`  mkdir -p public/.well-known && curl -fsSL "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(manifestHost)}" -o public/.well-known/ai-act.json`);
+    out(`  ${c.dim("HTML <head> link:")} <link rel="ai-act-manifest" href="/.well-known/ai-act.json" type="application/json" />`);
+    out(`  ${c.dim("JSON Schema:")} https://spurvik.com/r/ai-act-manifest.schema.json`);
   } else if (cms === "html") {
     out(`  ${c.bold("Static HTML")} ${c.dim("(paste before </body>)")}`);
     out(`  ${tag}`);

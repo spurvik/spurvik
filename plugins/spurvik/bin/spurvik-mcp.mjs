@@ -23413,6 +23413,12 @@ function generateArt50Badge(input = {}) {
         tag: `<script src="https://spurvik.com/trust-widget.js" data-domain="${domain || "yourdomain.com"}" defer></script>`,
         steps: "Drop into /trust, /security, WordPress, Webflow, Shopify, Wix, or Squarespace for an interactive 10-language Art. 50 & C2PA card."
       },
+      aiActManifest: {
+        wellKnownPath: "/.well-known/ai-act.json",
+        generatorUrl: `https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(domain || "yourdomain.com")}`,
+        schemaUrl: "https://spurvik.com/r/ai-act-manifest.schema.json",
+        command: `mkdir -p public/.well-known && curl -fsSL "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(domain || "yourdomain.com")}" -o public/.well-known/ai-act.json`
+      },
       framer: {
         componentUrl: FRAMER_COMPONENT_URL,
         steps: "Add the .tsx file as a Framer code component, then place it on the page."

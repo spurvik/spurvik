@@ -885,9 +885,15 @@ describe("spurvik badge", () => {
     expect(trust.out()).toContain('data-locale="fr"');
     expect(trust.out()).toContain('data-attribution="false"');
 
+    const wellKnown = harness();
+    expect(await runCli(["badge", "doctolib.fr", "--cms=well-known"], wellKnown.deps)).toBe(EXIT_OK);
+    expect(wellKnown.out()).toContain("/api/v1/badge/ai-act.json?domain=doctolib.fr");
+    expect(wellKnown.out()).toContain('rel="ai-act-manifest"');
+    expect(wellKnown.out()).toContain("https://spurvik.com/r/ai-act-manifest.schema.json");
+
     const badCms = harness();
     expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
-    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, trust-widget, html, react");
+    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, trust-widget, well-known, html, react");
 
     const wrongCmd = harness();
     expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);
