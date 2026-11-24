@@ -15,6 +15,7 @@ export const TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interv
 export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+export const TRUST_CENTER_CARD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/card.svg`;
 export const C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 /** Interactive C2PA JUMBF manifest & CDN-strip checker (upload or URL). */
 export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
@@ -391,4 +392,15 @@ export function c2paStatusShieldUrlFor(host: string): string {
 /** README Markdown: the live Art. 50(2) C2PA status shield, linked to the host's /c2pa check. */
 export function c2paStatusShieldMarkdownFor(host: string): string {
   return `[![EU AI Act Art. 50(2) C2PA](${c2paStatusShieldUrlFor(host)})](${C2PA_PAGE_URL}?domain=${encodeURIComponent(host)})`;
+}
+
+/** Live 460x148 10-language SaaS Trust Center / Notion SVG readiness card URL for one host. */
+export function trustCenterCardUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${TRUST_CENTER_CARD_URL}?domain=${encodeURIComponent(host)}${loc}`;
+}
+
+/** Markdown embed for the 460x148 SaaS Trust Center / Notion SVG readiness card, linked to reportUrl. */
+export function trustCenterCardMarkdownFor(host: string, extraLocale?: string): string {
+  return `[![EU AI Act Art. 50 Readiness Card for ${host}](${trustCenterCardUrlFor(host, extraLocale)})](${reportUrlFor(host, extraLocale)})`;
 }

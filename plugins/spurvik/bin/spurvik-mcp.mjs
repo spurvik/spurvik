@@ -22065,6 +22065,7 @@ var TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interval=annual
 var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+var TRUST_CENTER_CARD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/card.svg`;
 var C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 var LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
@@ -22213,6 +22214,13 @@ function c2paStatusShieldUrlFor(host) {
 }
 function c2paStatusShieldMarkdownFor(host) {
   return `[![EU AI Act Art. 50(2) C2PA](${c2paStatusShieldUrlFor(host)})](${C2PA_PAGE_URL}?domain=${encodeURIComponent(host)})`;
+}
+function trustCenterCardUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${TRUST_CENTER_CARD_URL}?domain=${encodeURIComponent(host)}${loc}`;
+}
+function trustCenterCardMarkdownFor(host, extraLocale) {
+  return `[![EU AI Act Art. 50 Readiness Card for ${host}](${trustCenterCardUrlFor(host, extraLocale)})](${reportUrlFor(host, extraLocale)})`;
 }
 
 // packages/mcp/src/tools/badge-copy.ts
@@ -22895,6 +22903,8 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     c2paStatusShieldUrl: c2paStatusShieldUrlFor(host),
     c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
+    trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
+    trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),

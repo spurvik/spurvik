@@ -20,6 +20,8 @@ import {
   supportWidgetCockpitUrlFor,
   teamAnnualSignupUrlFor,
   teamSignupUrlFor,
+  trustCenterCardMarkdownFor,
+  trustCenterCardUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -89,6 +91,10 @@ export interface ScanLiveUrlLinks {
   c2paStatusShieldUrl: string;
   /** README Markdown: the Art. 50(2) C2PA shield linked to c2paCheckUrl. */
   c2paStatusShieldMarkdown: string;
+  /** Live 460x148 10-language SaaS Trust Center / Notion SVG readiness card for this host. */
+  trustCenterCardUrl: string;
+  /** Markdown embed for the 460x148 SaaS Trust Center / Notion SVG readiness card. */
+  trustCenterCardMarkdown: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: {
     freeApiKey: string;
@@ -328,6 +334,8 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     statusShieldMarkdown: statusShieldMarkdownFor(host),
     c2paStatusShieldUrl: c2paStatusShieldUrlFor(host),
     c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
+    trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
+    trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),
