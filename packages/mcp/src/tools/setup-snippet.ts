@@ -33,9 +33,9 @@ import { EU_LANGUAGES, inferLocaleFromDomain } from "./badge-copy.js";
 import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
-export const CMS_FRAMEWORKS = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"] as const;
+export const CMS_FRAMEWORKS = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
-export const IDE_CI_FRAMEWORKS = ["cursor", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
+export const IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -85,8 +85,13 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
-  prestashop: "html",
-  shopware: "html",
+  shopware6: "shopware",
+  "cloudflare-worker": "cloudflare",
+  "cf-worker": "cloudflare",
+  "c2pa-cdn": "cloudflare",
+  copilot: "cursor-rules",
+  codex: "cursor-rules",
+  "agents-md": "cursor-rules",
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
@@ -676,6 +681,24 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
       "});",
     ].join("\n") + "\n";
   }
+  if (framework === "prestashop") {
+    return [
+      "# PrestaShop 1.7 / 8 / 9 zero-code module (Modules -> Module Manager -> Upload a module):",
+      "curl -fsSLO https://spurvik.com/r/spurvik-prestashop-art50.zip",
+    ].join("\n") + "\n";
+  }
+  if (framework === "shopware") {
+    return [
+      "# Shopware 6.5 / 6.6+ zero-code extension (Extensions -> My extensions -> Upload extension):",
+      "curl -fsSLO https://spurvik.com/r/spurvik-shopware6-art50.zip",
+    ].join("\n") + "\n";
+  }
+  if (framework === "cloudflare") {
+    return [
+      "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + 2 Dec 2026 C2PA polish:'off' passthrough:",
+      "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
+    ].join("\n") + "\n";
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
 }
@@ -704,6 +727,10 @@ export function setupSnippetSource(
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 4 agent skills):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "",
+      "# Drop-in Cursor (.mdc) & universal AGENTS.md EU AI Act guardrails:",
+      "mkdir -p .cursor/rules && curl -fsSL https://spurvik.com/r/spurvik-cursor-rules.mdc -o .cursor/rules/spurvik-eu-ai-act.mdc",
+      "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
       "# GitHub Actions PR-Gate (blocks unwrapped TS/JS & Python AI calls on pull requests):",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
@@ -800,14 +827,27 @@ export function setupSnippet(
       ];
       return `${swLines.join("\n")}\n\n\`\`\`html\n${source}\`\`\`\n`;
     }
-    const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : "html";
+    const langFence =
+      framework === "shopify"
+        ? "liquid"
+        : framework === "wordpress"
+          ? "php"
+          : framework === "prestashop" || framework === "shopware" || framework === "cloudflare"
+            ? "bash"
+            : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
     const guideLine =
       framework === "shopify"
         ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
         : framework === "wordpress"
           ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}`
-          : framework === "gtm"
+          : framework === "prestashop"
+            ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
+            : framework === "shopware"
+              ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
+              : framework === "cloudflare"
+                ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.`
+                : framework === "gtm"
             ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}`
             : framework === "framer"
             ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}`

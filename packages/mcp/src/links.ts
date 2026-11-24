@@ -15,6 +15,7 @@ export const TEAM_ANNUAL_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=team&interv
 export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
+export const C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 /** Interactive C2PA JUMBF manifest & CDN-strip checker (upload or URL). */
 export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 /** Interactive Label Studio with CMS downloads. */
@@ -24,6 +25,11 @@ export const VENDOR_QUESTIONNAIRE_URL = "https://spurvik.com/eu-ai-act-vendor-se
 
 export const SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.liquid";
 export const WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
+export const PRESTASHOP_ZIP_URL = "https://spurvik.com/r/spurvik-prestashop-art50.zip";
+export const SHOPWARE_ZIP_URL = "https://spurvik.com/r/spurvik-shopware6-art50.zip";
+export const CLOUDFLARE_WORKER_URL = "https://spurvik.com/r/cloudflare-worker-art50-c2pa.js";
+export const CURSOR_RULES_URL = "https://spurvik.com/r/spurvik-cursor-rules.mdc";
+export const AGENTS_MD_URL = "https://spurvik.com/r/AGENTS.md";
 export const GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-container.json";
 export const FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 export const SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
@@ -39,6 +45,8 @@ export function platformInstallerUrlsFor(
   for (const platform of detectedPlatforms) {
     if (platform === "Shopify") out.shopifyLiquid = SHOPIFY_LIQUID_URL;
     else if (platform === "WordPress") out.wordpressPluginZip = WORDPRESS_PLUGIN_URL;
+    else if (platform === "PrestaShop") out.prestashopModuleZip = PRESTASHOP_ZIP_URL;
+    else if (platform === "Shopware") out.shopwareExtensionZip = SHOPWARE_ZIP_URL;
     else if (platform === "Google Tag Manager") out.gtmContainerJson = GTM_CONTAINER_URL;
     else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);

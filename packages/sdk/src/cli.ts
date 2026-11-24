@@ -518,6 +518,8 @@ function cliPlatformInstallerSteps(platforms: readonly string[] | undefined): Ar
   for (const p of platforms) {
     if (p === "Shopify") out.push(["1-click Shopify (.liquid)", "https://spurvik.com/r/spurvik-shopify-art50.liquid"]);
     else if (p === "WordPress") out.push(["1-click WordPress (.zip)", "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"]);
+    else if (p === "PrestaShop") out.push(["1-click PrestaShop (.zip)", "https://spurvik.com/r/spurvik-prestashop-art50.zip"]);
+    else if (p === "Shopware") out.push(["1-click Shopware 6 (.zip)", "https://spurvik.com/r/spurvik-shopware6-art50.zip"]);
     else if (p === "Google Tag Manager") out.push(["1-click Google Tag Manager (.json)", "https://spurvik.com/r/spurvik-gtm-art50-container.json"]);
     else if (p === "Framer") out.push(["1-click Framer (.tsx)", "https://spurvik.com/r/spurvik-framer-badge.tsx"]);
     if (out.length >= 3) break;
@@ -1159,6 +1161,9 @@ export const SETUP_TARGETS = [
   "pydantic-ai",
   "shopify",
   "wordpress",
+  "prestashop",
+  "shopware",
+  "cloudflare",
   "webflow",
   "framer",
   "gtm",
@@ -1172,7 +1177,7 @@ export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "pytho
 export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
-const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "webflow", "framer", "gtm", "html"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make"];
 
 const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
@@ -1202,8 +1207,10 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
-  prestashop: "html",
-  shopware: "html",
+  shopware6: "shopware",
+  "cloudflare-worker": "cloudflare",
+  "cf-worker": "cloudflare",
+  "c2pa-cdn": "cloudflare",
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
@@ -1449,7 +1456,22 @@ export function buildSetupReport(
               "    printf('<script src=\"https://spurvik.com/badge.js\" data-system=\"%s\" data-locale=\"%s\" data-position=\"bottom-left\" data-attribution=\"true\" defer></script>', esc_attr(get_bloginfo('name') ?: 'AI Assistant'), esc_attr($lang));",
               "});",
             ].join("\n")
-          : target === "react"
+          : target === "prestashop"
+            ? [
+                "# PrestaShop 1.7 / 8 / 9: Modules -> Module Manager -> Upload a module (spurvik-prestashop-art50.zip)",
+                `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-attribution="true" defer></script>`,
+              ].join("\n")
+            : target === "shopware"
+              ? [
+                  "# Shopware 6.5 / 6.6+: Extensions -> My extensions -> Upload extension (spurvik-shopware6-art50.zip)",
+                  `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-attribution="true" defer></script>`,
+                ].join("\n")
+              : target === "cloudflare"
+                ? [
+                    "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + C2PA polish:'off' passthrough",
+                    "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
+                  ].join("\n")
+                : target === "react"
             ? [
                 'import { AIDisclosureLabel } from "spurvik/react";',
                 "",
@@ -1463,7 +1485,13 @@ export function buildSetupReport(
           ? "curl -fsSLO https://spurvik.com/r/spurvik-shopify-art50.liquid"
           : target === "wordpress"
             ? "curl -fsSLO https://spurvik.com/r/spurvik-eu-ai-act-wp.zip"
-            : target === "framer"
+            : target === "prestashop"
+              ? "curl -fsSLO https://spurvik.com/r/spurvik-prestashop-art50.zip"
+              : target === "shopware"
+                ? "curl -fsSLO https://spurvik.com/r/spurvik-shopware6-art50.zip"
+                : target === "cloudflare"
+                  ? "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js"
+                  : target === "framer"
               ? "curl -fsSLO https://spurvik.com/r/spurvik-framer-badge.tsx"
               : target === "gtm"
                 ? "curl -fsSLO https://spurvik.com/r/spurvik-gtm-art50-container.json"

@@ -1,14 +1,18 @@
 import {
   BADGE_SCRIPT_SRC,
+  CLOUDFLARE_WORKER_URL,
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   FRAMER_COMPONENT_URL,
   LABELS_URL,
+  PRESTASHOP_ZIP_URL,
   PRICE_NOTE,
   PRO_ANNUAL_SIGNUP_URL,
   PRO_PRICE,
   PRO_SIGNUP_URL,
   SHADCN_REGISTRY_URL,
+  SHOPIFY_LIQUID_URL,
+  SHOPWARE_ZIP_URL,
   WORDPRESS_PLUGIN_URL,
 } from "../links.js";
 import {
@@ -58,7 +62,11 @@ export interface Art50BadgeResult {
   accessibility: Art50BadgeAccessibility;
   script: string;
   nextjs: string;
+  shopify: { liquidUrl: string; steps: string };
   wordpress: { pluginZipUrl: string; steps: string };
+  prestashop: { moduleZipUrl: string; steps: string };
+  shopware: { extensionZipUrl: string; steps: string };
+  cloudflare: { workerJsUrl: string; steps: string };
   framer: { componentUrl: string; steps: string };
   shadcn: { registryUrl: string; command: string; v0: string };
   supportedLocales: string[];
@@ -202,9 +210,25 @@ export function generateArt50Badge(input: Art50BadgeInput = {}): Art50BadgeOutco
       },
       script: buildBadgeScript(badge),
       nextjs: nextJsSnippet(attrs, position),
+      shopify: {
+        liquidUrl: SHOPIFY_LIQUID_URL,
+        steps: "Save as sections/spurvik-art50-notice.liquid in Online Store 2.0 (24 EU locales via request.locale.iso_code).",
+      },
       wordpress: {
         pluginZipUrl: WORDPRESS_PLUGIN_URL,
         steps: "WordPress admin: Plugins > Add New > Upload Plugin, choose the .zip, then activate it.",
+      },
+      prestashop: {
+        moduleZipUrl: PRESTASHOP_ZIP_URL,
+        steps: "PrestaShop 1.7 / 8 / 9: Modules > Module Manager > Upload a module, drop spurvik-prestashop-art50.zip.",
+      },
+      shopware: {
+        extensionZipUrl: SHOPWARE_ZIP_URL,
+        steps: "Shopware 6.5 / 6.6+: Extensions > My extensions > Upload extension, upload spurvik-shopware6-art50.zip.",
+      },
+      cloudflare: {
+        workerJsUrl: CLOUDFLARE_WORKER_URL,
+        steps: "Cloudflare Workers: streaming HTMLRewriter Art. 50(1) notice injection + C2PA polish:'off' passthrough.",
       },
       framer: {
         componentUrl: FRAMER_COMPONENT_URL,

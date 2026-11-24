@@ -96,8 +96,12 @@ describe("generateArt50Badge", () => {
     expect(inline.nextjs).toContain("<div data-spurvik-badge />");
   });
 
-  it("emits Next.js, WordPress, Framer and shadcn/v0 variants", () => {
+  it("emits Next.js, Shopify, WordPress, PrestaShop, Shopware, Cloudflare, Framer and shadcn/v0 variants", () => {
     const result = badge({ systemName: "Acme Helper", locale: "de", attribution: false });
+    expect(result.shopify.liquidUrl).toBe("https://spurvik.com/r/spurvik-shopify-art50.liquid");
+    expect(result.prestashop.moduleZipUrl).toBe("https://spurvik.com/r/spurvik-prestashop-art50.zip");
+    expect(result.shopware.extensionZipUrl).toBe("https://spurvik.com/r/spurvik-shopware6-art50.zip");
+    expect(result.cloudflare.workerJsUrl).toBe("https://spurvik.com/r/cloudflare-worker-art50-c2pa.js");
     expect(result.nextjs).toContain('import Script from "next/script";');
     expect(result.nextjs).toContain('src="https://spurvik.com/badge.js"');
     expect(result.nextjs).toContain('data-system="Acme Helper"');
