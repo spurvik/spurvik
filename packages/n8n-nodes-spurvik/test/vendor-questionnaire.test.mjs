@@ -151,10 +151,10 @@ function allCombinations() {
 describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)", () => {
   const node = new SpurvikEuAiActGuard();
 
-  it("adds the operation as #7, last, and keeps art50_disclosure as the default", () => {
+  it("adds the operation as #7 and keeps art50_disclosure as the default", () => {
     const operation = byName("operation");
     assert.equal(operation.default, "art50_disclosure");
-    assert.equal(operation.options.length, 7);
+    assert.equal(operation.options.length, 8);
     const option = operation.options[6];
     assert.equal(option.value, "vendorQuestionnaireAnswers");
     assert.equal(option.name, "Answer Vendor Security Questionnaire (Art. 50/12/14 RFP)");
@@ -233,11 +233,11 @@ describe("vendorQuestionnaireAnswers descriptor (zero-credential operation #7)",
   });
 
   it("hides spurvikApi, systemName, passThroughFields and consoleBaseUrl, and shows only the questionnaire fields (n8n-workflow rules)", () => {
-    const hide = { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } };
+    const hide = { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers", "gateSelfTest"] } };
     assert.deepEqual(SpurvikN8nNodeDescription.credentials[0].displayOptions, hide);
     assert.deepEqual(byName("systemName").displayOptions, hide);
     assert.deepEqual(byName("passThroughFields").displayOptions, hide);
-    assert.deepEqual(byName("consoleBaseUrl").displayOptions, { hide: { operation: ["vendorQuestionnaireAnswers"] } });
+    assert.deepEqual(byName("consoleBaseUrl").displayOptions, { hide: { operation: ["vendorQuestionnaireAnswers", "gateSelfTest"] } });
 
     const shownFor = (operation) =>
       SpurvikN8nNodeDescription.properties

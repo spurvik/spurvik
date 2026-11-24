@@ -172,8 +172,8 @@ describe("checkImageC2paUrl descriptor (zero-key Check Image C2PA & CDN Strip)",
   it("adds the operation as #6 with a read-only, zero-key description", () => {
     const operation = byName("operation");
     assert.equal(operation.default, "art50_disclosure");
-    // 1.0.8 adds vendorQuestionnaireAnswers as #7; checkImageC2paUrl stays #6.
-    assert.equal(operation.options.length, 7);
+    // 1.0.8 adds vendorQuestionnaireAnswers as #7 and gateSelfTest as #8; checkImageC2paUrl stays #6.
+    assert.equal(operation.options.length, 8);
     const option = operation.options[5];
     assert.equal(option.value, "checkImageC2paUrl");
     assert.equal(option.name, "Check Image C2PA & CDN Strip (Art. 50(2))");
@@ -197,7 +197,7 @@ describe("checkImageC2paUrl descriptor (zero-key Check Image C2PA & CDN Strip)",
   });
 
   it("hides spurvikApi, systemName and passThroughFields and shows only operation, imageUrl and consoleBaseUrl (n8n-workflow rules)", () => {
-    const hide = { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } };
+    const hide = { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers", "gateSelfTest"] } };
     assert.deepEqual(SpurvikN8nNodeDescription.credentials[0].displayOptions, hide);
     assert.deepEqual(byName("systemName").displayOptions, hide);
     assert.deepEqual(byName("passThroughFields").displayOptions, hide);

@@ -55,3 +55,15 @@ export type {
   SpurvikVendorQuestionnaireInput,
   SpurvikVendorQuestionnaireOutput,
 } from "./vendor-questionnaire";
+export {
+  SPURVIK_GATE_LOCALES,
+  spurvikGateSelfTest,
+} from "./gate-self-test";
+export type {
+  SpurvikGateLocale,
+  SpurvikGateSelfTestInput,
+  SpurvikGateSelfTestOutput,
+  SpurvikGateUpgradeUrls,
+  SpurvikGateVectorId,
+  SpurvikGateVectorResult,
+} from "./gate-self-test";

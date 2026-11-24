@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/SpurvikEuAiActGuard && cp nodes/SpurvikEuAiActGuard/spurvik.svg dist/nodes/SpurvikEuAiActGuard/spurvik.svg",
-    "test": "npm run build && node --test test/execute.test.mjs test/check-image-c2pa-url.test.mjs test/vendor-questionnaire.test.mjs",
+    "test": "npm run build && node --test test/execute.test.mjs test/check-image-c2pa-url.test.mjs test/vendor-questionnaire.test.mjs test/gate-self-test.test.mjs",
     "prepublishOnly": "cd \"$(git rev-parse --show-toplevel)\" && bash scripts/ci/no-default-keys.sh"
   },
   "n8n": {

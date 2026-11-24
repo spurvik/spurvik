@@ -1,6 +1,6 @@
 # n8n-nodes-spurvik
 
-n8n community node for self-hosted n8n, designed to support seven separate workflow steps:
+n8n community node for self-hosted n8n, designed to support eight separate workflow steps:
 
 1. Add an AI interaction notice to one text field.
 2. Record the call as an HMAC-SHA256 digest instead of the raw prompt text. The digest is `spurvik:workflow:input:v1|` plus the input field. This is designed to support Article 12 record-keeping for high-risk AI systems. The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The field value is not returned, including when that name is listed in passThroughFields. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
@@ -9,6 +9,7 @@ n8n community node for self-hosted n8n, designed to support seven separate workf
 5. Scan an agency roster of up to 10 client sites in one step, with no API key. See [Batch Scan](#batch-scan-up-to-10-domains-agency-roster).
 6. Check one public image URL for a C2PA manifest and CDN stripping, with no API key. See [Check Image C2PA & CDN Strip](#check-image-c2pa--cdn-strip-art-502).
 7. Draft answers to the EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, locally, with no request and no API key. See [Answer Vendor Security Questionnaire](#answer-vendor-security-questionnaire-art-501214-rfp).
+8. Run an offline 6-vector cryptographic self-test of Spurvik's fail-closed Art. 14 human approval gate, locally, with no request and no API key. See [Test Art. 14 Human Approval Blocking](#test-art-14-human-approval-blocking-6-vectors).
 
 The node does not mark or sign content.
 
@@ -185,9 +186,13 @@ Output (fixed key order):
 - A plan, provider, or flag outside the listed values (for example from an expression) stops the node with an error that lists the allowed values without repeating the input.
 - The answers describe Spurvik's shipped controls. Check them against your own setup before you send them to a buyer.
 
+## Test Art. 14 Human Approval Blocking (6 Vectors)
+
+Operation value `gateSelfTest`. It needs **no credential, no API key, and no network access**: n8n hides `spurvikApi` and `consoleBaseUrl`, and `spurvikGateSelfTest` generates a fresh ephemeral 256-bit secret per run (never persisted or returned) to test all 6 `spurvik-sdk` (`spurvik:art12:v1` + `spurvik:art14:decision:v1`) vectors (`unapproved_default_halt`, `explicit_human_block`, `tampered_payload_hmac`, `decision_flip_forgery`, `expired_link_replay`, and `authentic_signed_approval`). Optional `gateTestDomain` (`acme.eu`) and `gateTestLocale` (`en`, `de`, `fr`, `nl`, `da`, `sv`, `es`, `it`) prefill the interactive Art. 14 cockpit URL and `upgradeUrls` (`€0`, `€19/mo` / `€190/yr`, `€79/mo` / `€790/yr`, `€199` once).
+
 ## Credential
 
-`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain, Batch Scan, Check Image C2PA, and Answer Vendor Security Questionnaire do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
+`spurvikApi` stores the HMAC signing secret, optional `consoleApiKey`, and channel tokens as password fields. Scan Live Domain, Batch Scan, Check Image C2PA, Answer Vendor Security Questionnaire, and Test Art. 14 Human Approval Blocking do not use it. The node reads the secret only from that credential. It throws if the secret is missing, shorter than 16 characters, or padded with whitespace. It does not read `SPURVIK_HMAC_SECRET`.
 
 ## Layout
 

@@ -7,6 +7,7 @@ import type {
 } from "n8n-workflow";
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
 import { checkSpurvikImageC2paUrl } from "../../check-image-c2pa-url";
+import { spurvikGateSelfTest } from "../../gate-self-test";
 import { batchScanSpurvikDomains, scanSpurvikDomain } from "../../scan-domain";
 import { spurvikVendorQuestionnaireAnswers } from "../../vendor-questionnaire";
 import {
@@ -20,11 +21,13 @@ const SCAN_DOMAIN_OPERATION = "scanDomain";
 const BATCH_SCAN_DOMAINS_OPERATION = "batchScanDomains";
 const CHECK_IMAGE_C2PA_URL_OPERATION = "checkImageC2paUrl";
 const VENDOR_QUESTIONNAIRE_OPERATION = "vendorQuestionnaireAnswers";
+const GATE_SELF_TEST_OPERATION = "gateSelfTest";
 const ZERO_KEY_OPERATIONS: readonly string[] = [
   SCAN_DOMAIN_OPERATION,
   BATCH_SCAN_DOMAINS_OPERATION,
   CHECK_IMAGE_C2PA_URL_OPERATION,
   VENDOR_QUESTIONNAIRE_OPERATION,
+  GATE_SELF_TEST_OPERATION,
 ];
 const DEFAULT_CONSOLE_BASE_URL = "https://console.spurvik.com";
 
@@ -66,7 +69,17 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
     {
       name: "spurvikApi",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
+      displayOptions: {
+        hide: {
+          operation: [
+            "scanDomain",
+            "batchScanDomains",
+            "checkImageC2paUrl",
+            "vendorQuestionnaireAnswers",
+            "gateSelfTest",
+          ],
+        },
+      },
     },
   ],
   properties: [
@@ -115,6 +128,12 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           value: "vendorQuestionnaireAnswers",
           description:
             "Copy-paste Markdown answers to the five EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, from Spurvik's shipped controls. Built locally: no request, no credential or API key.",
+        },
+        {
+          name: "Test Art. 14 Human Approval Blocking (6 Vectors)",
+          value: "gateSelfTest",
+          description:
+            "Offline 6-vector HMAC-SHA256 self-test of Spurvik's fail-closed Art. 14 human approval gate (unapproved halt, signed reject, payload tamper, decision-flip forgery, expired TTL replay, and authentic approval). Runs locally: no request, no credential or API key.",
         },
       ],
     },
@@ -230,12 +249,50 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       ],
     },
     {
+      displayName: "Product Domain",
+      name: "gateTestDomain",
+      type: "string",
+      default: "",
+      placeholder: "acme.eu",
+      displayOptions: { show: { operation: ["gateSelfTest"] } },
+      description:
+        "Optional public domain or http(s) URL of your product, used only to prefill the Art. 14 cockpit and signup links. Never sent over the network; private, IP, or localhost values are ignored.",
+    },
+    {
+      displayName: "Cockpit Language",
+      name: "gateTestLocale",
+      type: "options",
+      default: "en",
+      displayOptions: { show: { operation: ["gateSelfTest"] } },
+      description: "Language of the linked interactive EU AI Act Art. 14 oversight cockpit and upgrade links.",
+      options: [
+        { name: "English (en)", value: "en" },
+        { name: "Deutsch (de)", value: "de" },
+        { name: "Français (fr)", value: "fr" },
+        { name: "Nederlands (nl)", value: "nl" },
+        { name: "Dansk (da)", value: "da" },
+        { name: "Svenska (sv)", value: "sv" },
+        { name: "Español (es)", value: "es" },
+        { name: "Italiano (it)", value: "it" },
+      ],
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
       default: "AI system",
       required: true,
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
+      displayOptions: {
+        hide: {
+          operation: [
+            "scanDomain",
+            "batchScanDomains",
+            "checkImageC2paUrl",
+            "vendorQuestionnaireAnswers",
+            "gateSelfTest",
+          ],
+        },
+      },
     },
     {
       displayName: "Input Field",
@@ -344,7 +401,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "consoleBaseUrl",
       type: "string",
       default: "https://console.spurvik.com",
-      displayOptions: { hide: { operation: ["vendorQuestionnaireAnswers"] } },
+      displayOptions: { hide: { operation: ["vendorQuestionnaireAnswers", "gateSelfTest"] } },
       description:
         "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint, and Check Image C2PA its public C2PA check, without a key. The notice, digest and approval operations sync to it only when Spurvik Console API Key is set on the spurvikApi credential, and otherwise use it for the signup links in upgradeUrls.",
     },
@@ -353,7 +410,17 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "passThroughFields",
       type: "string",
       default: "",
-      displayOptions: { hide: { operation: ["scanDomain", "batchScanDomains", "checkImageC2paUrl", "vendorQuestionnaireAnswers"] } },
+      displayOptions: {
+        hide: {
+          operation: [
+            "scanDomain",
+            "batchScanDomains",
+            "checkImageC2paUrl",
+            "vendorQuestionnaireAnswers",
+            "gateSelfTest",
+          ],
+        },
+      },
       description:
         "Comma-separated names of incoming fields to copy beside the spurvik result. promptText, prompt, chatInput, query, input, and the configured inputField are never copied (name check only, any letter case, surrounding whitespace ignored).",
     },
@@ -524,6 +591,14 @@ export class SpurvikEuAiActGuard implements INodeType {
           locale: this.getNodeParameter("questionnaireLocale", i, "en"),
         });
         returnData.push({ json: answers as unknown as IDataObject });
+        continue;
+      }
+      if (operations[i] === GATE_SELF_TEST_OPERATION) {
+        const gateTest = spurvikGateSelfTest({
+          domain: this.getNodeParameter("gateTestDomain", i, ""),
+          locale: this.getNodeParameter("gateTestLocale", i, "en"),
+        });
+        returnData.push({ json: gateTest as unknown as IDataObject });
         continue;
       }
       const item = items[i]?.json ?? {};

@@ -122,6 +122,19 @@
       "typeVersion": 1,
       "position": [280, 840],
       "notes": "Answer Vendor Security Questionnaire (Art. 50/12/14 RFP). Copy-paste Markdown answers to Q1-Q5 for enterprise security questionnaires and DPO RFPs, built locally: no request, no credential and no API key. The domain only prefills links. The output does not copy the incoming item."
+    },
+    {
+      "parameters": {
+        "operation": "gateSelfTest",
+        "gateTestDomain": "stepnetwork.dk",
+        "gateTestLocale": "da"
+      },
+      "id": "99999999-9999-4999-8999-999999999999",
+      "name": "Spurvik Gate Self-Test",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 1000],
+      "notes": "Test Art. 14 Human Approval Blocking (6 Vectors). Offline HMAC-SHA256 self-test of fail-closed blocking across unapproved calls, human reject, payload mutation, decision flip, and TTL replay. Runs locally: no request, no credential and no API key."
     }
   ],
   "connections": {
@@ -160,6 +173,11 @@
           },
           {
             "node": "Spurvik Vendor Questionnaire Answers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Gate Self-Test",
             "type": "main",
             "index": 0
           }
