@@ -50,6 +50,12 @@ Swap in your domain. The shield shows the live Art. 50(1) notice status and link
 [![EU AI Act Art. 50 Readiness Card](https://console.spurvik.com/api/v1/badge/card.svg?domain=yourdomain.com)](https://console.spurvik.com/report?domain=yourdomain.com)
 ```
 
+For SaaS `/trust`, `/security`, WordPress, Webflow, Shopify, Wix, or Squarespace pages, drop in the zero-cookie Shadow DOM interactive Trust-Center widget (`data-attribution="false"` removes the Spurvik link on Pro `€19/mo` or Done-For-You `€199` once):
+
+```html
+<script src="https://spurvik.com/trust-widget.js" data-domain="yourdomain.com" defer></script>
+```
+
 ## Live Sandbox, Hosted EU Console & Starter Templates
 
 > **Not a developer? Vibe-coding in Lovable, Bolt, Replit or WordPress?** Get the **Done-For-You 24h AI Act Setup** (€199 once, includes 1 full year of Pro, €190 value): we install your 24-language Art. 50 notice, server call logging and a human approval gate within 24 hours. Self-serve checkout: [console.spurvik.com/signup?plan=concierge](https://console.spurvik.com/signup?plan=concierge).

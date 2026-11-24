@@ -33,7 +33,25 @@ import { EU_LANGUAGES, inferLocaleFromDomain } from "./badge-copy.js";
 import { publicHostname } from "./public-hostname.js";
 
 export const PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"] as const;
-export const CMS_FRAMEWORKS = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"] as const;
+export const CMS_FRAMEWORKS = [
+  "shopify",
+  "wordpress",
+  "prestashop",
+  "shopware",
+  "cloudflare",
+  "webflow",
+  "framer",
+  "gtm",
+  "wix",
+  "squarespace",
+  "magento",
+  "bigcommerce",
+  "drupal",
+  "ghost",
+  "hubspot-cms",
+  "trust-widget",
+  "html",
+] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
 export const IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
 export const FRAMEWORKS = [
@@ -86,6 +104,9 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "tag-manager": "gtm",
   googletagmanager: "gtm",
   shopware6: "shopware",
+  "adobe-commerce": "magento",
+  "trust-center": "trust-widget",
+  trust_widget: "trust-widget",
   "cloudflare-worker": "cloudflare",
   "cf-worker": "cloudflare",
   "c2pa-cdn": "cloudflare",
@@ -699,6 +720,10 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
       "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
     ].join("\n") + "\n";
   }
+  if (framework === "trust-widget") {
+    const widgetHost = host ?? "yourdomain.com";
+    return `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>\n`;
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
 }
@@ -847,7 +872,9 @@ export function setupSnippet(
               ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
               : framework === "cloudflare"
                 ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.`
-                : framework === "gtm"
+                : framework === "trust-widget"
+                  ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You).`
+                  : framework === "gtm"
             ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}`
             : framework === "framer"
             ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}`

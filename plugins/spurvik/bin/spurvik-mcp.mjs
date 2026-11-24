@@ -28866,7 +28866,25 @@ var sdkExportNames = {
 
 // packages/mcp/src/tools/setup-snippet.ts
 var PYTHON_FRAMEWORKS = ["python", "fastapi", "langchain", "pydantic-ai"];
-var CMS_FRAMEWORKS = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"];
+var CMS_FRAMEWORKS = [
+  "shopify",
+  "wordpress",
+  "prestashop",
+  "shopware",
+  "cloudflare",
+  "webflow",
+  "framer",
+  "gtm",
+  "wix",
+  "squarespace",
+  "magento",
+  "bigcommerce",
+  "drupal",
+  "ghost",
+  "hubspot-cms",
+  "trust-widget",
+  "html"
+];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
 var IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
 var FRAMEWORKS = [
@@ -28911,6 +28929,9 @@ var SETUP_FRAMEWORK_ALIASES = {
   "tag-manager": "gtm",
   googletagmanager: "gtm",
   shopware6: "shopware",
+  "adobe-commerce": "magento",
+  "trust-center": "trust-widget",
+  trust_widget: "trust-widget",
   "cloudflare-worker": "cloudflare",
   "cf-worker": "cloudflare",
   "c2pa-cdn": "cloudflare",
@@ -29486,6 +29507,11 @@ function cmsSource(framework, host = null, locale = "en") {
       "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js"
     ].join("\n") + "\n";
   }
+  if (framework === "trust-widget") {
+    const widgetHost = host ?? "yourdomain.com";
+    return `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>
+`;
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>
 `;
@@ -29608,7 +29634,7 @@ ${source}\`\`\`
     }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : framework === "prestashop" || framework === "shopware" || framework === "cloudflare" ? "bash" : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
-    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "prestashop" ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "shopware" ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "cloudflare" ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "prestashop" ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "shopware" ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "cloudflare" ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.` : framework === "trust-widget" ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You).` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,
