@@ -22,6 +22,7 @@ npx spurvik audit .                # find unwrapped OpenAI / Anthropic / Gemini 
 npx spurvik badge yourdomain.com   # localized badge.js tag + <AIDisclosureLabel /> snippet (--lang <24 EU locales>)
 npx spurvik gate yourdomain.com    # offline 6-vector EU AI Act Art. 14 fail-closed blocking self-test (spurvik/channels)
 npx spurvik rfp yourdomain.com     # EU AI Act vendor security questionnaire & DPO RFP answers (Q1–Q5)
+npx spurvik annex-iv yourdomain.com --plan team # 9-section EU AI Act Annex IV technical documentation file (Art. 11)
 ```
 
 | Command | What you get | Network |
@@ -37,7 +38,21 @@ For CI, `scan` and `audit` take `--json` and `--fail-on-gap` (exit code `1` on a
 
 ```bash
 npx spurvik@1.0.16 c2pa https://yourdomain.com/hero.png --fail-on-missing
-``` The [GitHub Actions PR gate](https://spurvik.com/r/github-action-spurvik-check.yml) wires `audit` into pull requests.
+```
+
+### 2-Line GitHub Actions PR Gate (`uses: spurvik/spurvik@v1`)
+
+Block unwrapped OpenAI, Anthropic, Gemini, LangChain, and Vercel AI SDK calls on every pull request, verify 6 Art. 14 cryptographic approval-gate vectors offline, optionally check live Art. 50(1) notices & 2 December 2026 C2PA bytes, and publish a clickable Art. 50 + C2PA status shield card to `$GITHUB_STEP_SUMMARY`:
+
+```yaml
+- uses: actions/checkout@v4
+- uses: spurvik/spurvik@v1
+  with:
+    domain: yourdomain.com
+    c2pa-url: https://yourdomain.com/hero.webp
+```
+
+Or copy the standalone workflow template at [spurvik.com/r/github-action-spurvik-check.yml](https://spurvik.com/r/github-action-spurvik-check.yml).
 
 ### Add the Live Art. 50 Status Shield to Your README
 

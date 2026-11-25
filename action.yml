@@ -1,0 +1,184 @@
+name: "Spurvik EU AI Act & C2PA PR Check"
+description: "EU AI Act Art. 50/12/14 unwrapped LLM call scan, 6-vector approval gate self-test, live domain & 2 Dec 2026 C2PA PR check."
+author: "Spurvik (EyeTea Solutions ApS)"
+
+branding:
+  icon: "shield"
+  color: "green"
+
+inputs:
+  root:
+    description: "Workspace directory to scan for unwrapped TS/JS/Python AI SDK calls."
+    required: false
+    default: "."
+  domain:
+    description: "Optional public domain (e.g. folk.app) for live Art. 50 scan & PR summary shield."
+    required: false
+    default: ""
+  c2pa-url:
+    description: "Optional public HTTPS image URL or store domain for 2 Dec 2026 Art. 50(2) C2PA check."
+    required: false
+    default: ""
+  annex-iv-use-case:
+    description: "Optional Annex III use case (e.g. employment) to draft 9-section Annex IV Markdown."
+    required: false
+    default: ""
+  fail-on-unwrapped:
+    description: "Fail the workflow if unwrapped AI SDK calls are detected (true or false)."
+    required: false
+    default: "true"
+  fail-on-gap:
+    description: "Fail the live domain scan if an AI widget has no Art. 50(1) notice (true or false)."
+    required: false
+    default: "false"
+  fail-on-missing-c2pa:
+    description: "Exit non-zero if C2PA JUMBF manifest is missing or CDN-stripped (true or false)."
+    required: false
+    default: "false"
+  node-version:
+    description: "Node.js version to set up before running checks."
+    required: false
+    default: "22"
+
+outputs:
+  status-shield-markdown:
+    description: "Clickable Markdown Art. 50 status shield for the domain."
+    value: ${{ steps.summary.outputs.status_shield_markdown }}
+  c2pa-shield-markdown:
+    description: "Clickable Markdown 2 Dec 2026 C2PA status shield for the domain."
+    value: ${{ steps.summary.outputs.c2pa_shield_markdown }}
+  report-url:
+    description: "Shareable DPO & Art. 50 readiness brief URL."
+    value: ${{ steps.summary.outputs.report_url }}
+  well-known-manifest-url:
+    description: "Machine-readable /.well-known/ai-act.json endpoint URL."
+    value: ${{ steps.summary.outputs.well_known_manifest_url }}
+  annex-iv-studio-url:
+    description: "Interactive 9-section EU AI Act Annex IV Studio URL."
+    value: ${{ steps.summary.outputs.annex_iv_studio_url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Scan repository for unwrapped AI SDK calls (0 network calls)
+      shell: bash
+      env:
+        INPUT_ROOT: ${{ inputs.root }}
+        INPUT_FAIL_UNWRAPPED: ${{ inputs.fail-on-unwrapped }}
+      run: |
+        set -euo pipefail
+        SCAN_ROOT="${INPUT_ROOT:-.}"
+        CI_FLAG="--ci"
+        if [ "${INPUT_FAIL_UNWRAPPED}" = "false" ]; then
+          CI_FLAG=""
+        fi
+        if [ -x ./node_modules/.bin/spurvik-mcp ]; then
+          ./node_modules/.bin/spurvik-mcp check "$SCAN_ROOT" $CI_FLAG
+        else
+          npm exec --yes --package=spurvik-mcp-server@1.0.13 -- spurvik-mcp check "$SCAN_ROOT" $CI_FLAG
+        fi
+
+    - name: Audit local AI SDK calls & run 6-vector Art. 14 gate self-test (0 network calls)
+      shell: bash
+      env:
+        INPUT_ROOT: ${{ inputs.root }}
+        INPUT_DOMAIN: ${{ inputs.domain }}
+      run: |
+        set -euo pipefail
+        SCAN_ROOT="${INPUT_ROOT:-.}"
+        GATE_HOST="${INPUT_DOMAIN:-example.com}"
+        npx --yes spurvik@1.0.16 audit "$SCAN_ROOT"
+        npx --yes spurvik@1.0.16 gate "$GATE_HOST"
+
+    - name: Live domain Art. 50 scan (when domain input is provided)
+      if: ${{ inputs.domain != '' }}
+      shell: bash
+      env:
+        INPUT_DOMAIN: ${{ inputs.domain }}
+        INPUT_FAIL_GAP: ${{ inputs.fail-on-gap }}
+      run: |
+        set -euo pipefail
+        if [ "${INPUT_FAIL_GAP}" = "true" ]; then
+          npx --yes spurvik@1.0.16 scan "$INPUT_DOMAIN" --fail-on-gap
+        else
+          npx --yes spurvik@1.0.16 scan "$INPUT_DOMAIN"
+        fi
+
+    - name: Live 2 Dec 2026 C2PA manifest & CDN-strip check (when c2pa-url input is provided)
+      if: ${{ inputs.c2pa-url != '' }}
+      shell: bash
+      env:
+        INPUT_C2PA_URL: ${{ inputs.c2pa-url }}
+        INPUT_FAIL_C2PA: ${{ inputs.fail-on-missing-c2pa }}
+      run: |
+        set -euo pipefail
+        if [ "${INPUT_FAIL_C2PA}" = "true" ]; then
+          npx --yes spurvik@1.0.16 c2pa "$INPUT_C2PA_URL" --fail-on-missing
+        else
+          npx --yes spurvik@1.0.16 c2pa "$INPUT_C2PA_URL" || true
+        fi
+
+    - name: Draft Annex IV technical documentation preview (when annex-iv-use-case is provided)
+      if: ${{ inputs.annex-iv-use-case != '' }}
+      shell: bash
+      env:
+        INPUT_DOMAIN: ${{ inputs.domain }}
+        INPUT_ANNEX_USE_CASE: ${{ inputs.annex-iv-use-case }}
+      run: |
+        set -euo pipefail
+        TARGET_HOST="${INPUT_DOMAIN:-yourdomain.com}"
+        npx --yes spurvik@1.0.16 annex-iv "$TARGET_HOST" --use-case "$INPUT_ANNEX_USE_CASE" --plan team > "${RUNNER_TEMP:-/tmp}/SPURVIK_ANNEX_IV.md"
+
+    - name: Publish Art. 50 & C2PA shields and DPO links to PR summary
+      id: summary
+      if: ${{ always() }}
+      shell: bash
+      env:
+        INPUT_DOMAIN: ${{ inputs.domain }}
+        INPUT_ANNEX_USE_CASE: ${{ inputs.annex-iv-use-case }}
+      run: |
+        node -e '
+          const fs = require("node:fs");
+          const raw = (process.env.INPUT_DOMAIN || "").trim().toLowerCase().replace(/^https?:\/\//, "").split("/")[0];
+          const validDomain = /^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/.test(raw) && raw.includes(".");
+          const host = validDomain ? raw : "yourdomain.com";
+          const enc = encodeURIComponent(host);
+          const shield = `[![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=${enc})](https://console.spurvik.com/report?domain=${enc})`;
+          const c2paShield = `[![EU AI Act Art. 50(2) C2PA](https://console.spurvik.com/api/v1/c2pa/status.svg?domain=${enc})](https://console.spurvik.com/c2pa?domain=${enc})`;
+          const reportUrl = `https://console.spurvik.com/report?domain=${enc}`;
+          const manifestUrl = `https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${enc}`;
+          const annexStudioUrl = `https://spurvik.com/eu-ai-act-annex-iv-technical-documentation?domain=${enc}`;
+          const outPath = process.env.GITHUB_OUTPUT;
+          if (outPath) {
+            fs.appendFileSync(outPath, [
+              `status_shield_markdown=${shield}`,
+              `c2pa_shield_markdown=${c2paShield}`,
+              `report_url=${reportUrl}`,
+              `well_known_manifest_url=${manifestUrl}`,
+              `annex_iv_studio_url=${annexStudioUrl}`,
+              "",
+            ].join("\n"));
+          }
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+          if (!summaryPath) process.exit(0);
+          const lines = ["### Spurvik EU AI Act & 2 Dec 2026 C2PA PR Check", ""];
+          if (validDomain) {
+            const card = `[![EU AI Act Art. 50 Readiness Card for ${raw}](https://console.spurvik.com/api/v1/badge/card.svg?domain=${enc})](${reportUrl})`;
+            lines.push(
+              `${shield} ${c2paShield} · [Shareable DPO Brief](${reportUrl}) · [ai-act.json](${manifestUrl}) · [/trust Studio](https://spurvik.com/well-known-ai-act-json-trust-center?domain=${enc}) · [Annex IV Studio](${annexStudioUrl}) · [White-Label Pro €19/mo](https://console.spurvik.com/signup?plan=pro&appUrl=${enc}) · [24h Setup €199](https://console.spurvik.com/signup?plan=concierge&appUrl=${enc})`,
+              "",
+              card,
+            );
+          } else {
+            lines.push(
+              "Offline unwrapped-call & 6-vector Art. 14 gate checks completed (`0` bytes of source text sent). Pass `with: { domain: yourdomain.com }` on `uses: spurvik/spurvik@v1` to embed your live [Art. 50 status shield & DPO brief](https://console.spurvik.com/sandbox), [Annex IV Studio](https://spurvik.com/eu-ai-act-annex-iv-technical-documentation), and [White-Label Pro (€19/mo)](https://console.spurvik.com/signup?plan=pro)."
+            );
+          }
+          lines.push("", "_Heuristic technical checks only; not legal advice._", "");
+          fs.appendFileSync(summaryPath, lines.join("\n"));
+        '
