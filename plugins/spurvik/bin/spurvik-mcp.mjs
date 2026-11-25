@@ -28993,8 +28993,13 @@ var SETUP_FRAMEWORK_ALIASES = {
   "cf-worker": "cloudflare",
   "c2pa-cdn": "cloudflare",
   copilot: "cursor-rules",
+  "github-copilot": "cursor-rules",
+  jetbrains: "cursor-rules",
+  "claude-md": "cursor-rules",
+  "claude.md": "cursor-rules",
   codex: "cursor-rules",
   "agents-md": "cursor-rules",
+  "agents.md": "cursor-rules",
   centra: "html",
   dandomain: "html",
   lightspeed: "html",
@@ -29597,17 +29602,21 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   const host = publicHostname(options.domain);
   const locale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
   if (isIdeCiFramework(framework)) {
+    const targetHost = host || "yourdomain.com";
     return [
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
       "",
-      "# Drop-in Cursor (.mdc) & universal AGENTS.md EU AI Act guardrails:",
+      "# Drop-in IDE & PR-review guardrail rules (GitHub Copilot, Claude Code, Cursor, Windsurf & Codex):",
+      "mkdir -p .github && curl -fsSL https://spurvik.com/r/copilot-instructions.md -o .github/copilot-instructions.md",
+      "curl -fsSL https://spurvik.com/r/CLAUDE.md -o CLAUDE.md",
       "mkdir -p .cursor/rules && curl -fsSL https://spurvik.com/r/spurvik-cursor-rules.mdc -o .cursor/rules/spurvik-eu-ai-act.mdc",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
-      "# GitHub Actions PR-Gate (blocks unwrapped TS/JS & Python AI calls on pull requests):",
+      "# GitHub Actions PR-Gate (2-line Composite Action `uses: spurvik/spurvik@v1` or standalone workflow):",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
+      `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
       ""
     ].join("\n");
   }

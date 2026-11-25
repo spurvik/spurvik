@@ -13,7 +13,7 @@
       "name": "spurvik",
       "source": "./plugins/spurvik",
       "version": "1.0.13",
-      "description": "Commands and a skill covering withSpurvik for OpenAI, Anthropic, and Google GenAI clients, spurvikMiddleware for the Vercel AI SDK, withSpurvikMastra for Mastra, withSpurvikModelProvider for OpenAI Agents, and withSpurvikLangGraph for LangGraph. Designed to support Art. 50 notices and, for high-risk AI systems, Art. 12 record-keeping and Art. 14 human oversight.",
+      "description": "Commands, bundled 10-tool MCP server, and 5 skills covering withSpurvik (OpenAI, Anthropic, Google GenAI), spurvikMiddleware (Vercel AI SDK), Mastra, OpenAI Agents, LangGraph, 2 Dec 2026 C2PA provenance checks, agency audits, vendor RFPs, and 9-section Annex IV drafts.",
       "author": {
         "name": "EyeTea Solutions ApS",
         "email": "hello@spurvik.com",
@@ -28,6 +28,8 @@
         "article-50",
         "article-12",
         "article-14",
+        "c2pa",
+        "annex-iv",
         "hmac",
         "ai-governance",
         "spurvik"
