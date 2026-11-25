@@ -124,6 +124,12 @@ describe("annexIvDraft descriptor & offline 9-section execution (zero-credential
       "https://console.spurvik.com/signup?plan=team&interval=annual&appUrl=personio.de&locale=de",
     );
     assert.match(out.markdown, /# EU AI Act Annex IV Technical Documentation Draft — personio\.de/);
+    assert.match(out.markdown, /## Activate Live Annex IV Auto-Population/);
+    assert.ok(out.markdown.includes(out.upgradeUrls.teamAgencyEur79));
+    assert.ok(out.markdown.includes(out.upgradeUrls.teamAnnualEur790));
+    assert.ok(out.markdown.includes(out.upgradeUrls.doneForYou24hEur199));
+    assert.ok(out.markdown.includes(out.studioUrl));
+    assert.doesNotMatch(out.markdown, /not legal advice/i);
 
     // Private/localhost hostnames are silently dropped
     const priv = spurvikAnnexIvDraft({ domain: "http://localhost:3000", tier: "free", locale: "fr" });

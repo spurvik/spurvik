@@ -351,7 +351,13 @@ export function spurvikAnnexIvDraft(input: SpurvikAnnexIvDraftInput = {}): Spurv
     "- [ ] Attach evaluation datasets, bias tests, and human-oversight SOPs (Art. 10, Art. 14, Art. 15)",
     "- [ ] Complete EU Declaration of Conformity (Art. 47) and EU database registration where applicable (Art. 49)",
     "",
-    `_Technical documentation scaffold generated locally in n8n (0 network requests); supports EU AI Act Art. 11 & Annex IV preparation, not legal advice._`,
+    "## Activate Live Annex IV Auto-Population (EU Frankfurt `fra1`)",
+    `- **Team · €79/mo (9/9 sections live + 12-mo retention + PDF/MD export)**: [Start Team · €79/mo →](${upgradeUrls.teamAgencyEur79}) · [Annual · €790/yr (2 months free) →](${upgradeUrls.teamAnnualEur790})`,
+    `- **Done-For-You 24h Engineering Setup · €199 once (incl. 1 yr Pro)**: [Book 24h Setup · €199 →](${upgradeUrls.doneForYou24hEur199})`,
+    `- **Pro · €19/mo (White-label Art. 50 + 90-day vault + DPO summary)**: [Start Pro · €19/mo →](${upgradeUrls.proWhiteLabelEur19}) · [Interactive Annex IV Studio ↗](${studioUrl})`,
+    `- **Free API Key (€0, 10s)**: [Mint Free Key →](${upgradeUrls.freeApiKey10sEur0})`,
+    "",
+    `_Technical documentation scaffold generated locally in n8n (0 network requests); supports EU AI Act Art. 11 & Annex IV preparation._`,
   ].join("\n");
 
   return {
