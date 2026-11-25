@@ -5,6 +5,7 @@ import {
   UNKNOWN_RUNTIME,
 } from "../copy.js";
 import {
+  annexIvStudioUrlFor,
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   conciergeSignupUrlFor,
@@ -25,6 +26,7 @@ import {
   TEAM_PRICE,
   TEAM_SIGNUP_URL,
   teamSignupUrlFor,
+  wellKnownStudioUrlFor,
   wordpressCockpitUrlFor,
   workflowCockpitUrlFor,
 } from "../links.js";
@@ -50,6 +52,8 @@ export const CMS_FRAMEWORKS = [
   "ghost",
   "hubspot-cms",
   "trust-widget",
+  "well-known",
+  "annex-iv",
   "html",
 ] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
@@ -107,6 +111,11 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "adobe-commerce": "magento",
   "trust-center": "trust-widget",
   trust_widget: "trust-widget",
+  "ai-act-json": "well-known",
+  "ai-act.json": "well-known",
+  well_known: "well-known",
+  annex_iv: "annex-iv",
+  art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
   "cf-worker": "cloudflare",
   "c2pa-cdn": "cloudflare",
@@ -724,6 +733,21 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
     const widgetHost = host ?? "yourdomain.com";
     return `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>\n`;
   }
+  if (framework === "well-known") {
+    const targetHost = host ?? "yourdomain.com";
+    return [
+      "mkdir -p public/.well-known",
+      `curl -fsSL "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(targetHost)}" -o public/.well-known/ai-act.json`,
+      "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
+    ].join("\n") + "\n";
+  }
+  if (framework === "annex-iv") {
+    const targetHost = host ?? "yourdomain.com";
+    return [
+      `npx spurvik@1.0.16 annex-iv ${targetHost} --use-case employment --plan team > ANNEX_IV.md`,
+      `curl -fsSL "https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(targetHost)}&useCase=employment&tier=team&format=markdown" -o ANNEX_IV_${targetHost}.md`,
+    ].join("\n") + "\n";
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
 }
@@ -749,7 +773,7 @@ export function setupSnippetSource(
     typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : "en";
   if (isIdeCiFramework(framework)) {
     return [
-      "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 4 agent skills):",
+      "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
       "",
@@ -764,7 +788,7 @@ export function setupSnippetSource(
   }
   if (isWorkflowFramework(framework)) {
     return [
-      "# Self-hosted n8n community node (7 operations) & Make.com HTTP blueprint:",
+      "# Self-hosted n8n community node (9 operations incl. 6 zero-key) & Make.com HTTP blueprint:",
       "npm install n8n-nodes-spurvik@1.0.13",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
@@ -857,7 +881,7 @@ export function setupSnippet(
         ? "liquid"
         : framework === "wordpress"
           ? "php"
-          : framework === "prestashop" || framework === "shopware" || framework === "cloudflare"
+          : framework === "prestashop" || framework === "shopware" || framework === "cloudflare" || framework === "well-known" || framework === "annex-iv"
             ? "bash"
             : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
@@ -873,8 +897,12 @@ export function setupSnippet(
               : framework === "cloudflare"
                 ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.`
                 : framework === "trust-widget"
-                  ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You).`
-                  : framework === "gtm"
+                  ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}`
+                  : framework === "well-known"
+                    ? `Publish machine-readable \`public/.well-known/ai-act.json\` (\`spurvik.ai-act-manifest.v1\`, Schema: https://spurvik.com/r/ai-act-manifest.schema.json) ahead of 2 December 2026 Art. 50(2). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}`
+                    : framework === "annex-iv"
+                      ? `Generate the 9-section EU AI Act Annex IV technical documentation file (Article 11) in Markdown locally (\`npx spurvik annex-iv\`, zero network) or via the zero-key OpenAPI endpoint. Interactive studio: ${annexIvStudioUrlFor(host, effectiveLocale)}`
+                      : framework === "gtm"
             ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}`
             : framework === "framer"
             ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}`

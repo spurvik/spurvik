@@ -695,4 +695,26 @@ describe("createServer", () => {
     expect(tamperedCb).toContain("BLOCK EXECUTION (reason: tampered action payload");
     await client.close();
   });
+
+  it("spurvik_setup_snippet supports annex-iv (art11), well-known (ai-act-json), 9 n8n operations, and 5 agent skills (H226c)", async () => {
+    const client = await connect();
+    const annexDe = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "art11", domain: "personio.de" } }),
+    );
+    expect(annexDe).toContain("npx spurvik@1.0.16 annex-iv personio.de --use-case employment --plan team");
+    expect(annexDe).toContain("https://spurvik.com/de/ki-verordnung-anhang-iv-technische-dokumentation?domain=personio.de");
+
+    const wkFr = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "ai-act-json", domain: "doctolib.fr" } }),
+    );
+    expect(wkFr).toContain("public/.well-known/ai-act.json");
+    expect(wkFr).toContain("https://spurvik.com/fr/well-known-ai-act-json-widget-trust-center?domain=doctolib.fr");
+
+    const n8n = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n" } }));
+    expect(n8n).toContain("9 operations incl. 6 zero-key");
+
+    const ide = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "claude-code" } }));
+    expect(ide).toContain("5 agent skills incl. eu-ai-act-annex-iv-technical-file");
+    await client.close();
+  });
 });
