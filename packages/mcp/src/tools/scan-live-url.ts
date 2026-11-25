@@ -24,6 +24,7 @@ import {
   trustCenterCardMarkdownFor,
   trustCenterCardUrlFor,
   trustWidgetScriptFor,
+  wellKnownStudioUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -99,6 +100,8 @@ export interface ScanLiveUrlLinks {
   trustCenterCardMarkdown: string;
   /** Machine-readable `/.well-known/ai-act.json` generator URL (`spurvik.ai-act-manifest.v1`). */
   aiActManifestUrl: string;
+  /** 8-language interactive `/.well-known/ai-act.json` & SaaS `/trust` Center Widget Studio URL. */
+  wellKnownStudioUrl: string;
   /** Drop-in Shadow DOM interactive Trust-Center widget `<script>` tag. */
   trustWidgetScript: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
@@ -343,6 +346,7 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
     trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
     aiActManifestUrl: aiActManifestUrlFor(host, extraLocale),
+    wellKnownStudioUrl: wellKnownStudioUrlFor(host, locale),
     trustWidgetScript: trustWidgetScriptFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),

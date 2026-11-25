@@ -429,3 +429,26 @@ export function trustWidgetScriptFor(host: string, extraLocale?: string): string
       : "";
   return `<script src="${TRUST_WIDGET_SCRIPT_SRC}" data-domain="${safeHost}"${langAttr} defer></script>`;
 }
+
+/** 8-language interactive `/.well-known/ai-act.json` & SaaS `/trust` Center Widget Studio URL prefilled with `?domain=`. */
+export function wellKnownStudioUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/well-known-ai-act-json-trust-center-widget"
+      : code === "fr"
+        ? "/fr/well-known-ai-act-json-widget-trust-center"
+        : code === "nl"
+          ? "/nl/well-known-ai-act-json-trust-center-widget"
+          : code === "da"
+            ? "/da/well-known-ai-act-json-trust-center-widget"
+            : code === "sv"
+              ? "/sv/well-known-ai-act-json-trust-center-widget"
+              : code === "es"
+                ? "/es/well-known-ai-act-json-widget-trust-center"
+                : code === "it"
+                  ? "/it/well-known-ai-act-json-widget-trust-center"
+                  : "/well-known-ai-act-json-trust-center";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}

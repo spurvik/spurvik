@@ -22240,6 +22240,12 @@ function trustWidgetScriptFor(host, extraLocale) {
   const langAttr = extraLocale && extraLocale !== "en" ? ` data-lang="${extraLocale.replace(/[\u0000-\u001f\u007f<>"'`&\\]/g, "")}"` : "";
   return `<script src="${TRUST_WIDGET_SCRIPT_SRC}" data-domain="${safeHost}"${langAttr} defer></script>`;
 }
+function wellKnownStudioUrlFor(host, locale = "en") {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug = code === "de" ? "/de/well-known-ai-act-json-trust-center-widget" : code === "fr" ? "/fr/well-known-ai-act-json-widget-trust-center" : code === "nl" ? "/nl/well-known-ai-act-json-trust-center-widget" : code === "da" ? "/da/well-known-ai-act-json-trust-center-widget" : code === "sv" ? "/sv/well-known-ai-act-json-trust-center-widget" : code === "es" ? "/es/well-known-ai-act-json-widget-trust-center" : code === "it" ? "/it/well-known-ai-act-json-widget-trust-center" : "/well-known-ai-act-json-trust-center";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
 
 // packages/mcp/src/tools/badge-copy.ts
 var EU_LANGUAGES = [
@@ -22924,6 +22930,7 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
     trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
     aiActManifestUrl: aiActManifestUrlFor(host, extraLocale),
+    wellKnownStudioUrl: wellKnownStudioUrlFor(host, locale),
     trustWidgetScript: trustWidgetScriptFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
