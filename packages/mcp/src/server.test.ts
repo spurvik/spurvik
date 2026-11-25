@@ -55,9 +55,9 @@ function allText(result: Awaited<ReturnType<Client["callTool"]>>): string {
 }
 
 describe("createServer", () => {
-  it("advertises the 1.0.11 version and lists all 10 tools", async () => {
+  it("advertises the 1.0.12 version and lists all 10 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.11" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.12" });
     expect(client.getInstructions()).toMatch(/Seven tools run locally and do not use the network/);
     expect(client.getInstructions()).toMatch(/spurvik_vendor_questionnaire_answers drafts copy-paste answers/);
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
@@ -438,7 +438,7 @@ describe("createServer", () => {
     const n8nOut = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n", locale: "de" } }),
     );
-    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.11");
+    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.12");
     expect(n8nOut).toContain("/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe");
     expect(n8nOut).toContain("plan=team");
 

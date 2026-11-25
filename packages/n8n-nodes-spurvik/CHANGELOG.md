@@ -1,3 +1,9 @@
+## n8n-nodes-spurvik 1.0.12 — 2026-11-25
+
+- **Scan Live Domain** (`scanDomain`): adds `reportMarkdownUrl` (`text/markdown` DPO brief), `c2paStatusShieldUrl` (2 Dec 2026 Art. 50(2) C2PA SVG shield), `trustCenterCardUrl` (460x148 SaaS Trust Center / Notion SVG readiness card), `trustWidgetScript` (`trust-widget.js` tag), `aiActManifestUrl` (`/.well-known/ai-act.json` generator), and 15-CMS `platformInstallerUrls` (`PrestaShop`, `Shopware`, `Wix`, `Squarespace`, `Magento`, `BigCommerce`, `Drupal`, `Ghost`, `HubSpot CMS` alongside `Shopify`, `WordPress`, `Google Tag Manager`, `Framer`, `Webflow`, `Next.js`).
+- Added zero-credential operation #8, **Self-Test Art. 14 Oversight Gate** (`gateSelfTest`): runs all 6 fail-closed Art. 14 human-oversight blocking vectors offline (`0` network calls, `0` credential reads, `0` bytes of prompt text stored).
+- Scan Live Domain, Batch Scan Domains, Check Image C2PA, and console sync now send `User-Agent: n8n-nodes-spurvik/1.0.12`, and `dependencies.spurvik-sdk` moves to `^1.0.15`.
+
 ## n8n-nodes-spurvik 1.0.11 — 2026-11-23
 
 - **Scan Live Domain** (`scanDomain`) and **Batch Scan** (`batchScanDomains`): surface `detectedPlatforms`, 1-click CMS/GTM `platformInstallerUrls`, 2 Dec 2026 `heroImageProxy` C2PA CDN-strip diagnosis, H121 `widgetDisclosureClass` dual-use widget classification, `prefilledPortfolioUrl`, and Free €0 + Pro/Team Annual (`€190/yr`, `€790/yr`) `upgradeUrls`.

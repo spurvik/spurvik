@@ -1,5 +1,19 @@
 # spurvik-mcp-server
 
+## 1.0.12 — 2026-11-25
+
+Published as `spurvik-mcp-server@1.0.12`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
+
+### Added
+
+- `spurvik_setup_snippet` and `spurvik_generate_art50_badge`: added PrestaShop (`prestashop`), Shopware 6 (`shopware`), Cloudflare Edge Worker (`cloudflare`), Cursor `.cursor/rules` (`cursor-rules`), interactive Shadow DOM Trust-Center widget (`trust-widget`), and machine-readable `/.well-known/ai-act.json` (`well-known`) targets.
+- `spurvik_scan_live_url`: adds `reportMarkdownUrl` (`text/markdown` DPO brief), `c2paStatusShieldUrl` & `c2paStatusShieldMarkdown` (2 Dec 2026 Art. 50(2) C2PA status shield), `trustCenterCardUrl` & `trustCenterCardMarkdown` (460x148 10-language SaaS Trust Center / Notion SVG readiness card), `aiActManifestUrl` (`/.well-known/ai-act.json` generator), `trustWidgetScript` (`trust-widget.js` tag), and 15-CMS `platformInstallerUrls` (`Wix`, `Squarespace`, `Drupal`, `Ghost`, `HubSpot CMS`, `Magento`, `BigCommerce` alongside `Shopify`, `WordPress`, `PrestaShop`, `Shopware`, `Google Tag Manager`, `Framer`, `Webflow`, `Next.js`).
+
+### Changed
+
+- `spurvik_setup_snippet` pins `spurvik@1.0.15` and `spurvik-sdk@1.0.15` (`SNIPPET_SDK_VERSION`) and `n8n-nodes-spurvik@1.0.12`.
+- `User-Agent` is now `spurvik-mcp-server/1.0.12`. Listing manifests (`server.json`, `smithery.yaml`, `glama.json`), Claude plugin manifests (`1.0.12`), `spurvik-com-well-known-mcp.json` (10 stdio and 10 hosted tools) and `plugins/spurvik/bin/spurvik-mcp.mjs` move to `1.0.12`.
+
 ## 1.0.11 — 2026-11-23
 
 Published as `spurvik-mcp-server@1.0.11`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.

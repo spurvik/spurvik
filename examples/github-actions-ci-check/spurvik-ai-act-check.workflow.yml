@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.11)
+      - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.12)
         run: node examples/github-actions-ci-check/run-mcp-scan.mjs --root . --dir src
       - name: Run offline 6-vector Art. 14 gate self-test (0 network calls)
         run: npx --yes spurvik@1.0.15 gate "${SPURVIK_SCAN_DOMAIN:-example.com}"
