@@ -1,4 +1,5 @@
 import {
+  annexIvStudioUrlFor,
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   CONSOLE_ORIGIN,
@@ -93,6 +94,8 @@ export interface ClassifyRiskResult {
   interactiveClassifierUrl: string;
   /** Deep link to /risk-check with ?preset=cv-screener|media-generator|support-chatbot preselected for 1-click colleague sharing. */
   prefilledRiskCheckUrl: string;
+  /** 8-language interactive 9-section EU AI Act Art. 11 & Annex IV Technical Documentation Studio URL. */
+  annexIvStudioUrl: string;
   reportUrl?: string;
   selfAssessmentMarkdown?: string;
   upgradeUrls: { pro: UpgradeOffer; team: UpgradeOffer; concierge: UpgradeOffer };
@@ -541,6 +544,7 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
       recommendedSpurvikControls: controls,
       interactiveClassifierUrl,
       prefilledRiskCheckUrl,
+      annexIvStudioUrl: annexIvStudioUrlFor(host, loc ?? "en"),
       ...(reportUrl ? { reportUrl } : {}),
       ...(selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {}),
       upgradeUrls: upgrades,

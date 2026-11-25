@@ -452,3 +452,33 @@ export function wellKnownStudioUrlFor(host?: string | null, locale = "en"): stri
   const cleanHost = (host ?? "").trim();
   return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
 }
+
+/** 8-language interactive 9-section EU AI Act Art. 11 & Annex IV Technical Documentation Studio URL prefilled with `?domain=`. */
+export function annexIvStudioUrlFor(host?: string | null, locale = "en"): string {
+  const code = (locale || "en").trim().toLowerCase();
+  const slug =
+    code === "de"
+      ? "/de/ki-verordnung-anhang-iv-technische-dokumentation"
+      : code === "fr"
+        ? "/fr/reglement-ia-annexe-iv-documentation-technique"
+        : code === "nl"
+          ? "/nl/ai-verordening-bijlage-iv-technische-documentatie"
+          : code === "da"
+            ? "/da/eu-ai-act-bilag-iv-teknisk-dokumentation"
+            : code === "sv"
+              ? "/sv/ai-forordningen-bilaga-iv-teknisk-documentatie".replace("documentatie", "dokumentation")
+              : code === "es"
+                ? "/es/reglamento-ia-anexo-iv-documentacion-tecnica"
+                : code === "it"
+                  ? "/it/regolamento-ia-allegato-iv-documentazione-tecnica"
+                  : "/eu-ai-act-annex-iv-technical-documentation";
+  const cleanHost = (host ?? "").trim();
+  return cleanHost ? `https://spurvik.com${slug}?domain=${encodeURIComponent(cleanHost)}` : `https://spurvik.com${slug}`;
+}
+
+/** Zero-key 9-section Annex IV Technical Documentation preview endpoint (`JSON` or `&format=markdown`). */
+export function annexIvPreviewUrlFor(host?: string | null, extraLocale?: string): string {
+  const cleanHost = (host ?? "").trim() || "personio.de";
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${CONSOLE_ORIGIN}/api/v1/annex-iv/preview?domain=${encodeURIComponent(cleanHost)}&tier=team${loc}`;
+}

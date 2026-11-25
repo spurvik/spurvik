@@ -1,5 +1,6 @@
 import {
   aiActManifestUrlFor,
+  annexIvStudioUrlFor,
   c2paCheckUrlFor,
   c2paStatusShieldMarkdownFor,
   c2paStatusShieldUrlFor,
@@ -102,6 +103,8 @@ export interface ScanLiveUrlLinks {
   aiActManifestUrl: string;
   /** 8-language interactive `/.well-known/ai-act.json` & SaaS `/trust` Center Widget Studio URL. */
   wellKnownStudioUrl: string;
+  /** 8-language interactive 9-section EU AI Act Art. 11 & Annex IV Technical Documentation Studio URL. */
+  annexIvStudioUrl: string;
   /** Drop-in Shadow DOM interactive Trust-Center widget `<script>` tag. */
   trustWidgetScript: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
@@ -347,6 +350,7 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
     aiActManifestUrl: aiActManifestUrlFor(host, extraLocale),
     wellKnownStudioUrl: wellKnownStudioUrlFor(host, locale),
+    annexIvStudioUrl: annexIvStudioUrlFor(host, locale),
     trustWidgetScript: trustWidgetScriptFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),

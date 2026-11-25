@@ -1543,5 +1543,58 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(frBody.links.trustWidgetScript).toBe(
       '<script src="https://spurvik.com/trust-widget.js" data-domain="charlie-paris.com" data-lang="fr" defer></script>',
     );
+    expect(frBody.links.annexIvStudioUrl).toBe(
+      "https://spurvik.com/fr/reglement-ia-annexe-iv-documentation-technique?domain=charlie-paris.com",
+    );
+    expect(frBody.links.wellKnownStudioUrl).toBe(
+      "https://spurvik.com/fr/well-known-ai-act-json-widget-trust-center?domain=charlie-paris.com",
+    );
+  });
+
+  it("spurvik annex-iv (and art11 alias) generates 9-section Annex IV Markdown & JSON with 0 network calls and 8-language studio URLs", async () => {
+    const failFetch = (async () => {
+      throw new Error("annex-iv must make zero network calls");
+    }) as unknown as typeof fetch;
+
+    const md = harness(failFetch);
+    expect(await runCli(["annex-iv", "personio.de", "--use-case", "employment", "--provider", "anthropic"], md.deps)).toBe(
+      EXIT_OK,
+    );
+    expect(md.out()).toContain("# EU AI Act Annex IV Technical Documentation Draft — personio.de");
+    expect(md.out()).toContain("## Section 09 (Annex IV §6–7, Article 47 & Article 49)");
+    expect(md.out()).toContain("https://spurvik.com/de/ki-verordnung-anhang-iv-technische-dokumentation?domain=personio.de");
+
+    const js = harness(failFetch);
+    expect(await runCli(["art11", "doctolib.fr", "--use-case", "credit", "--provider", "python", "--plan", "free", "--json"], js.deps)).toBe(
+      EXIT_OK,
+    );
+    const parsed = JSON.parse(js.out());
+    expect(parsed.format).toBe("spurvik.annex-iv-preview.v1");
+    expect(parsed.domain).toBe("doctolib.fr");
+    expect(parsed.locale).toBe("fr");
+    expect(parsed.tier).toBe("free");
+    expect(parsed.readinessScorePct).toBe(44);
+    expect(parsed.sections).toHaveLength(9);
+    expect(parsed.links.studioUrl).toBe(
+      "https://spurvik.com/fr/reglement-ia-annexe-iv-documentation-technique?domain=doctolib.fr",
+    );
+
+    // Private/localhost hostnames are silently dropped without echoing
+    const priv = harness(failFetch);
+    expect(await runCli(["annex-iv", "localhost", "--lang", "sv", "--json"], priv.deps)).toBe(EXIT_OK);
+    const privJson = JSON.parse(priv.out());
+    expect(privJson.domain).toBeNull();
+    expect(privJson.links.studioUrl).toBe("https://spurvik.com/sv/ai-forordningen-bilaga-iv-teknisk-dokumentation");
+
+    for (const bad of [
+      ["annex-iv", "a.eu", "b.eu"],
+      ["annex-iv", "--use-case", "unknown_area"],
+      ["annex-iv", "--provider", "cohere"],
+      ["annex-iv", "--plan", "pro"],
+      ["annex-iv", "--fail-on-gap"],
+    ]) {
+      const errH = harness(failFetch);
+      expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
   });
 });

@@ -93,6 +93,8 @@ export {
 } from "./tools/scan-live-url.js";
 export {
   aiActManifestUrlFor,
+  annexIvPreviewUrlFor,
+  annexIvStudioUrlFor,
   C2PA_PAGE_URL,
   conciergeSignupUrlFor,
   LABELS_URL,
@@ -103,6 +105,7 @@ export {
   proSignupUrlFor,
   statusShieldMarkdownFor,
   statusShieldUrlFor,
+  wellKnownStudioUrlFor,
 } from "./links.js";
 export {
   MAX_QUESTIONNAIRE_DOMAIN_CHARS,

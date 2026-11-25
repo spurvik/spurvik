@@ -1,6 +1,9 @@
 import {
+  annexIvStudioUrlFor,
   BADGE_SCRIPT_SRC,
   C2PA_PAGE_URL,
+  c2paStatusShieldUrlFor,
+  CLOUDFLARE_WORKER_URL,
   CONCIERGE_PRICE,
   CONCIERGE_SIGNUP_URL,
   CONSOLE_ORIGIN,
@@ -9,6 +12,7 @@ import {
   PRO_PRICE,
   PRO_SIGNUP_URL,
   proSignupUrlFor,
+  wellKnownStudioUrlFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -101,7 +105,15 @@ export interface CheckImageC2paResult {
   /** Why the manifest is missing or broken, or that it survived the optimizer. Null for a clean pass with no optimizer. */
   diagnosis: string | null;
   disclosure: { locale: string; language: string; react: string; script: string };
-  links: { c2pa: string; pro: string; concierge: string };
+  links: {
+    c2pa: string;
+    cloudflareWorkerUrl: string;
+    c2paStatusShieldUrl: string;
+    wellKnownStudioUrl: string;
+    annexIvStudioUrl: string;
+    pro: string;
+    concierge: string;
+  };
   prices: { pro: string; concierge: string };
   note: string;
   /** Present when `url` was a bare domain or webpage and the hero image was auto-discovered in 1 hop. */
@@ -386,6 +398,10 @@ function buildResult(target: ImageTarget, report: UpstreamReport, context?: Buil
     },
     links: {
       c2pa: C2PA_PAGE_URL,
+      cloudflareWorkerUrl: CLOUDFLARE_WORKER_URL,
+      c2paStatusShieldUrl: c2paStatusShieldUrlFor(siteHost ?? effectiveHost),
+      wellKnownStudioUrl: wellKnownStudioUrlFor(siteHost, locale),
+      annexIvStudioUrl: annexIvStudioUrlFor(siteHost, locale),
       pro: siteHost ? proSignupUrlFor(siteHost) : PRO_SIGNUP_URL,
       concierge: siteHost ? conciergeSignupUrlFor(siteHost) : CONCIERGE_SIGNUP_URL,
     },

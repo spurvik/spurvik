@@ -528,6 +528,10 @@ describe("checkImageC2paUrl", () => {
       imageProxy: { detected: true, name: "Shopify CDN (/cdn/shop/)" },
       disclosure: { locale: "fr" },
       links: {
+        cloudflareWorkerUrl: "https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
+        c2paStatusShieldUrl: "https://console.spurvik.com/api/v1/c2pa/status.svg?domain=charlie-paris.com",
+        wellKnownStudioUrl: "https://spurvik.com/fr/well-known-ai-act-json-widget-trust-center?domain=charlie-paris.com",
+        annexIvStudioUrl: "https://spurvik.com/fr/reglement-ia-annexe-iv-documentation-technique?domain=charlie-paris.com",
         pro: "https://console.spurvik.com/signup?plan=pro&appUrl=charlie-paris.com",
         concierge: "https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com",
       },
