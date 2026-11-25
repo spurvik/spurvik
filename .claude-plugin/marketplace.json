@@ -6,7 +6,7 @@
     "url": "https://spurvik.com"
   },
   "metadata": {
-    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.14) & MCP control plane (1.0.11, MIT)."
+    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.15) & MCP control plane (1.0.11, MIT)."
   },
   "plugins": [
     {

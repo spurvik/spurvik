@@ -1,8 +1,8 @@
 # Spurvik Claude Code Plugin: `/spurvik:check`, `/spurvik:wrap`, `/spurvik:engineering-summary`
 
-> **Spurvik SDK (`spurvik@1.0.14`) and MCP server (`spurvik-mcp-server@1.0.11`, MIT).** Describes `plugins/spurvik` (`1.0.11`, MIT). The commands may change. Not legal advice.
+> **Spurvik SDK (`spurvik@1.0.15`) and MCP server (`spurvik-mcp-server@1.0.11`, MIT).** Describes `plugins/spurvik` (`1.0.11`, MIT). The commands may change. Not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.14`, `spurvik-sdk@1.0.14`, `spurvik-mcp-server@1.0.11`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.15`, `spurvik-sdk@1.0.15`, `spurvik-mcp-server@1.0.11`.*
 
 The Spurvik plugin in `plugins/spurvik` gives Claude Code three slash commands, one skill (`eu-ai-act-guardrails`), and a bundled local stdio MCP server (`bin/spurvik-mcp.mjs`). They help you find model calls in your code that are not wrapped yet, add `withSpurvik`, `spurvikMiddleware`, `withSpurvikMastra`, `withSpurvikModel`, `withSpurvikModelProvider`, or `withSpurvikLangGraph`, and write a short engineering summary.
 
@@ -13,7 +13,7 @@ Spurvik does not mark content itself. Its provenance record supports, but does n
 ## Before you install
 
 - The plugin lives in the public repository https://github.com/spurvik/spurvik at https://github.com/spurvik/spurvik/tree/main/plugins/spurvik.
-- Public MIT packages are live on npm as `spurvik@1.0.14`, `spurvik-sdk@1.0.14`, and `spurvik-mcp-server@1.0.11` (inside the monorepo, use the published `spurvik@1.0.14`, including `spurvik/react`; see [5-minute quickstart](5-minute-quickstart.md)).
+- Public MIT packages are live on npm as `spurvik@1.0.15`, `spurvik-sdk@1.0.15`, and `spurvik-mcp-server@1.0.11` (inside the monorepo, use the published `spurvik@1.0.15`, including `spurvik/react`; see [5-minute quickstart](5-minute-quickstart.md)).
 - The plugin's `.mcp.json` configures one local stdio MCP server (`${CLAUDE_PLUGIN_ROOT}/bin/spurvik-mcp.mjs --root ${CLAUDE_PROJECT_DIR}`, bundled from `spurvik-mcp-server` `1.0.11` and published on npm as `spurvik-mcp-server@1.0.11` (MIT)). Its ten tools are read-only. Seven make no network calls; `spurvik_scan_live_url`, `spurvik_batch_scan_domains` and `spurvik_check_image_c2pa_url` send public URLs to console.spurvik.com. There is no hosted MCP endpoint in this plugin.
 
 ## Install

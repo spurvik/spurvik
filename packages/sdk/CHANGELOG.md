@@ -1,5 +1,19 @@
 # spurvik-sdk
 
+## 1.0.15 — 2026-11-25
+
+Published as `spurvik@1.0.15` and `spurvik-sdk@1.0.15` (same build).
+
+### Added
+
+- `spurvik setup` and `spurvik badge`: added PrestaShop (`--cms prestashop`), Shopware 6 (`--cms shopware`), Cloudflare Edge Worker (`--cms cloudflare`), Cursor `.cursor/rules` (`--cms cursor-rules`), interactive Shadow DOM Trust-Center widget (`--cms trust-widget`), and machine-readable `/.well-known/ai-act.json` (`--cms well-known`) targets.
+- `spurvik gate` / `spurvik block-test`: offline 6-vector Art. 14 human-oversight benchmark (`0` network calls, `0` bytes of prompt text stored).
+- `spurvik scan`: adds `reportMarkdownUrl` (`text/markdown` DPO brief), `trustCenterCardUrl` (460x148 10-language SaaS Trust Center / Notion SVG readiness card), `aiActManifestUrl` (`/.well-known/ai-act.json` generator), `trustWidgetScript` (`trust-widget.js` tag), and Art. 50(2) C2PA status shield parity.
+
+### Changed
+
+- `User-Agent` for `scan` and `c2pa` is now `spurvik-cli/1.0.15`.
+
 ## 1.0.14 — 2026-11-23
 
 Published as `spurvik@1.0.14` and `spurvik-sdk@1.0.14` (same build).

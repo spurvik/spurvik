@@ -22,13 +22,13 @@ jobs:
       - name: Scan for unwrapped AI model & agent calls (spurvik-mcp-server@1.0.11)
         run: node examples/github-actions-ci-check/run-mcp-scan.mjs --root . --dir src
       - name: Run offline 6-vector Art. 14 gate self-test (0 network calls)
-        run: npx --yes spurvik@1.0.14 gate "${SPURVIK_SCAN_DOMAIN:-example.com}"
+        run: npx --yes spurvik@1.0.15 gate "${SPURVIK_SCAN_DOMAIN:-example.com}"
       - name: Live domain Art. 50 scan (only when SPURVIK_SCAN_DOMAIN is set)
         if: ${{ env.SPURVIK_SCAN_DOMAIN != '' }}
-        run: npx --yes spurvik@1.0.14 scan "$SPURVIK_SCAN_DOMAIN" --fail-on-gap
+        run: npx --yes spurvik@1.0.15 scan "$SPURVIK_SCAN_DOMAIN" --fail-on-gap
       - name: Live C2PA manifest & CDN-strip check (only when SPURVIK_C2PA_URL is set)
         if: ${{ env.SPURVIK_C2PA_URL != '' }}
-        run: npx --yes spurvik@1.0.14 c2pa "$SPURVIK_C2PA_URL" --fail-on-missing
+        run: npx --yes spurvik@1.0.15 c2pa "$SPURVIK_C2PA_URL" --fail-on-missing
       - name: Publish Art. 50 status shield & DPO brief to PR summary
         if: ${{ always() }}
         run: |

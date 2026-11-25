@@ -1,11 +1,11 @@
 # Spurvik Runnable Examples (`examples/`)
 
-> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.14`, `spurvik-sdk@1.0.14`, `spurvik-mcp-server@1.0.11`, `n8n-nodes-spurvik@1.0.11`).
+> Source: https://github.com/spurvik/spurvik (`spurvik@1.0.15`, `spurvik-sdk@1.0.15`, `spurvik-mcp-server@1.0.11`, `n8n-nodes-spurvik@1.0.11`).
 
 | Example | What It Shows |
 | --- | --- |
-| [`multi-channel-hitl.ts`](./multi-channel-hitl.ts) | Pre-flight `ask_human()` fan-out with `createMultiChannelApprovalRouter` for Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana (`spurvik@1.0.14`). Sets `callbackBaseUrl` (`https://your-app.example/api/spurvik/callback`) and checks the signed link token (including `nonce`) with `verifyChannelApprovalToken` / `verifySignedChannelCallback`. |
-| [`slack-telegram-linear-ask-human/`](./slack-telegram-linear-ask-human/README.md) | Runnable Slack, Telegram, and Linear approval flow (`npm test` runs `smoke.ts` against a local callback server). Imports `createMultiChannelApprovalRouter` and `verifyChannelApprovalToken` from `spurvik@1.0.14`. |
+| [`multi-channel-hitl.ts`](./multi-channel-hitl.ts) | Pre-flight `ask_human()` fan-out with `createMultiChannelApprovalRouter` for Slack, Telegram, email (Resend), Discord, Microsoft Teams, Linear, Jira, Monday.com, and Asana (`spurvik@1.0.15`). Sets `callbackBaseUrl` (`https://your-app.example/api/spurvik/callback`) and checks the signed link token (including `nonce`) with `verifyChannelApprovalToken` / `verifySignedChannelCallback`. |
+| [`slack-telegram-linear-ask-human/`](./slack-telegram-linear-ask-human/README.md) | Runnable Slack, Telegram, and Linear approval flow (`npm test` runs `smoke.ts` against a local callback server). Imports `createMultiChannelApprovalRouter` and `verifyChannelApprovalToken` from `spurvik@1.0.15`. |
 | [`nextjs-vercel-ai-sdk/`](./nextjs-vercel-ai-sdk/) | Next.js App Router chat with `<AIDisclosureLabel />` (`spurvik/react`) as an Art. 50(1) visible interaction notice and `spurvikMiddleware` (`spurvik/ai`) recording a keyed HMAC-SHA256 fingerprint of the input. |
 | [`cloudflare-workers-hono-edge/`](./cloudflare-workers-hono-edge/) | Web-Standard `fetch(request, ctx)` Edge handler (`worker.mjs` + `smoke.test.mjs`) for **Cloudflare Workers**, **Hono**, and **Supabase Edge Functions** using `KvTelemetryBuffer` + `ctx.waitUntil()`, upstream `x-watermark` header pass-through, `0B` raw prompt HMAC receipts, and stateless `verifyChannelApprovalToken` nonce replay protection. |
 | [`langgraph-mastra-openai-agents/`](./langgraph-mastra-openai-agents/) | Runnable adapters and smoke test (`smoke.test.mjs`) for **LangGraph (`spurvik/langgraph`)**, **OpenAI Agents SDK (`spurvik/openai-agents`)**, and **Mastra (`spurvik/mastra`)** with `provenanceOf` and `verifyProvenanceSignature` (`0B` raw prompt persisted). |

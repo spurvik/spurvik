@@ -29,7 +29,7 @@ import {
   type SpurvikVendorQuestionnaireOutput,
 } from "./vendor-questionnaire.js";
 
-export const CLI_VERSION = "1.0.14";
+export const CLI_VERSION = "1.0.15";
 export const USER_AGENT = `spurvik-cli/${CLI_VERSION}`;
 
 export const CONSOLE_ORIGIN = "https://console.spurvik.com";
