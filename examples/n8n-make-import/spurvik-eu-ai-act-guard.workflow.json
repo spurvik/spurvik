@@ -135,6 +135,22 @@
       "typeVersion": 1,
       "position": [280, 1000],
       "notes": "Test Art. 14 Human Approval Blocking (6 Vectors). Offline HMAC-SHA256 self-test of fail-closed blocking across unapproved calls, human reject, payload mutation, decision flip, and TTL replay. Runs locally: no request, no credential and no API key."
+    },
+    {
+      "parameters": {
+        "operation": "annexIvDraft",
+        "annexIvDomain": "stepnetwork.dk",
+        "annexIvUseCase": "employment",
+        "annexIvProvider": "openai",
+        "annexIvTier": "team",
+        "annexIvLocale": "da"
+      },
+      "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "name": "Spurvik Annex IV Draft",
+      "type": "n8n-nodes-spurvik.spurvikEuAiActGuard",
+      "typeVersion": 1,
+      "position": [280, 1160],
+      "notes": "Draft Annex IV Technical Documentation (Art. 11). Builds a 9-section EU AI Act Article 11 and Annex IV technical documentation Markdown draft and JSON structure locally: no request, no credential and no API key."
     }
   ],
   "connections": {
@@ -178,6 +194,11 @@
           },
           {
             "node": "Spurvik Gate Self-Test",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Spurvik Annex IV Draft",
             "type": "main",
             "index": 0
           }
