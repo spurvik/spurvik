@@ -63,7 +63,7 @@ describe("gateSelfTest descriptor & offline cryptographic execution (zero-creden
 
   it("registers gateSelfTest as operation #8, hides spurvikApi & consoleBaseUrl, and exports helpers", () => {
     const operation = byName("operation");
-    assert.equal(operation.options.length, 8);
+    assert.equal(operation.options.length, 9);
     assert.equal(operation.options[7].value, "gateSelfTest");
     assert.equal(operation.options[7].name, "Test Art. 14 Human Approval Blocking (6 Vectors)");
     assert.match(operation.options[7].description, /no request, no credential or API key/);

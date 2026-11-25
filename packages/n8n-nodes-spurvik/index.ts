@@ -67,3 +67,20 @@ export type {
   SpurvikGateVectorId,
   SpurvikGateVectorResult,
 } from "./gate-self-test";
+export {
+  SPURVIK_ANNEX_IV_LOCALES,
+  SPURVIK_ANNEX_IV_PROVIDERS,
+  SPURVIK_ANNEX_IV_TIERS,
+  SPURVIK_ANNEX_IV_USE_CASES,
+  spurvikAnnexIvDraft,
+} from "./annex-iv-draft";
+export type {
+  SpurvikAnnexIvDraftInput,
+  SpurvikAnnexIvDraftOutput,
+  SpurvikAnnexIvLocale,
+  SpurvikAnnexIvProvider,
+  SpurvikAnnexIvSection,
+  SpurvikAnnexIvTier,
+  SpurvikAnnexIvUpgradeUrls,
+  SpurvikAnnexIvUseCase,
+} from "./annex-iv-draft";

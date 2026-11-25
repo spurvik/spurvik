@@ -1,6 +1,6 @@
 # 5-Minute Quickstart
 
-> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.15`, `spurvik-sdk@1.0.15`, `spurvik-mcp-server@1.0.12`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378). The SDK logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
+> Source: https://github.com/spurvik/spurvik (npm: `spurvik@1.0.16`, `spurvik-sdk@1.0.16`, `spurvik-mcp-server@1.0.13`). Spurvik is developed by EyeTea Solutions ApS (CVR 37093378). The SDK logs AI calls with HMAC receipts and offers disclosure and marking hooks. It does not mark content itself and does not mean your system meets the EU AI Act.
 
 ## Sandbox and hosted console
 
@@ -16,14 +16,14 @@ The hosted console is a hosted service. Its source is not in this repository and
 Node.js 20 or later.
 
 ```bash
-npm install openai spurvik@1.0.15
+npm install openai spurvik@1.0.16
 npm pkg set type=module
 ```
 
 Import the SDK as `spurvik`. Subpaths are `spurvik/ai`, `spurvik/mastra`, `spurvik/langgraph`, `spurvik/openai-agents`, and `spurvik/react`.
 
 ```bash
-npm i -D spurvik-mcp-server@1.0.12
+npm i -D spurvik-mcp-server@1.0.13
 ./node_modules/.bin/spurvik-mcp-server --root .
 ```
 
@@ -75,7 +75,7 @@ await ai._spurvik.shutdown();
 
 Warning: `engageKillSwitch` halts the real project at `baseUrl`. Do not run this against a project you need to keep serving until you mean to stop it.
 
-Run a `.ts` snippet with `npx tsx file.ts` from the app folder after `npm install openai spurvik@1.0.15`.
+Run a `.ts` snippet with `npx tsx file.ts` from the app folder after `npm install openai spurvik@1.0.16`.
 
 ```ts
 import OpenAI from "openai";

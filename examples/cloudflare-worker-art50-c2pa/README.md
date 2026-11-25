@@ -28,6 +28,6 @@ SPURVIK_ATTRIBUTION = "true"    # set "false" on Pro (€19/mo or €190/yr), Te
 SPURVIK_C2PA_PREFIXES = "/ai-media/,/c2pa/,/generated/"
 ```
 
-Check delivered image C2PA manifests with `npx spurvik@1.0.15 c2pa https://yourdomain.com/ai-media/hero.png --fail-on-missing` or at https://console.spurvik.com/c2pa. Hosted EU Frankfurt (`fra1`) plans: https://console.spurvik.com/signup (`excl. VAT · B2B`).
+Check delivered image C2PA manifests with `npx spurvik@1.0.16 c2pa https://yourdomain.com/ai-media/hero.png --fail-on-missing` or at https://console.spurvik.com/c2pa. Hosted EU Frankfurt (`fra1`) plans: https://console.spurvik.com/signup (`excl. VAT · B2B`).
 
 <sub>Software supporting your EU AI Act work; responsibility stays with you. Not legal advice.</sub>

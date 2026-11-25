@@ -6,6 +6,7 @@ import type {
   INodeTypeDescription,
 } from "n8n-workflow";
 import type { HumanApprovalChannelConfig } from "spurvik-sdk";
+import { spurvikAnnexIvDraft } from "../../annex-iv-draft";
 import { checkSpurvikImageC2paUrl } from "../../check-image-c2pa-url";
 import { spurvikGateSelfTest } from "../../gate-self-test";
 import { batchScanSpurvikDomains, scanSpurvikDomain } from "../../scan-domain";
@@ -22,12 +23,14 @@ const BATCH_SCAN_DOMAINS_OPERATION = "batchScanDomains";
 const CHECK_IMAGE_C2PA_URL_OPERATION = "checkImageC2paUrl";
 const VENDOR_QUESTIONNAIRE_OPERATION = "vendorQuestionnaireAnswers";
 const GATE_SELF_TEST_OPERATION = "gateSelfTest";
+const ANNEX_IV_DRAFT_OPERATION = "annexIvDraft";
 const ZERO_KEY_OPERATIONS: readonly string[] = [
   SCAN_DOMAIN_OPERATION,
   BATCH_SCAN_DOMAINS_OPERATION,
   CHECK_IMAGE_C2PA_URL_OPERATION,
   VENDOR_QUESTIONNAIRE_OPERATION,
   GATE_SELF_TEST_OPERATION,
+  ANNEX_IV_DRAFT_OPERATION,
 ];
 const DEFAULT_CONSOLE_BASE_URL = "https://console.spurvik.com";
 
@@ -77,6 +80,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
             "checkImageC2paUrl",
             "vendorQuestionnaireAnswers",
             "gateSelfTest",
+            "annexIvDraft",
           ],
         },
       },
@@ -134,6 +138,12 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
           value: "gateSelfTest",
           description:
             "Offline 6-vector HMAC-SHA256 self-test of Spurvik's fail-closed Art. 14 human approval gate (unapproved halt, signed reject, payload tamper, decision-flip forgery, expired TTL replay, and authentic approval). Runs locally: no request, no credential or API key.",
+        },
+        {
+          name: "Draft Annex IV Technical Documentation (Art. 11)",
+          value: "annexIvDraft",
+          description:
+            "Generate a 9-section EU AI Act Article 11(1) & Annex IV technical documentation Markdown draft and JSON structure matched to Annex III use cases. Runs locally: no request, no credential or API key.",
         },
       ],
     },
@@ -277,6 +287,77 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       ],
     },
     {
+      displayName: "Product Domain",
+      name: "annexIvDomain",
+      type: "string",
+      default: "",
+      placeholder: "personio.de",
+      displayOptions: { show: { operation: ["annexIvDraft"] } },
+      description:
+        "Optional public domain or http(s) URL of your AI system, used only to prefill the 9-section Annex IV draft and studio links. Never sent over the network; private, IP, or localhost values are ignored.",
+    },
+    {
+      displayName: "Annex III Use Case",
+      name: "annexIvUseCase",
+      type: "options",
+      default: "employment",
+      displayOptions: { show: { operation: ["annexIvDraft"] } },
+      description: "High-risk Annex III category or voluntary enterprise B2B agent scope.",
+      options: [
+        { name: "Employment, HR & Recruitment (Annex III §4)", value: "employment" },
+        { name: "Creditworthiness & Underwriting (Annex III §5b)", value: "credit" },
+        { name: "Education & Assessment (Annex III §3)", value: "education" },
+        { name: "Essential Services & Claims Triage (Annex III §5a/c)", value: "essential_services" },
+        { name: "Permitted Biometric Verification (Annex III §1)", value: "biometrics" },
+        { name: "Enterprise B2B Agent (Voluntary / Procurement)", value: "support_agent" },
+      ],
+    },
+    {
+      displayName: "Upstream Model Stack",
+      name: "annexIvProvider",
+      type: "options",
+      default: "openai",
+      displayOptions: { show: { operation: ["annexIvDraft"] } },
+      description: "Model provider or Python runtime named in Section 02 of the Annex IV draft.",
+      options: [
+        { name: "OpenAI", value: "openai" },
+        { name: "Anthropic Claude", value: "anthropic" },
+        { name: "Google Gemini", value: "gemini" },
+        { name: "Mistral AI (EU)", value: "mistral" },
+        { name: "Python 3.10+ (FastAPI / LangChain)", value: "python" },
+      ],
+    },
+    {
+      displayName: "Preview Tier",
+      name: "annexIvTier",
+      type: "options",
+      default: "team",
+      displayOptions: { show: { operation: ["annexIvDraft"] } },
+      description: "Team (€79/mo) previews 9/9 populated sections; Free (€0) previews the 4/9 static skeleton.",
+      options: [
+        { name: "Team (€79/mo or €790/yr — 9/9 sections)", value: "team" },
+        { name: "Free (€0 — 4/9 static skeleton)", value: "free" },
+      ],
+    },
+    {
+      displayName: "Studio Language",
+      name: "annexIvLocale",
+      type: "options",
+      default: "en",
+      displayOptions: { show: { operation: ["annexIvDraft"] } },
+      description: "Language of the linked interactive 9-section Annex IV Studio and upgrade links.",
+      options: [
+        { name: "English (en)", value: "en" },
+        { name: "Deutsch (de)", value: "de" },
+        { name: "Français (fr)", value: "fr" },
+        { name: "Nederlands (nl)", value: "nl" },
+        { name: "Dansk (da)", value: "da" },
+        { name: "Svenska (sv)", value: "sv" },
+        { name: "Español (es)", value: "es" },
+        { name: "Italiano (it)", value: "it" },
+      ],
+    },
+    {
       displayName: "AI System Name",
       name: "systemName",
       type: "string",
@@ -290,6 +371,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
             "checkImageC2paUrl",
             "vendorQuestionnaireAnswers",
             "gateSelfTest",
+            "annexIvDraft",
           ],
         },
       },
@@ -401,7 +483,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
       name: "consoleBaseUrl",
       type: "string",
       default: "https://console.spurvik.com",
-      displayOptions: { hide: { operation: ["vendorQuestionnaireAnswers", "gateSelfTest"] } },
+      displayOptions: { hide: { operation: ["vendorQuestionnaireAnswers", "gateSelfTest", "annexIvDraft"] } },
       description:
         "Spurvik console base URL. Scan Live Domain and Batch Scan call its public scan endpoint, and Check Image C2PA its public C2PA check, without a key. The notice, digest and approval operations sync to it only when Spurvik Console API Key is set on the spurvikApi credential, and otherwise use it for the signup links in upgradeUrls.",
     },
@@ -418,6 +500,7 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
             "checkImageC2paUrl",
             "vendorQuestionnaireAnswers",
             "gateSelfTest",
+            "annexIvDraft",
           ],
         },
       },
@@ -599,6 +682,17 @@ export class SpurvikEuAiActGuard implements INodeType {
           locale: this.getNodeParameter("gateTestLocale", i, "en"),
         });
         returnData.push({ json: gateTest as unknown as IDataObject });
+        continue;
+      }
+      if (operations[i] === ANNEX_IV_DRAFT_OPERATION) {
+        const annexIv = spurvikAnnexIvDraft({
+          domain: this.getNodeParameter("annexIvDomain", i, ""),
+          useCase: this.getNodeParameter("annexIvUseCase", i, "employment"),
+          provider: this.getNodeParameter("annexIvProvider", i, "openai"),
+          tier: this.getNodeParameter("annexIvTier", i, "team"),
+          locale: this.getNodeParameter("annexIvLocale", i, "en"),
+        });
+        returnData.push({ json: annexIv as unknown as IDataObject });
         continue;
       }
       const item = items[i]?.json ?? {};
