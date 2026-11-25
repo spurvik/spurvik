@@ -1513,4 +1513,35 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
     }
   });
+
+  it("spurvik scan emits aiActManifestUrl and trustWidgetScript (default and htmlLocale override)", async () => {
+    const def = harness((async () => jsonResponse(FOLK_GAP)) as unknown as typeof fetch);
+    expect(await runCli(["scan", "folk.app", "--json"], def.deps)).toBe(EXIT_OK);
+    const defBody = JSON.parse(def.out());
+    expect(defBody.links.aiActManifestUrl).toBe("https://console.spurvik.com/api/v1/badge/ai-act.json?domain=folk.app");
+    expect(defBody.links.trustWidgetScript).toBe(
+      '<script src="https://spurvik.com/trust-widget.js" data-domain="folk.app" defer></script>',
+    );
+
+    const fr = harness(
+      (async () =>
+        jsonResponse({
+          ok: true,
+          scan: {
+            ...FOLK_GAP.scan,
+            domain: "charlie-paris.com",
+            scannedUrl: "https://charlie-paris.com/",
+            htmlLocale: "fr",
+          },
+        })) as unknown as typeof fetch,
+    );
+    expect(await runCli(["scan", "charlie-paris.com", "--json"], fr.deps)).toBe(EXIT_OK);
+    const frBody = JSON.parse(fr.out());
+    expect(frBody.links.aiActManifestUrl).toBe(
+      "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=charlie-paris.com&locale=fr",
+    );
+    expect(frBody.links.trustWidgetScript).toBe(
+      '<script src="https://spurvik.com/trust-widget.js" data-domain="charlie-paris.com" data-lang="fr" defer></script>',
+    );
+  });
 });

@@ -2,6 +2,7 @@
 
 export const CONSOLE_ORIGIN = "https://console.spurvik.com";
 export const BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
+export const TRUST_WIDGET_SCRIPT_SRC = "https://spurvik.com/trust-widget.js";
 
 export const REPORT_URL = `${CONSOLE_ORIGIN}/report`;
 export const SANDBOX_URL = `${CONSOLE_ORIGIN}/sandbox`;
@@ -16,6 +17,7 @@ export const CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 export const PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 export const STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 export const TRUST_CENTER_CARD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/card.svg`;
+export const AI_ACT_MANIFEST_URL = `${CONSOLE_ORIGIN}/api/v1/badge/ai-act.json`;
 export const C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 /** Interactive C2PA JUMBF manifest & CDN-strip checker (upload or URL). */
 export const C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
@@ -35,7 +37,7 @@ export const GTM_CONTAINER_URL = "https://spurvik.com/r/spurvik-gtm-art50-contai
 export const FRAMER_COMPONENT_URL = "https://spurvik.com/r/spurvik-framer-badge.tsx";
 export const SHADCN_REGISTRY_URL = "https://spurvik.com/r/article-50-badge.json";
 
-/** Maps detected CMS / storefront / tag-manager stacks to 1-click zero-code installer download URLs. */
+/** Maps detected CMS / storefront / tag-manager stacks to 1-click zero-code installer download or cockpit URLs. */
 export function platformInstallerUrlsFor(
   detectedPlatforms: readonly string[] | undefined,
   host?: string | null,
@@ -52,6 +54,13 @@ export function platformInstallerUrlsFor(
     else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
     else if (platform === "Next.js") out.nextjsShadcnRegistry = SHADCN_REGISTRY_URL;
+    else if (platform === "Wix") out.wixGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Squarespace") out.squarespaceGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Drupal") out.drupalGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Ghost") out.ghostGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "HubSpot CMS") out.hubspotCmsGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Magento") out.magentoGuide = ecommerceCockpitUrlFor(host, locale);
+    else if (platform === "BigCommerce") out.bigcommerceGuide = ecommerceCockpitUrlFor(host, locale);
   }
   return out;
 }
@@ -403,4 +412,20 @@ export function trustCenterCardUrlFor(host: string, extraLocale?: string): strin
 /** Markdown embed for the 460x148 SaaS Trust Center / Notion SVG readiness card, linked to reportUrl. */
 export function trustCenterCardMarkdownFor(host: string, extraLocale?: string): string {
   return `[![EU AI Act Art. 50 Readiness Card for ${host}](${trustCenterCardUrlFor(host, extraLocale)})](${reportUrlFor(host, extraLocale)})`;
+}
+
+/** Machine-readable `/.well-known/ai-act.json` generator URL (`spurvik.ai-act-manifest.v1`). */
+export function aiActManifestUrlFor(host: string, extraLocale?: string): string {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${AI_ACT_MANIFEST_URL}?domain=${encodeURIComponent(host)}${loc}`;
+}
+
+/** Drop-in Shadow DOM interactive Trust-Center widget `<script>` tag. */
+export function trustWidgetScriptFor(host: string, extraLocale?: string): string {
+  const safeHost = host.replace(/[\u0000-\u001f\u007f<>"'`&\\]/g, "");
+  const langAttr =
+    extraLocale && extraLocale !== "en"
+      ? ` data-lang="${extraLocale.replace(/[\u0000-\u001f\u007f<>"'`&\\]/g, "")}"`
+      : "";
+  return `<script src="${TRUST_WIDGET_SCRIPT_SRC}" data-domain="${safeHost}"${langAttr} defer></script>`;
 }

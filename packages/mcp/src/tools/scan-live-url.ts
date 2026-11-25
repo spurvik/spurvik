@@ -1,4 +1,5 @@
 import {
+  aiActManifestUrlFor,
   c2paCheckUrlFor,
   c2paStatusShieldMarkdownFor,
   c2paStatusShieldUrlFor,
@@ -22,6 +23,7 @@ import {
   teamSignupUrlFor,
   trustCenterCardMarkdownFor,
   trustCenterCardUrlFor,
+  trustWidgetScriptFor,
 } from "../links.js";
 import { MCP_USER_AGENT } from "../version.js";
 import { buildBadgeScript, EU_LOCALE_CODES, euLanguage, inferLocaleFromDomain } from "./badge-copy.js";
@@ -95,6 +97,10 @@ export interface ScanLiveUrlLinks {
   trustCenterCardUrl: string;
   /** Markdown embed for the 460x148 SaaS Trust Center / Notion SVG readiness card. */
   trustCenterCardMarkdown: string;
+  /** Machine-readable `/.well-known/ai-act.json` generator URL (`spurvik.ai-act-manifest.v1`). */
+  aiActManifestUrl: string;
+  /** Drop-in Shadow DOM interactive Trust-Center widget `<script>` tag. */
+  trustWidgetScript: string;
   /** Signup links with the scanned host prefilled as `appUrl`. */
   upgradeUrls: {
     freeApiKey: string;
@@ -336,6 +342,8 @@ function scanLinks(host: string, locale = inferLocaleFromDomain(host), heroImage
     c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
     trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
     trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
+    aiActManifestUrl: aiActManifestUrlFor(host, extraLocale),
+    trustWidgetScript: trustWidgetScriptFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),

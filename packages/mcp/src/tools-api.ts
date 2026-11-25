@@ -92,10 +92,12 @@ export {
   type ScanTarget,
 } from "./tools/scan-live-url.js";
 export {
+  aiActManifestUrlFor,
   C2PA_PAGE_URL,
   conciergeSignupUrlFor,
   LABELS_URL,
   SIGNUP_URL,
+  trustWidgetScriptFor,
   VENDOR_QUESTIONNAIRE_URL,
   PORTFOLIO_URL,
   proSignupUrlFor,

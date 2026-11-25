@@ -498,4 +498,64 @@ describe("scanLiveUrl", () => {
       doneForYou24hSetup: "https://console.spurvik.com/signup?plan=concierge&appUrl=charlie-paris.com&locale=fr",
     });
   });
+
+  it("maps all 15 CMS/commerce platforms in platformInstallerUrls and emits aiActManifestUrl + trustWidgetScript (H215c)", async () => {
+    const all15 = [
+      "Shopify",
+      "WordPress",
+      "PrestaShop",
+      "Shopware",
+      "Google Tag Manager",
+      "Framer",
+      "Webflow",
+      "Next.js",
+      "Wix",
+      "Squarespace",
+      "Drupal",
+      "Ghost",
+      "HubSpot CMS",
+      "Magento",
+      "BigCommerce",
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        jsonResponse({
+          ok: true,
+          scan: { ...UPSTREAM_SCAN, domain: "charlie-paris.com", htmlLocale: "fr", detectedPlatforms: all15 },
+        }),
+      ),
+    );
+    const frRes = await expectOk(scanLiveUrl("charlie-paris.com"));
+    expect(frRes.aiActManifestUrl).toBe("https://console.spurvik.com/api/v1/badge/ai-act.json?domain=charlie-paris.com&locale=fr");
+    expect(frRes.trustWidgetScript).toBe(
+      '<script src="https://spurvik.com/trust-widget.js" data-domain="charlie-paris.com" data-lang="fr" defer></script>',
+    );
+    const wpFr = "https://spurvik.com/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=charlie-paris.com";
+    const ecomFr = "https://spurvik.com/fr/shopify-prestashop-gorgias-crisp-mention-ia-article-50?domain=charlie-paris.com";
+    expect(frRes.platformInstallerUrls).toEqual({
+      shopifyLiquid: "https://spurvik.com/r/spurvik-shopify-art50.liquid",
+      wordpressPluginZip: "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip",
+      prestashopModuleZip: "https://spurvik.com/r/spurvik-prestashop-art50.zip",
+      shopwareExtensionZip: "https://spurvik.com/r/spurvik-shopware6-art50.zip",
+      gtmContainerJson: "https://spurvik.com/r/spurvik-gtm-art50-container.json",
+      framerComponentTsx: "https://spurvik.com/r/spurvik-framer-badge.tsx",
+      webflowGuide: wpFr,
+      nextjsShadcnRegistry: "https://spurvik.com/r/article-50-badge.json",
+      wixGuide: wpFr,
+      squarespaceGuide: wpFr,
+      drupalGuide: wpFr,
+      ghostGuide: wpFr,
+      hubspotCmsGuide: wpFr,
+      magentoGuide: ecomFr,
+      bigcommerceGuide: ecomFr,
+    });
+
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ ok: true, scan: UPSTREAM_SCAN })));
+    const dkRes = await expectOk(scanLiveUrl("stepnetwork.dk"));
+    expect(dkRes.aiActManifestUrl).toBe("https://console.spurvik.com/api/v1/badge/ai-act.json?domain=stepnetwork.dk");
+    expect(dkRes.trustWidgetScript).toBe(
+      '<script src="https://spurvik.com/trust-widget.js" data-domain="stepnetwork.dk" defer></script>',
+    );
+  });
 });

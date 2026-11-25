@@ -22054,6 +22054,7 @@ var EMPTY_COMPLETION_RESULT = {
 // packages/mcp/src/links.ts
 var CONSOLE_ORIGIN = "https://console.spurvik.com";
 var BADGE_SCRIPT_SRC = "https://spurvik.com/badge.js";
+var TRUST_WIDGET_SCRIPT_SRC = "https://spurvik.com/trust-widget.js";
 var REPORT_URL = `${CONSOLE_ORIGIN}/report`;
 var SANDBOX_URL = `${CONSOLE_ORIGIN}/sandbox`;
 var RISK_CHECK_URL = `${CONSOLE_ORIGIN}/risk-check`;
@@ -22066,6 +22067,7 @@ var CONCIERGE_SIGNUP_URL = `${CONSOLE_ORIGIN}/signup?plan=concierge`;
 var PORTFOLIO_URL = `${CONSOLE_ORIGIN}/portfolio`;
 var STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg`;
 var TRUST_CENTER_CARD_URL = `${CONSOLE_ORIGIN}/api/v1/badge/card.svg`;
+var AI_ACT_MANIFEST_URL = `${CONSOLE_ORIGIN}/api/v1/badge/ai-act.json`;
 var C2PA_STATUS_SHIELD_URL = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg`;
 var C2PA_PAGE_URL = `${CONSOLE_ORIGIN}/c2pa`;
 var LABELS_URL = `${CONSOLE_ORIGIN}/labels`;
@@ -22090,6 +22092,13 @@ function platformInstallerUrlsFor(detectedPlatforms, host, locale = "en") {
     else if (platform === "Framer") out.framerComponentTsx = FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
     else if (platform === "Next.js") out.nextjsShadcnRegistry = SHADCN_REGISTRY_URL;
+    else if (platform === "Wix") out.wixGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Squarespace") out.squarespaceGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Drupal") out.drupalGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Ghost") out.ghostGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "HubSpot CMS") out.hubspotCmsGuide = wordpressCockpitUrlFor(host, locale);
+    else if (platform === "Magento") out.magentoGuide = ecommerceCockpitUrlFor(host, locale);
+    else if (platform === "BigCommerce") out.bigcommerceGuide = ecommerceCockpitUrlFor(host, locale);
   }
   return out;
 }
@@ -22221,6 +22230,15 @@ function trustCenterCardUrlFor(host, extraLocale) {
 }
 function trustCenterCardMarkdownFor(host, extraLocale) {
   return `[![EU AI Act Art. 50 Readiness Card for ${host}](${trustCenterCardUrlFor(host, extraLocale)})](${reportUrlFor(host, extraLocale)})`;
+}
+function aiActManifestUrlFor(host, extraLocale) {
+  const loc = extraLocale && extraLocale !== "en" ? `&locale=${encodeURIComponent(extraLocale)}` : "";
+  return `${AI_ACT_MANIFEST_URL}?domain=${encodeURIComponent(host)}${loc}`;
+}
+function trustWidgetScriptFor(host, extraLocale) {
+  const safeHost = host.replace(/[\u0000-\u001f\u007f<>"'`&\\]/g, "");
+  const langAttr = extraLocale && extraLocale !== "en" ? ` data-lang="${extraLocale.replace(/[\u0000-\u001f\u007f<>"'`&\\]/g, "")}"` : "";
+  return `<script src="${TRUST_WIDGET_SCRIPT_SRC}" data-domain="${safeHost}"${langAttr} defer></script>`;
 }
 
 // packages/mcp/src/tools/badge-copy.ts
@@ -22905,6 +22923,8 @@ function scanLinks(host, locale = inferLocaleFromDomain(host), heroImageUrl = nu
     c2paStatusShieldMarkdown: c2paStatusShieldMarkdownFor(host),
     trustCenterCardUrl: trustCenterCardUrlFor(host, extraLocale),
     trustCenterCardMarkdown: trustCenterCardMarkdownFor(host, extraLocale),
+    aiActManifestUrl: aiActManifestUrlFor(host, extraLocale),
+    trustWidgetScript: trustWidgetScriptFor(host, extraLocale),
     upgradeUrls: {
       freeApiKey: freeSignupUrlFor(host, extraLocale),
       proWhiteLabelAndAuditVault: proSignupUrlFor(host, extraLocale),
