@@ -799,6 +799,7 @@ export function setupSnippetSource(
     return [
       "# Self-hosted n8n community node (9 operations incl. 6 zero-key) & Make.com HTTP blueprint:",
       "npm install n8n-nodes-spurvik@1.0.13",
+      "curl -fsSLO https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
       "",
@@ -858,7 +859,7 @@ export function setupSnippet(
     const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [
       `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
-      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
+      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json (0 credentials) / https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
       `Interactive workflow cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,

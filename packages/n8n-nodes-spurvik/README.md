@@ -1,6 +1,6 @@
 # n8n-nodes-spurvik
 
-n8n community node for self-hosted n8n, designed to support eight separate workflow steps:
+n8n community node for self-hosted n8n, designed to support nine separate workflow steps (including 6 zero-credential operations — import the ready-to-run 5-in-1 Zero-Key workflow via **Import from URL**: `https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json`):
 
 1. Add an AI interaction notice to one text field.
 2. Record the call as an HMAC-SHA256 digest instead of the raw prompt text. The digest is `spurvik:workflow:input:v1|` plus the input field. This is designed to support Article 12 record-keeping for high-risk AI systems. The notice operation reads outputField (default outputText) and inputField (default promptText). inputField is shown for the notice and the digest. It throws if outputField is missing or is not a string, if outputField equals inputField in any letter case, or if outputField matches promptText, prompt, chatInput, query, or input in any letter case. It does not read the prompt field. Output is { spurvik: result } plus explicitly named fields other than those prompt names. Those prompt names and the configured inputField are never copied (name check only, any letter case). The field value is not returned, including when that name is listed in passThroughFields. The digest is HMAC-SHA256 of the prefix spurvik:workflow:input:v1| plus the input field.
@@ -10,6 +10,7 @@ n8n community node for self-hosted n8n, designed to support eight separate workf
 6. Check one public image URL for a C2PA manifest and CDN stripping, with no API key. See [Check Image C2PA & CDN Strip](#check-image-c2pa--cdn-strip-art-502).
 7. Draft answers to the EU AI Act questions in enterprise vendor security questionnaires and DPO RFPs, locally, with no request and no API key. See [Answer Vendor Security Questionnaire](#answer-vendor-security-questionnaire-art-501214-rfp).
 8. Run an offline 6-vector cryptographic self-test of Spurvik's fail-closed Art. 14 human approval gate, locally, with no request and no API key. See [Test Art. 14 Human Approval Blocking](#test-art-14-human-approval-blocking-6-vectors).
+9. Draft a 9-section EU AI Act Annex IV technical documentation file under Article 11 in Markdown and JSON, locally, with no request and no API key. See [Draft Annex IV Technical Documentation](#draft-annex-iv-technical-documentation-art-11).
 
 The node does not mark or sign content.
 
@@ -189,6 +190,10 @@ Output (fixed key order):
 ## Test Art. 14 Human Approval Blocking (6 Vectors)
 
 Operation value `gateSelfTest`. It needs **no credential, no API key, and no network access**: n8n hides `spurvikApi` and `consoleBaseUrl`, and `spurvikGateSelfTest` generates a fresh ephemeral 256-bit secret per run (never persisted or returned) to test all 6 `spurvik-sdk` (`spurvik:art12:v1` + `spurvik:art14:decision:v1`) vectors (`unapproved_default_halt`, `explicit_human_block`, `tampered_payload_hmac`, `decision_flip_forgery`, `expired_link_replay`, and `authentic_signed_approval`). Optional `gateTestDomain` (`acme.eu`) and `gateTestLocale` (`en`, `de`, `fr`, `nl`, `da`, `sv`, `es`, `it`) prefill the interactive Art. 14 cockpit URL and `upgradeUrls` (`€0`, `€19/mo` / `€190/yr`, `€79/mo` / `€790/yr`, `€199` once).
+
+## Draft Annex IV Technical Documentation (Art. 11)
+
+Operation value `annexIvDraft`. It needs **no credential, no API key, and no network access**: n8n hides `spurvikApi` and `consoleBaseUrl`, and `spurvikAnnexIvDraft` generates a 9-section EU AI Act Annex IV technical documentation Markdown draft and `spurvik.annex-iv-preview.v1` JSON object (`annexIvDomain`, `annexIvUseCase`, `annexIvProvider`, `annexIvTier` `team` `€79/mo` / `€790/yr` 9/9 sections vs `free` `€0` 4/9 static skeleton, and `annexIvLocale` `en`–`it`), returning `sections`, `markdown`, 8-language `studioUrl`, `previewApiUrl`, and prefilled `upgradeUrls`.
 
 ## Credential
 

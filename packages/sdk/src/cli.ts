@@ -1490,7 +1490,8 @@ export function buildSetupReport(
             "# Sends keyed HMAC-SHA256 digests (0 bytes of prompt text) to https://console.spurvik.com/api/v1/telemetry",
           ].join("\n")
         : [
-            "# In n8n: Settings -> Community Nodes -> Install n8n-nodes-spurvik (7 EU AI Act operations)",
+            "# In n8n: Settings -> Community Nodes -> Install n8n-nodes-spurvik (9 EU AI Act operations incl. 6 zero-key)",
+            "# Zero-key 5-in-1 starter JSON: https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
             "# Starter workflow JSON: https://spurvik.com/r/n8n-art50-starter.json",
           ].join("\n");
     return {

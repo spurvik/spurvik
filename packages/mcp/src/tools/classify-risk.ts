@@ -96,6 +96,8 @@ export interface ClassifyRiskResult {
   prefilledRiskCheckUrl: string;
   /** 8-language interactive 9-section EU AI Act Art. 11 & Annex IV Technical Documentation Studio URL. */
   annexIvStudioUrl: string;
+  /** Zero-key OpenAPI endpoint generating the 9-section Annex IV preview JSON or Markdown. */
+  annexIvPreviewUrl: string;
   reportUrl?: string;
   selfAssessmentMarkdown?: string;
   upgradeUrls: { pro: UpgradeOffer; team: UpgradeOffer; concierge: UpgradeOffer };
@@ -545,6 +547,7 @@ export function classifyAiActRisk(rawInput: unknown): ClassifyRiskOutcome {
       interactiveClassifierUrl,
       prefilledRiskCheckUrl,
       annexIvStudioUrl: annexIvStudioUrlFor(host, loc ?? "en"),
+      annexIvPreviewUrl: `https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(host ?? "yourdomain.com")}&tier=team${loc ? `&locale=${encodeURIComponent(loc)}` : ""}`,
       ...(reportUrl ? { reportUrl } : {}),
       ...(selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {}),
       upgradeUrls: upgrades,
