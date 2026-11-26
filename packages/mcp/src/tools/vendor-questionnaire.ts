@@ -391,8 +391,13 @@ function renderLocalizedQuestionnaire(
   const locParam = `&locale=${locale}`;
   const freeUrl = `${SIGNUP_URL}?locale=${locale}${appParam}`;
   const proUrl = `${PRO_SIGNUP_URL}${appParam}${locParam}`;
+  const proAnnualUrl = `${PRO_SIGNUP_URL}&interval=annual${appParam}${locParam}`;
   const teamUrl = `${TEAM_SIGNUP_URL}${appParam}${locParam}`;
+  const teamAnnualUrl = `${TEAM_SIGNUP_URL}&interval=annual${appParam}${locParam}`;
   const conciergeUrl = `${CONCIERGE_SIGNUP_URL}${appParam}${locParam}`;
+  const trustCenterMdUrl = resolved.host
+    ? `https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(resolved.host)}&locale=${locale}${resolved.plan !== "free" ? `&plan=${resolved.plan}` : ""}`
+    : null;
 
   if (locale === "de") {
     const product = resolved.host ?? "unser Produkt";
@@ -423,14 +428,15 @@ function renderLocalizedQuestionnaire(
       `**Antwort:** Signierte Ereignisse für ${product} werden ${plan.retention} in Frankfurt aufbewahrt.${plan.dpoSummary ? " Ein DSB-Engineering-Bericht (`.md`) ist jederzeit exportierbar." : ""}${plan.annexIv ? " Ein technischer Dokumentationsentwurf nach Anhang IV (Art. 11, PDF/Markdown) und Webhook-Export sind enthalten." : ""}${isConcierge ? " Die Einrichtung erfolgte durch einen Spurvik-Ingenieur innerhalb von 24 Stunden inklusive DSB- & C2PA-Art.-50(2)-Bericht." : ""}`,
       "",
       "## Nächste Schritte",
+      `- Pro (19 €/Monat oder 190 €/Jahr [2 Monate frei] — White-Label, 90 Tage Frankfurt, DSB-Bericht): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/Monat oder 790 €/Jahr [2 Monate frei] — 12 Monate, Anhang-IV-Entwurf, Webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24h-Setup (199 € einmalig, inkl. 1 Jahr Pro): ${conciergeUrl}`,
       `- Interaktiver DSB- & Lieferanten-Fragebogen: ${cockpitUrl}`,
       ...(resolved.host ? [`- Live-Art.-50(1)-Kurzbericht für ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Kunden-/trust-Center Markdown-Kit: ${trustCenterMdUrl}`] : []),
       `- Kostenloser SPURVIK_API_KEY in 10 Sek. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (19 €/Monat — White-Label, 90 Tage Frankfurt, DSB-Bericht): ${proUrl}`,
-      `- Team (79 €/Monat — 12 Monate, Anhang-IV-Entwurf, Webhook): ${teamUrl}`,
-      `- Done-For-You 24h-Setup (199 € einmalig, inkl. 1 Jahr Pro): ${conciergeUrl}`,
       "",
-      "_Technische Antworten auf Basis der ausgelieferten Spurvik-Kontrollen. Keine Rechtsberatung._",
+      "_Technische Antworten auf Basis der ausgelieferten Spurvik-Kontrollen (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -464,14 +470,15 @@ function renderLocalizedQuestionnaire(
       `**Réponse :** Les événements signés pour ${product} sont conservés ${plan.retention} à Francfort.${plan.dpoSummary ? " Une synthèse technique DPO (`.md`) est téléchargeable." : ""}${plan.annexIv ? " Un brouillon de documentation technique Annexe IV (art. 11, PDF/Markdown) et l'export webhook sont inclus." : ""}${isConcierge ? " L'installation a été réalisée en 24h par un ingénieur Spurvik avec rapport DPO & C2PA art. 50(2) signé." : ""}`,
       "",
       "## Prochaines étapes",
+      `- Pro (19 €/mois ou 190 €/an [2 mois offerts] — marque blanche, 90 j Francfort, synthèse DPO) : ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mois ou 790 €/an [2 mois offerts] — 12 mois, brouillon Annexe IV, webhook) : ${teamUrl} · ${teamAnnualUrl}`,
+      `- Installation clé en main 24h (199 € une fois, 1 an Pro inclus) : ${conciergeUrl}`,
       `- Questionnaire interactif DPO / RSSI : ${cockpitUrl}`,
       ...(resolved.host ? [`- Rapport Art. 50(1) en direct pour ${resolved.host} : ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Kit Markdown /trust client : ${trustCenterMdUrl}`] : []),
       `- Clé SPURVIK_API_KEY gratuite en 10 s (Francfort fra1) : ${freeUrl}`,
-      `- Pro (19 €/mois — marque blanche, 90 j Francfort, synthèse DPO) : ${proUrl}`,
-      `- Team (79 €/mois — 12 mois, brouillon Annexe IV, webhook) : ${teamUrl}`,
-      `- Installation clé en main 24h (199 € une fois, 1 an Pro inclus) : ${conciergeUrl}`,
       "",
-      "_Réponses techniques fondées sur les contrôles Spurvik déployés. Ceci ne constitue pas un conseil juridique._",
+      "_Réponses techniques fondées sur les contrôles Spurvik déployés (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -505,14 +512,15 @@ function renderLocalizedQuestionnaire(
       `**Antwoord:** Ondertekende AI-events voor ${product} worden ${plan.retention} bewaard in Frankfurt.${plan.dpoSummary ? " Een FG/DPO-samenvatting (`.md`) is direct te downloaden." : ""}${plan.annexIv ? " Een concept technische documentatie conform Bijlage IV (art. 11, PDF/Markdown) en webhook-export zijn inbegrepen." : ""}${isConcierge ? " De installatie is binnen 24 uur door een Spurvik-engineer uitgevoerd inclusief ondertekend FG/DPO- & C2PA-rapport." : ""}`,
       "",
       "## Volgende stappen",
+      `- Pro (€19/mnd of €190/jaar [2 mnd gratis] — white-label, 90 dagen Frankfurt, FG-samenvatting): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (€79/mnd of €790/jaar [2 mnd gratis] — 12 maanden, Bijlage-IV-concept, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24u-setup (€199 eenmalig, incl. 1 jaar Pro): ${conciergeUrl}`,
       `- Interactieve FG / CISO leveranciersvragenlijst: ${cockpitUrl}`,
       ...(resolved.host ? [`- Live Art. 50(1)-rapport voor ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Klant-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : []),
       `- Gratis SPURVIK_API_KEY in 10 sec. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (€19/mnd — white-label, 90 dagen Frankfurt, FG-samenvatting): ${proUrl}`,
-      `- Team (€79/mnd — 12 maanden, Bijlage-IV-concept, webhook): ${teamUrl}`,
-      `- Done-For-You 24u-setup (€199 eenmalig, incl. 1 jaar Pro): ${conciergeUrl}`,
       "",
-      "_Technische antwoorden op basis van geleverde Spurvik-controles. Geen juridisch advies._",
+      "_Technische antwoorden op basis van geleverde Spurvik-controles (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -546,14 +554,15 @@ function renderLocalizedQuestionnaire(
       `**Svar:** Signerade AI-händelser för ${product} lagras i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " En teknisk DSO/DPO-sammanfattning (`.md`) kan laddas ner direkt." : ""}${plan.annexIv ? " Utkast till teknisk dokumentation enligt Bilaga IV (art. 11, PDF/Markdown) samt webhook-export ingår." : ""}${isConcierge ? " Installationen utfördes inom 24 timmar av en Spurvik-ingenjör inklusive signerad DSO/DPO- & C2PA-rapport." : ""}`,
       "",
       "## Nästa steg",
+      `- Pro (19 €/mån eller 190 €/år [2 mån fria] — white-label, 90 dagar Frankfurt, DSO-rapport): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mån eller 790 €/år [2 mån fria] — 12 månader, Bilaga IV-utkast, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${conciergeUrl}`,
       `- Interaktivt svenskt DSO- & leverantörsformulär: ${cockpitUrl}`,
       ...(resolved.host ? [`- Live Art. 50(1)-rapport för ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Kund-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : []),
       `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (19 €/mån — white-label, 90 dagar Frankfurt, DSO-rapport): ${proUrl}`,
-      `- Team (79 €/mån — 12 månader, Bilaga IV-utkast, webhook): ${teamUrl}`,
-      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${conciergeUrl}`,
       "",
-      "_Tekniska svar baserade på levererade Spurvik-kontroller. Inte juridisk rådgivning._",
+      "_Tekniska svar baserade på levererade Spurvik-kontroller (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -587,14 +596,15 @@ function renderLocalizedQuestionnaire(
       `**Respuesta:** Los eventos firmados de ${product} se conservan durante ${plan.retention} en Fráncfort.${plan.dpoSummary ? " Un informe técnico DPD/DPO (`.md`) puede descargarse directamente." : ""}${plan.annexIv ? " Incluye borrador de documentación técnica del Anexo IV (art. 11, PDF/Markdown) y exportación por webhook." : ""}${isConcierge ? " La instalación fue realizada en 24 horas por un ingeniero de Spurvik incluyendo informe DPD y C2PA Art. 50(2)." : ""}`,
       "",
       "## Próximos pasos",
+      `- Pro (19 €/mes o 190 €/año [2 meses gratis] — marca blanca, 90 días Fráncfort, resumen DPD): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mes o 790 €/año [2 meses gratis] — 12 meses, borrador Anexo IV, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${conciergeUrl}`,
       `- Cuestionario interactivo DPD / compras: ${cockpitUrl}`,
       ...(resolved.host ? [`- Informe Art. 50(1) en vivo para ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Kit Markdown /trust para clientes: ${trustCenterMdUrl}`] : []),
       `- SPURVIK_API_KEY gratuita en 10 s (Fráncfort fra1): ${freeUrl}`,
-      `- Pro (19 €/mes — marca blanca, 90 días Fráncfort, resumen DPD): ${proUrl}`,
-      `- Team (79 €/mes — 12 meses, borrador Anexo IV, webhook): ${teamUrl}`,
-      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${conciergeUrl}`,
       "",
-      "_Respuestas técnicas basadas en los controles implementados de Spurvik. No constituye asesoramiento jurídico._",
+      "_Respuestas técnicas basadas en los controles implementados de Spurvik (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -628,14 +638,15 @@ function renderLocalizedQuestionnaire(
       `**Risposta:** Gli eventi firmati di ${product} sono conservati per ${plan.retention} a Francoforte.${plan.dpoSummary ? " Un riepilogo tecnico RPD/DPO (`.md`) è scaricabile direttamente." : ""}${plan.annexIv ? " Include bozza di documentazione tecnica Allegato IV (art. 11, PDF/Markdown) ed esportazione webhook." : ""}${isConcierge ? " L’installazione è stata completata in 24 ore da un ingegnere Spurvik con report RPD/DPO e C2PA Art. 50(2)." : ""}`,
       "",
       "## Prossimi passi",
+      `- Pro (19 €/mese o 190 €/anno [2 mesi gratis] — white-label, 90 gg Francoforte, riepilogo RPD): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mese o 790 €/anno [2 mesi gratis] — 12 mesi, bozza Allegato IV, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${conciergeUrl}`,
       `- Questionario interattivo RPD / DPO fornitori: ${cockpitUrl}`,
       ...(resolved.host ? [`- Report Art. 50(1) live per ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+      ...(trustCenterMdUrl ? [`- Kit Markdown /trust clienti: ${trustCenterMdUrl}`] : []),
       `- SPURVIK_API_KEY gratuita in 10 s (Francoforte fra1): ${freeUrl}`,
-      `- Pro (19 €/mese — white-label, 90 gg Francoforte, riepilogo RPD): ${proUrl}`,
-      `- Team (79 €/mese — 12 mesi, bozza Allegato IV, webhook): ${teamUrl}`,
-      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${conciergeUrl}`,
       "",
-      "_Risposte tecniche basate sui controlli Spurvik distribuiti. Non costituisce consulenza legale._",
+      "_Risposte tecniche basate sui controlli Spurvik distribuiti (EyeTea Solutions ApS, CVR 37093378)._",
     ];
     return `${lines.join("\n")}\n`;
   }
@@ -668,14 +679,15 @@ function renderLocalizedQuestionnaire(
     `**Svar:** Signerede AI-hændelser for ${product} opbevares i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " Et teknisk DPO-resumé (`.md`) kan eksporteres direkte." : ""}${plan.annexIv ? " Udkast til teknisk dokumentation efter Bilag IV (art. 11, PDF/Markdown) og webhook-eksport er inkluderet." : ""}${isConcierge ? " Opsætningen blev udført inden for 24 timer af en Spurvik-ingeniør inkl. underskrevet DPO- & C2PA-rapport." : ""}`,
     "",
     "## Næste skridt",
+    `- Pro (19 €/md. eller 190 €/år [2 mdr. gratis] — white-label, 90 dage Frankfurt, DPO-resumé): ${proUrl} · ${proAnnualUrl}`,
+    `- Team (79 €/md. eller 790 €/år [2 mdr. gratis] — 12 måneder, Bilag IV-udkast, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+    `- Done-For-You 24t-setup (199 € én gang, inkl. 1 års Pro): ${conciergeUrl}`,
     `- Interaktivt dansk DPO- & leverandørspørgeskema: ${cockpitUrl}`,
     ...(resolved.host ? [`- Live Art. 50(1)-rapport for ${resolved.host}: ${reportUrlFor(resolved.host)}`] : []),
+    ...(trustCenterMdUrl ? [`- Kunde-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : []),
     `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${freeUrl}`,
-    `- Pro (19 €/md. — white-label, 90 dage Frankfurt, DPO-resumé): ${proUrl}`,
-    `- Team (79 €/md. — 12 måneder, Bilag IV-udkast, webhook): ${teamUrl}`,
-    `- Done-For-You 24t-setup (199 € én gang, inkl. 1 års Pro): ${conciergeUrl}`,
     "",
-    "_Tekniske svar baseret på leverede Spurvik-kontroller. Ikke juridisk rådgivning._",
+    "_Tekniske svar baseret på leverede Spurvik-kontroller (EyeTea Solutions ApS, CVR 37093378)._",
   ];
   return `${lines.join("\n")}\n`;
 }

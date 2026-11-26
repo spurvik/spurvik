@@ -1713,5 +1713,19 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     const piwikSetup = harness(failFetch);
     expect(await runCli(["setup", "piwik-pro", "--domain", "doctolib.fr", "--json"], piwikSetup.deps)).toBe(EXIT_OK);
     expect(JSON.parse(piwikSetup.out()).target).toBe("matomo");
+
+    const mistralRfp = harness(failFetch);
+    expect(await runCli(["rfp", "qonto.com", "--provider", "mistral", "--lang", "fr", "--json"], mistralRfp.deps)).toBe(EXIT_OK);
+    const mistralRfpJson = JSON.parse(mistralRfp.out());
+    expect(mistralRfpJson.markdown).toContain("Mistral AI (EU Paris · @ai-sdk/mistral)");
+    expect(mistralRfpJson.markdown.indexOf("?plan=pro")).toBeLessThan(mistralRfpJson.markdown.indexOf("signup?locale=fr"));
+    expect(mistralRfpJson.markdown).not.toMatch(/conseil juridique/i);
+
+    const laravelRfp = harness(failFetch);
+    expect(await runCli(["rfp", "personio.de", "--provider", "laravel", "--lang", "de", "--json"], laravelRfp.deps)).toBe(EXIT_OK);
+    const laravelRfpJson = JSON.parse(laravelRfp.out());
+    expect(laravelRfpJson.markdown).toContain("SpurvikGuard::sendTelemetryEvent");
+    expect(laravelRfpJson.markdown.indexOf("?plan=pro")).toBeLessThan(laravelRfpJson.markdown.indexOf("signup?locale=de"));
+    expect(laravelRfpJson.markdown).not.toMatch(/keine rechtsberatung/i);
   });
 });

@@ -2536,7 +2536,89 @@ async function cmdC2pa(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
 export type RfpReport = SpurvikVendorQuestionnaireOutput;
 
 const RFP_USAGE =
-  "Usage: spurvik rfp [domain] [--lang en|de|fr|nl|da|sv|es|it] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|custom] [--generates-media] [--no-high-risk-actions] [--json]";
+  "Usage: spurvik rfp [domain] [--lang en|de|fr|nl|da|sv|es|it] [--plan free|pro|team|concierge] [--provider openai|anthropic|google-genai|vercel-ai-sdk|langgraph|openai-agents|mastra|python|mistral|azure-openai|bedrock|php|laravel|custom] [--generates-media] [--no-high-risk-actions] [--json]";
+
+const RFP_PROVIDER_ALIASES: Record<string, (typeof SPURVIK_QUESTIONNAIRE_PROVIDERS)[number]> = {
+  gemini: "google-genai",
+  google: "google-genai",
+  ai: "vercel-ai-sdk",
+  "ai-sdk": "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  mistral: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  vllm: "openai",
+  php: "custom",
+  laravel: "custom",
+  symfony: "custom",
+  fastapi: "python",
+  langchain: "python",
+  pydanticai: "python",
+  "pydantic-ai": "python",
+  multi: "custom",
+};
+
+const RFP_SOVEREIGN_OVERRIDES: Record<string, { baseLabel: string; targetLabel: string; baseWrapper: string; targetWrapper: string }> = {
+  mistral: {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "Mistral AI (EU Paris · @ai-sdk/mistral)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: mistral(\"mistral-large-latest\") })` (`spurvik/ai`)",
+  },
+  "mistral-ai": {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "Mistral AI (EU Paris · @ai-sdk/mistral)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: mistral(\"mistral-large-latest\") })` (`spurvik/ai`)",
+  },
+  azure: {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "Azure OpenAI Service (EU Data Zone: Sweden Central / Germany West Central)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: azure(deployment) })` (`@ai-sdk/azure` + `spurvik/ai`)",
+  },
+  "azure-openai": {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "Azure OpenAI Service (EU Data Zone: Sweden Central / Germany West Central)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: azure(deployment) })` (`@ai-sdk/azure` + `spurvik/ai`)",
+  },
+  bedrock: {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "AWS Bedrock (eu-central-1 Frankfurt)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: bedrock(...) })` (`@ai-sdk/amazon-bedrock` eu-central-1 + `spurvik/ai`)",
+  },
+  "aws-bedrock": {
+    baseLabel: "Vercel AI SDK",
+    targetLabel: "AWS Bedrock (eu-central-1 Frankfurt)",
+    baseWrapper: "`spurvikMiddleware` with `wrapLanguageModel`, from `spurvik/ai`",
+    targetWrapper: "`spurvikMiddleware` with `wrapLanguageModel({ model: bedrock(...) })` (`@ai-sdk/amazon-bedrock` eu-central-1 + `spurvik/ai`)",
+  },
+  php: {
+    baseLabel: "our model provider",
+    targetLabel: "PHP 8.1+ / Laravel / Symfony (SpurvikGuard.php)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard::sendTelemetryEvent` & `SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`, 0 Composer deps)",
+  },
+  laravel: {
+    baseLabel: "our model provider",
+    targetLabel: "Laravel / PHP 8.1+ (SpurvikGuard.php)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard::sendTelemetryEvent` & `SpurvikGuard::verifySignedCallback` (`app/Services/SpurvikGuard.php`, 0 Composer deps)",
+  },
+  symfony: {
+    baseLabel: "our model provider",
+    targetLabel: "Symfony / PHP 8.1+ (SpurvikGuard.php)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard::sendTelemetryEvent` & `SpurvikGuard::verifySignedCallback` (`src/Service/SpurvikGuard.php`, 0 Composer deps)",
+  },
+};
 
 /** Answers built from plan and provider facts only. The domain is used only when it is a public hostname. */
 export function rfpReport(options: {
@@ -2547,7 +2629,20 @@ export function rfpReport(options: {
   hasHighRiskActions?: boolean;
   generatesMedia?: boolean;
 }): RfpReport {
-  return spurvikVendorQuestionnaireAnswers(options);
+  const rawProv = options.provider?.trim().toLowerCase();
+  const mappedProv = rawProv ? RFP_PROVIDER_ALIASES[rawProv] ?? rawProv : undefined;
+  const base = spurvikVendorQuestionnaireAnswers({
+    ...options,
+    ...(mappedProv !== undefined ? { provider: mappedProv } : {}),
+  });
+  const override = rawProv ? RFP_SOVEREIGN_OVERRIDES[rawProv] : undefined;
+  if (!override) return base;
+  return {
+    ...base,
+    markdown: base.markdown
+      .replaceAll(override.baseWrapper, override.targetWrapper)
+      .replaceAll(override.baseLabel, override.targetLabel),
+  };
 }
 
 function cmdRfp(args: ParsedArgs, io: Io): number {
@@ -2560,7 +2655,8 @@ function cmdRfp(args: ParsedArgs, io: Io): number {
     io.err(`spurvik rfp: --plan must be one of ${SPURVIK_QUESTIONNAIRE_PLANS.join(", ")}`);
     return EXIT_ERROR;
   }
-  if (args.provider !== undefined && !(SPURVIK_QUESTIONNAIRE_PROVIDERS as readonly string[]).includes(args.provider)) {
+  const normalizedProv = args.provider !== undefined ? RFP_PROVIDER_ALIASES[args.provider.toLowerCase()] ?? args.provider : undefined;
+  if (normalizedProv !== undefined && !(SPURVIK_QUESTIONNAIRE_PROVIDERS as readonly string[]).includes(normalizedProv)) {
     io.err(`spurvik rfp: --provider must be one of ${SPURVIK_QUESTIONNAIRE_PROVIDERS.join(", ")}`);
     return EXIT_ERROR;
   }
