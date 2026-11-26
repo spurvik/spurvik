@@ -178,7 +178,7 @@ export function classifyNextSteps(tier: RiskTier, rawSiteDomain?: string, rawLoc
   if (!host && !loc) {
     const steps = [
       `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-      ...(tier === "high_risk_annex_iii" ? [TEAM_STEP, CONCIERGE_STEP, PRO_STEP] : [PRO_STEP, CONCIERGE_STEP]),
+      ...(tier === "high_risk_annex_iii" ? [TEAM_STEP, CONCIERGE_STEP, PRO_STEP] : [PRO_STEP]),
       FREE_KEY_STEP,
     ];
     return block(...steps).trimStart();
@@ -203,7 +203,6 @@ export function classifyNextSteps(tier: RiskTier, rawSiteDomain?: string, rawLoc
   } else {
     steps.push(
       `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`,
-      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`,
     );
   }
   steps.push(`- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`);
