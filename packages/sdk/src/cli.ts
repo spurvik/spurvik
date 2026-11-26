@@ -801,8 +801,34 @@ async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
 // audit
 // ---------------------------------------------------------------------------------------------------------------
 
-export const AUDIT_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"]);
-export const AUDIT_SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", ".next", "coverage", ".turbo", "vendor", ".venv"]);
+export const AUDIT_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".php",
+  ".cs",
+  ".go",
+  ".java",
+  ".kt",
+]);
+export const AUDIT_SKIP_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  "coverage",
+  ".turbo",
+  "vendor",
+  ".venv",
+  "bin",
+  "obj",
+  "target",
+]);
 export const AUDIT_MAX_FILE_BYTES = 512 * 1024;
 const AUDIT_MAX_FILES = 20_000;
 const AUDIT_MAX_DEPTH = 32;
@@ -811,23 +837,45 @@ const AUDIT_MAX_FINDINGS = 500;
 /** A file that mentions any of these is treated as already wrapped. */
 const WRAPPED_RE = /spurvik|wrapVercelModel/i;
 
+type AuditFileKind = "js" | "py" | "php" | "cs" | "go" | "jvm";
+
 interface CallPattern {
   re: RegExp;
   provider: string;
-  python?: boolean;
+  kind: AuditFileKind;
 }
 
 const CALL_PATTERNS: readonly CallPattern[] = [
-  { re: /\bnew\s+OpenAI\s*\(/, provider: "OpenAI" },
-  { re: /\bnew\s+Anthropic\s*\(/, provider: "Anthropic" },
-  { re: /\bnew\s+GoogleGenAI\s*\(/, provider: "Google GenAI" },
-  { re: /(?<!function\s+|def\s+)\bgenerateText\s*\(/, provider: "Vercel AI SDK generateText" },
-  { re: /(?<!function\s+|def\s+)\bstreamText\s*\(/, provider: "Vercel AI SDK streamText" },
-  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?OpenAI\s*\(/, provider: "OpenAI", python: true },
-  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?Anthropic\s*\(/, provider: "Anthropic", python: true },
-  { re: /\bgenai\.Client\s*\(/, provider: "Google GenAI", python: true },
-  { re: /\bChatOpenAI\s*\(/, provider: "LangChain ChatOpenAI", python: true },
-  { re: /\bChatAnthropic\s*\(/, provider: "LangChain ChatAnthropic", python: true },
+  { re: /\bnew\s+OpenAI\s*\(/, provider: "OpenAI", kind: "js" },
+  { re: /\bnew\s+Anthropic\s*\(/, provider: "Anthropic", kind: "js" },
+  { re: /\bnew\s+GoogleGenAI\s*\(/, provider: "Google GenAI", kind: "js" },
+  { re: /(?<!function\s+|def\s+)\bgenerateText\s*\(/, provider: "Vercel AI SDK generateText", kind: "js" },
+  { re: /(?<!function\s+|def\s+)\bstreamText\s*\(/, provider: "Vercel AI SDK streamText", kind: "js" },
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?OpenAI\s*\(/, provider: "OpenAI", kind: "py" },
+  { re: /(?<!\w)(?<!(?:class|def)\s+)(?:Async)?Anthropic\s*\(/, provider: "Anthropic", kind: "py" },
+  { re: /\bgenai\.Client\s*\(/, provider: "Google GenAI", kind: "py" },
+  { re: /\bChatOpenAI\s*\(/, provider: "LangChain ChatOpenAI", kind: "py" },
+  { re: /\bChatAnthropic\s*\(/, provider: "LangChain ChatAnthropic", kind: "py" },
+  {
+    re: /\bOpenAI::(?:client|chat|responses|completions)\s*\(|\bPrism::(?:text|structured|embeddings)\s*\(|\bnew\s+\\?OpenAI\\Client\b|\bAnthropic::(?:client|messages)\s*\(/,
+    provider: "PHP OpenAI / Prism",
+    kind: "php",
+  },
+  {
+    re: /\bnew\s+(?:Azure)?OpenAIClient\s*\(|\bnew\s+ChatClient\s*\(|\bAdd(?:Azure)?OpenAIChatCompletion\s*\(|\bCompleteChat(?:Streaming)?Async\s*\(|\bGetChatMessageContents?Async\s*\(/,
+    provider: ".NET OpenAI / Semantic Kernel",
+    kind: "cs",
+  },
+  {
+    re: /\bopenai\.NewClient\s*\(|\banthropic\.NewClient\s*\(|\bbedrockruntime\.NewFromConfig\s*\(|\bCreateChatCompletion(?:Stream)?\s*\(|\bChat\.Completions\.New\s*\(|\bMessages\.New\s*\(/,
+    provider: "Go OpenAI / Anthropic / Bedrock",
+    kind: "go",
+  },
+  {
+    re: /\bChatClient\.builder\s*\(|\bOpenAiChatModel\b|\bOpenAIClientBuilder\s*\(|\.\s*prompt\s*\([^)]*\)\s*\.(?:.*\.)?call\s*\(/,
+    provider: "Java / Spring AI",
+    kind: "jvm",
+  },
 ];
 
 export interface AuditFinding {
@@ -844,9 +892,20 @@ export interface AuditReport {
   truncated: boolean;
 }
 
-function isCommentLine(line: string, python: boolean): boolean {
+function fileKindForExt(ext: string): AuditFileKind {
+  if (ext === ".py") return "py";
+  if (ext === ".php") return "php";
+  if (ext === ".cs") return "cs";
+  if (ext === ".go") return "go";
+  if (ext === ".java" || ext === ".kt") return "jvm";
+  return "js";
+}
+
+function isCommentLine(line: string, kind: AuditFileKind): boolean {
   const t = line.trimStart();
-  return python ? t.startsWith("#") : t.startsWith("//") || t.startsWith("*") || t.startsWith("/*");
+  if (kind === "py") return t.startsWith("#");
+  if (kind === "php") return t.startsWith("#") || t.startsWith("//") || t.startsWith("*") || t.startsWith("/*");
+  return t.startsWith("//") || t.startsWith("*") || t.startsWith("/*");
 }
 
 /** Read-only walk. Symlinks are not followed. Returns only file:line:provider, never source text. */
@@ -888,13 +947,13 @@ export function auditDirectory(root: string): AuditReport {
         report.wrappedFiles += 1;
         continue;
       }
-      const python = ext === ".py";
+      const kind = fileKindForExt(ext);
       const rel = path.relative(root, full).split(path.sep).join("/");
       const lines = text.split(/\r?\n/);
       for (let i = 0; i < lines.length; i += 1) {
         const line = lines[i] ?? "";
-        if (isCommentLine(line, python)) continue;
-        const hit = CALL_PATTERNS.find((p) => Boolean(p.python) === python && p.re.test(line));
+        if (isCommentLine(line, kind)) continue;
+        const hit = CALL_PATTERNS.find((p) => p.kind === kind && p.re.test(line));
         if (!hit) continue;
         report.unwrapped.push({ file: rel, line: i + 1, provider: hit.provider });
         if (report.unwrapped.length >= AUDIT_MAX_FINDINGS) {
@@ -1007,6 +1066,18 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
         out();
         out(`  ${c.bold("Python / FastAPI / LangChain")} ${c.dim("(Python 3.10+ stdlib only)")}`);
         for (const line of PYTHON_WRAP_SNIPPET) out(`    ${line}`);
+      }
+      if (report.unwrapped.some((f) => f.file.endsWith(".php"))) {
+        out(`  ${c.bold("PHP / Laravel / Symfony:")} curl -fsSLO https://spurvik.com/r/spurvik_guard.php && npx spurvik setup laravel`);
+      }
+      if (report.unwrapped.some((f) => f.file.endsWith(".cs"))) {
+        out(`  ${c.bold("C# / .NET 8+ / Semantic Kernel:")} curl -fsSLO https://spurvik.com/r/SpurvikGuard.cs && npx spurvik setup dotnet`);
+      }
+      if (report.unwrapped.some((f) => f.file.endsWith(".go"))) {
+        out(`  ${c.bold("Go 1.21+ stdlib:")} curl -fsSLO https://spurvik.com/r/spurvik_guard.go && npx spurvik setup go`);
+      }
+      if (report.unwrapped.some((f) => f.file.endsWith(".java") || f.file.endsWith(".kt"))) {
+        out(`  ${c.bold("Java / Kotlin / Spring AI:")} npx spurvik setup spring-boot`);
       }
       out(`  ${c.dim("config fields:")} ${QUICKSTART_URL}`);
       out(`  ${c.dim("tailored setup:")} npx spurvik setup`);

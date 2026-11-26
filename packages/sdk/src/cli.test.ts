@@ -812,6 +812,36 @@ describe("spurvik audit", () => {
     expect(h.out()).toContain("https://spurvik.com/r/spurvik_guard.py");
     expect(h.out()).toContain("send_telemetry_event");
   });
+
+  it("scans polyglot PHP, C#, Go, and Java AI calls and clears once SpurvikGuard is wired (H249c)", async () => {
+    writeFileSync(path.join(dir, "Ask.php"), "<?php\n$r = OpenAI::chat()->create(['model' => 'gpt-4o']);\n");
+    writeFileSync(path.join(dir, "Ai.cs"), "var c = new ChatClient(\"gpt-4o\", key);\nawait c.CompleteChatAsync(\"hi\");\n");
+    writeFileSync(path.join(dir, "ask.go"), "package ai\nfunc Run() { _, _ = client.CreateChatCompletion(ctx, req) }\n");
+    writeFileSync(path.join(dir, "Ai.java"), "class Ai { String run(ChatClient chatClient) { return chatClient.prompt().call().content(); } }\n");
+
+    const gap = harness(undefined, { cwd: dir });
+    expect(await runCli(["audit", ".", "--fail-on-gap"], gap.deps)).toBe(EXIT_GAP);
+    expect(gap.out()).toContain("Ask.php:2 — PHP OpenAI / Prism");
+    expect(gap.out()).toContain("Ai.cs:1 — .NET OpenAI / Semantic Kernel");
+    expect(gap.out()).toContain("ask.go:2 — Go OpenAI / Anthropic / Bedrock");
+    expect(gap.out()).toContain("Ai.java:1 — Java / Spring AI");
+    expect(gap.out()).toContain("https://spurvik.com/r/spurvik_guard.php");
+    expect(gap.out()).toContain("https://spurvik.com/r/SpurvikGuard.cs");
+    expect(gap.out()).toContain("https://spurvik.com/r/spurvik_guard.go");
+
+    // Clean out the default beforeEach JS/PY fixtures so only our 4 guarded polyglot files remain.
+    rmSync(path.join(dir, "src", "chat.ts"));
+    rmSync(path.join(dir, "app", "route.tsx"));
+    rmSync(path.join(dir, "agent.py"));
+    writeFileSync(path.join(dir, "Ask.php"), "<?php\nSpurvikGuard::sendTelemetryEvent('p', 'o');\n$r = OpenAI::chat()->create(['model' => 'gpt-4o']);\n");
+    writeFileSync(path.join(dir, "Ai.cs"), "await SpurvikGuard.SendTelemetryEventAsync(opt, \"p\", \"o\");\nvar c = new ChatClient(\"gpt-4o\", key);\n");
+    writeFileSync(path.join(dir, "ask.go"), "package ai\nimport \"acme/spurvikguard\"\nfunc Run() { _, _ = client.CreateChatCompletion(ctx, req) }\n");
+    writeFileSync(path.join(dir, "Ai.java"), "class Ai { SpurvikTelemetry t; String run(ChatClient chatClient) { return chatClient.prompt().call().content(); } }\n");
+
+    const clean = harness(undefined, { cwd: dir });
+    expect(await runCli(["audit", ".", "--fail-on-gap"], clean.deps)).toBe(EXIT_OK);
+    expect(clean.out()).toContain("Unwrapped calls   0");
+  });
 });
 
 describe("spurvik badge", () => {
