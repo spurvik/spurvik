@@ -1023,7 +1023,21 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
 // badge
 // ---------------------------------------------------------------------------------------------------------------
 
-export const BADGE_CMS_TARGETS = ["shopify", "wordpress", "webflow", "framer", "gtm", "trust-widget", "well-known", "html", "react"] as const;
+export const BADGE_CMS_TARGETS = [
+  "shopify",
+  "wordpress",
+  "webflow",
+  "framer",
+  "gtm",
+  "cookiebot",
+  "usercentrics",
+  "cmp",
+  "trust-widget",
+  "trust-center",
+  "well-known",
+  "html",
+  "react",
+] as const;
 export type BadgeCmsTarget = (typeof BADGE_CMS_TARGETS)[number];
 
 function hmacCockpitUrl(host: string | null | undefined, locale = "en"): string {
@@ -1174,14 +1188,27 @@ function cmdBadge(args: ParsedArgs, io: Io): number {
     out(`  ${c.dim("Framer TSX:")} https://spurvik.com/r/spurvik-framer-badge.tsx`);
     out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
   } else if (cms === "gtm") {
-    out(`  ${c.bold("Google Tag Manager")} ${c.dim("(Admin -> Import Container -> Merge · DOM Ready)")}`);
+    out(`  ${c.bold("Google Tag Manager")} ${c.dim("(Admin -> Import Container -> Merge · DOM Ready · consentStatus: NOT_NEEDED)")}`);
     out(`  ${tag}`);
+    out(`  ${c.dim("GTM container (.json):")} https://spurvik.com/r/spurvik-gtm-art50-container.json`);
+    out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
+  } else if (cms === "cookiebot" || cms === "usercentrics" || cms === "cmp") {
+    const cmpTag = `<script src="${BADGE_SCRIPT_SRC}" data-system="${systemName}" data-locale="${lang}" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" defer></script>`;
+    out(`  ${c.bold("Cookiebot / Usercentrics / OneTrust / Didomi Consent-Exempt")} ${c.dim("(0 cookies · renders before banner click)")}`);
+    out(`  ${cmpTag}`);
     out(`  ${c.dim("GTM container (.json):")} https://spurvik.com/r/spurvik-gtm-art50-container.json`);
     out(`  ${c.dim("Interactive cockpit:")} ${wordpressCockpitUrl(host, lang)}`);
   } else if (cms === "trust-widget") {
     const widgetHost = host && host !== "your-app.example" ? host : "yourdomain.com";
     out(`  ${c.bold("Trust-Center & Security Page Widget")} ${c.dim("(Shadow DOM · 0 cookies · 10 EU langs)")}`);
     out(`  <script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${lang}" defer></script>`);
+  } else if (cms === "trust-center") {
+    const trustHost = host && host !== "your-app.example" ? host : "yourdomain.com";
+    const trustLoc = lang !== "en" ? `&locale=${encodeURIComponent(lang)}` : "";
+    out(`  ${c.bold("Public /trust & /security Markdown + SVG Card")} ${c.dim("(0 cookies · Art. 50 & C2PA)")}`);
+    out(`  curl -fsSL "${CONSOLE_ORIGIN}/api/v1/badge/trust-center.md?domain=${encodeURIComponent(trustHost)}${trustLoc}" -o TRUST_CENTER_AI_ACT.md`);
+    out(`  ${c.dim("Offline CLI generator:")} npx spurvik trust ${trustHost} > TRUST_CENTER_AI_ACT.md`);
+    out(`  ${c.dim("Live Trust Card SVG:")} ${CONSOLE_ORIGIN}/api/v1/badge/card.svg?domain=${encodeURIComponent(trustHost)}${trustLoc}`);
   } else if (cms === "well-known") {
     const manifestHost = host && host !== "your-app.example" ? host : "yourdomain.com";
     out(`  ${c.bold("Machine-Readable /.well-known/ai-act.json")} ${c.dim("(spurvik.ai-act-manifest.v1 · Art. 50 & C2PA)")}`);
@@ -1242,9 +1269,11 @@ export const SETUP_TARGETS = [
   "webflow",
   "framer",
   "gtm",
+  "cmp",
   "html",
   "n8n",
   "make",
+  "copilot-studio",
 ] as const;
 export type SetupTarget = (typeof SETUP_TARGETS)[number];
 
@@ -1252,8 +1281,8 @@ export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "pytho
 export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
-const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "html"];
-const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "cmp", "html"];
+const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make", "copilot-studio"];
 
 const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   gemini: "google-genai",
@@ -1282,6 +1311,13 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
+  cookiebot: "cmp",
+  usercentrics: "cmp",
+  didomi: "cmp",
+  axeptio: "cmp",
+  onetrust: "cmp",
+  iubenda: "cmp",
+  complianz: "cmp",
   shopware6: "shopware",
   "cloudflare-worker": "cloudflare",
   "cf-worker": "cloudflare",
@@ -1306,6 +1342,12 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   helpscout: "html",
   tawk: "html",
   "make.com": "make",
+  "chatgpt-actions": "copilot-studio",
+  "custom-gpt": "copilot-studio",
+  "openai-gpts": "copilot-studio",
+  "microsoft-copilot-studio": "copilot-studio",
+  dust: "copilot-studio",
+  dify: "copilot-studio",
   hitl: "langgraph",
   slack: "langgraph",
   teams: "langgraph",
@@ -1489,11 +1531,16 @@ export function buildSetupReport(
             "# Import https://spurvik.com/r/make-com-spurvik-blueprint.json in Make.com",
             "# Sends keyed HMAC-SHA256 digests (0 bytes of prompt text) to https://console.spurvik.com/api/v1/telemetry",
           ].join("\n")
-        : [
-            "# In n8n: Settings -> Community Nodes -> Install n8n-nodes-spurvik (9 EU AI Act operations incl. 6 zero-key)",
-            "# Zero-key 5-in-1 starter JSON: https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
-            "# Starter workflow JSON: https://spurvik.com/r/n8n-art50-starter.json",
-          ].join("\n");
+        : target === "copilot-studio"
+          ? [
+              "# Import https://console.spurvik.com/openapi-actions.json (OpenAPI 3.0.3, Authentication: None)",
+              "# Works in Microsoft Copilot Studio, OpenAI Custom GPT Actions, Dust.tt, Dify & Zapier AI Actions (10 zero-key GET operations)",
+            ].join("\n")
+          : [
+              "# In n8n: Settings -> Community Nodes -> Install n8n-nodes-spurvik (9 EU AI Act operations incl. 6 zero-key)",
+              "# Zero-key 5-in-1 starter JSON: https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
+              "# Starter workflow JSON: https://spurvik.com/r/n8n-art50-starter.json",
+            ].join("\n");
     return {
       target,
       runtime: "workflow",
@@ -1502,7 +1549,9 @@ export function buildSetupReport(
       installCommand:
         target === "make"
           ? "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json"
-          : "npm install n8n-nodes-spurvik",
+          : target === "copilot-studio"
+            ? "curl -fsSLO https://console.spurvik.com/openapi-actions.json"
+            : "npm install n8n-nodes-spurvik",
       snippet,
       envTemplate: [
         "SPURVIK_BASE_URL=https://console.spurvik.com",
@@ -1547,7 +1596,12 @@ export function buildSetupReport(
                     "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + C2PA polish:'off' passthrough",
                     "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
                   ].join("\n")
-                : target === "react"
+                : target === "cmp"
+                  ? [
+                      "# Cookiebot / Usercentrics / OneTrust / Didomi auto-blocking bypass (0 cookies, ePrivacy Art. 5(3) exempt):",
+                      `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" data-attribution="true" defer></script>`,
+                    ].join("\n")
+                  : target === "react"
             ? [
                 'import { AIDisclosureLabel } from "spurvik/react";',
                 "",
@@ -1569,11 +1623,11 @@ export function buildSetupReport(
                   ? "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js"
                   : target === "framer"
               ? "curl -fsSLO https://spurvik.com/r/spurvik-framer-badge.tsx"
-              : target === "gtm"
+              : target === "gtm" || target === "cmp"
                 ? "curl -fsSLO https://spurvik.com/r/spurvik-gtm-art50-container.json"
                 : "# Zero-install 1-line <script> tag (0 cookies, 24 EU languages)";
     const cmsCockpit =
-      target === "wordpress" || target === "webflow" || target === "framer" || target === "gtm"
+      target === "wordpress" || target === "webflow" || target === "framer" || target === "gtm" || target === "cmp"
         ? wordpressCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
         : target === "react"
           ? nextjsCockpitUrl(host, loc ?? (host ? langForHost(host) : "en"))
@@ -3237,6 +3291,118 @@ async function cmdReport(args: ParsedArgs, deps: CliDeps, io: Io): Promise<numbe
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// trust (alias: trust-center) — 100% offline customer-facing /trust & /security Markdown + SVG card embeds
+// ---------------------------------------------------------------------------------------------------------------
+
+function cmdTrust(args: ParsedArgs, io: Io): number {
+  if (args.positionals.length > 1 || (args.positionals.length === 1 && args.domain !== undefined)) {
+    io.err("Usage: spurvik trust [domain] [--lang <eu-locale>] [--json]");
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && !(BADGE_LANGS as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik trust: --lang must be one of the 24 EU language codes: ${BADGE_LANGS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+
+  const rawDomain = args.positionals[0] ?? args.domain;
+  const host = rawDomain ? questionnaireHostname(rawDomain) : null;
+  const displayHost = host ?? "yourdomain.com";
+  const locale: BadgeLang =
+    args.lang && (BADGE_LANGS as readonly string[]).includes(args.lang)
+      ? (args.lang as BadgeLang)
+      : host
+        ? langForHost(host)
+        : "en";
+  const locQuery = locale !== "en" ? `&locale=${encodeURIComponent(locale)}` : "";
+  const encodedHost = encodeURIComponent(displayHost);
+
+  const art50SvgUrl = `${CONSOLE_ORIGIN}/api/v1/badge/status.svg?domain=${encodedHost}`;
+  const c2paSvgUrl = `${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg?domain=${encodedHost}`;
+  const trustCardSvgUrl = `${CONSOLE_ORIGIN}/api/v1/badge/card.svg?domain=${encodedHost}${locQuery}`;
+  const reportUrl = `${CONSOLE_ORIGIN}/report?domain=${encodedHost}${locQuery}`;
+  const c2paUrl = `${CONSOLE_ORIGIN}/c2pa?domain=${encodedHost}${locQuery}`;
+  const aiActJsonUrl = `${CONSOLE_ORIGIN}/api/v1/badge/ai-act.json?domain=${encodedHost}${locQuery}`;
+  const trustCenterApiUrl = `${CONSOLE_ORIGIN}/api/v1/badge/trust-center.md?domain=${encodedHost}${locQuery}`;
+  const trustWidgetScript = `<script src="https://spurvik.com/trust-widget.js" data-domain="${displayHost}"${locale !== "en" ? ` data-locale="${locale}"` : ""} defer></script>`;
+  const cmpExemptBadgeScript = `<script src="${BADGE_SCRIPT_SRC}" data-system="${displayHost}" data-locale="${locale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" defer></script>`;
+
+  const heading =
+    locale === "de"
+      ? `EU-KI-Verordnung Transparenz & Trust-Center — ${displayHost}`
+      : locale === "fr"
+        ? `Centre de Confiance Règlement IA (UE 2024/1689) — ${displayHost}`
+        : `EU AI Act Transparency & Trust Center — ${displayHost}`;
+
+  const intro =
+    locale === "de"
+      ? `Öffentliche Übersicht zu KI-Transparenzhinweisen (Art. 50 Abs. 1), C2PA-Medienherkunft zum 2. Dez. 2026 (Art. 50 Abs. 2), pseudonymisierter HMAC-SHA256-Protokollierung in Frankfurt (Art. 12) und menschlicher Freigabe (Art. 14).`
+      : locale === "fr"
+        ? `Synthèse publique des mentions d’interaction IA (Art. 50(1)), provenance C2PA au 2 déc. 2026 (Art. 50(2)), reçus HMAC-SHA256 pseudonymisés à Francfort (Art. 12) et validation humaine (Art. 14).`
+        : `Public overview of AI interaction notices (Art. 50(1)), 2 December 2026 C2PA media provenance (Art. 50(2)), pseudonymised HMAC-SHA256 call receipts in EU Frankfurt (Art. 12), and pre-flight human approval gates (Art. 14).`;
+
+  const markdown = [
+    `# ${heading}`,
+    "",
+    `[![EU AI Act Art. 50](${art50SvgUrl})](${reportUrl}) [![EU AI Act Art. 50(2) C2PA](${c2paSvgUrl})](${c2paUrl})`,
+    "",
+    intro,
+    "",
+    `[![EU AI Act Trust Card — ${displayHost}](${trustCardSvgUrl})](${reportUrl})`,
+    "",
+    "## Controls & Architecture",
+    "",
+    "| EU AI Act Control | Implementation | Data Residency & Privacy |",
+    "| --- | --- | --- |",
+    `| **Art. 50(1) AI Interaction Notice** | 24-language Shadow DOM notice (\`role=\"status\"\`, WCAG 2.1 AA) | 0 cookies · Cookiebot & Usercentrics exempt |`,
+    `| **Art. 50(2) Synthetic Media Provenance** | C2PA JUMBF manifest inspection & CDN strip prevention (2 Dec 2026) | [Live C2PA Check](${c2paUrl}) |`,
+    "| **Art. 12 Event Logging & GDPR Art. 5(1)(c)** | Chained HMAC-SHA256 input/output digests (`0` bytes of raw prompt text) | EU Frankfurt (`fra1`) |",
+    "| **Art. 14 Human Oversight** | Deterministic pre-flight approval gates (`Slack`, `Teams`, Console) | Fail-closed before external side effects |",
+    `| **Machine-Readable Discovery** | \`/.well-known/ai-act.json\` (\`spurvik.ai-act-manifest.v1\`) | [${aiActJsonUrl}](${aiActJsonUrl}) |`,
+    "",
+    "## Embed on `/trust` or `/security` (0 Cookies)",
+    "",
+    "```html",
+    trustWidgetScript,
+    "<!-- Consent-exempt Art. 50(1) notice (Cookiebot / Usercentrics / OneTrust safe): -->",
+    cmpExemptBadgeScript,
+    "```",
+    "",
+    "---",
+    "",
+    `_Generated with Spurvik (\`fra1\` Frankfurt · EyeTea Solutions ApS, CVR 37093378) · [Live Readiness Brief](${reportUrl}) · [White-Label Pro (€19/mo or €190/yr)](${PRO_SIGNUP_URL}&appUrl=${encodedHost}${locQuery}) · [Team & Annex IV (€79/mo or €790/yr)](${TEAM_SIGNUP_URL}&appUrl=${encodedHost}${locQuery}) · [24h Engineer Setup (€199)](${CONCIERGE_SIGNUP_URL}&appUrl=${encodedHost}${locQuery})_`,
+  ].join("\n");
+
+  if (args.json) {
+    io.out(
+      JSON.stringify(
+        {
+          format: "spurvik.trust-center.v1",
+          domain: host,
+          locale,
+          shields: { art50SvgUrl, c2paSvgUrl, trustCardSvgUrl },
+          embeds: { trustWidgetScript, cmpExemptBadgeScript },
+          links: {
+            reportUrl,
+            c2paUrl,
+            aiActJsonUrl,
+            trustCenterApiUrl,
+            proUpgradeUrl: `${PRO_SIGNUP_URL}&appUrl=${encodedHost}${locQuery}`,
+            teamUpgradeUrl: `${TEAM_SIGNUP_URL}&appUrl=${encodedHost}${locQuery}`,
+            doneForYouUrl: `${CONCIERGE_SIGNUP_URL}&appUrl=${encodedHost}${locQuery}`,
+          },
+          markdown,
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    io.out(markdown);
+  }
+  return EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -3270,6 +3436,8 @@ const COMMANDS = new Set([
   "report",
   "brief",
   "dpo",
+  "trust",
+  "trust-center",
   "c2pa",
   "audit",
   "badge",
@@ -3358,6 +3526,7 @@ export function helpText(): string {
     "Usage:",
     "  spurvik scan <domain-or-url> [--json] [--fail-on-gap]   Art. 50(1) notice check of 1 to 10 live sites",
     "  spurvik report <domain> [--lang <eu-locale>] [--json]    Shareable DPO & Art. 50(1)/50(2) Markdown brief",
+    "  spurvik trust [domain] [--lang <eu-locale>] [--json]     Offline /trust & /security Markdown + SVG card (0 network)",
     "  spurvik portfolio <domain...> [--json] [--fail-on-gap]  Agency batch Art. 50(1) check (up to 10 domains)",
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
     "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check (image URL or domain)",
@@ -3434,9 +3603,11 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "art11" &&
     args.command !== "report" &&
     args.command !== "brief" &&
-    args.command !== "dpo"
+    args.command !== "dpo" &&
+    args.command !== "trust" &&
+    args.command !== "trust-center"
   ) {
-    io.err("spurvik: --domain applies to the setup, report, gate and annex-iv commands only.");
+    io.err("spurvik: --domain applies to the setup, report, trust, gate and annex-iv commands only.");
     return EXIT_ERROR;
   }
   if (
@@ -3452,9 +3623,11 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "block-test" &&
     args.command !== "report" &&
     args.command !== "brief" &&
-    args.command !== "dpo"
+    args.command !== "dpo" &&
+    args.command !== "trust" &&
+    args.command !== "trust-center"
   ) {
-    io.err("spurvik: --lang applies to the badge, report, gate, annex-iv, rfp, risk and setup commands only.");
+    io.err("spurvik: --lang applies to the badge, report, trust, gate, annex-iv, rfp, risk and setup commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {
@@ -3477,7 +3650,9 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       args.command === "block-test" ||
       args.command === "report" ||
       args.command === "brief" ||
-      args.command === "dpo")
+      args.command === "dpo" ||
+      args.command === "trust" ||
+      args.command === "trust-center")
   ) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
@@ -3522,6 +3697,9 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     case "brief":
     case "dpo":
       return cmdReport(args, deps, io);
+    case "trust":
+    case "trust-center":
+      return cmdTrust(args, io);
     case "c2pa":
       return cmdC2pa(args, deps, io);
     case "audit":

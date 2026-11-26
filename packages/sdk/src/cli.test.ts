@@ -893,7 +893,9 @@ describe("spurvik badge", () => {
 
     const badCms = harness();
     expect(await runCli(["badge", "example.de", "--cms=magento"], badCms.deps)).toBe(EXIT_ERROR);
-    expect(badCms.err()).toContain("--cms must be one of shopify, wordpress, webflow, framer, gtm, trust-widget, well-known, html, react");
+    expect(badCms.err()).toContain(
+      "--cms must be one of shopify, wordpress, webflow, framer, gtm, cookiebot, usercentrics, cmp, trust-widget, trust-center, well-known, html, react",
+    );
 
     const wrongCmd = harness();
     expect(await runCli(["scan", "folk.app", "--cms=shopify"], wrongCmd.deps)).toBe(EXIT_ERROR);
@@ -1628,5 +1630,56 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     const priv = harness();
     expect(await runCli(["brief", "localhost"], priv.deps)).toBe(EXIT_ERROR);
     expect(await runCli(["report"], priv.deps)).toBe(EXIT_ERROR);
+  });
+
+  it("spurvik trust (and trust-center alias), --cms cookiebot/usercentrics/trust-center, and setup CMP/Copilot Studio aliases work with 0 network calls (H243b)", async () => {
+    const failFetch = (async () => {
+      throw new Error("trust & setup must make zero network calls");
+    }) as unknown as typeof fetch;
+
+    const md = harness(failFetch);
+    expect(await runCli(["trust", "personio.de"], md.deps)).toBe(EXIT_OK);
+    expect(md.out()).toContain("# EU-KI-Verordnung Transparenz & Trust-Center — personio.de");
+    expect(md.out()).toContain("/api/v1/badge/card.svg?domain=personio.de&locale=de");
+    expect(md.out()).toContain('data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2"');
+    expect(md.out()).not.toMatch(/not legal advice/i);
+    expect(md.out()).not.toMatch(/\b(?:compliant|verified|certified|guaranteed)\b/i);
+
+    const js = harness(failFetch);
+    expect(await runCli(["trust-center", "doctolib.fr", "--json"], js.deps)).toBe(EXIT_OK);
+    const parsed = JSON.parse(js.out());
+    expect(parsed.format).toBe("spurvik.trust-center.v1");
+    expect(parsed.domain).toBe("doctolib.fr");
+    expect(parsed.locale).toBe("fr");
+    expect(parsed.shields.trustCardSvgUrl).toBe("https://console.spurvik.com/api/v1/badge/card.svg?domain=doctolib.fr&locale=fr");
+
+    const priv = harness(failFetch);
+    expect(await runCli(["trust", "localhost", "--json"], priv.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(priv.out()).domain).toBeNull();
+
+    const cmpBadge = harness(failFetch);
+    expect(await runCli(["badge", "personio.de", "--cms", "cookiebot"], cmpBadge.deps)).toBe(EXIT_OK);
+    expect(cmpBadge.out()).toContain('data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2"');
+
+    const cmpSetup = harness(failFetch);
+    expect(await runCli(["setup", "usercentrics", "--domain", "personio.de", "--json"], cmpSetup.deps)).toBe(EXIT_OK);
+    const cmpJson = JSON.parse(cmpSetup.out());
+    expect(cmpJson.target).toBe("cmp");
+    expect(cmpJson.snippet).toContain('data-uc-allowed="true"');
+
+    const copilotSetup = harness(failFetch);
+    expect(await runCli(["setup", "chatgpt-actions", "--json"], copilotSetup.deps)).toBe(EXIT_OK);
+    const copilotJson = JSON.parse(copilotSetup.out());
+    expect(copilotJson.target).toBe("copilot-studio");
+    expect(copilotJson.installCommand).toContain("https://console.spurvik.com/openapi-actions.json");
+
+    for (const bad of [
+      ["trust", "a.eu", "b.eu"],
+      ["trust", "--lang", "ja"],
+      ["trust", "--fail-on-gap"],
+    ]) {
+      const errH = harness(failFetch);
+      expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
+    }
   });
 });

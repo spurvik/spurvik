@@ -4,9 +4,11 @@
 
 ```bash
 npx spurvik scan yourdomain.com    # Art. 50(1) notice check (or 2–10 domains for an agency portfolio matrix); --json, --fail-on-gap for CI
+npx spurvik report yourdomain.com  # shareable DPO & Art. 50(1)/50(2) Markdown brief (with offline fallback)
+npx spurvik trust yourdomain.com   # offline /trust & /security Markdown + SVG card + CMP-exempt badge.js (0 network)
 npx spurvik c2pa https://yourdomain.com/hero.png   # C2PA manifest & CDN-strip check; --json, --fail-on-missing for CI
 npx spurvik audit .                # unwrapped OpenAI / Anthropic / Gemini / AI SDK calls as file:line
-npx spurvik badge yourdomain.com   # badge.js tag and a <AIDisclosureLabel /> snippet (--lang <24 EU locales>)
+npx spurvik badge yourdomain.com   # badge.js tag, Cookiebot/Usercentrics (--cms cookiebot), and <AIDisclosureLabel /> (--lang <24 EU locales>)
 npx spurvik rfp yourdomain.com --plan pro --provider openai   # vendor security questionnaire & DPO RFP answers; --json
 ```
 
