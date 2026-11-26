@@ -118,6 +118,14 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
+  cookiebot: "gtm",
+  usercentrics: "gtm",
+  didomi: "gtm",
+  axeptio: "gtm",
+  onetrust: "gtm",
+  iubenda: "gtm",
+  complianz: "gtm",
+  cmp: "gtm",
   shopware6: "shopware",
   "adobe-commerce": "magento",
   "trust-center": "trust-widget",
@@ -135,6 +143,13 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   well_known: "well-known",
   gitlab: "gitlab-ci",
   "bitbucket-pipelines": "bitbucket",
+  "chatgpt-actions": "mcp",
+  "custom-gpt": "mcp",
+  "openai-gpts": "mcp",
+  "copilot-studio": "mcp",
+  "microsoft-copilot-studio": "mcp",
+  dust: "mcp",
+  dify: "mcp",
   annex_iv: "annex-iv",
   art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
@@ -779,6 +794,14 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
       `curl -fsSL "https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(targetHost)}&useCase=employment&tier=team&format=markdown" -o ANNEX_IV_${targetHost}.md`,
     ].join("\n") + "\n";
   }
+  if (framework === "gtm") {
+    const sys = host ?? "Support Assistant";
+    return [
+      "curl -fsSLO https://spurvik.com/r/spurvik-gtm-art50-container.json",
+      `<!-- Or Custom HTML tag (Cookiebot data-cookieconsent="ignore" & Usercentrics data-uc-allowed="true" safe): -->`,
+      `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" defer></script>`,
+    ].join("\n") + "\n";
+  }
   const sys = host ?? "Support Assistant";
   return `<script src="https://spurvik.com/badge.js" data-system="${sys}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" defer></script>\n`;
 }
@@ -808,6 +831,8 @@ export function setupSnippetSource(
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "# Zero-auth OpenAPI 3.0.3 Action schema for ChatGPT Custom GPTs, Microsoft Copilot Studio, Dust.tt & Dify (Authentication: None):",
+      "curl -fsSL https://console.spurvik.com/openapi-actions.json -o spurvik-openapi-actions-3.0.json",
       "",
       "# Drop-in IDE & PR-review guardrail rules (GitHub Copilot, Claude Code, Cursor, Windsurf & Codex):",
       "mkdir -p .github && curl -fsSL https://spurvik.com/r/copilot-instructions.md -o .github/copilot-instructions.md",

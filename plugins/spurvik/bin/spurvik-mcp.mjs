@@ -23159,7 +23159,7 @@ function resolveOptionalLocale(rawLocale) {
 function setupNextSteps(rawDomain, rawLocale) {
   const host = publicHostname(rawDomain);
   const loc = resolveOptionalLocale(rawLocale);
-  if (!host && !loc) return block(FREE_KEY_STEP, PRO_STEP, PRO_ANNUAL_STEP, TEAM_STEP, CONCIERGE_STEP);
+  if (!host && !loc) return block(PRO_STEP, PRO_ANNUAL_STEP, CONCIERGE_STEP, TEAM_STEP, FREE_KEY_STEP);
   const freeParams = [];
   if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
   if (loc) freeParams.push(`locale=${loc}`);
@@ -23172,11 +23172,11 @@ function setupNextSteps(rawDomain, rawLocale) {
   const steps = [];
   if (host) steps.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`);
   steps.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
     `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
-    `${CONCIERGE_LABEL} ${conciergeUrl}`
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`
   );
   return block(...steps);
 }
@@ -23186,7 +23186,7 @@ function findNextSteps(rawDomain, rawLocale) {
   const loc = resolveOptionalLocale(rawLocale);
   const wrapLead = "- Wrap detected calls: call `spurvik_setup_snippet` for your SDK/runtime (`npm install spurvik`).";
   if (!host && !loc) {
-    return block(wrapLead, FREE_KEY_STEP, PRO_STEP, PRO_ANNUAL_STEP, TEAM_STEP, CONCIERGE_STEP);
+    return block(wrapLead, PRO_STEP, PRO_ANNUAL_STEP, CONCIERGE_STEP, TEAM_STEP, FREE_KEY_STEP);
   }
   const freeParams = [];
   if (host) freeParams.push(`appUrl=${encodeURIComponent(host)}`);
@@ -23199,11 +23199,11 @@ function findNextSteps(rawDomain, rawLocale) {
   const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   return block(
     wrapLead,
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${proUrl}`,
     `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
-    `${CONCIERGE_LABEL} ${conciergeUrl}`
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`
   );
 }
 var FIND_NEXT_STEPS = findNextSteps();
@@ -23222,9 +23222,9 @@ function receiptNextSteps(rawDomain, rawLocale) {
   const teamUrl = `${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}${locSuffix}`;
   return block(
     `- Interactive Art. 12 & GDPR Art. 5(1)(c) HMAC-SHA256 receipt cockpit (0 bytes of prompt text): ${hmacCockpitUrlFor(host, effectiveLocale)}`,
-    `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${freeUrl}`,
     `- 90-day audit retention + DPO engineering summary download (Pro €19/mo): ${proUrl}`,
-    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${teamUrl}`,
+    `- Stream signed HMAC-SHA256 receipts (\`inputHash\` + \`recordHash\`) to EU Frankfurt (\`fra1\`) — Free SPURVIK_API_KEY in 10s: ${freeUrl}`
   );
 }
 var RECEIPT_NEXT_STEPS = receiptNextSteps();
@@ -23234,9 +23234,10 @@ function markingNextSteps(rawDomain, rawLocale) {
   if (!host && !loc) {
     return block(
       `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${C2PA_PAGE_URL}`,
-      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${SIGNUP_URL}`,
       `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${PRO_SIGNUP_URL}`,
-      PRO_ANNUAL_STEP
+      PRO_ANNUAL_STEP,
+      CONCIERGE_STEP,
+      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${SIGNUP_URL}`
     );
   }
   const c2paParams = [];
@@ -23250,11 +23251,13 @@ function markingNextSteps(rawDomain, rawLocale) {
   const locSuffix = loc ? `&locale=${loc}` : "";
   const proUrl = `${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}${locSuffix}`;
   const proAnnualUrl = `${host ? proAnnualSignupUrlFor(host) : PRO_ANNUAL_SIGNUP_URL}${locSuffix}`;
+  const conciergeUrl = `${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
   return block(
     `- Check live image URLs for C2PA JUMBF manifests & CDN stripping (2 Dec 2026 Art. 50(2)): call \`spurvik_check_image_c2pa_url\` or open ${c2paUrl}`,
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${freeUrl}`,
     `- White-label Art. 50 badge + 90-day Frankfurt provenance vault (Pro €19/mo): ${proUrl}`,
-    `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`
+    `- Pro Annual (2 months free · €190/yr single invoice): ${proAnnualUrl}`,
+    `${CONCIERGE_LABEL} ${conciergeUrl}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password): ${freeUrl}`
   );
 }
 var MARKING_NEXT_STEPS = markingNextSteps();
@@ -23268,10 +23271,9 @@ function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
   if (!host && !loc) {
     const steps2 = [
       `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${VENDOR_QUESTIONNAIRE_URL} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-      FREE_KEY_STEP,
-      PRO_STEP
+      ...tier === "high_risk_annex_iii" ? [TEAM_STEP, CONCIERGE_STEP, PRO_STEP] : [PRO_STEP],
+      FREE_KEY_STEP
     ];
-    if (tier === "high_risk_annex_iii") steps2.push(TEAM_STEP, CONCIERGE_STEP);
     return block(...steps2).trimStart();
   }
   const rfpBase = loc && QUESTIONNAIRE_URL_BY_LOCALE[loc] || VENDOR_QUESTIONNAIRE_URL;
@@ -23283,16 +23285,20 @@ function classifyNextSteps(tier, rawSiteDomain, rawLocale) {
   const paidSuffix = `${host ? `&appUrl=${encodeURIComponent(host)}` : ""}${loc ? `&locale=${loc}` : ""}`;
   const steps = [
     ...host ? [`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}${loc ? `&locale=${loc}` : ""}`] : [],
-    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${rfpUrl} (or call \`spurvik_vendor_questionnaire_answers\`)`,
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
-    `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
+    `- Enterprise Security Questionnaire & DPO RFP Auto-Responder: ${rfpUrl} (or call \`spurvik_vendor_questionnaire_answers\`)`
   ];
   if (tier === "high_risk_annex_iii") {
     steps.push(
       `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}${paidSuffix}`,
-      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`
+      `${CONCIERGE_LABEL} ${CONCIERGE_SIGNUP_URL}${paidSuffix}`,
+      `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
+    );
+  } else {
+    steps.push(
+      `- White-label Art. 50 badge + 90-day Frankfurt vault + Slack/Teams approval gates (Pro €19/mo): ${PRO_SIGNUP_URL}${paidSuffix}`
     );
   }
+  steps.push(`- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`);
   return block(...steps).trimStart();
 }
 function badgeNextSteps(systemName) {
@@ -28939,7 +28945,18 @@ var CMS_FRAMEWORKS = [
   "html"
 ];
 var WORKFLOW_FRAMEWORKS = ["n8n", "make"];
-var IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"];
+var IDE_CI_FRAMEWORKS = [
+  "cursor",
+  "cursor-rules",
+  "claude-code",
+  "vscode",
+  "windsurf",
+  "mcp",
+  "github-actions",
+  "gitlab-ci",
+  "bitbucket",
+  "ci"
+];
 var FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -28981,13 +28998,38 @@ var SETUP_FRAMEWORK_ALIASES = {
   "google-tag-manager": "gtm",
   "tag-manager": "gtm",
   googletagmanager: "gtm",
+  cookiebot: "gtm",
+  usercentrics: "gtm",
+  didomi: "gtm",
+  axeptio: "gtm",
+  onetrust: "gtm",
+  iubenda: "gtm",
+  complianz: "gtm",
+  cmp: "gtm",
   shopware6: "shopware",
   "adobe-commerce": "magento",
   "trust-center": "trust-widget",
+  "trust-center-md": "well-known",
+  notion: "well-known",
+  confluence: "well-known",
+  vanta: "well-known",
+  drata: "well-known",
+  safebase: "well-known",
+  gitbook: "well-known",
+  "security-md": "well-known",
   trust_widget: "trust-widget",
   "ai-act-json": "well-known",
   "ai-act.json": "well-known",
   well_known: "well-known",
+  gitlab: "gitlab-ci",
+  "bitbucket-pipelines": "bitbucket",
+  "chatgpt-actions": "mcp",
+  "custom-gpt": "mcp",
+  "openai-gpts": "mcp",
+  "copilot-studio": "mcp",
+  "microsoft-copilot-studio": "mcp",
+  dust: "mcp",
+  dify: "mcp",
   annex_iv: "annex-iv",
   art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
@@ -29583,6 +29625,7 @@ function cmsSource(framework, host = null, locale = "en") {
     return [
       "mkdir -p public/.well-known",
       `curl -fsSL "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(targetHost)}" -o public/.well-known/ai-act.json`,
+      `curl -fsSL "https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(targetHost)}" -o TRUST_CENTER_AI_ACT.md`,
       "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js"
     ].join("\n") + "\n";
   }
@@ -29591,6 +29634,14 @@ function cmsSource(framework, host = null, locale = "en") {
     return [
       `npx spurvik@1.0.17 annex-iv ${targetHost} --use-case employment --plan team > ANNEX_IV.md`,
       `curl -fsSL "https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(targetHost)}&useCase=employment&tier=team&format=markdown" -o ANNEX_IV_${targetHost}.md`
+    ].join("\n") + "\n";
+  }
+  if (framework === "gtm") {
+    const sys2 = host ?? "Support Assistant";
+    return [
+      "curl -fsSLO https://spurvik.com/r/spurvik-gtm-art50-container.json",
+      `<!-- Or Custom HTML tag (Cookiebot data-cookieconsent="ignore" & Usercentrics data-uc-allowed="true" safe): -->`,
+      `<script src="https://spurvik.com/badge.js" data-system="${sys2}" data-locale="${locale}" data-position="bottom-left" data-attribution="true" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" defer></script>`
     ].join("\n") + "\n";
   }
   const sys = host ?? "Support Assistant";
@@ -29611,6 +29662,8 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "# Zero-auth OpenAPI 3.0.3 Action schema for ChatGPT Custom GPTs, Microsoft Copilot Studio, Dust.tt & Dify (Authentication: None):",
+      "curl -fsSL https://console.spurvik.com/openapi-actions.json -o spurvik-openapi-actions-3.0.json",
       "",
       "# Drop-in IDE & PR-review guardrail rules (GitHub Copilot, Claude Code, Cursor, Windsurf & Codex):",
       "mkdir -p .github && curl -fsSL https://spurvik.com/r/copilot-instructions.md -o .github/copilot-instructions.md",
@@ -29619,9 +29672,12 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "curl -fsSL https://spurvik.com/r/windsurfrules.md -o .windsurfrules",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
-      "# GitHub Actions PR-Gate (2-line Composite Action `uses: spurvik/spurvik@v1` or standalone workflow):",
+      "# GitHub Actions PR-Gate (`uses: spurvik/spurvik@v1`), European GitLab CI (.gitlab-ci.yml) & Bitbucket Pipelines:",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
+      "curl -fsSL https://spurvik.com/r/gitlab-ci-spurvik-check.yml -o .gitlab-ci.yml",
+      "curl -fsSL https://spurvik.com/r/bitbucket-pipelines-spurvik.yml -o bitbucket-pipelines.yml",
       `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
+      `# Or in .gitlab-ci.yml: include: [{ remote: "https://spurvik.com/r/gitlab-ci-spurvik-check.yml" }]`,
       ""
     ].join("\n");
   }
@@ -30086,10 +30142,10 @@ function nextSteps(host) {
   const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
     ""
   );
   return lines;
