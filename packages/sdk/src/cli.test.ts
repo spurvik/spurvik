@@ -1597,4 +1597,36 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
     }
   });
+
+  it("spurvik report (and brief/dpo aliases) fetches DPO Markdown brief, falls back cleanly offline, and refuses private hosts (H237b)", async () => {
+    const live = harness(
+      (async (url: string) => {
+        expect(url).toBe("https://console.spurvik.com/api/v1/report/markdown?domain=personio.de&locale=de");
+        return jsonResponse({
+          ok: true,
+          domain: "personio.de",
+          locale: "de",
+          markdown: "# EU-KI-Verordnung Art. 50(1) Bereitschaftsbericht — personio.de\n\n- Team: https://console.spurvik.com/signup?plan=team&appUrl=personio.de",
+        });
+      }) as unknown as typeof fetch,
+    );
+    expect(await runCli(["report", "personio.de"], live.deps)).toBe(EXIT_OK);
+    expect(live.out()).toContain("# EU-KI-Verordnung Art. 50(1) Bereitschaftsbericht — personio.de");
+
+    const offline = harness((async () => {
+      throw new Error("network down");
+    }) as unknown as typeof fetch);
+    expect(await runCli(["dpo", "doctolib.fr", "--json"], offline.deps)).toBe(EXIT_OK);
+    const offBody = JSON.parse(offline.out());
+    expect(offBody.offlineFallback).toBe(true);
+    expect(offBody.domain).toBe("doctolib.fr");
+    expect(offBody.locale).toBe("fr");
+    expect(offBody.annexIvStudioUrl).toBe(
+      "https://spurvik.com/fr/reglement-ia-annexe-iv-documentation-technique?domain=doctolib.fr",
+    );
+
+    const priv = harness();
+    expect(await runCli(["brief", "localhost"], priv.deps)).toBe(EXIT_ERROR);
+    expect(await runCli(["report"], priv.deps)).toBe(EXIT_ERROR);
+  });
 });

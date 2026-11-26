@@ -3128,6 +3128,114 @@ function cmdAnnexIv(args: ParsedArgs, io: Io): number {
   return EXIT_OK;
 }
 
+const REPORT_USAGE = "Usage: spurvik report <domain> [--lang <eu-locale>] [--json]";
+
+async function cmdReport(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number> {
+  const rawTarget = args.domain ?? args.positionals[0];
+  if (!rawTarget || args.positionals.length > 1 || (args.positionals.length === 1 && args.domain !== undefined)) {
+    io.err(REPORT_USAGE);
+    return EXIT_ERROR;
+  }
+  if (args.lang !== undefined && !(BADGE_LANGS as readonly string[]).includes(args.lang)) {
+    io.err(`spurvik report: --lang must be one of ${BADGE_LANGS.join(", ")}`);
+    return EXIT_ERROR;
+  }
+  let target: ScanTarget;
+  try {
+    target = normalizeScanTarget(rawTarget);
+  } catch (err) {
+    io.err(`spurvik report: ${err instanceof Error ? err.message : INVALID}`);
+    return EXIT_ERROR;
+  }
+
+  const host = target.host.replace(/^www\./i, "") || target.host;
+  const locale: BadgeLang =
+    args.lang && (BADGE_LANGS as readonly string[]).includes(args.lang)
+      ? (args.lang as BadgeLang)
+      : langForHost(host);
+  const locQuery = locale !== "en" ? `&locale=${encodeURIComponent(locale)}` : "";
+  const endpoint = `${CONSOLE_ORIGIN}/api/v1/report/markdown?domain=${encodeURIComponent(host)}${locQuery}`;
+  const shareUrl = `${CONSOLE_ORIGIN}/report?domain=${encodeURIComponent(host)}${locQuery}`;
+  const annexIvStudioUrl = cliAnnexIvStudioUrl(host, locale);
+  const fetchFn = deps.fetch ?? globalThis.fetch;
+  const timeoutMs = deps.timeoutMs ?? SCAN_TIMEOUT_MS;
+
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    timer.unref?.();
+    let res: Response;
+    try {
+      res = await fetchFn(endpoint, {
+        method: "GET",
+        headers: { accept: "application/json", "user-agent": USER_AGENT },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, unknown>;
+      if (data && data.ok === true && typeof data.markdown === "string") {
+        if (args.json) {
+          io.out(JSON.stringify(data, null, 2));
+        } else {
+          for (const line of data.markdown.split("\n")) {
+            io.out(line.startsWith("#") ? io.c.bold(line) : line);
+          }
+        }
+        return EXIT_OK;
+      }
+    }
+  } catch {
+    // Fall through to deterministic offline brief below.
+  }
+
+  const badgeHtml = `<script src="${BADGE_SCRIPT_SRC}" data-system="${host}"${locale !== "en" ? ` data-locale="${locale}"` : ""} data-position="bottom-left" defer></script>`;
+  const offlineMd = [
+    `# EU AI Act Art. 50(1) & 2 Dec 2026 Art. 50(2) Readiness Brief — ${host}`,
+    "",
+    `[![EU AI Act Art. 50](${CONSOLE_ORIGIN}/api/v1/badge/status.svg?domain=${encodeURIComponent(host)})](${shareUrl}) [![EU AI Act Art. 50(2) C2PA](${CONSOLE_ORIGIN}/api/v1/c2pa/status.svg?domain=${encodeURIComponent(host)})](${CONSOLE_ORIGIN}/c2pa?domain=${encodeURIComponent(host)})`,
+    "",
+    `_Offline fallback generated locally (console.spurvik.com unreachable). Live brief: ${shareUrl}_`,
+    "",
+    "## 1. Visible 24-Language Art. 50(1) AI Notice (0 Cookies)",
+    "",
+    "```html",
+    badgeHtml,
+    "```",
+    "",
+    "## 2. 2 Dec 2026 C2PA, Annex IV & B2B Activation (Excl. VAT)",
+    "",
+    `- **Interactive 9-Section Annex IV Studio**: ${annexIvStudioUrl}`,
+    `- **Done-For-You 24h Engineer Setup (€199 once · incl. 1 year Pro)**: ${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${locQuery}`,
+    `- **White-Label Pro (€19/mo or €190/yr)**: ${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${locQuery}`,
+    `- **Team / Agency (€79/mo or €790/yr · 2M events + 12-mo retention + Annex IV)**: ${TEAM_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}${locQuery}`,
+  ].join("\n");
+
+  if (args.json) {
+    io.out(
+      JSON.stringify(
+        {
+          ok: true,
+          offlineFallback: true,
+          domain: host,
+          locale,
+          shareUrl,
+          annexIvStudioUrl,
+          badgeScript: badgeHtml,
+          markdown: offlineMd,
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    io.out(offlineMd);
+  }
+  return EXIT_OK;
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // argv
 // ---------------------------------------------------------------------------------------------------------------
@@ -3159,6 +3267,9 @@ interface ParsedArgs {
 const COMMANDS = new Set([
   "scan",
   "portfolio",
+  "report",
+  "brief",
+  "dpo",
   "c2pa",
   "audit",
   "badge",
@@ -3246,6 +3357,7 @@ export function helpText(): string {
     "",
     "Usage:",
     "  spurvik scan <domain-or-url> [--json] [--fail-on-gap]   Art. 50(1) notice check of 1 to 10 live sites",
+    "  spurvik report <domain> [--lang <eu-locale>] [--json]    Shareable DPO & Art. 50(1)/50(2) Markdown brief",
     "  spurvik portfolio <domain...> [--json] [--fail-on-gap]  Agency batch Art. 50(1) check (up to 10 domains)",
     "  spurvik <domain>                                         Same as scan (e.g. npx spurvik folk.app)",
     "  spurvik c2pa <image-url> [--json] [--fail-on-missing]    C2PA JUMBF manifest & CDN-strip check (image URL or domain)",
@@ -3319,9 +3431,12 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "gate" &&
     args.command !== "block-test" &&
     args.command !== "annex-iv" &&
-    args.command !== "art11"
+    args.command !== "art11" &&
+    args.command !== "report" &&
+    args.command !== "brief" &&
+    args.command !== "dpo"
   ) {
-    io.err("spurvik: --domain applies to the setup, gate and annex-iv commands only.");
+    io.err("spurvik: --domain applies to the setup, report, gate and annex-iv commands only.");
     return EXIT_ERROR;
   }
   if (
@@ -3334,9 +3449,12 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     args.command !== "setup" &&
     args.command !== "init" &&
     args.command !== "gate" &&
-    args.command !== "block-test"
+    args.command !== "block-test" &&
+    args.command !== "report" &&
+    args.command !== "brief" &&
+    args.command !== "dpo"
   ) {
-    io.err("spurvik: --lang applies to the badge, gate, annex-iv, rfp, risk and setup commands only.");
+    io.err("spurvik: --lang applies to the badge, report, gate, annex-iv, rfp, risk and setup commands only.");
     return EXIT_ERROR;
   }
   if (args.failOnMissing && args.command !== "c2pa") {
@@ -3356,7 +3474,10 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       args.command === "setup" ||
       args.command === "init" ||
       args.command === "gate" ||
-      args.command === "block-test")
+      args.command === "block-test" ||
+      args.command === "report" ||
+      args.command === "brief" ||
+      args.command === "dpo")
   ) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
@@ -3397,6 +3518,10 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     case "scan":
     case "portfolio":
       return cmdScan(args, deps, io);
+    case "report":
+    case "brief":
+    case "dpo":
+      return cmdReport(args, deps, io);
     case "c2pa":
       return cmdC2pa(args, deps, io);
     case "audit":
