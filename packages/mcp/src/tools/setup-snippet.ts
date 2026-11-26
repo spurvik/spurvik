@@ -736,7 +736,10 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
   }
   if (framework === "trust-widget") {
     const widgetHost = host ?? "yourdomain.com";
-    return `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>\n`;
+    return [
+      `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>`,
+      "# Or React / Next.js / Lovable / v0 (<AIActTrustCard />): npx shadcn@latest add https://spurvik.com/r/ai-act-trust-card.json",
+    ].join("\n") + "\n";
   }
   if (framework === "well-known") {
     const targetHost = host ?? "yourdomain.com";
@@ -787,6 +790,7 @@ export function setupSnippetSource(
       "mkdir -p .github && curl -fsSL https://spurvik.com/r/copilot-instructions.md -o .github/copilot-instructions.md",
       "curl -fsSL https://spurvik.com/r/CLAUDE.md -o CLAUDE.md",
       "mkdir -p .cursor/rules && curl -fsSL https://spurvik.com/r/spurvik-cursor-rules.mdc -o .cursor/rules/spurvik-eu-ai-act.mdc",
+      "curl -fsSL https://spurvik.com/r/windsurfrules.md -o .windsurfrules",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
       "# GitHub Actions PR-Gate (2-line Composite Action `uses: spurvik/spurvik@v1` or standalone workflow):",
