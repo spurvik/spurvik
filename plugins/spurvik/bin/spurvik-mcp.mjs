@@ -23989,6 +23989,7 @@ function classifyAiActRisk(rawInput) {
       interactiveClassifierUrl,
       prefilledRiskCheckUrl,
       annexIvStudioUrl: annexIvStudioUrlFor(host, loc ?? "en"),
+      annexIvPreviewUrl: `https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(host ?? "yourdomain.com")}&tier=team${loc ? `&locale=${encodeURIComponent(loc)}` : ""}`,
       ...reportUrl ? { reportUrl } : {},
       ...selfAssessmentMarkdown ? { selfAssessmentMarkdown } : {},
       upgradeUrls: upgrades,
@@ -29571,8 +29572,10 @@ function cmsSource(framework, host = null, locale = "en") {
   }
   if (framework === "trust-widget") {
     const widgetHost = host ?? "yourdomain.com";
-    return `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>
-`;
+    return [
+      `<script src="https://spurvik.com/trust-widget.js" data-domain="${widgetHost}" data-locale="${locale}" data-theme="dark" defer></script>`,
+      "# Or React / Next.js / Lovable / v0 (<AIActTrustCard />): npx shadcn@latest add https://spurvik.com/r/ai-act-trust-card.json"
+    ].join("\n") + "\n";
   }
   if (framework === "well-known") {
     const targetHost = host ?? "yourdomain.com";
@@ -29612,6 +29615,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "mkdir -p .github && curl -fsSL https://spurvik.com/r/copilot-instructions.md -o .github/copilot-instructions.md",
       "curl -fsSL https://spurvik.com/r/CLAUDE.md -o CLAUDE.md",
       "mkdir -p .cursor/rules && curl -fsSL https://spurvik.com/r/spurvik-cursor-rules.mdc -o .cursor/rules/spurvik-eu-ai-act.mdc",
+      "curl -fsSL https://spurvik.com/r/windsurfrules.md -o .windsurfrules",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
       "# GitHub Actions PR-Gate (2-line Composite Action `uses: spurvik/spurvik@v1` or standalone workflow):",
@@ -29624,6 +29628,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
     return [
       "# Self-hosted n8n community node (9 operations incl. 6 zero-key) & Make.com HTTP blueprint:",
       "npm install n8n-nodes-spurvik@1.0.13",
+      "curl -fsSLO https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
       ""
@@ -29680,7 +29685,7 @@ ${source}\`\`\`
     const guideHref = workflowCockpitUrlFor(host, effectiveLocale);
     const wfLines = [
       `Framework: ${framework}. Runtime: self-hosted n8n & Make.com HTTP workflow guard (MIT, 0 bytes of prompt text stored).`,
-      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
+      `Install \`n8n-nodes-spurvik\` in n8n Community Nodes or import https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json (0 credentials) / https://spurvik.com/r/n8n-art50-starter.json / https://spurvik.com/r/make-com-spurvik-blueprint.json. ${DOES_NOT_MARK}`,
       `Interactive workflow cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
@@ -29715,7 +29720,7 @@ ${source}\`\`\`
     }
     const langFence = framework === "shopify" ? "liquid" : framework === "wordpress" ? "php" : framework === "prestashop" || framework === "shopware" || framework === "cloudflare" || framework === "well-known" || framework === "annex-iv" ? "bash" : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
-    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_status_shield]\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "prestashop" ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "shopware" ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "cloudflare" ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.` : framework === "trust-widget" ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}` : framework === "well-known" ? `Publish machine-readable \`public/.well-known/ai-act.json\` (\`spurvik.ai-act-manifest.v1\`, Schema: https://spurvik.com/r/ai-act-manifest.schema.json) ahead of 2 December 2026 Art. 50(2). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}` : framework === "annex-iv" ? `Generate the 9-section EU AI Act Annex IV technical documentation file (Article 11) in Markdown locally (\`npx spurvik annex-iv\`, zero network) or via the zero-key OpenAPI endpoint. Interactive studio: ${annexIvStudioUrlFor(host, effectiveLocale)}` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
+    const guideLine = framework === "shopify" ? `Save https://spurvik.com/r/spurvik-shopify-art50.liquid as \`sections/spurvik-art50-notice.liquid\` (auto-maps \`request.locale.iso_code\` across all 24 official EU languages and defaults to \`bottom-left\`; plus https://spurvik.com/r/spurvik-shopify-trust-card.liquid for \`/pages/trust\`), or paste the 1-line tag before \`</body>\` in \`layout/theme.liquid\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "wordpress" ? `Upload WordPress plugin v1.2.0 https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins -> Add New -> Upload Plugin; includes \`[spurvik_trust_card]\`, \`[spurvik_status_shield]\`, \`[spurvik_c2pa_shield]\` + 1-click \`/.well-known/ai-act.json\`), or add this \`wp_footer\` hook in \`functions.php\`. Interactive cockpit: ${wpCockpitHref}` : framework === "prestashop" ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "shopware" ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}` : framework === "cloudflare" ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.` : framework === "trust-widget" ? `Drop https://spurvik.com/trust-widget.js into your \`/trust\`, \`/security\`, WordPress, Webflow, Shopify, Wix, or Squarespace page for an interactive 10-language Art. 50 & C2PA card (\`data-attribution="false"\` on Pro / Done-For-You). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}` : framework === "well-known" ? `Publish machine-readable \`public/.well-known/ai-act.json\` (\`spurvik.ai-act-manifest.v1\`, Schema: https://spurvik.com/r/ai-act-manifest.schema.json) ahead of 2 December 2026 Art. 50(2). Interactive studio: ${wellKnownStudioUrlFor(host, effectiveLocale)}` : framework === "annex-iv" ? `Generate the 9-section EU AI Act Annex IV technical documentation file (Article 11) in Markdown locally (\`npx spurvik annex-iv\`, zero network) or via the zero-key OpenAPI endpoint. Interactive studio: ${annexIvStudioUrlFor(host, effectiveLocale)}` : framework === "gtm" ? `Import https://spurvik.com/r/spurvik-gtm-art50-container.json in Google Tag Manager (Admin -> Import Container -> Merge; fires on \`DOM Ready\` with 4 editable variables), or add this Custom HTML tag. Interactive cockpit: ${wpCockpitHref}` : framework === "framer" ? `Import https://spurvik.com/r/spurvik-framer-badge.tsx as a Framer Code Component, or paste one \`<script>\` tag under Site Settings -> General -> Custom Code -> End of \`<body>\`. Interactive cockpit: ${wpCockpitHref}` : `Paste one \`<script>\` tag before \`</body>\` (Webflow: Site settings -> Custom code -> Footer code; PrestaShop: \`footer.tpl\`; Shopware 6: \`base.html.twig\`). Interactive cockpit: ${wpCockpitHref} · Label Studio: https://console.spurvik.com/labels`;
     const cmsLines = [
       `Framework: ${framework}. Runtime: browser Shadow DOM (0 cookies, 24 EU languages).`,
       `${guideLine} ${DOES_NOT_MARK}`,

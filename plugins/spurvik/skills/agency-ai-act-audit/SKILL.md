@@ -75,8 +75,8 @@ curl -sSfL --proto '=https' --max-filesize 5000000 "https://$d/" | grep -oiE "cd
 
 | Platform | Install for a gap |
 | --- | --- |
-| Shopify | Online Store 2.0 section https://spurvik.com/r/spurvik-shopify-art50.liquid saved as `sections/spurvik-art50-notice.liquid`, then added to the footer. Language follows `request.locale.iso_code`; position defaults to `bottom-left`. |
-| WordPress | Plugin v1.1.0 https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins, Add New, Upload Plugin). `[spurvik_status_shield]` shows the live shield in a footer widget. |
+| Shopify | Online Store 2.0 section https://spurvik.com/r/spurvik-shopify-art50.liquid saved as `sections/spurvik-art50-notice.liquid` (footer notice) + https://spurvik.com/r/spurvik-shopify-trust-card.liquid (`sections/spurvik-trust-card.liquid` for `/pages/trust`). Language follows `request.locale.iso_code`; position defaults to `bottom-left`. |
+| WordPress | Plugin v1.2.0 https://spurvik.com/r/spurvik-eu-ai-act-wp.zip (Plugins, Add New, Upload Plugin). Includes `[spurvik_trust_card]`, `[spurvik_status_shield]`, `[spurvik_c2pa_shield]` and 1-click `/.well-known/ai-act.json`. |
 | Google Tag Manager | Container recipe https://spurvik.com/r/spurvik-gtm-art50-container.json (GTM Admin, Import Container, Merge; fires on `DOM Ready` with 4 editable variables). |
 | Framer | https://spurvik.com/r/spurvik-framer-badge.tsx pasted into Assets, Code, New Code File, then `SpurvikArticle50Badge` dragged onto the page. |
 | Webflow, PrestaShop, Shopware 6, DanDomain, Centra, custom SaaS | One line before `</body>` (Webflow: Site settings, Custom code, Footer code; PrestaShop: `themes/<theme>/templates/_partials/footer.tpl`; Shopware 6: `Resources/views/storefront/base.html.twig`): `<script src="https://spurvik.com/badge.js" data-system="<client>" data-locale="<lang>" data-position="bottom-left" defer></script>` |
