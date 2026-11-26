@@ -1681,5 +1681,20 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       const errH = harness(failFetch);
       expect(await runCli(bad, errH.deps), bad.join(" ")).toBe(EXIT_ERROR);
     }
+
+    const nuxtSetup = harness(failFetch);
+    expect(await runCli(["setup", "vue", "--domain", "doctolib.fr", "--json"], nuxtSetup.deps)).toBe(EXIT_OK);
+    const nuxtJson = JSON.parse(nuxtSetup.out());
+    expect(nuxtJson.target).toBe("nuxt");
+    expect(nuxtJson.snippet).toContain("nuxt.config.ts");
+    expect(nuxtJson.snippet).toContain("withSpurvik");
+
+    const svelteSetup = harness(failFetch);
+    expect(await runCli(["setup", "svelte", "--domain", "personio.de", "--json"], svelteSetup.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(svelteSetup.out()).target).toBe("sveltekit");
+
+    const astroSetup = harness(failFetch);
+    expect(await runCli(["setup", "astro", "--domain", "coolblue.nl", "--json"], astroSetup.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(astroSetup.out()).target).toBe("astro");
   });
 });

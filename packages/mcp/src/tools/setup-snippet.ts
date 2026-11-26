@@ -109,6 +109,15 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   lovable: "openai",
   supabase: "openai",
   "supabase-edge": "openai",
+  nuxt: "openai",
+  nuxt3: "openai",
+  nuxt4: "openai",
+  vue: "openai",
+  vue3: "openai",
+  svelte: "openai",
+  svelte5: "openai",
+  sveltekit: "openai",
+  astro: "openai",
   django: "python",
   flask: "python",
   woocommerce: "wordpress",
@@ -831,6 +840,11 @@ export function setupSnippetSource(
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "# 1-command .mcp.json (Claude Code / Cursor) & .vscode/mcp.json (VS Code / Copilot Agent Mode):",
+      "curl -fsSL https://spurvik.com/r/mcp.json -o .mcp.json",
+      "mkdir -p .vscode && curl -fsSL https://spurvik.com/r/vscode-mcp.json -o .vscode/mcp.json",
+      "# 1-Click Cursor URI: cursor://anysphere.cursor-deeplink/mcp/install?name=spurvik&config=eyJ1cmwiOiJodHRwczovL2NvbnNvbGUuc3B1cnZpay5jb20vYXBpL21jcCJ9",
+      "# 1-Click VS Code URI: vscode:mcp/install?%7B%22name%22%3A%22spurvik%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fconsole.spurvik.com%2Fapi%2Fmcp%22%7D",
       "# Zero-auth OpenAPI 3.0.3 Action schema for ChatGPT Custom GPTs, Microsoft Copilot Studio, Dust.tt & Dify (Authentication: None):",
       "curl -fsSL https://console.spurvik.com/openapi-actions.json -o spurvik-openapi-actions-3.0.json",
       "",
@@ -868,6 +882,16 @@ export function setupSnippetSource(
   if (framework === "openai-agents") return agentsSource(tsRuntime);
   if (framework === "langgraph") return langgraphSource(tsRuntime);
   const base = providerSource(framework as "openai" | "anthropic" | "google-genai", tsRuntime);
+  const rawLowerSrc = frameworkInput.trim().toLowerCase();
+  if (rawLowerSrc === "nuxt" || rawLowerSrc === "nuxt3" || rawLowerSrc === "nuxt4" || rawLowerSrc === "vue" || rawLowerSrc === "vue3") {
+    return `${base}\n// Nuxt 3/4 nuxt.config.ts (app.head.script, 0 cookies, Cookiebot/Usercentrics exempt): { src: "https://spurvik.com/badge.js", defer: true, "data-locale": "${locale}", "data-cookieconsent": "ignore", "data-uc-allowed": "true" }\n`;
+  }
+  if (rawLowerSrc === "svelte" || rawLowerSrc === "svelte5" || rawLowerSrc === "sveltekit") {
+    return `${base}\n// SvelteKit src/routes/+layout.svelte (<svelte:head>, 0 cookies): <script src="https://spurvik.com/badge.js" data-locale="${locale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>\n`;
+  }
+  if (rawLowerSrc === "astro") {
+    return `${base}\n// Astro src/layouts/Layout.astro (0 cookies): <script is:inline src="https://spurvik.com/badge.js" data-locale="${locale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>\n`;
+  }
   if (resolved.isLovableAlias) {
     return `${base}\n// Frontend (React): render <AIDisclosureLabel notice="interaction" locale="${locale}" /> from "spurvik/react" above chat messages.\n`;
   }

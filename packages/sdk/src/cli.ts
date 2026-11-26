@@ -1257,6 +1257,9 @@ export const SETUP_TARGETS = [
   "openai-agents",
   "langgraph",
   "react",
+  "nuxt",
+  "sveltekit",
+  "astro",
   "python",
   "fastapi",
   "langchain",
@@ -1302,6 +1305,12 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   lovable: "openai",
   supabase: "openai",
   "supabase-edge": "openai",
+  vue: "nuxt",
+  vue3: "nuxt",
+  nuxt3: "nuxt",
+  nuxt4: "nuxt",
+  svelte: "sveltekit",
+  svelte5: "sveltekit",
   django: "python",
   flask: "python",
   woocommerce: "wordpress",
@@ -1436,6 +1445,9 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
         return { target: "google-genai", runtime, detected: true };
       }
       if (deps.has("openai")) return { target: "openai", runtime, detected: true };
+      if (deps.has("nuxt")) return { target: "nuxt", runtime, detected: true };
+      if (deps.has("@sveltejs/kit") || deps.has("svelte")) return { target: "sveltekit", runtime, detected: true };
+      if (deps.has("astro")) return { target: "astro", runtime, detected: true };
       if (deps.has("react")) return { target: "react", runtime, detected: true };
     } catch {
       // Unparseable package.json: fall through to Python/CMS checks.
@@ -1770,6 +1782,24 @@ export function buildSetupReport(
       'const res = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: "Hello" });',
       "const receipt = provenanceOf(res);",
       ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "nuxt" || target === "sveltekit" || target === "astro") {
+    const snippetLocale = loc ?? (host ? langForHost(host) : "en");
+    const snippetSystem = host ?? "Support AI";
+    snippetLines = [
+      'import OpenAI from "openai";',
+      'import { provenanceOf, withSpurvik } from "spurvik";',
+      "",
+      ...cfg,
+      "const ai = withSpurvik(new OpenAI(), spurvikConfig);",
+      'const res = await ai.chat.completions.create({ model: "gpt-4o-mini", messages: [{ role: "user", content: "Hello" }] });',
+      "const receipt = await provenanceOf(res);",
+      "await ai._spurvik.flush();",
+      target === "nuxt"
+        ? `// nuxt.config.ts app.head.script: { src: "https://spurvik.com/badge.js", defer: true, "data-system": "${snippetSystem}", "data-locale": "${snippetLocale}", "data-cookieconsent": "ignore", "data-uc-allowed": "true" }`
+        : target === "sveltekit"
+          ? `// src/routes/+layout.svelte <svelte:head>: <script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`
+          : `// src/layouts/Layout.astro: <script is:inline src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
     ];
   } else {
     const flush = flushHelperLines(tsRuntime, "ai._spurvik.flush()");

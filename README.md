@@ -6,6 +6,8 @@
 [![n8n node version](https://img.shields.io/npm/v/n8n-nodes-spurvik?label=n8n-nodes-spurvik&color=818CF8)](https://www.npmjs.com/package/n8n-nodes-spurvik)
 [![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=spurvik.com)](https://console.spurvik.com/report?domain=spurvik.com)
 [![EU AI Act Art. 50(2) C2PA](https://console.spurvik.com/api/v1/c2pa/status.svg?url=https://spurvik.com/media/c2pa-signed-sample.png)](https://console.spurvik.com/c2pa?domain=spurvik.com)
+[![Add MCP to Cursor](https://img.shields.io/badge/%2B_Add_MCP-Cursor-10B981)](cursor://anysphere.cursor-deeplink/mcp/install?name=spurvik&config=eyJ1cmwiOiJodHRwczovL2NvbnNvbGUuc3B1cnZpay5jb20vYXBpL21jcCJ9)
+[![Add MCP to VS Code](https://img.shields.io/badge/%2B_Add_MCP-VS_Code-38BDF8)](vscode:mcp/install?%7B%22name%22%3A%22spurvik%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fconsole.spurvik.com%2Fapi%2Fmcp%22%7D)
 
 Spurvik is a developer control plane that **supports your EU AI Act work**: hash-chained record-keeping, human-oversight hooks, and transparency notices. It is infrastructure. It is not a conformity assessment, a certification, or legal advice.
 
