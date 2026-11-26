@@ -1,6 +1,6 @@
 {
   "name": "@spurvik/react",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": true,
   "type": "module",
   "description": "Disclosure labels that support EU AI Act transparency notices.",

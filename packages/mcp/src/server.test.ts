@@ -55,9 +55,9 @@ function allText(result: Awaited<ReturnType<Client["callTool"]>>): string {
 }
 
 describe("createServer", () => {
-  it("advertises the 1.0.13 version and lists all 10 tools", async () => {
+  it("advertises the 1.0.14 version and lists all 10 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.13" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.14" });
     expect(client.getInstructions()).toMatch(/Seven tools run locally and do not use the network/);
     expect(client.getInstructions()).toMatch(/spurvik_vendor_questionnaire_answers drafts copy-paste answers/);
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
@@ -438,7 +438,7 @@ describe("createServer", () => {
     const n8nOut = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n", locale: "de" } }),
     );
-    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.13");
+    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.14");
     expect(n8nOut).toContain("/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe");
     expect(n8nOut).toContain("plan=team");
 
@@ -701,7 +701,7 @@ describe("createServer", () => {
     const annexDe = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "art11", domain: "personio.de" } }),
     );
-    expect(annexDe).toContain("npx spurvik@1.0.16 annex-iv personio.de --use-case employment --plan team");
+    expect(annexDe).toContain("npx spurvik@1.0.17 annex-iv personio.de --use-case employment --plan team");
     expect(annexDe).toContain("https://spurvik.com/de/ki-verordnung-anhang-iv-technische-dokumentation?domain=personio.de");
 
     const wkFr = textOf(

@@ -80,7 +80,7 @@ runs:
         if [ -x ./node_modules/.bin/spurvik-mcp ]; then
           ./node_modules/.bin/spurvik-mcp check "$SCAN_ROOT" $CI_FLAG
         else
-          npm exec --yes --package=spurvik-mcp-server@1.0.13 -- spurvik-mcp check "$SCAN_ROOT" $CI_FLAG
+          npm exec --yes --package=spurvik-mcp-server@1.0.14 -- spurvik-mcp check "$SCAN_ROOT" $CI_FLAG
         fi
 
     - name: Audit local AI SDK calls & run 6-vector Art. 14 gate self-test (0 network calls)
@@ -92,8 +92,8 @@ runs:
         set -euo pipefail
         SCAN_ROOT="${INPUT_ROOT:-.}"
         GATE_HOST="${INPUT_DOMAIN:-example.com}"
-        npx --yes spurvik@1.0.16 audit "$SCAN_ROOT"
-        npx --yes spurvik@1.0.16 gate "$GATE_HOST"
+        npx --yes spurvik@1.0.17 audit "$SCAN_ROOT"
+        npx --yes spurvik@1.0.17 gate "$GATE_HOST"
 
     - name: Live domain Art. 50 scan (when domain input is provided)
       if: ${{ inputs.domain != '' }}
@@ -104,9 +104,9 @@ runs:
       run: |
         set -euo pipefail
         if [ "${INPUT_FAIL_GAP}" = "true" ]; then
-          npx --yes spurvik@1.0.16 scan "$INPUT_DOMAIN" --fail-on-gap
+          npx --yes spurvik@1.0.17 scan "$INPUT_DOMAIN" --fail-on-gap
         else
-          npx --yes spurvik@1.0.16 scan "$INPUT_DOMAIN"
+          npx --yes spurvik@1.0.17 scan "$INPUT_DOMAIN"
         fi
 
     - name: Live 2 Dec 2026 C2PA manifest & CDN-strip check (when c2pa-url input is provided)
@@ -118,9 +118,9 @@ runs:
       run: |
         set -euo pipefail
         if [ "${INPUT_FAIL_C2PA}" = "true" ]; then
-          npx --yes spurvik@1.0.16 c2pa "$INPUT_C2PA_URL" --fail-on-missing
+          npx --yes spurvik@1.0.17 c2pa "$INPUT_C2PA_URL" --fail-on-missing
         else
-          npx --yes spurvik@1.0.16 c2pa "$INPUT_C2PA_URL" || true
+          npx --yes spurvik@1.0.17 c2pa "$INPUT_C2PA_URL" || true
         fi
 
     - name: Draft Annex IV technical documentation preview (when annex-iv-use-case is provided)
@@ -132,7 +132,7 @@ runs:
       run: |
         set -euo pipefail
         TARGET_HOST="${INPUT_DOMAIN:-yourdomain.com}"
-        npx --yes spurvik@1.0.16 annex-iv "$TARGET_HOST" --use-case "$INPUT_ANNEX_USE_CASE" --plan team > "${RUNNER_TEMP:-/tmp}/SPURVIK_ANNEX_IV.md"
+        npx --yes spurvik@1.0.17 annex-iv "$TARGET_HOST" --use-case "$INPUT_ANNEX_USE_CASE" --plan team > "${RUNNER_TEMP:-/tmp}/SPURVIK_ANNEX_IV.md"
 
     - name: Publish Art. 50 & C2PA shields and DPO links to PR summary
       id: summary
