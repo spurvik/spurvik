@@ -1696,5 +1696,22 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     const astroSetup = harness(failFetch);
     expect(await runCli(["setup", "astro", "--domain", "coolblue.nl", "--json"], astroSetup.deps)).toBe(EXIT_OK);
     expect(JSON.parse(astroSetup.out()).target).toBe("astro");
+
+    const laravelSetup = harness(failFetch);
+    expect(await runCli(["setup", "laravel", "--domain", "personio.de", "--json"], laravelSetup.deps)).toBe(EXIT_OK);
+    const laravelJson = JSON.parse(laravelSetup.out());
+    expect(laravelJson.target).toBe("laravel");
+    expect(laravelJson.runtime).toBe("php");
+    expect(laravelJson.installCommand).toContain("https://spurvik.com/r/spurvik_guard.php");
+
+    const mistralSetup = harness(failFetch);
+    expect(await runCli(["setup", "mistral", "--domain", "qonto.com", "--json"], mistralSetup.deps)).toBe(EXIT_OK);
+    const mistralJson = JSON.parse(mistralSetup.out());
+    expect(mistralJson.target).toBe("mistral");
+    expect(mistralJson.snippet).toContain('mistral("mistral-large-latest")');
+
+    const piwikSetup = harness(failFetch);
+    expect(await runCli(["setup", "piwik-pro", "--domain", "doctolib.fr", "--json"], piwikSetup.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(piwikSetup.out()).target).toBe("matomo");
   });
 });

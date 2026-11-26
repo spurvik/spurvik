@@ -1252,6 +1252,10 @@ export const SETUP_TARGETS = [
   "openai",
   "anthropic",
   "google-genai",
+  "mistral",
+  "azure-openai",
+  "bedrock",
+  "litellm",
   "vercel-ai-sdk",
   "mastra",
   "openai-agents",
@@ -1264,6 +1268,9 @@ export const SETUP_TARGETS = [
   "fastapi",
   "langchain",
   "pydantic-ai",
+  "php",
+  "laravel",
+  "symfony",
   "shopify",
   "wordpress",
   "prestashop",
@@ -1272,6 +1279,7 @@ export const SETUP_TARGETS = [
   "webflow",
   "framer",
   "gtm",
+  "matomo",
   "cmp",
   "html",
   "n8n",
@@ -1284,7 +1292,8 @@ export const SETUP_RUNTIMES = ["node", "next", "vercel", "supabase-edge", "pytho
 export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
-const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "cmp", "html"];
+const PHP_SETUP_TARGETS: readonly SetupTarget[] = ["php", "laravel", "symfony"];
+const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "matomo", "cmp", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make", "copilot-studio"];
 
 const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
@@ -1363,6 +1372,25 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   "microsoft-teams": "langgraph",
   approval: "langgraph",
   "human-in-the-loop": "langgraph",
+  mistralai: "mistral",
+  "mistral-ai": "mistral",
+  "la-plateforme": "mistral",
+  azure: "azure-openai",
+  azure_openai: "azure-openai",
+  "aws-bedrock": "bedrock",
+  "amazon-bedrock": "bedrock",
+  ollama: "litellm",
+  "open-webui": "litellm",
+  vllm: "litellm",
+  typo3: "php",
+  composer: "php",
+  laravel11: "laravel",
+  laravel12: "laravel",
+  symfony6: "symfony",
+  symfony7: "symfony",
+  "matomo-tag-manager": "matomo",
+  "piwik-pro": "matomo",
+  piwik: "matomo",
 };
 
 const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
@@ -1377,7 +1405,7 @@ const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
 
 export interface SetupReport {
   target: SetupTarget;
-  runtime: SetupRuntime | "browser" | "workflow";
+  runtime: SetupRuntime | "browser" | "workflow" | "php";
   detected: boolean;
   domain?: string;
   locale?: string;
@@ -1437,6 +1465,15 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
       if (deps.has("@mastra/core")) return { target: "mastra", runtime, detected: true };
       if (deps.has("@openai/agents")) return { target: "openai-agents", runtime, detected: true };
       if (deps.has("@langchain/langgraph")) return { target: "langgraph", runtime, detected: true };
+      if (deps.has("@ai-sdk/mistral") || deps.has("@mistralai/mistralai")) {
+        return { target: "mistral", runtime, detected: true };
+      }
+      if (deps.has("@ai-sdk/azure")) {
+        return { target: "azure-openai", runtime, detected: true };
+      }
+      if (deps.has("@ai-sdk/amazon-bedrock")) {
+        return { target: "bedrock", runtime, detected: true };
+      }
       if (deps.has("ai") || deps.has("@ai-sdk/openai") || deps.has("@ai-sdk/anthropic") || deps.has("@ai-sdk/google")) {
         return { target: "vercel-ai-sdk", runtime, detected: true };
       }
@@ -1471,6 +1508,26 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
     if (/\bpydantic[-_]ai\b/.test(combined)) return { target: "pydantic-ai", runtime: "python", detected: true };
     if (/\b(langchain|langgraph)\b/.test(combined)) return { target: "langchain", runtime: "python", detected: true };
     return { target: "python", runtime: "python", detected: true };
+  }
+
+  const composerPath = path.join(root, "composer.json");
+  if (fileExists(composerPath)) {
+    try {
+      const rawComposer = JSON.parse(readFileSync(composerPath, "utf8")) as {
+        require?: Record<string, unknown>;
+        "require-dev"?: Record<string, unknown>;
+      };
+      const phpDeps = new Set([
+        ...Object.keys(rawComposer.require ?? {}),
+        ...Object.keys(rawComposer["require-dev"] ?? {}),
+      ]);
+      if (phpDeps.has("shopware/core")) return { target: "shopware", runtime: "node", detected: true };
+      if (phpDeps.has("laravel/framework")) return { target: "laravel", runtime: "node", detected: true };
+      if (phpDeps.has("symfony/framework-bundle")) return { target: "symfony", runtime: "node", detected: true };
+      return { target: "php", runtime: "node", detected: true };
+    } catch {
+      // Fall through to theme/wp checks.
+    }
   }
 
   if (fileExists(path.join(root, "layout", "theme.liquid"))) {
@@ -1608,9 +1665,11 @@ export function buildSetupReport(
                     "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + C2PA polish:'off' passthrough",
                     "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
                   ].join("\n")
-                : target === "cmp"
+                : target === "cmp" || target === "matomo"
                   ? [
-                      "# Cookiebot / Usercentrics / OneTrust / Didomi auto-blocking bypass (0 cookies, ePrivacy Art. 5(3) exempt):",
+                      target === "matomo"
+                        ? "# Matomo Tag Manager / Piwik PRO Custom HTML tag (0 cookies, Consent type: No consent required):"
+                        : "# Cookiebot / Usercentrics / OneTrust / Didomi auto-blocking bypass (0 cookies, ePrivacy Art. 5(3) exempt):",
                       `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" data-cmp-ab="2" data-attribution="true" defer></script>`,
                     ].join("\n")
                   : target === "react"
@@ -1655,6 +1714,35 @@ export function buildSetupReport(
       links: {
         ...links,
         ...(cmsCockpit ? { cockpitUrl: cmsCockpit } : {}),
+      },
+    };
+  }
+
+  if (PHP_SETUP_TARGETS.includes(target)) {
+    const savePath = target === "symfony" ? "src/Service/SpurvikGuard.php" : "app/Services/SpurvikGuard.php";
+    const snippetLocale = loc ?? (host ? langForHost(host) : "en");
+    const snippetSystem = host ?? "Support AI";
+    return {
+      target,
+      runtime: "php",
+      detected,
+      ...metaFields,
+      installCommand: `curl -fsSL https://spurvik.com/r/spurvik_guard.php -o ${savePath}`,
+      snippet: [
+        `require_once __DIR__ . '/SpurvikGuard.php';`,
+        `\\SpurvikGuard::sendTelemetryEvent($prompt, $reply, 'openai', 'gpt-4o-mini', 140);`,
+        `// Blade / Twig 24-language Art. 50(1) notice (0 cookies, Cookiebot/Usercentrics exempt):`,
+        `// echo \\SpurvikGuard::art50BadgeHtml('${snippetSystem}', '${snippetLocale}', 'interaction', 'bottom-left', false);`,
+      ].join("\n"),
+      envTemplate: [
+        "SPURVIK_BASE_URL=https://console.spurvik.com",
+        "SPURVIK_API_KEY=",
+        "# Generate >= 16-byte secret locally (never sent to Spurvik): openssl rand -hex 32",
+        "SPURVIK_CONTENT_HASH_SECRET=",
+      ],
+      links: {
+        ...links,
+        cockpitUrl: hmacCockpitUrl(host, snippetLocale),
       },
     };
   }
@@ -1780,6 +1868,45 @@ export function buildSetupReport(
       ...cfg,
       "const ai = withSpurvik(new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }), spurvikConfig);",
       'const res = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: "Hello" });',
+      "const receipt = provenanceOf(res);",
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "mistral" || target === "azure-openai" || target === "bedrock") {
+    const flush = flushHelperLines(tsRuntime, "spurvik.flush()");
+    const providerImport =
+      target === "mistral"
+        ? 'import { mistral } from "@ai-sdk/mistral";'
+        : target === "azure-openai"
+          ? 'import { createAzure } from "@ai-sdk/azure";\nconst azureEu = createAzure({ resourceName: process.env.AZURE_RESOURCE_NAME!, apiKey: process.env.AZURE_API_KEY! });'
+          : 'import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";\nconst bedrockEu = createAmazonBedrock({ region: "eu-central-1" });';
+    const modelExpr =
+      target === "mistral"
+        ? 'mistral("mistral-large-latest")'
+        : target === "azure-openai"
+          ? 'azureEu("gpt-4o-eu")'
+          : 'bedrockEu("eu.anthropic.claude-3-7-sonnet-20250219-v1:0")';
+    snippetLines = [
+      'import { generateText, wrapLanguageModel } from "ai";',
+      providerImport,
+      'import { spurvikMiddleware } from "spurvik/ai";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      "const spurvik = spurvikMiddleware(spurvikConfig);",
+      `const model = wrapLanguageModel({ model: ${modelExpr}, middleware: spurvik });`,
+      'const result = await generateText({ model, prompt: "Hello" });',
+      ...(flush.callLine ? [flush.callLine] : []),
+    ];
+  } else if (target === "litellm") {
+    const flush = flushHelperLines(tsRuntime, "ai._spurvik.flush()");
+    snippetLines = [
+      'import OpenAI from "openai";',
+      'import { provenanceOf, withSpurvik } from "spurvik";',
+      ...(flush.importLine ? [flush.importLine] : []),
+      "",
+      ...cfg,
+      'const ai = withSpurvik(new OpenAI({ baseURL: process.env.LITELLM_BASE_URL ?? "http://localhost:4000/v1", apiKey: process.env.LITELLM_API_KEY! }), spurvikConfig);',
+      'const res = await ai.chat.completions.create({ model: "mistral-large", messages: [{ role: "user", content: "Hello" }] });',
       "const receipt = provenanceOf(res);",
       ...(flush.callLine ? [flush.callLine] : []),
     ];

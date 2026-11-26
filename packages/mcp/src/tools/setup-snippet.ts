@@ -199,7 +199,46 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "microsoft-teams": "langgraph",
   approval: "langgraph",
   "human-in-the-loop": "langgraph",
+  php: "openai",
+  laravel: "openai",
+  laravel11: "openai",
+  laravel12: "openai",
+  symfony: "openai",
+  symfony6: "openai",
+  symfony7: "openai",
+  typo3: "openai",
+  composer: "openai",
+  mistral: "vercel-ai-sdk",
+  mistralai: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  "la-plateforme": "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  azure_openai: "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  "amazon-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  "open-webui": "openai",
+  vllm: "openai",
+  matomo: "gtm",
+  "matomo-tag-manager": "gtm",
+  "piwik-pro": "gtm",
+  piwik: "gtm",
 };
+
+const PHP_RAW_ALIASES = new Set([
+  "php",
+  "laravel",
+  "laravel11",
+  "laravel12",
+  "symfony",
+  "symfony6",
+  "symfony7",
+  "typo3",
+  "composer",
+]);
 
 const SUPPORT_WIDGET_ALIASES = new Set([
   "intercom",
@@ -876,13 +915,50 @@ export function setupSnippetSource(
   }
   if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
+  const rawLowerSrc = frameworkInput.trim().toLowerCase();
+  if (PHP_RAW_ALIASES.has(rawLowerSrc)) {
+    const savePath = rawLowerSrc.startsWith("symfony") ? "src/Service/SpurvikGuard.php" : "app/Services/SpurvikGuard.php";
+    const sysName = host || "Support AI";
+    return [
+      `<?php`,
+      `// 1) curl -fsSL https://spurvik.com/r/spurvik_guard.php -o ${savePath}`,
+      `require_once __DIR__ . '/SpurvikGuard.php';`,
+      "",
+      `$t0 = hrtime(true);`,
+      `$reply = $aiClient->chat($prompt);`,
+      `\\SpurvikGuard::sendTelemetryEvent($prompt, $reply, 'openai', 'gpt-4o-mini', (int) ((hrtime(true) - $t0) / 1_000_000));`,
+      `// 2) Blade / Twig 24-language Art. 50(1) notice (0 cookies, Cookiebot & Usercentrics exempt):`,
+      `// echo \\SpurvikGuard::art50BadgeHtml('${sysName}', '${locale}', 'interaction', 'bottom-left', false);`,
+      "",
+    ].join("\n");
+  }
   const tsRuntime = runtime as TsRuntime;
-  if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
+  if (framework === "vercel-ai-sdk") {
+    const baseMw = middlewareSource(tsRuntime);
+    if (rawLowerSrc === "mistral" || rawLowerSrc === "mistralai" || rawLowerSrc === "mistral-ai" || rawLowerSrc === "la-plateforme") {
+      return baseMw
+        .replace('import { openai } from "@ai-sdk/openai";', 'import { mistral } from "@ai-sdk/mistral";')
+        .replace('openai("gpt-4o")', 'mistral("mistral-large-latest")');
+    }
+    if (rawLowerSrc === "azure-openai" || rawLowerSrc === "azure" || rawLowerSrc === "azure_openai") {
+      return baseMw
+        .replace('import { openai } from "@ai-sdk/openai";', 'import { createAzure } from "@ai-sdk/azure";\nconst azureEu = createAzure({ resourceName: process.env.AZURE_RESOURCE_NAME!, apiKey: process.env.AZURE_API_KEY! });')
+        .replace('openai("gpt-4o")', 'azureEu("gpt-4o-eu")');
+    }
+    if (rawLowerSrc === "bedrock" || rawLowerSrc === "aws-bedrock" || rawLowerSrc === "amazon-bedrock") {
+      return baseMw
+        .replace('import { openai } from "@ai-sdk/openai";', 'import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";\nconst bedrockEu = createAmazonBedrock({ region: "eu-central-1" });')
+        .replace('openai("gpt-4o")', 'bedrockEu("eu.anthropic.claude-3-7-sonnet-20250219-v1:0")');
+    }
+    return baseMw;
+  }
   if (framework === "mastra") return mastraSource(tsRuntime);
   if (framework === "openai-agents") return agentsSource(tsRuntime);
   if (framework === "langgraph") return langgraphSource(tsRuntime);
   const base = providerSource(framework as "openai" | "anthropic" | "google-genai", tsRuntime);
-  const rawLowerSrc = frameworkInput.trim().toLowerCase();
+  if (rawLowerSrc === "litellm" || rawLowerSrc === "ollama" || rawLowerSrc === "open-webui" || rawLowerSrc === "vllm") {
+    return base.replace("new OpenAI()", 'new OpenAI({ baseURL: process.env.LITELLM_BASE_URL ?? "http://localhost:4000/v1", apiKey: process.env.LITELLM_API_KEY! })');
+  }
   if (rawLowerSrc === "nuxt" || rawLowerSrc === "nuxt3" || rawLowerSrc === "nuxt4" || rawLowerSrc === "vue" || rawLowerSrc === "vue3") {
     return `${base}\n// Nuxt 3/4 nuxt.config.ts (app.head.script, 0 cookies, Cookiebot/Usercentrics exempt): { src: "https://spurvik.com/badge.js", defer: true, "data-locale": "${locale}", "data-cookieconsent": "ignore", "data-uc-allowed": "true" }\n`;
   }
@@ -1024,6 +1100,19 @@ export function setupSnippet(
     return `${pyLines.join("\n")}\n\n\`\`\`python\n${source}\`\`\`\n`;
   }
   const rawLower = frameworkInput.trim().toLowerCase();
+  if (PHP_RAW_ALIASES.has(rawLower)) {
+    const phpLines = [
+      `Framework: ${rawLower}. Runtime: php (PHP 8.1+, zero Composer dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.php and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${phpLines.join("\n")}\n\n\`\`\`php\n${source}\`\`\`\n`;
+  }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,

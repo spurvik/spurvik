@@ -18,6 +18,7 @@ Regulation (EU) 2024/1689 is the legal instrument. Dates below follow the AI Omn
 No install, no API key, no account. Node.js 20+. The CLI ships in `spurvik@1.0.17`.
 
 ```bash
+npx spurvik setup                  # auto-detect stack (Next/Nuxt/SvelteKit/Astro/Mistral/FastAPI/Laravel/Symfony/Shopify/WP)
 npx spurvik scan folk.app          # live Art. 50(1) notice + AI chat-widget check (or pass 2–10 domains for an agency matrix)
 npx spurvik report folk.app        # shareable Markdown / JSON DPO & client readiness brief (aliases: brief, dpo)
 npx spurvik trust folk.app         # offline /trust & /security Markdown + SVG card + Cookiebot/Usercentrics badge.js (0 network)
