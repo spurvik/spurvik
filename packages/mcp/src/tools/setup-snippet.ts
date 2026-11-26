@@ -57,7 +57,18 @@ export const CMS_FRAMEWORKS = [
   "html",
 ] as const;
 export const WORKFLOW_FRAMEWORKS = ["n8n", "make"] as const;
-export const IDE_CI_FRAMEWORKS = ["cursor", "cursor-rules", "claude-code", "vscode", "windsurf", "mcp", "github-actions", "ci"] as const;
+export const IDE_CI_FRAMEWORKS = [
+  "cursor",
+  "cursor-rules",
+  "claude-code",
+  "vscode",
+  "windsurf",
+  "mcp",
+  "github-actions",
+  "gitlab-ci",
+  "bitbucket",
+  "ci",
+] as const;
 export const FRAMEWORKS = [
   "openai",
   "anthropic",
@@ -110,10 +121,20 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   shopware6: "shopware",
   "adobe-commerce": "magento",
   "trust-center": "trust-widget",
+  "trust-center-md": "well-known",
+  notion: "well-known",
+  confluence: "well-known",
+  vanta: "well-known",
+  drata: "well-known",
+  safebase: "well-known",
+  gitbook: "well-known",
+  "security-md": "well-known",
   trust_widget: "trust-widget",
   "ai-act-json": "well-known",
   "ai-act.json": "well-known",
   well_known: "well-known",
+  gitlab: "gitlab-ci",
+  "bitbucket-pipelines": "bitbucket",
   annex_iv: "annex-iv",
   art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
@@ -747,6 +768,7 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
     return [
       "mkdir -p public/.well-known",
       `curl -fsSL "https://console.spurvik.com/api/v1/badge/ai-act.json?domain=${encodeURIComponent(targetHost)}" -o public/.well-known/ai-act.json`,
+      `curl -fsSL "https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(targetHost)}" -o TRUST_CENTER_AI_ACT.md`,
       "curl -fsSLO https://spurvik.com/r/cloudflare-worker-art50-c2pa.js",
     ].join("\n") + "\n";
   }
@@ -794,9 +816,12 @@ export function setupSnippetSource(
       "curl -fsSL https://spurvik.com/r/windsurfrules.md -o .windsurfrules",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
-      "# GitHub Actions PR-Gate (2-line Composite Action `uses: spurvik/spurvik@v1` or standalone workflow):",
+      "# GitHub Actions PR-Gate (`uses: spurvik/spurvik@v1`), European GitLab CI (.gitlab-ci.yml) & Bitbucket Pipelines:",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
+      "curl -fsSL https://spurvik.com/r/gitlab-ci-spurvik-check.yml -o .gitlab-ci.yml",
+      "curl -fsSL https://spurvik.com/r/bitbucket-pipelines-spurvik.yml -o bitbucket-pipelines.yml",
       `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
+      `# Or in .gitlab-ci.yml: include: [{ remote: "https://spurvik.com/r/gitlab-ci-spurvik-check.yml" }]`,
       "",
     ].join("\n");
   }
