@@ -226,6 +226,35 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "matomo-tag-manager": "gtm",
   "piwik-pro": "gtm",
   piwik: "gtm",
+  dotnet: "openai",
+  csharp: "openai",
+  "c#": "openai",
+  aspnet: "openai",
+  "asp.net": "openai",
+  blazor: "openai",
+  dotnet8: "openai",
+  dotnet9: "openai",
+  "semantic-kernel": "openai",
+  go: "openai",
+  golang: "openai",
+  gin: "openai",
+  echo: "openai",
+  fiber: "openai",
+  chi: "openai",
+  langchaingo: "openai",
+  "spring-boot": "openai",
+  java: "openai",
+  spring: "openai",
+  springboot: "openai",
+  "spring-ai": "openai",
+  kotlin: "openai",
+  ktor: "openai",
+  quarkus: "openai",
+  "pre-commit": "ci",
+  precommit: "ci",
+  husky: "ci",
+  "git-hooks": "ci",
+  lefthook: "ci",
 };
 
 const PHP_RAW_ALIASES = new Set([
@@ -239,6 +268,33 @@ const PHP_RAW_ALIASES = new Set([
   "typo3",
   "composer",
 ]);
+
+const DOTNET_RAW_ALIASES = new Set([
+  "dotnet",
+  "csharp",
+  "c#",
+  "aspnet",
+  "asp.net",
+  "blazor",
+  "dotnet8",
+  "dotnet9",
+  "semantic-kernel",
+]);
+
+const GO_RAW_ALIASES = new Set(["go", "golang", "gin", "echo", "fiber", "chi", "langchaingo"]);
+
+const JVM_RAW_ALIASES = new Set([
+  "spring-boot",
+  "java",
+  "spring",
+  "springboot",
+  "spring-ai",
+  "kotlin",
+  "ktor",
+  "quarkus",
+]);
+
+const PRECOMMIT_RAW_ALIASES = new Set(["pre-commit", "precommit", "husky", "git-hooks", "lefthook"]);
 
 const SUPPORT_WIDGET_ALIASES = new Set([
   "intercom",
@@ -898,6 +954,7 @@ export function setupSnippetSource(
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
       "curl -fsSL https://spurvik.com/r/gitlab-ci-spurvik-check.yml -o .gitlab-ci.yml",
       "curl -fsSL https://spurvik.com/r/bitbucket-pipelines-spurvik.yml -o bitbucket-pipelines.yml",
+      "curl -fsSL https://spurvik.com/r/pre-commit-config.yaml -o .pre-commit-config.yaml && pre-commit install",
       `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
       `# Or in .gitlab-ci.yml: include: [{ remote: "https://spurvik.com/r/gitlab-ci-spurvik-check.yml" }]`,
       "",
@@ -929,6 +986,41 @@ export function setupSnippetSource(
       `\\SpurvikGuard::sendTelemetryEvent($prompt, $reply, 'openai', 'gpt-4o-mini', (int) ((hrtime(true) - $t0) / 1_000_000));`,
       `// 2) Blade / Twig 24-language Art. 50(1) notice (0 cookies, Cookiebot & Usercentrics exempt):`,
       `// echo \\SpurvikGuard::art50BadgeHtml('${sysName}', '${locale}', 'interaction', 'bottom-left', false);`,
+      "",
+    ].join("\n");
+  }
+  if (DOTNET_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// 1) mkdir -p Services && curl -fsSL https://spurvik.com/r/SpurvikGuard.cs -o Services/SpurvikGuard.cs",
+      "using Spurvik;",
+      "",
+      "var sw = System.Diagnostics.Stopwatch.StartNew();",
+      "string reply = await chatClient.CompleteAsync(prompt);",
+      'await SpurvikGuard.SendTelemetryEventAsync(prompt, reply, "azure-openai", "gpt-4o-eu", (int)sw.ElapsedMilliseconds);',
+      `// 2) Razor / Blazor 24-language Art. 50(1) notice (0 cookies): @Html.Raw(SpurvikGuard.Art50BadgeHtml("${sysName}", "${locale}", "interaction", "bottom-left", false))`,
+      "",
+    ].join("\n");
+  }
+  if (GO_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// 1) mkdir -p internal/spurvikguard && curl -fsSL https://spurvik.com/r/spurvik_guard.go -o internal/spurvikguard/spurvik_guard.go",
+      'import "yourmodule/internal/spurvikguard"',
+      "",
+      "t0 := time.Now()",
+      "reply, err := aiClient.Chat(ctx, prompt)",
+      '_, _ = spurvikguard.SendTelemetryEvent(ctx, prompt, reply, "openai", "gpt-4o-mini", int(time.Since(t0).Milliseconds()), "", "", "")',
+      `// 2) 24-language Art. 50(1) notice (0 cookies): spurvikguard.Art50BadgeHTML("${sysName}", "${locale}", "interaction", "bottom-left", false)`,
+      "",
+    ].join("\n");
+  }
+  if (JVM_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// Java 21+ / Spring Boot 3 / Spring AI (0 Maven/Gradle dependencies — javax.crypto.Mac + java.net.http.HttpClient):",
+      "// Post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
+      `// Frontend Thymeleaf / JSP / React (0 cookies): <script src="https://spurvik.com/badge.js" data-system="${sysName}" data-locale="${locale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
       "",
     ].join("\n");
   }
@@ -1112,6 +1204,45 @@ export function setupSnippet(
       PRICE_NOTE,
     ];
     return `${phpLines.join("\n")}\n\n\`\`\`php\n${source}\`\`\`\n`;
+  }
+  if (DOTNET_RAW_ALIASES.has(rawLower)) {
+    const csLines = [
+      `Framework: ${rawLower}. Runtime: dotnet (.NET 8+ / C# 12, zero NuGet dependencies).`,
+      `Download https://spurvik.com/r/SpurvikGuard.cs into \`Services/SpurvikGuard.cs\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${csLines.join("\n")}\n\n\`\`\`csharp\n${source}\`\`\`\n`;
+  }
+  if (GO_RAW_ALIASES.has(rawLower)) {
+    const goLines = [
+      `Framework: ${rawLower}. Runtime: go (Go 1.21+, zero external go.mod dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.go into \`internal/spurvikguard/spurvik_guard.go\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${goLines.join("\n")}\n\n\`\`\`go\n${source}\`\`\`\n`;
+  }
+  if (JVM_RAW_ALIASES.has(rawLower)) {
+    const jvmLines = [
+      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Kotlin, zero Maven/Gradle dependencies).`,
+      `Compute keyed HmacSHA256 digests locally with \`SPURVIK_CONTENT_HASH_SECRET\` and post \`inputHash\` & \`outputHash\` (0 bytes of raw prompt text) to \`https://console.spurvik.com/api/v1/telemetry\`. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${jvmLines.join("\n")}\n\n\`\`\`java\n${source}\`\`\`\n`;
   }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [

@@ -59,7 +59,17 @@ Block unwrapped OpenAI, Anthropic, Gemini, LangChain, and Vercel AI SDK calls on
     c2pa-url: https://yourdomain.com/hero.webp
 ```
 
-Or copy the standalone workflow template at [spurvik.com/r/github-action-spurvik-check.yml](https://spurvik.com/r/github-action-spurvik-check.yml).
+Or copy the standalone workflow template at [spurvik.com/r/github-action-spurvik-check.yml](https://spurvik.com/r/github-action-spurvik-check.yml), or install local `pre-commit` hooks (`0` network calls, `file:line` only) from [spurvik.com/r/pre-commit-config.yaml](https://spurvik.com/r/pre-commit-config.yaml):
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/spurvik/spurvik
+    rev: v1
+    hooks:
+      - id: spurvik-audit
+      - id: spurvik-gate-test
+```
 
 ### Add the Live Art. 50 Status Shield to Your README
 

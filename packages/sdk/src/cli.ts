@@ -1271,6 +1271,10 @@ export const SETUP_TARGETS = [
   "php",
   "laravel",
   "symfony",
+  "dotnet",
+  "go",
+  "spring-boot",
+  "pre-commit",
   "shopify",
   "wordpress",
   "prestashop",
@@ -1293,6 +1297,7 @@ export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
 const PHP_SETUP_TARGETS: readonly SetupTarget[] = ["php", "laravel", "symfony"];
+const ENTERPRISE_SETUP_TARGETS: readonly SetupTarget[] = ["dotnet", "go", "spring-boot"];
 const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "matomo", "cmp", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make", "copilot-studio"];
 
@@ -1391,6 +1396,31 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   "matomo-tag-manager": "matomo",
   "piwik-pro": "matomo",
   piwik: "matomo",
+  csharp: "dotnet",
+  "c#": "dotnet",
+  aspnet: "dotnet",
+  "asp.net": "dotnet",
+  blazor: "dotnet",
+  dotnet8: "dotnet",
+  dotnet9: "dotnet",
+  "semantic-kernel": "dotnet",
+  golang: "go",
+  gin: "go",
+  echo: "go",
+  fiber: "go",
+  chi: "go",
+  langchaingo: "go",
+  java: "spring-boot",
+  spring: "spring-boot",
+  springboot: "spring-boot",
+  "spring-ai": "spring-boot",
+  kotlin: "spring-boot",
+  ktor: "spring-boot",
+  quarkus: "spring-boot",
+  precommit: "pre-commit",
+  husky: "pre-commit",
+  "git-hooks": "pre-commit",
+  lefthook: "pre-commit",
 };
 
 const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
@@ -1405,7 +1435,7 @@ const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
 
 export interface SetupReport {
   target: SetupTarget;
-  runtime: SetupRuntime | "browser" | "workflow" | "php";
+  runtime: SetupRuntime | "browser" | "workflow" | "php" | "dotnet" | "go" | "jvm" | "cli";
   detected: boolean;
   domain?: string;
   locale?: string;
@@ -1535,6 +1565,24 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
   }
   if (fileExists(path.join(root, "wp-config.php")) || dirExists(path.join(root, "wp-content"))) {
     return { target: "wordpress", runtime: "node", detected: true };
+  }
+  if (fileExists(path.join(root, "go.mod"))) {
+    return { target: "go", runtime: "node", detected: true };
+  }
+  if (
+    fileExists(path.join(root, "pom.xml")) ||
+    fileExists(path.join(root, "build.gradle")) ||
+    fileExists(path.join(root, "build.gradle.kts"))
+  ) {
+    return { target: "spring-boot", runtime: "node", detected: true };
+  }
+  try {
+    const entries = readdirSync(root);
+    if (entries.some((e) => e.endsWith(".csproj") || e.endsWith(".sln") || e.endsWith(".slnx"))) {
+      return { target: "dotnet", runtime: "node", detected: true };
+    }
+  } catch {
+    // Ignore unreadable directory.
   }
 
   return { target: "openai", runtime: "node", detected: false };
@@ -1734,6 +1782,77 @@ export function buildSetupReport(
         `// Blade / Twig 24-language Art. 50(1) notice (0 cookies, Cookiebot/Usercentrics exempt):`,
         `// echo \\SpurvikGuard::art50BadgeHtml('${snippetSystem}', '${snippetLocale}', 'interaction', 'bottom-left', false);`,
       ].join("\n"),
+      envTemplate: [
+        "SPURVIK_BASE_URL=https://console.spurvik.com",
+        "SPURVIK_API_KEY=",
+        "# Generate >= 16-byte secret locally (never sent to Spurvik): openssl rand -hex 32",
+        "SPURVIK_CONTENT_HASH_SECRET=",
+      ],
+      links: {
+        ...links,
+        cockpitUrl: hmacCockpitUrl(host, snippetLocale),
+      },
+    };
+  }
+
+  if (target === "pre-commit") {
+    const snippetLocale = loc ?? (host ? langForHost(host) : "en");
+    return {
+      target,
+      runtime: "cli",
+      detected,
+      ...metaFields,
+      installCommand: "curl -fsSL https://spurvik.com/r/pre-commit-config.yaml -o .pre-commit-config.yaml && pre-commit install",
+      snippet: [
+        "repos:",
+        "  - repo: https://github.com/spurvik/spurvik",
+        "    rev: v1",
+        "    hooks:",
+        "      - id: spurvik-audit",
+        "      - id: spurvik-gate-test",
+      ].join("\n"),
+      envTemplate: [],
+      links: {
+        ...links,
+        cockpitUrl: hmacCockpitUrl(host, snippetLocale),
+      },
+    };
+  }
+
+  if (ENTERPRISE_SETUP_TARGETS.includes(target)) {
+    const snippetLocale = loc ?? (host ? langForHost(host) : "en");
+    const snippetSystem = host ?? "Support AI";
+    const entRuntime: "dotnet" | "go" | "jvm" = target === "dotnet" ? "dotnet" : target === "go" ? "go" : "jvm";
+    const installCommand =
+      target === "dotnet"
+        ? "mkdir -p Services && curl -fsSL https://spurvik.com/r/SpurvikGuard.cs -o Services/SpurvikGuard.cs"
+        : target === "go"
+          ? "mkdir -p internal/spurvikguard && curl -fsSL https://spurvik.com/r/spurvik_guard.go -o internal/spurvikguard/spurvik_guard.go"
+          : "# Java 21+ stdlib javax.crypto.Mac + java.net.http.HttpClient (0 Maven/Gradle deps)";
+    const snippet =
+      target === "dotnet"
+        ? [
+            "using Spurvik;",
+            'await SpurvikGuard.SendTelemetryEventAsync(prompt, reply, "azure-openai", "gpt-4o-eu", 120);',
+            `// Razor / Blazor (0 cookies): @Html.Raw(SpurvikGuard.Art50BadgeHtml("${snippetSystem}", "${snippetLocale}", "interaction", "bottom-left", false))`,
+          ].join("\n")
+        : target === "go"
+          ? [
+              'import "yourmodule/internal/spurvikguard"',
+              '_, _ = spurvikguard.SendTelemetryEvent(ctx, prompt, reply, "openai", "gpt-4o-mini", 120, "", "", "")',
+              `// HTML helper (0 cookies): spurvikguard.Art50BadgeHTML("${snippetSystem}", "${snippetLocale}", "interaction", "bottom-left", false)`,
+            ].join("\n")
+          : [
+              "// Java 21+ / Spring Boot 3 / Spring AI: post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
+              `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+            ].join("\n");
+    return {
+      target,
+      runtime: entRuntime,
+      detected,
+      ...metaFields,
+      installCommand,
+      snippet,
       envTemplate: [
         "SPURVIK_BASE_URL=https://console.spurvik.com",
         "SPURVIK_API_KEY=",
@@ -2556,6 +2675,16 @@ const RFP_PROVIDER_ALIASES: Record<string, (typeof SPURVIK_QUESTIONNAIRE_PROVIDE
   php: "custom",
   laravel: "custom",
   symfony: "custom",
+  dotnet: "custom",
+  csharp: "custom",
+  aspnet: "custom",
+  blazor: "custom",
+  go: "custom",
+  golang: "custom",
+  java: "custom",
+  spring: "custom",
+  "spring-boot": "custom",
+  kotlin: "custom",
   fastapi: "python",
   langchain: "python",
   pydanticai: "python",
@@ -2617,6 +2746,66 @@ const RFP_SOVEREIGN_OVERRIDES: Record<string, { baseLabel: string; targetLabel: 
     targetLabel: "Symfony / PHP 8.1+ (SpurvikGuard.php)",
     baseWrapper: "`withSpurvik` on the provider client",
     targetWrapper: "`SpurvikGuard::sendTelemetryEvent` & `SpurvikGuard::verifySignedCallback` (`src/Service/SpurvikGuard.php`, 0 Composer deps)",
+  },
+  dotnet: {
+    baseLabel: "our model provider",
+    targetLabel: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard.SendTelemetryEventAsync` & `SpurvikGuard.VerifySignedCallback` (`Services/SpurvikGuard.cs`, 0 NuGet deps)",
+  },
+  csharp: {
+    baseLabel: "our model provider",
+    targetLabel: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard.SendTelemetryEventAsync` & `SpurvikGuard.VerifySignedCallback` (`Services/SpurvikGuard.cs`, 0 NuGet deps)",
+  },
+  aspnet: {
+    baseLabel: "our model provider",
+    targetLabel: "ASP.NET Core / .NET 8+ (SpurvikGuard.cs)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard.SendTelemetryEventAsync` & `SpurvikGuard.VerifySignedCallback` (`Services/SpurvikGuard.cs`, 0 NuGet deps)",
+  },
+  blazor: {
+    baseLabel: "our model provider",
+    targetLabel: "Blazor / .NET 8+ (SpurvikGuard.cs)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard.SendTelemetryEventAsync` & `SpurvikGuard.Art50BadgeHtml` (`Services/SpurvikGuard.cs`, 0 NuGet deps)",
+  },
+  go: {
+    baseLabel: "our model provider",
+    targetLabel: "Go 1.21+ (spurvik_guard.go)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`spurvikguard.SendTelemetryEvent` & `spurvikguard.VerifySignedCallback` (`internal/spurvikguard/spurvik_guard.go`, 0 go.mod deps)",
+  },
+  golang: {
+    baseLabel: "our model provider",
+    targetLabel: "Go 1.21+ (spurvik_guard.go)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`spurvikguard.SendTelemetryEvent` & `spurvikguard.VerifySignedCallback` (`internal/spurvikguard/spurvik_guard.go`, 0 go.mod deps)",
+  },
+  java: {
+    baseLabel: "our model provider",
+    targetLabel: "Java 21+ / Spring Boot 3 / Spring AI",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256` + `java.net.http.HttpClient`, 0 Maven/Gradle deps)",
+  },
+  spring: {
+    baseLabel: "our model provider",
+    targetLabel: "Spring Boot 3 / Spring AI (Java 21+)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256` + `java.net.http.HttpClient`, 0 Maven/Gradle deps)",
+  },
+  "spring-boot": {
+    baseLabel: "our model provider",
+    targetLabel: "Spring Boot 3 / Spring AI (Java 21+)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256` + `java.net.http.HttpClient`, 0 Maven/Gradle deps)",
+  },
+  kotlin: {
+    baseLabel: "our model provider",
+    targetLabel: "Kotlin / Spring Boot 3 / Ktor (JVM 21+)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256` + `java.net.http.HttpClient`, 0 Gradle deps)",
   },
 };
 

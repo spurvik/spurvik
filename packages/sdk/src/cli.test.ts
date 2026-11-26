@@ -1727,5 +1727,30 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(laravelRfpJson.markdown).toContain("SpurvikGuard::sendTelemetryEvent");
     expect(laravelRfpJson.markdown.indexOf("?plan=pro")).toBeLessThan(laravelRfpJson.markdown.indexOf("signup?locale=de"));
     expect(laravelRfpJson.markdown).not.toMatch(/keine rechtsberatung/i);
+
+    const dotnetSetup = harness(failFetch);
+    expect(await runCli(["setup", "csharp", "--domain", "visma.dk", "--json"], dotnetSetup.deps)).toBe(EXIT_OK);
+    const dotnetJson = JSON.parse(dotnetSetup.out());
+    expect(dotnetJson.target).toBe("dotnet");
+    expect(dotnetJson.runtime).toBe("dotnet");
+    expect(dotnetJson.installCommand).toContain("https://spurvik.com/r/SpurvikGuard.cs");
+
+    const goSetup = harness(failFetch);
+    expect(await runCli(["setup", "golang", "--domain", "personio.de", "--json"], goSetup.deps)).toBe(EXIT_OK);
+    const goJson = JSON.parse(goSetup.out());
+    expect(goJson.target).toBe("go");
+    expect(goJson.runtime).toBe("go");
+    expect(goJson.installCommand).toContain("https://spurvik.com/r/spurvik_guard.go");
+
+    const preCommitSetup = harness(failFetch);
+    expect(await runCli(["setup", "pre-commit", "--json"], preCommitSetup.deps)).toBe(EXIT_OK);
+    const preCommitJson = JSON.parse(preCommitSetup.out());
+    expect(preCommitJson.target).toBe("pre-commit");
+    expect(preCommitJson.installCommand).toContain("https://spurvik.com/r/pre-commit-config.yaml");
+    expect(preCommitJson.snippet).toContain("spurvik-audit");
+
+    const dotnetRfp = harness(failFetch);
+    expect(await runCli(["rfp", "visma.dk", "--provider", "csharp", "--lang", "da", "--json"], dotnetRfp.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(dotnetRfp.out()).markdown).toContain("SpurvikGuard.SendTelemetryEventAsync");
   });
 });
