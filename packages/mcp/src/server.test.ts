@@ -55,9 +55,9 @@ function allText(result: Awaited<ReturnType<Client["callTool"]>>): string {
 }
 
 describe("createServer", () => {
-  it("advertises the 1.0.14 version and lists all 10 tools", async () => {
+  it("advertises the 1.0.15 version and lists all 10 tools", async () => {
     const client = await connect();
-    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.14" });
+    expect(client.getServerVersion()).toMatchObject({ name: "spurvik", version: "1.0.15" });
     expect(client.getInstructions()).toMatch(/Seven tools run locally and do not use the network/);
     expect(client.getInstructions()).toMatch(/spurvik_vendor_questionnaire_answers drafts copy-paste answers/);
     expect(client.getInstructions()).toMatch(/spurvik_scan_live_url sends one public URL to console\.spurvik\.com/);
@@ -438,7 +438,7 @@ describe("createServer", () => {
     const n8nOut = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "n8n", locale: "de" } }),
     );
-    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.14");
+    expect(n8nOut).toContain("n8n-nodes-spurvik@1.0.15");
     expect(n8nOut).toContain("/de/n8n-make-ki-verordnung-artikel-50-hmac-freigabe");
     expect(n8nOut).toContain("plan=team");
 
@@ -525,6 +525,36 @@ describe("createServer", () => {
       await pyClient.close();
     } finally {
       rmSync(pyDir, { recursive: true, force: true });
+    }
+
+    const entDir = mkdtempSync(join(tmpdir(), "spurvik-mcp-ent-test-"));
+    try {
+      writeFileSync(join(entDir, "composer.json"), '{"name":"acme/laravel-ai"}\n');
+      writeFileSync(join(entDir, "Ask.php"), "<?php\n$r = OpenAI::chat()->create(['model' => 'gpt-4o']);\n");
+      writeFileSync(join(entDir, "Ai.cs"), "var c = new ChatClient(\"gpt-4o\", key);\n");
+      writeFileSync(join(entDir, "ask.go"), "package ai\nfunc Run() { _, _ = client.CreateChatCompletion(ctx, req) }\n");
+      writeFileSync(join(entDir, "Ai.java"), "class Ai { String run(ChatClient c) { return c.prompt().call().content(); } }\n");
+      writeFileSync(join(entDir, "Guarded.cs"), "await SpurvikGuard.SendTelemetryEventAsync(opt, \"p\", \"o\");\nvar c = new ChatClient(\"gpt-4o\", key);\n");
+      const vendorDir = join(entDir, "vendor");
+      mkdirSync(vendorDir, { recursive: true });
+      writeFileSync(join(vendorDir, "Skipped.php"), "<?php\n$r = OpenAI::chat()->create([]);\n");
+
+      const entServer = createServer(entDir);
+      const [entClientTransport, entServerTransport] = InMemoryTransport.createLinkedPair();
+      const entClient = new Client({ name: "spurvik-ent-test", version: "0.0.0" });
+      await Promise.all([entServer.connect(entServerTransport), entClient.connect(entClientTransport)]);
+      const entScan = textOf(await entClient.callTool({ name: "spurvik_find_unwrapped_calls", arguments: { directory: "." } }));
+      expect(entScan).toContain("Files scanned: 5");
+      expect(entScan).toContain("Findings: 4");
+      expect(entScan).toContain("Ask.php:2 OpenAI::client() / Prism");
+      expect(entScan).toContain("Ai.cs:1 OpenAIClient / SemanticKernel");
+      expect(entScan).toContain("ask.go:2 openai.NewClient()");
+      expect(entScan).toContain("Ai.java:1 SpringAI ChatClient");
+      expect(entScan).not.toContain("Guarded.cs");
+      expect(entScan).not.toContain("Skipped.php");
+      await entClient.close();
+    } finally {
+      rmSync(entDir, { recursive: true, force: true });
     }
     await client.close();
   });
@@ -701,7 +731,7 @@ describe("createServer", () => {
     const annexDe = textOf(
       await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "art11", domain: "personio.de" } }),
     );
-    expect(annexDe).toContain("npx spurvik@1.0.17 annex-iv personio.de --use-case employment --plan team");
+    expect(annexDe).toContain("npx spurvik@1.0.18 annex-iv personio.de --use-case employment --plan team");
     expect(annexDe).toContain("https://spurvik.com/de/ki-verordnung-anhang-iv-technische-dokumentation?domain=personio.de");
 
     const wkFr = textOf(

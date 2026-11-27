@@ -1,5 +1,18 @@
 # spurvik-mcp-server
 
+## 1.0.15 — 2026-11-27
+
+Published as `spurvik-mcp-server@1.0.15`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.
+
+### Added
+
+- `spurvik_find_unwrapped_calls`: scans `.php`, `.cs`, `.go`, `.java`, and `.kt` files (in addition to JS/TS and Python) and accepts `composer.json`, `go.mod`, `pom.xml`, `build.gradle`, and `.csproj`/`.sln` workspace roots.
+- `spurvik_setup_snippet` & `spurvik_vendor_questionnaire_answers`: added `.NET / C#`, `Go`, `Spring Boot / Java / Kotlin`, `PHP / Laravel / Symfony`, `Mistral AI`, `Azure OpenAI EU`, `AWS Bedrock Frankfurt`, `Nuxt / Vue`, `SvelteKit`, `Astro`, `Matomo / Piwik PRO`, `Cookiebot / Usercentrics` CMP bypass, `GitLab CI`, `Bitbucket`, `Notion / Confluence / Vanta` Trust-Center, `pre-commit`, and `Copilot Studio / ChatGPT Actions` OpenAPI 3.0.3 targets.
+
+### Changed
+
+- Paid-first `## Next steps` ordering across stdio tools and all 8 localized RFP outputs, pinning `spurvik@1.0.18` / `spurvik-sdk@1.0.18` and `n8n-nodes-spurvik@1.0.15`.
+
 ## 1.0.12 — 2026-11-25
 
 Published as `spurvik-mcp-server@1.0.12`. Both the local stdio server and the hosted Streamable HTTP server (`https://console.spurvik.com/api/mcp`) expose all ten zero-key read-only tools.

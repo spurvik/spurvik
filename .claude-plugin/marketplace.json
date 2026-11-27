@@ -6,13 +6,13 @@
     "url": "https://spurvik.com"
   },
   "metadata": {
-    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.17) & MCP control plane (1.0.14, MIT)."
+    "description": "Claude Code plugin for the Spurvik EU AI Act SDK (EyeTea Solutions ApS, CVR 37093378). Spurvik EU AI Act SDK (1.0.18) & MCP control plane (1.0.15, MIT)."
   },
   "plugins": [
     {
       "name": "spurvik",
       "source": "./plugins/spurvik",
-      "version": "1.0.14",
+      "version": "1.0.15",
       "description": "Commands, bundled 10-tool MCP server, and 5 skills covering withSpurvik (OpenAI, Anthropic, Google GenAI), spurvikMiddleware (Vercel AI SDK), Mastra, OpenAI Agents, LangGraph, 2 Dec 2026 C2PA provenance checks, agency audits, vendor RFPs, and 9-section Annex IV drafts.",
       "author": {
         "name": "EyeTea Solutions ApS",

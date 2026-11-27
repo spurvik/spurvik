@@ -1,3 +1,7 @@
+## n8n-nodes-spurvik 1.0.15 — 2026-11-27
+
+- Paid-first link ordering across all 8 localized `vendorQuestionnaireAnswers` (`EN`, `DE`, `FR`, `NL`, `DA`, `SV`, `ES`, `IT`) outputs, `User-Agent: n8n-nodes-spurvik/1.0.15`, and `dependencies.spurvik-sdk` bumped to `^1.0.18`.
+
 ## n8n-nodes-spurvik 1.0.12 — 2026-11-25
 
 - **Scan Live Domain** (`scanDomain`): adds `reportMarkdownUrl` (`text/markdown` DPO brief), `c2paStatusShieldUrl` (2 Dec 2026 Art. 50(2) C2PA SVG shield), `trustCenterCardUrl` (460x148 SaaS Trust Center / Notion SVG readiness card), `trustWidgetScript` (`trust-widget.js` tag), `aiActManifestUrl` (`/.well-known/ai-act.json` generator), and 15-CMS `platformInstallerUrls` (`PrestaShop`, `Shopware`, `Wix`, `Squarespace`, `Magento`, `BigCommerce`, `Drupal`, `Ghost`, `HubSpot CMS` alongside `Shopify`, `WordPress`, `Google Tag Manager`, `Framer`, `Webflow`, `Next.js`).

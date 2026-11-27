@@ -18,16 +18,16 @@ Run these read-only checks from the project root (no API key or account needed):
 
 ```bash
 # 1. Find unwrapped OpenAI, Anthropic, Gemini, Vercel AI SDK & Python calls (prints file:line only, 0 source text)
-npx -y spurvik@1.0.17 audit . --json
+npx -y spurvik@1.0.18 audit . --json
 
 # 2. Run the offline 6-vector Art. 14 fail-closed human approval gate benchmark (0 network requests)
-npx -y spurvik@1.0.17 gate "yourdomain.com" --json
+npx -y spurvik@1.0.18 gate "yourdomain.com" --json
 
 # 3. Classify the system's Annex III risk area & obligations (0 network requests)
-npx -y spurvik@1.0.17 risk "yourdomain.com" --use-case "Describe what the AI system does and for whom" --json
+npx -y spurvik@1.0.18 risk "yourdomain.com" --use-case "Describe what the AI system does and for whom" --json
 
 # 4. If the product has a public URL, check visible Art. 50(1) AI interaction notices
-npx -y spurvik@1.0.17 scan "yourdomain.com" --json
+npx -y spurvik@1.0.18 scan "yourdomain.com" --json
 ```
 
 Also inspect existing runtime wiring in the repository:
@@ -44,7 +44,7 @@ Generate the structured 9-section Annex IV draft locally (0 network calls):
 # Supported --use-case: employment | credit | education | essential_services | biometrics | support_agent
 # Supported --provider: openai | anthropic | gemini | mistral | python
 # Supported --plan: team (9/9 sections preview) | free (4/9 static skeleton)
-npx -y spurvik@1.0.17 annex-iv "yourdomain.com" --use-case employment --provider openai > ANNEX_IV.md
+npx -y spurvik@1.0.18 annex-iv "yourdomain.com" --use-case employment --provider openai > ANNEX_IV.md
 ```
 
 Without Node.js 20+, fetch the same zero-key preview over HTTPS (CORS enabled, 0 cookies):

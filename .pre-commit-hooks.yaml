@@ -10,7 +10,7 @@
 - id: spurvik-audit
   name: Spurvik EU AI Act Unwrapped AI Call Audit (0 network calls, file:line only)
   description: Blocks commits introducing unwrapped OpenAI, Anthropic, Gemini, Mistral, Vercel AI SDK, LangChain, or PydanticAI model calls (Art. 12 & GDPR Art. 5(1)(c)).
-  entry: npx --yes spurvik@1.0.17 audit . --fail-on-gap
+  entry: npx --yes spurvik@1.0.18 audit . --fail-on-gap
   language: system
   pass_filenames: false
   always_run: true
@@ -19,7 +19,7 @@
 - id: spurvik-gate-test
   name: Spurvik EU AI Act Art. 14 Cryptographic Blocking Check (6 vectors, 0 network calls)
   description: Verifies all 6 deterministic Art. 14 human-oversight adversarial & approval vectors offline (`spurvik/channels` HMAC-SHA256).
-  entry: npx --yes spurvik@1.0.17 gate
+  entry: npx --yes spurvik@1.0.18 gate
   language: system
   pass_filenames: false
   always_run: true
@@ -28,7 +28,7 @@
 - id: spurvik-c2pa-check
   name: Spurvik EU AI Act Art. 50(2) C2PA Provenance Check (2 Dec 2026)
   description: Manual / pre-release check of a live HTTPS image or domain hero image for an intact C2PA JUMBF manifest (`args: ["https://yourdomain.eu/hero.webp", "--fail-on-missing"]`).
-  entry: npx --yes spurvik@1.0.17 c2pa
+  entry: npx --yes spurvik@1.0.18 c2pa
   language: system
   pass_filenames: false
   always_run: true

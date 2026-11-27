@@ -19,8 +19,8 @@ Run these before writing any answer. They need no account and no API key.
 **1. Repo audit.** From the repo root:
 
 ```bash
-npx -y spurvik@1.0.17 audit .          # unwrapped OpenAI / Anthropic / Gemini / AI SDK / Python calls as file:line
-npx -y spurvik@1.0.17 audit . --json   # the same, as JSON for the evidence ledger
+npx -y spurvik@1.0.18 audit .          # unwrapped OpenAI / Anthropic / Gemini / AI SDK / Python calls as file:line
+npx -y spurvik@1.0.18 audit . --json   # the same, as JSON for the evidence ledger
 ```
 
 It runs locally and prints only `file:line` and the provider, never source text. Then find the controls that are already wired:
@@ -34,7 +34,7 @@ git grep -nIE "contentHash|SPURVIK_CONTENT_HASH_SECRET|riskTier" -- '*.ts' '*.ts
 **2. Live site scan.** If the product has a public URL, check that visitors see the Art. 50(1) notice:
 
 ```bash
-npx -y spurvik@1.0.17 scan "app.example.com" --json
+npx -y spurvik@1.0.18 scan "app.example.com" --json
 ```
 
 The JSON has `detectedWidgets`, `covered`, `badgeSnippet` and `links.reportUrl`. The MCP tool `spurvik_scan_live_url` runs the same check. The scan reads one public page; a widget or notice that loads only after login can be missed, so say which page was scanned.
@@ -42,13 +42,13 @@ The JSON has `detectedWidgets`, `covered`, `badgeSnippet` and `links.reportUrl`.
 **3. AI image provenance.** If the product serves AI-generated images, check one delivered image URL per surface (or pass the public store/app domain to auto-discover its frontpage hero/`og:image` in 1 hop):
 
 ```bash
-npx -y spurvik@1.0.17 c2pa "app.example.com" --json --fail-on-missing
-npx -y spurvik@1.0.17 c2pa "https://app.example.com/hero.webp" --json --fail-on-missing
+npx -y spurvik@1.0.18 c2pa "app.example.com" --json --fail-on-missing
+npx -y spurvik@1.0.18 c2pa "https://app.example.com/hero.webp" --json --fail-on-missing
 ```
 
 `--fail-on-missing` exits `2` when the image has no C2PA (JUMBF) manifest or its signature does not match, including when an optimizer strips it (`/_next/image`, Shopify CDN `/cdn/shop/`, Jetpack Photon, Webflow CDN, Cloudflare `/cdn-cgi/image/`, Cloudinary, Imgix). It exits `0` when the check passes. Only pass public domains or `https://` URLs from the user's own product, quoted. Never send localhost, private IPs or signed or tokenized URLs.
 
-**4. Risk tier.** Call the MCP tool `spurvik_classify_ai_act_risk` with the owner's answers about the use case. It is on the hosted server (`https://console.spurvik.com/api/mcp`; in Claude Code: `claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp`) and the local stdio server (`npx -y spurvik-mcp-server@1.0.14`). Both servers expose the same 10 zero-key tools, including `spurvik_classify_ai_act_risk`. The result is a self-assessment; the owner confirms the tier. The dates that frame the answers:
+**4. Risk tier.** Call the MCP tool `spurvik_classify_ai_act_risk` with the owner's answers about the use case. It is on the hosted server (`https://console.spurvik.com/api/mcp`; in Claude Code: `claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp`) and the local stdio server (`npx -y spurvik-mcp-server@1.0.15`). Both servers expose the same 10 zero-key tools, including `spurvik_classify_ai_act_risk`. The result is a self-assessment; the owner confirms the tier. The dates that frame the answers:
 
 | Date | What applies |
 | --- | --- |
@@ -75,7 +75,7 @@ Most enterprise questionnaires ask these five questions in some form. Map each c
 
 **Fast draft with MCP tool #10 or the `rfp` CLI.** Run Step 1 (`audit`, `scan`, `c2pa`) and write the ledger first, even when you use a shortcut. Two shortcuts draft Q1–Q5 in one step and return the same Markdown: one section per question (Q1 to Q5), a plan summary and next steps. Neither needs an API key.
 
-- **MCP tool #10.** If the Spurvik MCP server is enabled, hosted (`https://console.spurvik.com/api/mcp`) or local (`npx -y spurvik-mcp-server@1.0.14`), call `spurvik_vendor_questionnaire_answers`. The tool itself makes no outbound network calls. Example input:
+- **MCP tool #10.** If the Spurvik MCP server is enabled, hosted (`https://console.spurvik.com/api/mcp`) or local (`npx -y spurvik-mcp-server@1.0.15`), call `spurvik_vendor_questionnaire_answers`. The tool itself makes no outbound network calls. Example input:
 
   ```json
   { "plan": "pro", "provider": "vercel-ai-sdk", "hasHighRiskActions": true, "generatesMedia": false, "domain": "app.example.com", "locale": "en" }
@@ -84,8 +84,8 @@ Most enterprise questionnaires ask these five questions in some form. Map each c
 - **`rfp` CLI, no MCP server needed.** It runs on the machine and makes no network request; npx only downloads the package.
 
   ```bash
-  npx -y spurvik@1.0.17 rfp [domain] [--lang en|de|fr|nl|da|sv|es|it] [--plan free|pro|team|concierge] [--provider <provider>] [--generates-media] [--no-high-risk-actions] [--json]
-  npx -y spurvik@1.0.17 rfp "app.example.com" --plan pro --provider vercel-ai-sdk --json
+  npx -y spurvik@1.0.18 rfp [domain] [--lang en|de|fr|nl|da|sv|es|it] [--plan free|pro|team|concierge] [--provider <provider>] [--generates-media] [--no-high-risk-actions] [--json]
+  npx -y spurvik@1.0.18 rfp "app.example.com" --plan pro --provider vercel-ai-sdk --json
   ```
 
   `--generates-media` sets `generatesMedia` to `true` and `--no-high-risk-actions` sets `hasHighRiskActions` to `false`. Without `--json` it prints the Markdown. With `--json` it returns `plan`, `provider`, `hasHighRiskActions`, `generatesMedia`, `domain`, `markdown`, `interactiveUrl`, `reportUrl` and `upgradeUrls`. An unknown `--plan`, `--provider` or `--lang` exits `2`.

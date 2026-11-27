@@ -262,7 +262,7 @@ describe("checkImageC2paUrl", () => {
     expect(init?.headers).toMatchObject({
       "Content-Type": "application/json",
       Accept: "application/json",
-      "User-Agent": "spurvik-mcp-server/1.0.14",
+      "User-Agent": "spurvik-mcp-server/1.0.15",
     });
     expect((init?.headers as Record<string, string>)["User-Agent"]).toBe(MCP_USER_AGENT);
     // FIRST_PARTY_CLIENT_USER_AGENT_RE in console-git funnel-telemetry.ts.

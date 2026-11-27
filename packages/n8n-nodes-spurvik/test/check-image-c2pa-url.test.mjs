@@ -250,7 +250,7 @@ describe("checkImageC2paUrl execute", () => {
         assert.deepEqual(init.headers, {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "User-Agent": "n8n-nodes-spurvik/1.0.14",
+          "User-Agent": "n8n-nodes-spurvik/1.0.15",
         });
         assert.equal(Object.keys(init.headers).some((key) => /authorization|cookie|api-?key/i.test(key)), false);
         assert.deepEqual(JSON.parse(init.body), { url: "https://www.stepnetwork.dk/media/hero.png" });

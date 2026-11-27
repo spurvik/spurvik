@@ -1,4 +1,4 @@
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, realpathSync } from "node:fs";
 import { homedir, tmpdir, userInfo } from "node:os";
 import path from "node:path";
 import {
@@ -366,13 +366,27 @@ export function isForbiddenRoot(real: string): boolean {
   return false;
 }
 
+function hasDotnetProjectFile(real: string): boolean {
+  try {
+    return readdirSync(real).some((name) => /\.(?:csproj|sln|slnx|fsproj)$/i.test(name));
+  } catch {
+    return false;
+  }
+}
+
 export function hasProjectMarker(real: string): boolean {
   return (
     existsSync(path.join(real, "package.json")) ||
     existsSync(path.join(real, "pyproject.toml")) ||
     existsSync(path.join(real, "requirements.txt")) ||
+    existsSync(path.join(real, "composer.json")) ||
+    existsSync(path.join(real, "go.mod")) ||
+    existsSync(path.join(real, "pom.xml")) ||
+    existsSync(path.join(real, "build.gradle")) ||
+    existsSync(path.join(real, "build.gradle.kts")) ||
     existsSync(path.join(real, ".git")) ||
-    existsSync(path.join(real, "pnpm-workspace.yaml"))
+    existsSync(path.join(real, "pnpm-workspace.yaml")) ||
+    hasDotnetProjectFile(real)
   );
 }
 

@@ -1,5 +1,19 @@
 # spurvik-sdk
 
+## 1.0.18 — 2026-11-27
+
+Published as `spurvik@1.0.18` and `spurvik-sdk@1.0.18` (same build).
+
+### Added
+
+- `spurvik audit`: scans polyglot PHP/Laravel (`.php`), C#/.NET (`.cs`), Go (`.go`), and Java/Kotlin Spring AI (`.java`, `.kt`) AI calls alongside TypeScript/JavaScript and Python, clearing once `SpurvikGuard` is wired.
+- `spurvik trust` (`trust-center` alias): zero-network 10-locale Customer Trust-Center Markdown generator (`status.svg`, `c2pa/status.svg`, `card.svg` + Cookiebot/Usercentrics consent-exempt tags).
+- `spurvik setup` & `spurvik rfp`: added `.NET / C#` (`dotnet`/`csharp`/`aspnet`/`blazor`), `Go` (`go`/`golang`), `Spring Boot / Java / Kotlin` (`spring-boot`/`java`/`kotlin`), `PHP / Laravel / Symfony`, `Mistral AI`, `Azure OpenAI EU`, `AWS Bedrock Frankfurt`, `Nuxt / Vue`, `SvelteKit`, `Astro`, `Matomo / Piwik PRO`, `Cookiebot / Usercentrics` (`cmp`), `GitLab CI`, `Bitbucket`, `pre-commit`, and `Copilot Studio / ChatGPT Actions` targets, plus `composer.json`, `.csproj`/`.sln`, `go.mod`, and `pom.xml`/`build.gradle` auto-detection.
+
+### Changed
+
+- Paid-first link ordering across all 8 localized `spurvik rfp` outputs (`EN`, `DE`, `FR`, `NL`, `DA`, `SV`, `ES`, `IT`), and `User-Agent` is now `spurvik-cli/1.0.18`.
+
 ## 1.0.15 — 2026-11-25
 
 Published as `spurvik@1.0.15` and `spurvik-sdk@1.0.15` (same build).

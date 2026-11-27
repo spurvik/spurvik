@@ -19,7 +19,7 @@ Ask for 1 to 10 public domains or `https://` URLs, one per client. Remove duplic
 **Preferred: the `spurvik_batch_scan_domains` MCP tool** (no API key). It scans up to 10 domains in parallel and returns one row per host, each host's report link and status shield Markdown, and a one-line `badge.js` fix in the site's language for each gap.
 
 - Remote: `https://console.spurvik.com/api/mcp` (in Claude Code: `claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp`).
-- Local: `npx -y spurvik-mcp-server@1.0.14`.
+- Local: `npx -y spurvik-mcp-server@1.0.15`.
 
 Both servers expose the same 10 zero-key tools, including `spurvik_batch_scan_domains`.
 
@@ -47,16 +47,16 @@ Returns `summary`, `results` (per-domain `detectedWidgets`, `detectedPlatforms`,
 
 ```bash
 # Single-command multi-domain batch scan (2–10 public domains at once, 4 in flight):
-npx -y spurvik@1.0.17 scan client1.eu client2.fr client3.se --json
+npx -y spurvik@1.0.18 scan client1.eu client2.fr client3.se --json
 
 # Or loop through a clients.txt file (one lowercase domain per line):
 while IFS= read -r d; do
   case "$d" in (""|*[!a-z0-9.-]*) echo "skipped: $d"; continue;; esac
-  npx -y spurvik@1.0.17 scan "$d" --json > "scan-$d.json"
+  npx -y spurvik@1.0.18 scan "$d" --json > "scan-$d.json"
 done < clients.txt
 ```
 
-Each JSON row from `spurvik_batch_scan_domains`, `spurvik_scan_live_url` and `npx -y spurvik@1.0.17 scan --json` includes `detectedWidgets`, `detectedPlatforms` (15 CMS/commerce stacks: `Shopify`, `WordPress`, `PrestaShop`, `Shopware`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`, `Wix`, `Squarespace`, `Drupal`, `Ghost`, `HubSpot CMS`, `Magento`, `BigCommerce`), `platformInstallerUrls` (`shopifyLiquid`, `wordpressPluginZip`, `prestashopModuleZip`, `shopwareExtensionZip`, `gtmContainerJson`, `framerComponentTsx`, `webflowGuide`, `nextjsShadcnRegistry`, `wixGuide`, `squarespaceGuide`, `drupalGuide`, `ghostGuide`, `hubspotCmsGuide`, `magentoGuide`, `bigcommerceGuide`), optional `heroImageProxy` (`{ name, fix, c2paCheckUrl }` when the frontpage hero image runs through a C2PA-stripping CDN ahead of 2 December 2026 Art. 50(2)), `badgeSnippet` and `reportUrl`; `spurvik_scan_live_url` and `npx -y spurvik@1.0.17 scan --json` also include `reportMarkdownUrl`, `trustCenterCardUrl`, `aiActManifestUrl` (`/.well-known/ai-act.json` generator) and `trustWidgetScript` (`trust-widget.js` tag). The status shield Markdown for any domain is:
+Each JSON row from `spurvik_batch_scan_domains`, `spurvik_scan_live_url` and `npx -y spurvik@1.0.18 scan --json` includes `detectedWidgets`, `detectedPlatforms` (15 CMS/commerce stacks: `Shopify`, `WordPress`, `PrestaShop`, `Shopware`, `Google Tag Manager`, `Webflow`, `Framer`, `Next.js`, `Wix`, `Squarespace`, `Drupal`, `Ghost`, `HubSpot CMS`, `Magento`, `BigCommerce`), `platformInstallerUrls` (`shopifyLiquid`, `wordpressPluginZip`, `prestashopModuleZip`, `shopwareExtensionZip`, `gtmContainerJson`, `framerComponentTsx`, `webflowGuide`, `nextjsShadcnRegistry`, `wixGuide`, `squarespaceGuide`, `drupalGuide`, `ghostGuide`, `hubspotCmsGuide`, `magentoGuide`, `bigcommerceGuide`), optional `heroImageProxy` (`{ name, fix, c2paCheckUrl }` when the frontpage hero image runs through a C2PA-stripping CDN ahead of 2 December 2026 Art. 50(2)), `badgeSnippet` and `reportUrl`; `spurvik_scan_live_url` and `npx -y spurvik@1.0.18 scan --json` also include `reportMarkdownUrl`, `trustCenterCardUrl`, `aiActManifestUrl` (`/.well-known/ai-act.json` generator) and `trustWidgetScript` (`trust-widget.js` tag). The status shield Markdown for any domain is:
 
 ```md
 [![EU AI Act Art. 50](https://console.spurvik.com/api/v1/badge/status.svg?domain=<domain>)](https://console.spurvik.com/report?domain=<domain>)
@@ -111,6 +111,6 @@ Prices are excl. VAT, B2B.
 
 1. Every client has a row with a report link and a status shield.
 2. Every gap row has one install that matches its platform.
-3. After an install goes live, scan that domain again: the gap is "No". In CI, `npx -y spurvik@1.0.17 scan <domain> --fail-on-gap` exits 0.
+3. After an install goes live, scan that domain again: the gap is "No". In CI, `npx -y spurvik@1.0.18 scan <domain> --fail-on-gap` exits 0.
 
 <sub>Scope: heuristic check of one public page per domain; it does not classify a client's use case or make a site meet the EU AI Act. Not legal advice.</sub>

@@ -10,7 +10,7 @@
 import { detectImageProxy, normalizeC2paImageUrl } from "./check-image-c2pa-url";
 
 /** Package version, sent in the User-Agent. A test pins it to package.json. */
-export const N8N_NODES_SPURVIK_VERSION = "1.0.14";
+export const N8N_NODES_SPURVIK_VERSION = "1.0.15";
 /**
  * First-party client User-Agent, sent on every console request (scan, C2PA check, console sync).
  * Recognised by the console's `FIRST_PARTY_CLIENT_USER_AGENT_RE`.

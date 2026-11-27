@@ -1,12 +1,12 @@
 # Mastra & OpenAI Agents SDK — Adapter Quick-Cards
 
-> Applies to `spurvik@1.0.17`.
+> Applies to `spurvik@1.0.18`.
 >
-> **Status.** Public MIT packages: `spurvik@1.0.17` and `spurvik-sdk@1.0.17` (same build) from https://github.com/spurvik/spurvik.
+> **Status.** Public MIT packages: `spurvik@1.0.18` and `spurvik-sdk@1.0.18` (same build) from https://github.com/spurvik/spurvik.
 >
 > **Scope.** Designed to support Article 50(1) AI-interaction notices and, for high-risk AI systems, Article 12 record-keeping and Article 14 human oversight. Its provenance record supports, but does not replace, Article 50(2) machine-readable marking. This is not legal advice.
 >
-> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.17`, `spurvik-sdk@1.0.17`, `spurvik-mcp-server@1.0.14`.*
+> *Source: https://github.com/spurvik/spurvik. npm: `spurvik@1.0.18`, `spurvik-sdk@1.0.18`, `spurvik-mcp-server@1.0.15`.*
 
 ---
 

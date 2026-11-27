@@ -8,7 +8,7 @@ describe("version", () => {
 
   it("MCP_VERSION matches packages/mcp/package.json", () => {
     expect(MCP_VERSION).toBe(pkg.version);
-    expect(MCP_VERSION).toBe("1.0.14");
+    expect(MCP_VERSION).toBe("1.0.15");
   });
 
   it("the User-Agent and serverInfo carry the same version", () => {

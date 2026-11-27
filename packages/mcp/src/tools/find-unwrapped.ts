@@ -19,7 +19,22 @@ import { validateWorkspaceRoot, WorkspacePathError } from "../root.js";
 
 export { DIRECTORY_FIELD, FIND_DESCRIPTION, PATH_OUTSIDE, PATH_TRAVERSAL, WorkspacePathError };
 
-const SOURCE_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".py"]);
+const SOURCE_EXT = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+  ".py",
+  ".php",
+  ".cs",
+  ".go",
+  ".java",
+  ".kt",
+]);
 const EXCLUDED_DIRS = new Set([
   "node_modules",
   ".git",
@@ -31,6 +46,10 @@ const EXCLUDED_DIRS = new Set([
   "__pycache__",
   ".pytest_cache",
   ".mypy_cache",
+  "vendor",
+  "bin",
+  "obj",
+  "target",
 ]);
 export const DEFAULT_MAX_FILES = 4_000;
 export const DEFAULT_MAX_FINDINGS = 200;
@@ -753,6 +772,71 @@ export function findUnwrappedPythonInSource(
   return findings;
 }
 
+export type EnterpriseScanLanguage = "php" | "dotnet" | "go" | "jvm";
+
+const ENTERPRISE_AI_PATTERNS: ReadonlyArray<{ lang: EnterpriseScanLanguage; re: RegExp; call: string }> = [
+  {
+    lang: "php",
+    re: /\bOpenAI::(?:client|chat|responses|completions)\s*\(|\bPrism::(?:text|structured|embeddings)\s*\(|\bnew\s+\\?OpenAI\\Client\b|\bAnthropic::(?:client|messages)\s*\(/,
+    call: "OpenAI::client() / Prism",
+  },
+  {
+    lang: "dotnet",
+    re: /\bnew\s+(?:Azure)?OpenAIClient\s*\(|\bnew\s+ChatClient\s*\(|\bAdd(?:Azure)?OpenAIChatCompletion\s*\(|\bCompleteChat(?:Streaming)?Async\s*\(|\bGetChatMessageContents?Async\s*\(/,
+    call: "OpenAIClient / SemanticKernel",
+  },
+  {
+    lang: "go",
+    re: /\bopenai\.NewClient\s*\(|\banthropic\.NewClient\s*\(|\bbedrockruntime\.NewFromConfig\s*\(|\bCreateChatCompletion(?:Stream)?\s*\(|\bChat\.Completions\.New\s*\(|\bMessages\.New\s*\(/,
+    call: "openai.NewClient()",
+  },
+  {
+    lang: "jvm",
+    re: /\bChatClient\.builder\s*\(|\bOpenAiChatModel\b|\bOpenAIClientBuilder\s*\(|\.\s*prompt\s*\([^)]*\)\s*\.(?:.*\.)?call\s*\(/,
+    call: "SpringAI ChatClient",
+  },
+];
+
+function enterpriseLangForExtension(ext: string): EnterpriseScanLanguage | null {
+  const lower = ext.toLowerCase();
+  if (lower === ".php") return "php";
+  if (lower === ".cs") return "dotnet";
+  if (lower === ".go") return "go";
+  if (lower === ".java" || lower === ".kt") return "jvm";
+  return null;
+}
+
+export function findUnwrappedEnterpriseInSource(
+  source: string,
+  ext: string,
+  control?: MatchControl,
+): Array<{ line: number; call: string }> {
+  const lang = enterpriseLangForExtension(ext);
+  if (!lang) return [];
+  if (/\bSpurvikGuard\b|\bspurvikguard\b|\bSpurvikTelemetry\b|\bspurvik_guard\b/i.test(source)) {
+    return [];
+  }
+  const findings: Array<{ line: number; call: string }> = [];
+  const lines = source.split("\n");
+  for (let idx = 0; idx < lines.length; idx += 1) {
+    if (idx > 0 && idx % 128 === 0 && control?.shouldStop?.()) {
+      if (control.stopped) control.stopped.value = true;
+      break;
+    }
+    const line = lines[idx] ?? "";
+    const trimmed = line.trimStart();
+    if (trimmed.startsWith("//") || trimmed.startsWith("#") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
+      continue;
+    }
+    for (const pattern of ENTERPRISE_AI_PATTERNS) {
+      if (pattern.lang === lang && pattern.re.test(line)) {
+        findings.push({ line: idx + 1, call: pattern.call });
+      }
+    }
+  }
+  return findings;
+}
+
 function toPosix(relative: string): string {
   return relative.split(path.sep).join("/");
 }
@@ -933,10 +1017,13 @@ export function scanForUnwrappedCalls(workspaceRoot: string, directory: string, 
       if (text.includes("\0")) continue;
       filesScanned += 1;
       const relative = toPosix(path.relative(root, real));
+      const extLower = extension.toLowerCase();
       const found =
-        extension === ".py"
+        extLower === ".py"
           ? findUnwrappedPythonInSource(text, relative, { shouldStop: stopForTime })
-          : findUnwrappedInSource(text, { shouldStop: stopForTime });
+          : enterpriseLangForExtension(extLower)
+            ? findUnwrappedEnterpriseInSource(text, extLower, { shouldStop: stopForTime })
+            : findUnwrappedInSource(text, { shouldStop: stopForTime });
       for (const finding of found) {
         findings.push({ file: relative, line: finding.line, call: finding.call });
         if (findings.length >= maxFindings) {

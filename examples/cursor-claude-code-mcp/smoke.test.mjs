@@ -11,18 +11,18 @@ const root = join(here, "..", "..");
 const serverBin = join(root, "plugins", "spurvik", "bin", "spurvik-mcp.mjs");
 const { withSpurvik, provenanceOf } = await import(join(root, "packages/spurvik/dist/index.js"));
 
-test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.14", () => {
+test("MCP config files (Cursor, Claude Code, VS Code) are valid JSON targeting spurvik-mcp-server@1.0.15", () => {
   const cursorCfg = JSON.parse(readFileSync(join(here, "cursor.mcp.json"), "utf8"));
   assert.equal(cursorCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.14"));
+  assert.ok(cursorCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.15"));
 
   const claudeCfg = JSON.parse(readFileSync(join(here, "claude-code.mcp.json"), "utf8"));
   assert.equal(claudeCfg.mcpServers.spurvik.command, "npx");
-  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.14"));
+  assert.ok(claudeCfg.mcpServers.spurvik.args.includes("spurvik-mcp-server@1.0.15"));
 
   const vscodeCfg = JSON.parse(readFileSync(join(here, "vscode.mcp.json"), "utf8"));
   assert.equal(vscodeCfg.servers.spurvik.command, "npx");
-  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.14"));
+  assert.ok(vscodeCfg.servers.spurvik.args.includes("spurvik-mcp-server@1.0.15"));
 });
 
 test("Stdio MCP server exposes all 10 read-only tools and executes the core tools over JSON-RPC", async () => {
@@ -121,7 +121,8 @@ test("Stdio MCP server exposes all 10 read-only tools and executes the core tool
     const snippetRes = await waitId(3);
     const snippetText = snippetRes?.result?.content?.[0]?.text ?? "";
     assert.ok(snippetText.includes("withSpurvikLangGraph"));
-    assert.ok(snippetText.includes("## Next steps\n- Mint a Free SPURVIK_API_KEY in 10s"));
+    assert.ok(snippetText.includes("## Next steps\n- White-label Art. 50 badge + 90-day Frankfurt vault"));
+    assert.ok(snippetText.includes("- Mint a Free SPURVIK_API_KEY in 10s"));
 
     // 2. spurvik_find_unwrapped_calls
     send({

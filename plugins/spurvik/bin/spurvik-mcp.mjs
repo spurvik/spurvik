@@ -1,4 +1,4 @@
-/* Local stdio server for the Spurvik Claude Code plugin (1.0.14, MIT). */
+/* Local stdio server for the Spurvik Claude Code plugin (1.0.15, MIT). */
 
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -13491,7 +13491,7 @@ var StdioServerTransport = class {
 };
 
 // packages/mcp/src/root.ts
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, realpathSync } from "node:fs";
 import { homedir, tmpdir, userInfo } from "node:os";
 import path from "node:path";
 
@@ -13848,8 +13848,15 @@ function isForbiddenRoot(real) {
   }
   return false;
 }
+function hasDotnetProjectFile(real) {
+  try {
+    return readdirSync(real).some((name) => /\.(?:csproj|sln|slnx|fsproj)$/i.test(name));
+  } catch {
+    return false;
+  }
+}
 function hasProjectMarker(real) {
-  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, "pyproject.toml")) || existsSync(path.join(real, "requirements.txt")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml"));
+  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, "pyproject.toml")) || existsSync(path.join(real, "requirements.txt")) || existsSync(path.join(real, "composer.json")) || existsSync(path.join(real, "go.mod")) || existsSync(path.join(real, "pom.xml")) || existsSync(path.join(real, "build.gradle")) || existsSync(path.join(real, "build.gradle.kts")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml")) || hasDotnetProjectFile(real);
 }
 function validateWorkspaceRoot(requested) {
   const trimmed = requested.trim();
@@ -22353,7 +22360,7 @@ ${tag}` : tag;
 }
 
 // packages/mcp/src/version.ts
-var MCP_VERSION = "1.0.14";
+var MCP_VERSION = "1.0.15";
 var MCP_USER_AGENT = `spurvik-mcp-server/${MCP_VERSION}`;
 
 // packages/mcp/src/tools/check-image-c2pa-url.ts
@@ -24463,7 +24470,22 @@ async function explainReceiptBody(receiptJson, signingSecret, secrets) {
 // packages/mcp/src/tools/find-unwrapped.ts
 import * as fs from "node:fs";
 import path2 from "node:path";
-var SOURCE_EXT = /* @__PURE__ */ new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".py"]);
+var SOURCE_EXT = /* @__PURE__ */ new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+  ".py",
+  ".php",
+  ".cs",
+  ".go",
+  ".java",
+  ".kt"
+]);
 var EXCLUDED_DIRS = /* @__PURE__ */ new Set([
   "node_modules",
   ".git",
@@ -24474,7 +24496,11 @@ var EXCLUDED_DIRS = /* @__PURE__ */ new Set([
   "venv",
   "__pycache__",
   ".pytest_cache",
-  ".mypy_cache"
+  ".mypy_cache",
+  "vendor",
+  "bin",
+  "obj",
+  "target"
 ]);
 var DEFAULT_MAX_FILES = 4e3;
 var DEFAULT_MAX_FINDINGS = 200;
@@ -25037,6 +25063,62 @@ function findUnwrappedPythonInSource(source, pathHint, control) {
   }
   return findings;
 }
+var ENTERPRISE_AI_PATTERNS = [
+  {
+    lang: "php",
+    re: /\bOpenAI::(?:client|chat|responses|completions)\s*\(|\bPrism::(?:text|structured|embeddings)\s*\(|\bnew\s+\\?OpenAI\\Client\b|\bAnthropic::(?:client|messages)\s*\(/,
+    call: "OpenAI::client() / Prism"
+  },
+  {
+    lang: "dotnet",
+    re: /\bnew\s+(?:Azure)?OpenAIClient\s*\(|\bnew\s+ChatClient\s*\(|\bAdd(?:Azure)?OpenAIChatCompletion\s*\(|\bCompleteChat(?:Streaming)?Async\s*\(|\bGetChatMessageContents?Async\s*\(/,
+    call: "OpenAIClient / SemanticKernel"
+  },
+  {
+    lang: "go",
+    re: /\bopenai\.NewClient\s*\(|\banthropic\.NewClient\s*\(|\bbedrockruntime\.NewFromConfig\s*\(|\bCreateChatCompletion(?:Stream)?\s*\(|\bChat\.Completions\.New\s*\(|\bMessages\.New\s*\(/,
+    call: "openai.NewClient()"
+  },
+  {
+    lang: "jvm",
+    re: /\bChatClient\.builder\s*\(|\bOpenAiChatModel\b|\bOpenAIClientBuilder\s*\(|\.\s*prompt\s*\([^)]*\)\s*\.(?:.*\.)?call\s*\(/,
+    call: "SpringAI ChatClient"
+  }
+];
+function enterpriseLangForExtension(ext) {
+  const lower = ext.toLowerCase();
+  if (lower === ".php") return "php";
+  if (lower === ".cs") return "dotnet";
+  if (lower === ".go") return "go";
+  if (lower === ".java" || lower === ".kt") return "jvm";
+  return null;
+}
+function findUnwrappedEnterpriseInSource(source, ext, control) {
+  const lang = enterpriseLangForExtension(ext);
+  if (!lang) return [];
+  if (/\bSpurvikGuard\b|\bspurvikguard\b|\bSpurvikTelemetry\b|\bspurvik_guard\b/i.test(source)) {
+    return [];
+  }
+  const findings = [];
+  const lines = source.split("\n");
+  for (let idx = 0; idx < lines.length; idx += 1) {
+    if (idx > 0 && idx % 128 === 0 && control?.shouldStop?.()) {
+      if (control.stopped) control.stopped.value = true;
+      break;
+    }
+    const line = lines[idx] ?? "";
+    const trimmed = line.trimStart();
+    if (trimmed.startsWith("//") || trimmed.startsWith("#") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
+      continue;
+    }
+    for (const pattern of ENTERPRISE_AI_PATTERNS) {
+      if (pattern.lang === lang && pattern.re.test(line)) {
+        findings.push({ line: idx + 1, call: pattern.call });
+      }
+    }
+  }
+  return findings;
+}
 function toPosix(relative) {
   return relative.split(path2.sep).join("/");
 }
@@ -25212,7 +25294,8 @@ function scanForUnwrappedCalls(workspaceRoot, directory, options) {
       if (text2.includes("\0")) continue;
       filesScanned += 1;
       const relative = toPosix(path2.relative(root, real));
-      const found = extension === ".py" ? findUnwrappedPythonInSource(text2, relative, { shouldStop: stopForTime }) : findUnwrappedInSource(text2, { shouldStop: stopForTime });
+      const extLower = extension.toLowerCase();
+      const found = extLower === ".py" ? findUnwrappedPythonInSource(text2, relative, { shouldStop: stopForTime }) : enterpriseLangForExtension(extLower) ? findUnwrappedEnterpriseInSource(text2, extLower, { shouldStop: stopForTime }) : findUnwrappedInSource(text2, { shouldStop: stopForTime });
       for (const finding of found) {
         findings.push({ file: relative, line: finding.line, call: finding.call });
         if (findings.length >= maxFindings) {
@@ -28989,6 +29072,15 @@ var SETUP_FRAMEWORK_ALIASES = {
   lovable: "openai",
   supabase: "openai",
   "supabase-edge": "openai",
+  nuxt: "openai",
+  nuxt3: "openai",
+  nuxt4: "openai",
+  vue: "openai",
+  vue3: "openai",
+  svelte: "openai",
+  svelte5: "openai",
+  sveltekit: "openai",
+  astro: "openai",
   django: "python",
   flask: "python",
   woocommerce: "wordpress",
@@ -29069,8 +29161,97 @@ var SETUP_FRAMEWORK_ALIASES = {
   teams: "langgraph",
   "microsoft-teams": "langgraph",
   approval: "langgraph",
-  "human-in-the-loop": "langgraph"
+  "human-in-the-loop": "langgraph",
+  php: "openai",
+  laravel: "openai",
+  laravel11: "openai",
+  laravel12: "openai",
+  symfony: "openai",
+  symfony6: "openai",
+  symfony7: "openai",
+  typo3: "openai",
+  composer: "openai",
+  mistral: "vercel-ai-sdk",
+  mistralai: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  "la-plateforme": "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  azure_openai: "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  "amazon-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  "open-webui": "openai",
+  vllm: "openai",
+  matomo: "gtm",
+  "matomo-tag-manager": "gtm",
+  "piwik-pro": "gtm",
+  piwik: "gtm",
+  dotnet: "openai",
+  csharp: "openai",
+  "c#": "openai",
+  aspnet: "openai",
+  "asp.net": "openai",
+  blazor: "openai",
+  dotnet8: "openai",
+  dotnet9: "openai",
+  "semantic-kernel": "openai",
+  go: "openai",
+  golang: "openai",
+  gin: "openai",
+  echo: "openai",
+  fiber: "openai",
+  chi: "openai",
+  langchaingo: "openai",
+  "spring-boot": "openai",
+  java: "openai",
+  spring: "openai",
+  springboot: "openai",
+  "spring-ai": "openai",
+  kotlin: "openai",
+  ktor: "openai",
+  quarkus: "openai",
+  "pre-commit": "ci",
+  precommit: "ci",
+  husky: "ci",
+  "git-hooks": "ci",
+  lefthook: "ci"
 };
+var PHP_RAW_ALIASES = /* @__PURE__ */ new Set([
+  "php",
+  "laravel",
+  "laravel11",
+  "laravel12",
+  "symfony",
+  "symfony6",
+  "symfony7",
+  "typo3",
+  "composer"
+]);
+var DOTNET_RAW_ALIASES = /* @__PURE__ */ new Set([
+  "dotnet",
+  "csharp",
+  "c#",
+  "aspnet",
+  "asp.net",
+  "blazor",
+  "dotnet8",
+  "dotnet9",
+  "semantic-kernel"
+]);
+var GO_RAW_ALIASES = /* @__PURE__ */ new Set(["go", "golang", "gin", "echo", "fiber", "chi", "langchaingo"]);
+var JVM_RAW_ALIASES = /* @__PURE__ */ new Set([
+  "spring-boot",
+  "java",
+  "spring",
+  "springboot",
+  "spring-ai",
+  "kotlin",
+  "ktor",
+  "quarkus"
+]);
 var SUPPORT_WIDGET_ALIASES = /* @__PURE__ */ new Set([
   "intercom",
   "intercom-fin",
@@ -29188,7 +29369,7 @@ function nodeShutdown(expr) {
   void boundedFlush(${expr}).finally(() => process.exit(0));
 });`;
 }
-var SNIPPET_SDK_VERSION = "1.0.17";
+var SNIPPET_SDK_VERSION = "1.0.18";
 function header() {
   return [
     "// The SDK logs the call and attaches an HMAC receipt. It does not mark content.",
@@ -29632,7 +29813,7 @@ function cmsSource(framework, host = null, locale = "en") {
   if (framework === "annex-iv") {
     const targetHost = host ?? "yourdomain.com";
     return [
-      `npx spurvik@1.0.17 annex-iv ${targetHost} --use-case employment --plan team > ANNEX_IV.md`,
+      `npx spurvik@1.0.18 annex-iv ${targetHost} --use-case employment --plan team > ANNEX_IV.md`,
       `curl -fsSL "https://console.spurvik.com/api/v1/annex-iv/preview?domain=${encodeURIComponent(targetHost)}&useCase=employment&tier=team&format=markdown" -o ANNEX_IV_${targetHost}.md`
     ].join("\n") + "\n";
   }
@@ -29662,6 +29843,11 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "# Claude Code (hosted HTTP MCP, all 10 zero-key tools + 5 agent skills incl. eu-ai-act-annex-iv-technical-file):",
       "claude mcp add --transport http spurvik https://console.spurvik.com/api/mcp",
       "npx skills add spurvik/skills",
+      "# 1-command .mcp.json (Claude Code / Cursor) & .vscode/mcp.json (VS Code / Copilot Agent Mode):",
+      "curl -fsSL https://spurvik.com/r/mcp.json -o .mcp.json",
+      "mkdir -p .vscode && curl -fsSL https://spurvik.com/r/vscode-mcp.json -o .vscode/mcp.json",
+      "# 1-Click Cursor URI: cursor://anysphere.cursor-deeplink/mcp/install?name=spurvik&config=eyJ1cmwiOiJodHRwczovL2NvbnNvbGUuc3B1cnZpay5jb20vYXBpL21jcCJ9",
+      "# 1-Click VS Code URI: vscode:mcp/install?%7B%22name%22%3A%22spurvik%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fconsole.spurvik.com%2Fapi%2Fmcp%22%7D",
       "# Zero-auth OpenAPI 3.0.3 Action schema for ChatGPT Custom GPTs, Microsoft Copilot Studio, Dust.tt & Dify (Authentication: None):",
       "curl -fsSL https://console.spurvik.com/openapi-actions.json -o spurvik-openapi-actions-3.0.json",
       "",
@@ -29676,6 +29862,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
       "curl -fsSL https://spurvik.com/r/gitlab-ci-spurvik-check.yml -o .gitlab-ci.yml",
       "curl -fsSL https://spurvik.com/r/bitbucket-pipelines-spurvik.yml -o bitbucket-pipelines.yml",
+      "curl -fsSL https://spurvik.com/r/pre-commit-config.yaml -o .pre-commit-config.yaml && pre-commit install",
       `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
       `# Or in .gitlab-ci.yml: include: [{ remote: "https://spurvik.com/r/gitlab-ci-spurvik-check.yml" }]`,
       ""
@@ -29684,7 +29871,7 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   if (isWorkflowFramework(framework)) {
     return [
       "# Self-hosted n8n community node (9 operations incl. 6 zero-key) & Make.com HTTP blueprint:",
-      "npm install n8n-nodes-spurvik@1.0.14",
+      "npm install n8n-nodes-spurvik@1.0.15",
       "curl -fsSLO https://spurvik.com/r/n8n-zero-key-audit-rfp-annex-iv.json",
       "curl -fsSLO https://spurvik.com/r/n8n-art50-starter.json",
       "curl -fsSLO https://spurvik.com/r/make-com-spurvik-blueprint.json",
@@ -29693,12 +29880,94 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   }
   if (isCmsFramework(framework)) return cmsSource(framework, host, locale);
   if (isPythonVariant(framework, runtime)) return pythonSource(framework);
+  const rawLowerSrc = frameworkInput.trim().toLowerCase();
+  if (PHP_RAW_ALIASES.has(rawLowerSrc)) {
+    const savePath = rawLowerSrc.startsWith("symfony") ? "src/Service/SpurvikGuard.php" : "app/Services/SpurvikGuard.php";
+    const sysName = host || "Support AI";
+    return [
+      `<?php`,
+      `// 1) curl -fsSL https://spurvik.com/r/spurvik_guard.php -o ${savePath}`,
+      `require_once __DIR__ . '/SpurvikGuard.php';`,
+      "",
+      `$t0 = hrtime(true);`,
+      `$reply = $aiClient->chat($prompt);`,
+      `\\SpurvikGuard::sendTelemetryEvent($prompt, $reply, 'openai', 'gpt-4o-mini', (int) ((hrtime(true) - $t0) / 1_000_000));`,
+      `// 2) Blade / Twig 24-language Art. 50(1) notice (0 cookies, Cookiebot & Usercentrics exempt):`,
+      `// echo \\SpurvikGuard::art50BadgeHtml('${sysName}', '${locale}', 'interaction', 'bottom-left', false);`,
+      ""
+    ].join("\n");
+  }
+  if (DOTNET_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// 1) mkdir -p Services && curl -fsSL https://spurvik.com/r/SpurvikGuard.cs -o Services/SpurvikGuard.cs",
+      "using Spurvik;",
+      "",
+      "var sw = System.Diagnostics.Stopwatch.StartNew();",
+      "string reply = await chatClient.CompleteAsync(prompt);",
+      'await SpurvikGuard.SendTelemetryEventAsync(prompt, reply, "azure-openai", "gpt-4o-eu", (int)sw.ElapsedMilliseconds);',
+      `// 2) Razor / Blazor 24-language Art. 50(1) notice (0 cookies): @Html.Raw(SpurvikGuard.Art50BadgeHtml("${sysName}", "${locale}", "interaction", "bottom-left", false))`,
+      ""
+    ].join("\n");
+  }
+  if (GO_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// 1) mkdir -p internal/spurvikguard && curl -fsSL https://spurvik.com/r/spurvik_guard.go -o internal/spurvikguard/spurvik_guard.go",
+      'import "yourmodule/internal/spurvikguard"',
+      "",
+      "t0 := time.Now()",
+      "reply, err := aiClient.Chat(ctx, prompt)",
+      '_, _ = spurvikguard.SendTelemetryEvent(ctx, prompt, reply, "openai", "gpt-4o-mini", int(time.Since(t0).Milliseconds()), "", "", "")',
+      `// 2) 24-language Art. 50(1) notice (0 cookies): spurvikguard.Art50BadgeHTML("${sysName}", "${locale}", "interaction", "bottom-left", false)`,
+      ""
+    ].join("\n");
+  }
+  if (JVM_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    return [
+      "// Java 21+ / Spring Boot 3 / Spring AI (0 Maven/Gradle dependencies — javax.crypto.Mac + java.net.http.HttpClient):",
+      "// Post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
+      `// Frontend Thymeleaf / JSP / React (0 cookies): <script src="https://spurvik.com/badge.js" data-system="${sysName}" data-locale="${locale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+      ""
+    ].join("\n");
+  }
   const tsRuntime = runtime;
-  if (framework === "vercel-ai-sdk") return middlewareSource(tsRuntime);
+  if (framework === "vercel-ai-sdk") {
+    const baseMw = middlewareSource(tsRuntime);
+    if (rawLowerSrc === "mistral" || rawLowerSrc === "mistralai" || rawLowerSrc === "mistral-ai" || rawLowerSrc === "la-plateforme") {
+      return baseMw.replace('import { openai } from "@ai-sdk/openai";', 'import { mistral } from "@ai-sdk/mistral";').replace('openai("gpt-4o")', 'mistral("mistral-large-latest")');
+    }
+    if (rawLowerSrc === "azure-openai" || rawLowerSrc === "azure" || rawLowerSrc === "azure_openai") {
+      return baseMw.replace('import { openai } from "@ai-sdk/openai";', 'import { createAzure } from "@ai-sdk/azure";\nconst azureEu = createAzure({ resourceName: process.env.AZURE_RESOURCE_NAME!, apiKey: process.env.AZURE_API_KEY! });').replace('openai("gpt-4o")', 'azureEu("gpt-4o-eu")');
+    }
+    if (rawLowerSrc === "bedrock" || rawLowerSrc === "aws-bedrock" || rawLowerSrc === "amazon-bedrock") {
+      return baseMw.replace('import { openai } from "@ai-sdk/openai";', 'import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";\nconst bedrockEu = createAmazonBedrock({ region: "eu-central-1" });').replace('openai("gpt-4o")', 'bedrockEu("eu.anthropic.claude-3-7-sonnet-20250219-v1:0")');
+    }
+    return baseMw;
+  }
   if (framework === "mastra") return mastraSource(tsRuntime);
   if (framework === "openai-agents") return agentsSource(tsRuntime);
   if (framework === "langgraph") return langgraphSource(tsRuntime);
   const base = providerSource(framework, tsRuntime);
+  if (rawLowerSrc === "litellm" || rawLowerSrc === "ollama" || rawLowerSrc === "open-webui" || rawLowerSrc === "vllm") {
+    return base.replace("new OpenAI()", 'new OpenAI({ baseURL: process.env.LITELLM_BASE_URL ?? "http://localhost:4000/v1", apiKey: process.env.LITELLM_API_KEY! })');
+  }
+  if (rawLowerSrc === "nuxt" || rawLowerSrc === "nuxt3" || rawLowerSrc === "nuxt4" || rawLowerSrc === "vue" || rawLowerSrc === "vue3") {
+    return `${base}
+// Nuxt 3/4 nuxt.config.ts (app.head.script, 0 cookies, Cookiebot/Usercentrics exempt): { src: "https://spurvik.com/badge.js", defer: true, "data-locale": "${locale}", "data-cookieconsent": "ignore", "data-uc-allowed": "true" }
+`;
+  }
+  if (rawLowerSrc === "svelte" || rawLowerSrc === "svelte5" || rawLowerSrc === "sveltekit") {
+    return `${base}
+// SvelteKit src/routes/+layout.svelte (<svelte:head>, 0 cookies): <script src="https://spurvik.com/badge.js" data-locale="${locale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>
+`;
+  }
+  if (rawLowerSrc === "astro") {
+    return `${base}
+// Astro src/layouts/Layout.astro (0 cookies): <script is:inline src="https://spurvik.com/badge.js" data-locale="${locale}" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>
+`;
+  }
   if (resolved.isLovableAlias) {
     return `${base}
 // Frontend (React): render <AIDisclosureLabel notice="interaction" locale="${locale}" /> from "spurvik/react" above chat messages.
@@ -29724,7 +29993,7 @@ function setupSnippet(frameworkInput, runtimeInput, options = {}) {
     const guideHref = mcpCockpitUrlFor(host, effectiveLocale);
     const ideLines = [
       `Framework: ${framework}. Runtime: Cursor, Claude Code, VS Code MCP & GitHub Actions PR-Gate (10 zero-key tools, MIT).`,
-      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.14\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
+      `Connect the hosted 10-tool MCP server (\`https://console.spurvik.com/api/mcp\`) or local stdio (\`spurvik-mcp-server@1.0.15\`), and drop the PR-gate workflow into \`.github/workflows/spurvik-check.yml\` so unwrapped TypeScript/JS & Python (\`.py\`) AI calls fail CI before merge. ${DOES_NOT_MARK}`,
       `Interactive MCP & GitHub Actions cockpit: ${guideHref}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
@@ -29814,6 +30083,74 @@ ${source}\`\`\`
 `;
   }
   const rawLower = frameworkInput.trim().toLowerCase();
+  if (PHP_RAW_ALIASES.has(rawLower)) {
+    const phpLines = [
+      `Framework: ${rawLower}. Runtime: php (PHP 8.1+, zero Composer dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.php and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${phpLines.join("\n")}
+
+\`\`\`php
+${source}\`\`\`
+`;
+  }
+  if (DOTNET_RAW_ALIASES.has(rawLower)) {
+    const csLines = [
+      `Framework: ${rawLower}. Runtime: dotnet (.NET 8+ / C# 12, zero NuGet dependencies).`,
+      `Download https://spurvik.com/r/SpurvikGuard.cs into \`Services/SpurvikGuard.cs\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${csLines.join("\n")}
+
+\`\`\`csharp
+${source}\`\`\`
+`;
+  }
+  if (GO_RAW_ALIASES.has(rawLower)) {
+    const goLines = [
+      `Framework: ${rawLower}. Runtime: go (Go 1.21+, zero external go.mod dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.go into \`internal/spurvikguard/spurvik_guard.go\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${goLines.join("\n")}
+
+\`\`\`go
+${source}\`\`\`
+`;
+  }
+  if (JVM_RAW_ALIASES.has(rawLower)) {
+    const jvmLines = [
+      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Kotlin, zero Maven/Gradle dependencies).`,
+      `Compute keyed HmacSHA256 digests locally with \`SPURVIK_CONTENT_HASH_SECRET\` and post \`inputHash\` & \`outputHash\` (0 bytes of raw prompt text) to \`https://console.spurvik.com/api/v1/telemetry\`. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${jvmLines.join("\n")}
+
+\`\`\`java
+${source}\`\`\`
+`;
+  }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
@@ -30158,8 +30495,11 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
   const locParam = `&locale=${locale}`;
   const freeUrl = `${SIGNUP_URL}?locale=${locale}${appParam}`;
   const proUrl = `${PRO_SIGNUP_URL}${appParam}${locParam}`;
+  const proAnnualUrl = `${PRO_SIGNUP_URL}&interval=annual${appParam}${locParam}`;
   const teamUrl = `${TEAM_SIGNUP_URL}${appParam}${locParam}`;
+  const teamAnnualUrl = `${TEAM_SIGNUP_URL}&interval=annual${appParam}${locParam}`;
   const conciergeUrl = `${CONCIERGE_SIGNUP_URL}${appParam}${locParam}`;
+  const trustCenterMdUrl = resolved.host ? `https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(resolved.host)}&locale=${locale}${resolved.plan !== "free" ? `&plan=${resolved.plan}` : ""}` : null;
   if (locale === "de") {
     const product2 = resolved.host ?? "unser Produkt";
     const lines2 = [
@@ -30189,14 +30529,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Antwort:** Signierte Ereignisse für ${product2} werden ${plan.retention} in Frankfurt aufbewahrt.${plan.dpoSummary ? " Ein DSB-Engineering-Bericht (`.md`) ist jederzeit exportierbar." : ""}${plan.annexIv ? " Ein technischer Dokumentationsentwurf nach Anhang IV (Art. 11, PDF/Markdown) und Webhook-Export sind enthalten." : ""}${isConcierge ? " Die Einrichtung erfolgte durch einen Spurvik-Ingenieur innerhalb von 24 Stunden inklusive DSB- & C2PA-Art.-50(2)-Bericht." : ""}`,
       "",
       "## Nächste Schritte",
+      `- Pro (19 €/Monat oder 190 €/Jahr [2 Monate frei] — White-Label, 90 Tage Frankfurt, DSB-Bericht): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/Monat oder 790 €/Jahr [2 Monate frei] — 12 Monate, Anhang-IV-Entwurf, Webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24h-Setup (199 € einmalig, inkl. 1 Jahr Pro): ${conciergeUrl}`,
       `- Interaktiver DSB- & Lieferanten-Fragebogen: ${cockpitUrl}`,
       ...resolved.host ? [`- Live-Art.-50(1)-Kurzbericht für ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Kunden-/trust-Center Markdown-Kit: ${trustCenterMdUrl}`] : [],
       `- Kostenloser SPURVIK_API_KEY in 10 Sek. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (19 €/Monat — White-Label, 90 Tage Frankfurt, DSB-Bericht): ${proUrl}`,
-      `- Team (79 €/Monat — 12 Monate, Anhang-IV-Entwurf, Webhook): ${teamUrl}`,
-      `- Done-For-You 24h-Setup (199 € einmalig, inkl. 1 Jahr Pro): ${conciergeUrl}`,
       "",
-      "_Technische Antworten auf Basis der ausgelieferten Spurvik-Kontrollen. Keine Rechtsberatung._"
+      "_Technische Antworten auf Basis der ausgelieferten Spurvik-Kontrollen (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30230,14 +30571,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Réponse :** Les événements signés pour ${product2} sont conservés ${plan.retention} à Francfort.${plan.dpoSummary ? " Une synthèse technique DPO (`.md`) est téléchargeable." : ""}${plan.annexIv ? " Un brouillon de documentation technique Annexe IV (art. 11, PDF/Markdown) et l'export webhook sont inclus." : ""}${isConcierge ? " L'installation a été réalisée en 24h par un ingénieur Spurvik avec rapport DPO & C2PA art. 50(2) signé." : ""}`,
       "",
       "## Prochaines étapes",
+      `- Pro (19 €/mois ou 190 €/an [2 mois offerts] — marque blanche, 90 j Francfort, synthèse DPO) : ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mois ou 790 €/an [2 mois offerts] — 12 mois, brouillon Annexe IV, webhook) : ${teamUrl} · ${teamAnnualUrl}`,
+      `- Installation clé en main 24h (199 € une fois, 1 an Pro inclus) : ${conciergeUrl}`,
       `- Questionnaire interactif DPO / RSSI : ${cockpitUrl}`,
       ...resolved.host ? [`- Rapport Art. 50(1) en direct pour ${resolved.host} : ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Kit Markdown /trust client : ${trustCenterMdUrl}`] : [],
       `- Clé SPURVIK_API_KEY gratuite en 10 s (Francfort fra1) : ${freeUrl}`,
-      `- Pro (19 €/mois — marque blanche, 90 j Francfort, synthèse DPO) : ${proUrl}`,
-      `- Team (79 €/mois — 12 mois, brouillon Annexe IV, webhook) : ${teamUrl}`,
-      `- Installation clé en main 24h (199 € une fois, 1 an Pro inclus) : ${conciergeUrl}`,
       "",
-      "_Réponses techniques fondées sur les contrôles Spurvik déployés. Ceci ne constitue pas un conseil juridique._"
+      "_Réponses techniques fondées sur les contrôles Spurvik déployés (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30271,14 +30613,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Antwoord:** Ondertekende AI-events voor ${product2} worden ${plan.retention} bewaard in Frankfurt.${plan.dpoSummary ? " Een FG/DPO-samenvatting (`.md`) is direct te downloaden." : ""}${plan.annexIv ? " Een concept technische documentatie conform Bijlage IV (art. 11, PDF/Markdown) en webhook-export zijn inbegrepen." : ""}${isConcierge ? " De installatie is binnen 24 uur door een Spurvik-engineer uitgevoerd inclusief ondertekend FG/DPO- & C2PA-rapport." : ""}`,
       "",
       "## Volgende stappen",
+      `- Pro (€19/mnd of €190/jaar [2 mnd gratis] — white-label, 90 dagen Frankfurt, FG-samenvatting): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (€79/mnd of €790/jaar [2 mnd gratis] — 12 maanden, Bijlage-IV-concept, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24u-setup (€199 eenmalig, incl. 1 jaar Pro): ${conciergeUrl}`,
       `- Interactieve FG / CISO leveranciersvragenlijst: ${cockpitUrl}`,
       ...resolved.host ? [`- Live Art. 50(1)-rapport voor ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Klant-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : [],
       `- Gratis SPURVIK_API_KEY in 10 sec. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (€19/mnd — white-label, 90 dagen Frankfurt, FG-samenvatting): ${proUrl}`,
-      `- Team (€79/mnd — 12 maanden, Bijlage-IV-concept, webhook): ${teamUrl}`,
-      `- Done-For-You 24u-setup (€199 eenmalig, incl. 1 jaar Pro): ${conciergeUrl}`,
       "",
-      "_Technische antwoorden op basis van geleverde Spurvik-controles. Geen juridisch advies._"
+      "_Technische antwoorden op basis van geleverde Spurvik-controles (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30312,14 +30655,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Svar:** Signerade AI-händelser för ${product2} lagras i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " En teknisk DSO/DPO-sammanfattning (`.md`) kan laddas ner direkt." : ""}${plan.annexIv ? " Utkast till teknisk dokumentation enligt Bilaga IV (art. 11, PDF/Markdown) samt webhook-export ingår." : ""}${isConcierge ? " Installationen utfördes inom 24 timmar av en Spurvik-ingenjör inklusive signerad DSO/DPO- & C2PA-rapport." : ""}`,
       "",
       "## Nästa steg",
+      `- Pro (19 €/mån eller 190 €/år [2 mån fria] — white-label, 90 dagar Frankfurt, DSO-rapport): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mån eller 790 €/år [2 mån fria] — 12 månader, Bilaga IV-utkast, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${conciergeUrl}`,
       `- Interaktivt svenskt DSO- & leverantörsformulär: ${cockpitUrl}`,
       ...resolved.host ? [`- Live Art. 50(1)-rapport för ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Kund-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : [],
       `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${freeUrl}`,
-      `- Pro (19 €/mån — white-label, 90 dagar Frankfurt, DSO-rapport): ${proUrl}`,
-      `- Team (79 €/mån — 12 månader, Bilaga IV-utkast, webhook): ${teamUrl}`,
-      `- Done-For-You 24h-installation (199 € engångsbelopp, inkl. 1 år Pro): ${conciergeUrl}`,
       "",
-      "_Tekniska svar baserade på levererade Spurvik-kontroller. Inte juridisk rådgivning._"
+      "_Tekniska svar baserade på levererade Spurvik-kontroller (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30353,14 +30697,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Respuesta:** Los eventos firmados de ${product2} se conservan durante ${plan.retention} en Fráncfort.${plan.dpoSummary ? " Un informe técnico DPD/DPO (`.md`) puede descargarse directamente." : ""}${plan.annexIv ? " Incluye borrador de documentación técnica del Anexo IV (art. 11, PDF/Markdown) y exportación por webhook." : ""}${isConcierge ? " La instalación fue realizada en 24 horas por un ingeniero de Spurvik incluyendo informe DPD y C2PA Art. 50(2)." : ""}`,
       "",
       "## Próximos pasos",
+      `- Pro (19 €/mes o 190 €/año [2 meses gratis] — marca blanca, 90 días Fráncfort, resumen DPD): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mes o 790 €/año [2 meses gratis] — 12 meses, borrador Anexo IV, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${conciergeUrl}`,
       `- Cuestionario interactivo DPD / compras: ${cockpitUrl}`,
       ...resolved.host ? [`- Informe Art. 50(1) en vivo para ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Kit Markdown /trust para clientes: ${trustCenterMdUrl}`] : [],
       `- SPURVIK_API_KEY gratuita en 10 s (Fráncfort fra1): ${freeUrl}`,
-      `- Pro (19 €/mes — marca blanca, 90 días Fráncfort, resumen DPD): ${proUrl}`,
-      `- Team (79 €/mes — 12 meses, borrador Anexo IV, webhook): ${teamUrl}`,
-      `- Instalación 24h llave en mano (199 € pago único, 1 año Pro incluido): ${conciergeUrl}`,
       "",
-      "_Respuestas técnicas basadas en los controles implementados de Spurvik. No constituye asesoramiento jurídico._"
+      "_Respuestas técnicas basadas en los controles implementados de Spurvik (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30394,14 +30739,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
       `**Risposta:** Gli eventi firmati di ${product2} sono conservati per ${plan.retention} a Francoforte.${plan.dpoSummary ? " Un riepilogo tecnico RPD/DPO (`.md`) è scaricabile direttamente." : ""}${plan.annexIv ? " Include bozza di documentazione tecnica Allegato IV (art. 11, PDF/Markdown) ed esportazione webhook." : ""}${isConcierge ? " L’installazione è stata completata in 24 ore da un ingegnere Spurvik con report RPD/DPO e C2PA Art. 50(2)." : ""}`,
       "",
       "## Prossimi passi",
+      `- Pro (19 €/mese o 190 €/anno [2 mesi gratis] — white-label, 90 gg Francoforte, riepilogo RPD): ${proUrl} · ${proAnnualUrl}`,
+      `- Team (79 €/mese o 790 €/anno [2 mesi gratis] — 12 mesi, bozza Allegato IV, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${conciergeUrl}`,
       `- Questionario interattivo RPD / DPO fornitori: ${cockpitUrl}`,
       ...resolved.host ? [`- Report Art. 50(1) live per ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+      ...trustCenterMdUrl ? [`- Kit Markdown /trust clienti: ${trustCenterMdUrl}`] : [],
       `- SPURVIK_API_KEY gratuita in 10 s (Francoforte fra1): ${freeUrl}`,
-      `- Pro (19 €/mese — white-label, 90 gg Francoforte, riepilogo RPD): ${proUrl}`,
-      `- Team (79 €/mese — 12 mesi, bozza Allegato IV, webhook): ${teamUrl}`,
-      `- Setup 24h chiavi in mano (199 € una tantum, 1 anno Pro incluso): ${conciergeUrl}`,
       "",
-      "_Risposte tecniche basate sui controlli Spurvik distribuiti. Non costituisce consulenza legale._"
+      "_Risposte tecniche basate sui controlli Spurvik distribuiti (EyeTea Solutions ApS, CVR 37093378)._"
     ];
     return `${lines2.join("\n")}
 `;
@@ -30434,14 +30780,15 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
     `**Svar:** Signerede AI-hændelser for ${product} opbevares i ${plan.retention} i Frankfurt.${plan.dpoSummary ? " Et teknisk DPO-resumé (`.md`) kan eksporteres direkte." : ""}${plan.annexIv ? " Udkast til teknisk dokumentation efter Bilag IV (art. 11, PDF/Markdown) og webhook-eksport er inkluderet." : ""}${isConcierge ? " Opsætningen blev udført inden for 24 timer af en Spurvik-ingeniør inkl. underskrevet DPO- & C2PA-rapport." : ""}`,
     "",
     "## Næste skridt",
+    `- Pro (19 €/md. eller 190 €/år [2 mdr. gratis] — white-label, 90 dage Frankfurt, DPO-resumé): ${proUrl} · ${proAnnualUrl}`,
+    `- Team (79 €/md. eller 790 €/år [2 mdr. gratis] — 12 måneder, Bilag IV-udkast, webhook): ${teamUrl} · ${teamAnnualUrl}`,
+    `- Done-For-You 24t-setup (199 € én gang, inkl. 1 års Pro): ${conciergeUrl}`,
     `- Interaktivt dansk DPO- & leverandørspørgeskema: ${cockpitUrl}`,
     ...resolved.host ? [`- Live Art. 50(1)-rapport for ${resolved.host}: ${reportUrlFor(resolved.host)}`] : [],
+    ...trustCenterMdUrl ? [`- Kunde-/trust-Center Markdown-kit: ${trustCenterMdUrl}`] : [],
     `- Gratis SPURVIK_API_KEY på 10 sek. (Frankfurt fra1): ${freeUrl}`,
-    `- Pro (19 €/md. — white-label, 90 dage Frankfurt, DPO-resumé): ${proUrl}`,
-    `- Team (79 €/md. — 12 måneder, Bilag IV-udkast, webhook): ${teamUrl}`,
-    `- Done-For-You 24t-setup (199 € én gang, inkl. 1 års Pro): ${conciergeUrl}`,
     "",
-    "_Tekniske svar baseret på leverede Spurvik-kontroller. Ikke juridisk rådgivning._"
+    "_Tekniske svar baseret på leverede Spurvik-kontroller (EyeTea Solutions ApS, CVR 37093378)._"
   ];
   return `${lines.join("\n")}
 `;

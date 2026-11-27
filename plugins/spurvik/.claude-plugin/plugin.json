@@ -1,7 +1,7 @@
 {
   "name": "spurvik",
   "displayName": "Spurvik",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Commands, bundled 10-tool MCP server, and 5 skills covering withSpurvik (OpenAI, Anthropic, Google GenAI), spurvikMiddleware (Vercel AI SDK), Mastra, OpenAI Agents, LangGraph, 2 Dec 2026 C2PA provenance checks, agency audits, vendor RFPs, and 9-section Annex IV drafts.",
   "author": {
     "name": "EyeTea Solutions ApS",
