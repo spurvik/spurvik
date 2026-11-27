@@ -266,6 +266,10 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   bruno: "openai",
   insomnia: "openai",
   hoppscotch: "openai",
+  "google-sheets": "openai",
+  "apps-script": "openai",
+  gsheets: "openai",
+  sheets: "openai",
   docker: "mcp",
   "docker-mcp": "mcp",
   "pre-commit": "ci",
@@ -327,6 +331,7 @@ const RUBY_RAW_ALIASES = new Set([
 const OPENWEBUI_RAW_ALIASES = new Set(["openwebui", "open-webui"]);
 const DIFY_RAW_ALIASES = new Set(["dify", "langflow", "flowise"]);
 const POSTMAN_RAW_ALIASES = new Set(["postman", "bruno", "insomnia", "hoppscotch"]);
+const GSHEETS_RAW_ALIASES = new Set(["google-sheets", "apps-script", "gsheets", "sheets"]);
 
 const PRECOMMIT_RAW_ALIASES = new Set(["pre-commit", "precommit", "husky", "git-hooks", "lefthook"]);
 
@@ -1095,6 +1100,13 @@ export function setupSnippetSource(
       "",
     ].join("\n");
   }
+  if (GSHEETS_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Paste into Google Sheets (Extensions -> Apps Script -> Code.gs) for =SPURVIK_PORTFOLIO(A2:A51) & =SPURVIK_RFP:",
+      "curl -fsSLO https://spurvik.com/r/spurvik-google-sheets-audit.gs",
+      "",
+    ].join("\n");
+  }
   const tsRuntime = runtime as TsRuntime;
   if (framework === "vercel-ai-sdk") {
     const baseMw = middlewareSource(tsRuntime);
@@ -1363,6 +1375,18 @@ export function setupSnippet(
       PRICE_NOTE,
     ];
     return `${pmLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+  }
+  if (GSHEETS_RAW_ALIASES.has(rawLower)) {
+    const gsLines = [
+      `Framework: ${rawLower}. Runtime: Zero-Key Google Sheets Apps Script (V8 runtime, 6-hour CacheService & OWASP formula-injection guard).`,
+      `Paste https://spurvik.com/r/spurvik-google-sheets-audit.gs into Google Sheets (Extensions -> Apps Script -> Code.gs) for =SPURVIK_SCAN, =SPURVIK_PORTFOLIO(A2:A51) (up to 50 client domains), =SPURVIK_C2PA & =SPURVIK_RFP. ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${gsLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
   }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [

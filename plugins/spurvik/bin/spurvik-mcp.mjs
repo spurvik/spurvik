@@ -13856,7 +13856,7 @@ function hasDotnetProjectFile(real) {
   }
 }
 function hasProjectMarker(real) {
-  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, "pyproject.toml")) || existsSync(path.join(real, "requirements.txt")) || existsSync(path.join(real, "composer.json")) || existsSync(path.join(real, "go.mod")) || existsSync(path.join(real, "pom.xml")) || existsSync(path.join(real, "build.gradle")) || existsSync(path.join(real, "build.gradle.kts")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml")) || hasDotnetProjectFile(real);
+  return existsSync(path.join(real, "package.json")) || existsSync(path.join(real, "pyproject.toml")) || existsSync(path.join(real, "requirements.txt")) || existsSync(path.join(real, "composer.json")) || existsSync(path.join(real, "Gemfile")) || existsSync(path.join(real, "go.mod")) || existsSync(path.join(real, "pom.xml")) || existsSync(path.join(real, "build.gradle")) || existsSync(path.join(real, "build.gradle.kts")) || existsSync(path.join(real, ".git")) || existsSync(path.join(real, "pnpm-workspace.yaml")) || hasDotnetProjectFile(real);
 }
 function validateWorkspaceRoot(requested) {
   const trimmed = requested.trim();
@@ -24481,6 +24481,7 @@ var SOURCE_EXT = /* @__PURE__ */ new Set([
   ".cts",
   ".py",
   ".php",
+  ".rb",
   ".cs",
   ".go",
   ".java",
@@ -25070,6 +25071,11 @@ var ENTERPRISE_AI_PATTERNS = [
     call: "OpenAI::client() / Prism"
   },
   {
+    lang: "ruby",
+    re: /\bOpenAI::Client\.new\s*\(|\bAnthropic::Client\.new\s*\(|\bRubyLLM\.chat\b|\bLangchain::LLM::(?:OpenAI|Anthropic|GoogleGemini|MistralAI)\.new\b|\bGemini\.new\s*\(/,
+    call: "OpenAI::Client / RubyLLM"
+  },
+  {
     lang: "dotnet",
     re: /\bnew\s+(?:Azure)?OpenAIClient\s*\(|\bnew\s+ChatClient\s*\(|\bAdd(?:Azure)?OpenAIChatCompletion\s*\(|\bCompleteChat(?:Streaming)?Async\s*\(|\bGetChatMessageContents?Async\s*\(/,
     call: "OpenAIClient / SemanticKernel"
@@ -25088,6 +25094,7 @@ var ENTERPRISE_AI_PATTERNS = [
 function enterpriseLangForExtension(ext) {
   const lower = ext.toLowerCase();
   if (lower === ".php") return "php";
+  if (lower === ".rb") return "ruby";
   if (lower === ".cs") return "dotnet";
   if (lower === ".go") return "go";
   if (lower === ".java" || lower === ".kt") return "jvm";
@@ -29121,7 +29128,7 @@ var SETUP_FRAMEWORK_ALIASES = {
   "copilot-studio": "mcp",
   "microsoft-copilot-studio": "mcp",
   dust: "mcp",
-  dify: "mcp",
+  dify: "openai",
   annex_iv: "annex-iv",
   art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
@@ -29213,6 +29220,28 @@ var SETUP_FRAMEWORK_ALIASES = {
   kotlin: "openai",
   ktor: "openai",
   quarkus: "openai",
+  ruby: "openai",
+  rails: "openai",
+  "ruby-on-rails": "openai",
+  rails7: "openai",
+  rails8: "openai",
+  sinatra: "openai",
+  hanami: "openai",
+  ruby_llm: "openai",
+  langchainrb: "openai",
+  openwebui: "openai",
+  langflow: "openai",
+  flowise: "openai",
+  postman: "openai",
+  bruno: "openai",
+  insomnia: "openai",
+  hoppscotch: "openai",
+  "google-sheets": "openai",
+  "apps-script": "openai",
+  gsheets: "openai",
+  sheets: "openai",
+  docker: "mcp",
+  "docker-mcp": "mcp",
   "pre-commit": "ci",
   precommit: "ci",
   husky: "ci",
@@ -29252,6 +29281,21 @@ var JVM_RAW_ALIASES = /* @__PURE__ */ new Set([
   "ktor",
   "quarkus"
 ]);
+var RUBY_RAW_ALIASES = /* @__PURE__ */ new Set([
+  "ruby",
+  "rails",
+  "ruby-on-rails",
+  "rails7",
+  "rails8",
+  "sinatra",
+  "hanami",
+  "ruby_llm",
+  "langchainrb"
+]);
+var OPENWEBUI_RAW_ALIASES = /* @__PURE__ */ new Set(["openwebui", "open-webui"]);
+var DIFY_RAW_ALIASES = /* @__PURE__ */ new Set(["dify", "langflow", "flowise"]);
+var POSTMAN_RAW_ALIASES = /* @__PURE__ */ new Set(["postman", "bruno", "insomnia", "hoppscotch"]);
+var GSHEETS_RAW_ALIASES = /* @__PURE__ */ new Set(["google-sheets", "apps-script", "gsheets", "sheets"]);
 var SUPPORT_WIDGET_ALIASES = /* @__PURE__ */ new Set([
   "intercom",
   "intercom-fin",
@@ -29932,6 +29976,47 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
       ""
     ].join("\n");
   }
+  if (RUBY_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    const rbLocale = typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale) ? options.locale : host ? inferLocaleFromDomain(host) : "en";
+    return [
+      "# 1) mkdir -p app/services && curl -fsSL https://spurvik.com/r/spurvik_guard.rb -o app/services/spurvik_guard.rb",
+      'require_relative "spurvik_guard"',
+      "",
+      `guard = SpurvikGuard.from_env(system_name: "${sysName}", locale: "${rbLocale}")`,
+      'guard.log_call(prompt_text: prompt, output_text: reply, model: "gpt-4o-mini", provider: "openai")',
+      `# 2) ERB / ViewComponent 24-language Art. 50(1) notice (0 cookies): <%= raw guard.badge_html %>`,
+      ""
+    ].join("\n");
+  }
+  if (OPENWEBUI_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import zero-key EU AI Act & 2 Dec 2026 C2PA Tools into OpenWebUI (Workspace -> Tools -> + Create):",
+      "curl -fsSLO https://spurvik.com/r/openwebui-spurvik-tools.py",
+      ""
+    ].join("\n");
+  }
+  if (DIFY_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import 8 zero-key EU AI Act, 2 Dec 2026 C2PA & RFP CSV tools into Dify (Tools -> Custom -> Import from URL):",
+      "curl -fsSLO https://spurvik.com/r/dify-spurvik-tools.yaml",
+      ""
+    ].join("\n");
+  }
+  if (POSTMAN_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import 10 zero-key EU Frankfurt audit requests into Postman, Bruno, Insomnia or Hoppscotch:",
+      "curl -fsSLO https://spurvik.com/r/spurvik-postman-collection.json",
+      ""
+    ].join("\n");
+  }
+  if (GSHEETS_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Paste into Google Sheets (Extensions -> Apps Script -> Code.gs) for =SPURVIK_PORTFOLIO(A2:A51) & =SPURVIK_RFP:",
+      "curl -fsSLO https://spurvik.com/r/spurvik-google-sheets-audit.gs",
+      ""
+    ].join("\n");
+  }
   const tsRuntime = runtime;
   if (framework === "vercel-ai-sdk") {
     const baseMw = middlewareSource(tsRuntime);
@@ -30151,6 +30236,87 @@ ${source}\`\`\`
 ${source}\`\`\`
 `;
   }
+  if (RUBY_RAW_ALIASES.has(rawLower)) {
+    const rbLines = [
+      `Framework: ${rawLower}. Runtime: ruby (Ruby 3.1+ / Rails 7 & 8, zero Gem dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.rb into \`app/services/spurvik_guard.rb\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${rbLines.join("\n")}
+
+\`\`\`ruby
+${source}\`\`\`
+`;
+  }
+  if (OPENWEBUI_RAW_ALIASES.has(rawLower)) {
+    const owLines = [
+      `Framework: ${rawLower}. Runtime: OpenWebUI Python Tools (6 zero-key EU AI Act & C2PA tools, 0 bytes of prompt text stored).`,
+      `Download https://spurvik.com/r/openwebui-spurvik-tools.py and paste into OpenWebUI (Workspace -> Tools -> + Create). ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${owLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
+  if (DIFY_RAW_ALIASES.has(rawLower)) {
+    const dfLines = [
+      `Framework: ${rawLower}. Runtime: Dify / Langflow / Flowise OpenAPI 3.0.3 Custom Tools (8 read-only EU Frankfurt operations, Authentication: None).`,
+      `Import https://spurvik.com/r/dify-spurvik-tools.yaml in Dify Studio (Tools -> Custom -> Create Custom Tool -> Import from URL). ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${dfLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
+  if (POSTMAN_RAW_ALIASES.has(rawLower)) {
+    const pmLines = [
+      `Framework: ${rawLower}. Runtime: Postman Collection v2.1.0 / Bruno / Insomnia / Hoppscotch (10 zero-key EU Frankfurt requests).`,
+      `Import https://spurvik.com/r/spurvik-postman-collection.json directly into Postman or Bruno and set collection variable \`domain\`. ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${pmLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
+  if (GSHEETS_RAW_ALIASES.has(rawLower)) {
+    const gsLines = [
+      `Framework: ${rawLower}. Runtime: Zero-Key Google Sheets Apps Script (V8 runtime, 6-hour CacheService & OWASP formula-injection guard).`,
+      `Paste https://spurvik.com/r/spurvik-google-sheets-audit.gs into Google Sheets (Extensions -> Apps Script -> Code.gs) for =SPURVIK_SCAN, =SPURVIK_PORTFOLIO(A2:A51) (up to 50 client domains), =SPURVIK_C2PA & =SPURVIK_RFP. ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE
+    ];
+    return `${gsLines.join("\n")}
+
+\`\`\`bash
+${source}\`\`\`
+`;
+  }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [
     `Framework: ${framework}. Runtime: ${runtime}.`,
@@ -30242,8 +30408,8 @@ var VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
     plan: { type: "string", enum: [...QUESTIONNAIRE_PLANS], description: "Spurvik plan the answers describe. Defaults to pro." },
     provider: {
       type: "string",
-      enum: [...QUESTIONNAIRE_PROVIDERS],
-      description: "Model provider or agent framework the product uses. Defaults to openai."
+      maxLength: 64,
+      description: "Model provider, sovereign EU gateway, or backend stack: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, python, mistral, azure-openai, bedrock, litellm, laravel, php, dotnet, go, spring-boot, rails or custom."
     },
     hasHighRiskActions: {
       type: "boolean",
@@ -30262,6 +30428,11 @@ var VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
       type: "string",
       enum: [...QUESTIONNAIRE_LOCALES],
       description: "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO)."
+    },
+    format: {
+      type: "string",
+      enum: ["markdown", "csv"],
+      description: "Output format: markdown (default) or csv (RFC 4180 table for Vanta, SafeBase, Conveyor & Excel)."
     }
   },
   additionalProperties: false
@@ -30341,6 +30512,149 @@ var PROVIDER_FACTS = {
   },
   custom: { label: "our model provider", inference: "our model provider", wrapper: "`withSpurvik` on the provider client", approval: CLIENT_APPROVAL }
 };
+var PROVIDER_ALIASES = {
+  gemini: "google-genai",
+  google: "google-genai",
+  ai: "vercel-ai-sdk",
+  "ai-sdk": "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  mistral: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  vllm: "openai",
+  php: "custom",
+  laravel: "custom",
+  symfony: "custom",
+  dotnet: "custom",
+  csharp: "custom",
+  aspnet: "custom",
+  blazor: "custom",
+  go: "custom",
+  golang: "custom",
+  java: "custom",
+  spring: "custom",
+  "spring-boot": "custom",
+  kotlin: "custom",
+  ruby: "custom",
+  rails: "custom",
+  "ruby-on-rails": "custom",
+  ruby_llm: "custom",
+  langchainrb: "custom",
+  fastapi: "python",
+  langchain: "python",
+  pydanticai: "python",
+  "pydantic-ai": "python",
+  multi: "custom"
+};
+var EXTRA_PROVIDER_FACTS = {
+  mistral: {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL
+  },
+  "mistral-ai": {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL
+  },
+  azure: {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL
+  },
+  "azure-openai": {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL
+  },
+  bedrock: {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL
+  },
+  "aws-bedrock": {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL
+  },
+  dotnet: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)"
+  },
+  csharp: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)"
+  },
+  go: {
+    label: "Go 1.21+ (spurvik_guard.go)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`spurvikguard.SendTelemetryEvent` (`spurvik_guard.go`, 0 go.mod deps)",
+    approval: "`spurvikguard.VerifySignedCallback` (`spurvik_guard.go`)"
+  },
+  golang: {
+    label: "Go 1.21+ (spurvik_guard.go)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`spurvikguard.SendTelemetryEvent` (`spurvik_guard.go`, 0 go.mod deps)",
+    approval: "`spurvikguard.VerifySignedCallback` (`spurvik_guard.go`)"
+  },
+  php: {
+    label: "PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)"
+  },
+  laravel: {
+    label: "Laravel / PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)"
+  },
+  symfony: {
+    label: "Symfony / PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)"
+  },
+  java: {
+    label: "Java 21+ / Spring Boot 3 / Spring AI",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256`, 0 Maven/Gradle deps)",
+    approval: CLIENT_APPROVAL
+  },
+  "spring-boot": {
+    label: "Spring Boot 3 / Spring AI (Java 21+)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256`, 0 Maven/Gradle deps)",
+    approval: CLIENT_APPROVAL
+  },
+  ruby: {
+    label: "Ruby 3.1+ / Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)"
+  },
+  rails: {
+    label: "Ruby on Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)"
+  }
+};
 function invalid(error2, message) {
   return { ok: false, error: error2, message };
 }
@@ -30353,9 +30667,18 @@ function resolve(rawInput) {
   if (!QUESTIONNAIRE_PLANS.includes(plan)) {
     return invalid("invalid_plan", `plan must be one of: ${QUESTIONNAIRE_PLANS.join(", ")}.`);
   }
-  const provider = record2.provider ?? VENDOR_QUESTIONNAIRE_DEFAULTS.provider;
-  if (!QUESTIONNAIRE_PROVIDERS.includes(provider)) {
+  const rawProv = record2.provider ?? VENDOR_QUESTIONNAIRE_DEFAULTS.provider;
+  if (typeof rawProv !== "string") {
     return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
+  }
+  const normProvKey = rawProv.trim().toLowerCase();
+  const mappedProv = PROVIDER_ALIASES[normProvKey] ?? rawProv;
+  if (!QUESTIONNAIRE_PROVIDERS.includes(mappedProv)) {
+    return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
+  }
+  const rawFormat = record2.format ?? "markdown";
+  if (rawFormat !== "markdown" && rawFormat !== "csv") {
+    return invalid("invalid_format", 'format must be "markdown" or "csv".');
   }
   for (const key of ["hasHighRiskActions", "generatesMedia"]) {
     if (record2[key] !== void 0 && typeof record2[key] !== "boolean") return invalid("invalid_flag", `${key} must be true or false.`);
@@ -30371,12 +30694,14 @@ function resolve(rawInput) {
   const host = rawDomain.trim() ? publicHostname(rawDomain) : null;
   return {
     plan,
-    provider,
+    provider: mappedProv,
+    providerAlias: normProvKey in EXTRA_PROVIDER_FACTS ? normProvKey : null,
     hasHighRiskActions: record2.hasHighRiskActions ?? VENDOR_QUESTIONNAIRE_DEFAULTS.hasHighRiskActions,
     generatesMedia: record2.generatesMedia ?? VENDOR_QUESTIONNAIRE_DEFAULTS.generatesMedia,
     host,
     domainIgnored: rawDomain.trim() !== "" && host === null,
-    locale
+    locale,
+    format: rawFormat
   };
 }
 function question(heading, asks, answer) {
@@ -30476,13 +30801,15 @@ function planTable() {
   ];
 }
 function nextSteps(host) {
-  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
+  const cockpitUrl = host ? `${VENDOR_QUESTIONNAIRE_URL}?domain=${encodeURIComponent(host)}` : VENDOR_QUESTIONNAIRE_URL;
+  const freeUrl = host ? `${SIGNUP_URL}?appUrl=${encodeURIComponent(host)}` : SIGNUP_URL;
+  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${cockpitUrl}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
-    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     ""
   );
   return lines;
@@ -30793,13 +31120,84 @@ function renderLocalizedQuestionnaire(locale, resolved, plan, provider) {
   return `${lines.join("\n")}
 `;
 }
+var RFP_CSV_ARTICLE_BY_QNUM = {
+  "1": "EU AI Act Art. 50(1) & Art. 50(2) (2 Dec 2026 C2PA)",
+  "2": "EU AI Act Art. 12 (HMAC-SHA256 Event Logging)",
+  "3": "GDPR Art. 5(1)(c) & EU Frankfurt (fra1) Residency",
+  "4": "EU AI Act Art. 14 (Human Oversight Gates)",
+  "5": "Retention, DPO Summary & Art. 11 Annex IV"
+};
+function escapeMcpCsvCell(raw) {
+  const normalized = raw.replace(/\r\n/g, "\n").trim();
+  const safe = /^[=+\-@\t\r]/.test(normalized) ? `'${normalized}` : normalized;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+function buildMcpRfpCsv(markdown, resolved) {
+  const coreMd = markdown.split("\n---\n")[0] ?? markdown;
+  const blocks = coreMd.split(/\n(?=## )/);
+  const header2 = [
+    "question_id",
+    "regulation_article",
+    "question",
+    "answer",
+    "plan_tier",
+    "provider",
+    "domain",
+    "locale",
+    "evidence_report_url",
+    "trust_center_md_url",
+    "pro_checkout_url",
+    "team_checkout_url",
+    "done_for_you_url"
+  ].join(",");
+  const rows = [];
+  const provDisplay = resolved.providerAlias ?? resolved.provider;
+  const domDisplay = resolved.host ?? "";
+  const locSuffix = resolved.locale !== "en" ? `&locale=${resolved.locale}` : "";
+  const reportHref = resolved.host ? `${reportUrlFor(resolved.host)}${locSuffix}` : "https://console.spurvik.com/report";
+  const trustMdHref = resolved.host ? `https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(resolved.host)}${locSuffix}` : "https://console.spurvik.com/api/v1/badge/trust-center.md";
+  const proHref = `${resolved.host ? proSignupUrlFor(resolved.host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamHref = `${resolved.host ? teamSignupUrlFor(resolved.host) : TEAM_SIGNUP_URL}${locSuffix}`;
+  const dfyHref = `${resolved.host ? conciergeSignupUrlFor(resolved.host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  for (const block2 of blocks) {
+    const headMatch = /^## ([A-Z]([1-5]))\s*:\s*([^\n]+)\n([\s\S]*)$/.exec(block2.trim());
+    if (!headMatch) continue;
+    const num = headMatch[2] ?? "1";
+    const qId = `Q${num}`;
+    const headingTitle = (headMatch[3] ?? "").trim();
+    const body = (headMatch[4] ?? "").replace(/\n_[^\n]*_$/g, "").trim();
+    const asksMatch = /\*\*Customer asks:\*\*\s*([^\n]+)/.exec(body);
+    const questionText = asksMatch?.[1]?.trim() ?? headingTitle;
+    const answerText = body.replace(/^\*\*Customer asks:\*\*\s*[^\n]+\n*/m, "").replace(/^\*\*(?:Answer|Antwort|Réponse|Antwoord|Svar|Respuesta|Risposta)\s*:\*\*\s*/m, "").trim();
+    rows.push(
+      [
+        escapeMcpCsvCell(qId),
+        escapeMcpCsvCell(RFP_CSV_ARTICLE_BY_QNUM[num] ?? headingTitle),
+        escapeMcpCsvCell(questionText),
+        escapeMcpCsvCell(answerText),
+        escapeMcpCsvCell(resolved.plan),
+        escapeMcpCsvCell(provDisplay),
+        escapeMcpCsvCell(domDisplay),
+        escapeMcpCsvCell(resolved.locale),
+        escapeMcpCsvCell(reportHref),
+        escapeMcpCsvCell(trustMdHref),
+        escapeMcpCsvCell(proHref),
+        escapeMcpCsvCell(teamHref),
+        escapeMcpCsvCell(dfyHref)
+      ].join(",")
+    );
+  }
+  return `\uFEFF${[header2, ...rows].join("\r\n")}\r
+`;
+}
 function vendorQuestionnaireAnswers(rawInput = {}) {
   const resolved = resolve(rawInput);
   if ("ok" in resolved) return resolved;
   const plan = PLAN_FACTS[resolved.plan];
-  const provider = PROVIDER_FACTS[resolved.provider];
+  const provider = (resolved.providerAlias ? EXTRA_PROVIDER_FACTS[resolved.providerAlias] : void 0) ?? PROVIDER_FACTS[resolved.provider];
   if (resolved.locale !== "en") {
-    return { ok: true, text: renderLocalizedQuestionnaire(resolved.locale, resolved, plan, provider) };
+    const md2 = renderLocalizedQuestionnaire(resolved.locale, resolved, plan, provider);
+    return { ok: true, text: resolved.format === "csv" ? buildMcpRfpCsv(md2, resolved) : md2 };
   }
   const isConcierge = resolved.plan === "concierge";
   const product = resolved.host ?? "our product";
@@ -30825,8 +31223,9 @@ function vendorQuestionnaireAnswers(rawInput = {}) {
     ...nextSteps(resolved.host),
     "_Engineering answers based on Spurvik's shipped controls. Articles 12 and 14 bind high-risk systems (Art. 6, Annex III); that classification stays with you. Not legal advice._"
   ];
-  return { ok: true, text: `${lines.join("\n")}
-` };
+  const md = `${lines.join("\n")}
+`;
+  return { ok: true, text: resolved.format === "csv" ? buildMcpRfpCsv(md, resolved) : md };
 }
 
 // packages/mcp/src/server.ts
@@ -31010,11 +31409,12 @@ function createServer(workspaceRoot, options = {}) {
       description: VQ_DESCRIPTION,
       inputSchema: {
         plan: external_exports.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
-        provider: external_exports.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
+        provider: external_exports.string().max(64).optional().describe(VQ_PROVIDER_FIELD),
         hasHighRiskActions: external_exports.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
         generatesMedia: external_exports.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
         domain: external_exports.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
-        locale: external_exports.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD)
+        locale: external_exports.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD),
+        format: external_exports.enum(["markdown", "csv"]).optional().describe("Output format: markdown (default) or csv (RFC 4180 table for Vanta, SafeBase, Conveyor & Excel).")
       },
       annotations: READ_ONLY_ANNOTATIONS
     },

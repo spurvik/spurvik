@@ -464,6 +464,12 @@ describe("createServer", () => {
     expect(framerFrOut).toContain(
       "/fr/wordpress-elementor-webflow-plugin-reglement-ia-article-50?domain=studio-paris.fr",
     );
+
+    const gsheetsOut = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { target: "google-sheets", domain: "personio.de" } }),
+    );
+    expect(gsheetsOut).toContain("https://spurvik.com/r/spurvik-google-sheets-audit.gs");
+    expect(gsheetsOut).toContain("=SPURVIK_PORTFOLIO(A2:A51)");
     await client.close();
   });
 
