@@ -71,6 +71,24 @@ repos:
       - id: spurvik-gate-test
 ```
 
+### Containerized Stdio MCP (`Dockerfile`), Polyglot Backend Guards & OpenWebUI Tools
+
+Run `spurvik-mcp-server@1.0.15` inside an isolated non-root Alpine container (`USER node`), or drop a zero-dependency single-file guard into Python, PHP/Laravel, .NET 8+ / C#, Go 1.21+, Ruby 3.1+ / Rails, or self-hosted OpenWebUI:
+
+```bash
+# Containerized MCP server (mounts repository read-only at /workspace):
+docker build -t spurvik-mcp https://github.com/spurvik/spurvik.git
+docker run -i --rm -v "$PWD:/workspace:ro" spurvik-mcp --root /workspace
+
+# Zero-dependency backend guards (keyed HMAC-SHA256 + constant-time Art. 14 callback check):
+curl -fsSLO https://spurvik.com/r/spurvik_guard.py      # Python 3.10+ / FastAPI / LangChain / PydanticAI
+curl -fsSLO https://spurvik.com/r/spurvik_guard.php     # PHP 8.1+ / Laravel / Symfony / Shopware 6
+curl -fsSLO https://spurvik.com/r/SpurvikGuard.cs       # .NET 8+ / C# / ASP.NET Core / Blazor
+curl -fsSLO https://spurvik.com/r/spurvik_guard.go      # Go 1.21+ / Gin / Echo / Fiber
+curl -fsSLO https://spurvik.com/r/spurvik_guard.rb      # Ruby 3.1+ / Rails 7 & 8 / Shopify Apps
+curl -fsSLO https://spurvik.com/r/openwebui-spurvik-tools.py # Self-hosted OpenWebUI Workspace Tools (6 tools)
+```
+
 ### Add the Live Art. 50 Status Shield to Your README
 
 Swap in your domain. The shield shows the live Art. 50(1) notice status and links to the public report:
