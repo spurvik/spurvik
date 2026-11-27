@@ -158,7 +158,7 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "copilot-studio": "mcp",
   "microsoft-copilot-studio": "mcp",
   dust: "mcp",
-  dify: "mcp",
+  dify: "openai",
   annex_iv: "annex-iv",
   art11: "annex-iv",
   "cloudflare-worker": "cloudflare",
@@ -260,6 +260,12 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   ruby_llm: "openai",
   langchainrb: "openai",
   openwebui: "openai",
+  langflow: "openai",
+  flowise: "openai",
+  postman: "openai",
+  bruno: "openai",
+  insomnia: "openai",
+  hoppscotch: "openai",
   docker: "mcp",
   "docker-mcp": "mcp",
   "pre-commit": "ci",
@@ -319,6 +325,8 @@ const RUBY_RAW_ALIASES = new Set([
 ]);
 
 const OPENWEBUI_RAW_ALIASES = new Set(["openwebui", "open-webui"]);
+const DIFY_RAW_ALIASES = new Set(["dify", "langflow", "flowise"]);
+const POSTMAN_RAW_ALIASES = new Set(["postman", "bruno", "insomnia", "hoppscotch"]);
 
 const PRECOMMIT_RAW_ALIASES = new Set(["pre-commit", "precommit", "husky", "git-hooks", "lefthook"]);
 
@@ -1073,6 +1081,20 @@ export function setupSnippetSource(
       "",
     ].join("\n");
   }
+  if (DIFY_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import 8 zero-key EU AI Act, 2 Dec 2026 C2PA & RFP CSV tools into Dify (Tools -> Custom -> Import from URL):",
+      "curl -fsSLO https://spurvik.com/r/dify-spurvik-tools.yaml",
+      "",
+    ].join("\n");
+  }
+  if (POSTMAN_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import 10 zero-key EU Frankfurt audit requests into Postman, Bruno, Insomnia or Hoppscotch:",
+      "curl -fsSLO https://spurvik.com/r/spurvik-postman-collection.json",
+      "",
+    ].join("\n");
+  }
   const tsRuntime = runtime as TsRuntime;
   if (framework === "vercel-ai-sdk") {
     const baseMw = middlewareSource(tsRuntime);
@@ -1317,6 +1339,30 @@ export function setupSnippet(
       PRICE_NOTE,
     ];
     return `${owLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+  }
+  if (DIFY_RAW_ALIASES.has(rawLower)) {
+    const dfLines = [
+      `Framework: ${rawLower}. Runtime: Dify / Langflow / Flowise OpenAPI 3.0.3 Custom Tools (8 read-only EU Frankfurt operations, Authentication: None).`,
+      `Import https://spurvik.com/r/dify-spurvik-tools.yaml in Dify Studio (Tools -> Custom -> Create Custom Tool -> Import from URL). ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${dfLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
+  }
+  if (POSTMAN_RAW_ALIASES.has(rawLower)) {
+    const pmLines = [
+      `Framework: ${rawLower}. Runtime: Postman Collection v2.1.0 / Bruno / Insomnia / Hoppscotch (10 zero-key EU Frankfurt requests).`,
+      `Import https://spurvik.com/r/spurvik-postman-collection.json directly into Postman or Bruno and set collection variable \`domain\`. ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${pmLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
   }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [

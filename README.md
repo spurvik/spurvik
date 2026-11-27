@@ -87,6 +87,8 @@ curl -fsSLO https://spurvik.com/r/SpurvikGuard.cs       # .NET 8+ / C# / ASP.NET
 curl -fsSLO https://spurvik.com/r/spurvik_guard.go      # Go 1.21+ / Gin / Echo / Fiber
 curl -fsSLO https://spurvik.com/r/spurvik_guard.rb      # Ruby 3.1+ / Rails 7 & 8 / Shopify Apps
 curl -fsSLO https://spurvik.com/r/openwebui-spurvik-tools.py # Self-hosted OpenWebUI Workspace Tools (6 tools)
+curl -fsSLO https://spurvik.com/r/dify-spurvik-tools.yaml    # Self-hosted Dify / Langflow OpenAPI 3.0.3 Tools (8 ops)
+curl -fsSLO https://spurvik.com/r/spurvik-postman-collection.json # Postman v2.1 / Bruno / Insomnia API Collection (10 requests)
 ```
 
 ### Add the Live Art. 50 Status Shield to Your README
