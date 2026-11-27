@@ -1069,9 +1069,9 @@ describe("spurvik rfp", () => {
     expect(body.domain).toBe("www.acme.eu");
     expect(body.reportUrl).toBe(`${CONSOLE}/report?domain=www.acme.eu`);
     expect(body.upgradeUrls).toEqual({
-      freeApiKey10sEur0: `${CONSOLE}/signup`,
+      freeApiKey10sEur0: `${CONSOLE}/signup?appUrl=www.acme.eu`,
       proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro&appUrl=www.acme.eu`,
-      teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+      teamAgencyEur79: `${CONSOLE}/signup?plan=team&appUrl=www.acme.eu`,
       doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge&appUrl=www.acme.eu`,
     });
     expect(h.out()).not.toContain("pricing");

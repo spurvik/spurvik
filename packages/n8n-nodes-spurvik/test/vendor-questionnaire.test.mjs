@@ -441,28 +441,29 @@ describe("vendorQuestionnaireAnswers execute", () => {
     assert.equal(result.domain, "www.acme.eu");
     assert.equal(result.reportUrl, `${CONSOLE}/report?domain=www.acme.eu`);
     assert.deepEqual(result.upgradeUrls, {
-      freeApiKey10sEur0: `${CONSOLE}/signup`,
+      freeApiKey10sEur0: `${CONSOLE}/signup?appUrl=www.acme.eu`,
       proWhiteLabelEur19: `${CONSOLE}/signup?plan=pro&appUrl=www.acme.eu`,
-      teamAgencyEur79: `${CONSOLE}/signup?plan=team`,
+      teamAgencyEur79: `${CONSOLE}/signup?plan=team&appUrl=www.acme.eu`,
       doneForYou24hEur199: `${CONSOLE}/signup?plan=concierge&appUrl=www.acme.eu`,
     });
     assert.ok(result.markdown.startsWith("# EU AI Act vendor security questionnaire: answers for www.acme.eu\n"));
     assert.ok(result.markdown.includes(`- Live Art. 50(1) report for www.acme.eu: ${CONSOLE}/report?domain=www.acme.eu`));
     assert.ok(result.markdown.includes(`(Pro €19/mo): ${CONSOLE}/signup?plan=pro&appUrl=www.acme.eu`));
+    assert.ok(result.markdown.includes(`(Team €79/mo): ${CONSOLE}/signup?plan=team&appUrl=www.acme.eu`));
     assert.ok(result.markdown.includes(`(€199 once, incl. 1 yr Pro): ${CONSOLE}/signup?plan=concierge&appUrl=www.acme.eu`));
     for (const removed of ["pricing", "ref=rfp", "#q1", "WWW.Acme"]) assert.equal(JSON.stringify(result).includes(removed), false, removed);
   });
 
-  it("lists the next-step links in order", () => {
+  it("lists the next-step links in Paid-First order", () => {
     const { markdown } = spurvikVendorQuestionnaireAnswers({ domain: "acme.eu" });
     const tail = markdown.slice(markdown.indexOf("## Next steps"));
     assert.deepEqual(tail.split("\n").filter((line) => line.startsWith("- ")), [
-      `- Interactive questionnaire & DPO RFP auto-responder: ${INTERACTIVE}`,
+      `- Interactive questionnaire & DPO RFP auto-responder: ${INTERACTIVE}?domain=acme.eu`,
       `- Live Art. 50(1) report for acme.eu: ${CONSOLE}/report?domain=acme.eu`,
-      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${CONSOLE}/signup`,
       `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${CONSOLE}/signup?plan=pro&appUrl=acme.eu`,
-      `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${CONSOLE}/signup?plan=team`,
+      `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${CONSOLE}/signup?plan=team&appUrl=acme.eu`,
       `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${CONSOLE}/signup?plan=concierge&appUrl=acme.eu`,
+      `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${CONSOLE}/signup?appUrl=acme.eu`,
     ]);
   });
 

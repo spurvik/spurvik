@@ -7,6 +7,7 @@ import {
   reportUrlFor,
   SIGNUP_URL,
   TEAM_SIGNUP_URL,
+  teamSignupUrlFor,
   VENDOR_QUESTIONNAIRE_URL,
 } from "../links.js";
 import { publicHostname } from "./public-hostname.js";
@@ -366,13 +367,15 @@ function planTable(): string[] {
 }
 
 function nextSteps(host: string | null): string[] {
-  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${VENDOR_QUESTIONNAIRE_URL}`];
+  const cockpitUrl = host ? `${VENDOR_QUESTIONNAIRE_URL}?domain=${encodeURIComponent(host)}` : VENDOR_QUESTIONNAIRE_URL;
+  const freeUrl = host ? `${SIGNUP_URL}?appUrl=${encodeURIComponent(host)}` : SIGNUP_URL;
+  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${cockpitUrl}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${host ? proSignupUrlFor(host) : PRO_SIGNUP_URL}`,
-    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${TEAM_SIGNUP_URL}`,
+    `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${host ? teamSignupUrlFor(host) : TEAM_SIGNUP_URL}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${host ? conciergeSignupUrlFor(host) : CONCIERGE_SIGNUP_URL}`,
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${SIGNUP_URL}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${freeUrl}`,
     "",
   );
   return lines;

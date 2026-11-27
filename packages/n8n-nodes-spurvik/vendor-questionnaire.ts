@@ -237,9 +237,9 @@ function reportUrlFor(host: string): string {
 function upgradeUrlsFor(host: string | null, locale: SpurvikQuestionnaireLocale = "en"): SpurvikQuestionnaireUpgradeUrls {
   if (locale === "en") {
     return {
-      freeApiKey10sEur0: SIGNUP_URL,
+      freeApiKey10sEur0: host ? `${SIGNUP_URL}?appUrl=${encodeURIComponent(host)}` : SIGNUP_URL,
       proWhiteLabelEur19: host ? `${PRO_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}` : PRO_SIGNUP_URL,
-      teamAgencyEur79: TEAM_SIGNUP_URL,
+      teamAgencyEur79: host ? `${TEAM_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}` : TEAM_SIGNUP_URL,
       doneForYou24hEur199: host ? `${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(host)}` : CONCIERGE_SIGNUP_URL,
     };
   }
@@ -368,13 +368,16 @@ function planTable(): string[] {
 }
 
 function nextSteps(host: string | null, upgradeUrls: SpurvikQuestionnaireUpgradeUrls): string[] {
-  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${SPURVIK_VENDOR_QUESTIONNAIRE_URL}`];
+  const cockpitUrl = host
+    ? `${SPURVIK_VENDOR_QUESTIONNAIRE_URL}?domain=${encodeURIComponent(host)}`
+    : SPURVIK_VENDOR_QUESTIONNAIRE_URL;
+  const lines = ["## Next steps", `- Interactive questionnaire & DPO RFP auto-responder: ${cockpitUrl}`];
   if (host) lines.push(`- Live Art. 50(1) report for ${host}: ${reportUrlFor(host)}`);
   lines.push(
-    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${upgradeUrls.freeApiKey10sEur0}`,
     `- White-label badge + 90-day Frankfurt vault + DPO engineering summary (Pro €19/mo): ${upgradeUrls.proWhiteLabelEur19}`,
     `- 12-month retention + Annex IV technical documentation draft (Team €79/mo): ${upgradeUrls.teamAgencyEur79}`,
     `- Done-For-You 24h setup (€199 once, incl. 1 yr Pro): ${upgradeUrls.doneForYou24hEur199}`,
+    `- Mint a Free SPURVIK_API_KEY in 10s (1-field email, no password, EU Frankfurt fra1): ${upgradeUrls.freeApiKey10sEur0}`,
     "",
   );
   return lines;
