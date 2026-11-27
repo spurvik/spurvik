@@ -715,7 +715,7 @@ function escapeScanCsvCell(value: string): string {
 }
 
 function formatScanCsv(reports: readonly ScanReport[]): string {
-  const header = "domain,status,detected_widgets,detected_platforms,art50_1_notice,report_url,rfp_csv_url,done_for_you_eur199_url";
+  const header = "domain,status,detected_widgets,detected_platforms,art50_1_notice,report_url,rfp_csv_url,done_for_you_eur199_url,c2pa_check_url,trust_center_md_url";
   const rows = reports.map((r) => {
     const notice =
       r.status === "covered"
@@ -725,7 +725,10 @@ function formatScanCsv(reports: readonly ScanReport[]): string {
           : r.status === "unreachable"
             ? "Unreachable"
             : "No public AI widget";
-    const rfpCsvUrl = `https://console.spurvik.com/api/v1/rfp/answers?domain=${encodeURIComponent(r.domain)}&plan=team&format=csv`;
+    const enc = encodeURIComponent(r.domain);
+    const rfpCsvUrl = `https://console.spurvik.com/api/v1/rfp/answers?domain=${enc}&plan=team&format=csv`;
+    const c2paCheckUrl = `https://console.spurvik.com/c2pa?domain=${enc}`;
+    const trustMdUrl = `https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${enc}`;
     return [
       escapeScanCsvCell(r.domain),
       escapeScanCsvCell(r.status),
@@ -735,6 +738,8 @@ function formatScanCsv(reports: readonly ScanReport[]): string {
       escapeScanCsvCell(r.links.reportUrl),
       escapeScanCsvCell(rfpCsvUrl),
       escapeScanCsvCell(r.links.doneForYouUrl),
+      escapeScanCsvCell(c2paCheckUrl),
+      escapeScanCsvCell(trustMdUrl),
     ].join(",");
   });
   return [header, ...rows].join("\r\n");
