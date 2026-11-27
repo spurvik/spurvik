@@ -36,6 +36,11 @@ export const BATCH_SCAN_DOMAINS_INPUT_JSON_SCHEMA = {
       description:
         "1 to 10 public http(s) URLs or bare domains, for example [\"stepnetwork.dk\", \"folk.app\"]. If any entry is localhost, a private IP or an internal host, nothing is scanned.",
     },
+    format: {
+      type: "string",
+      enum: ["json", "csv"],
+      description: "Optional output format: `json` (default structured report) or `csv` (adds RFC 4180 `csv` table + Google Sheets `=IMPORTDATA` formula).",
+    },
   },
   required: ["domains"],
   additionalProperties: false,
@@ -78,6 +83,12 @@ export interface BatchScanDomainsResult {
   portfolioUrl: string;
   /** Direct 1-click Console portfolio URL prefilled with `?domains=` for all scanned hosts. */
   prefilledPortfolioUrl: string;
+  /** Direct zero-key CSV export URL for Google Sheets =IMPORTDATA / Excel / Vanta. */
+  csvExportUrl: string;
+  /** Ready-to-paste Google Sheets formula. */
+  googleSheetsFormula: string;
+  /** Populated when `format: "csv"` is passed. */
+  csv?: string;
   upgradeUrls: {
     proAnnual2MonthsFree: string;
     teamAgencyPack: string;
@@ -200,12 +211,45 @@ function validateDomains(
  * Each domain is one `GET /api/v1/sandbox/scan` call (8 s timeout), at most 4 in flight.
  * A failed domain returns `offlineFallback: true` in its row; the batch itself never throws. Nothing is logged.
  */
-export async function batchScanDomains(domains: unknown, deps: ScanLiveUrlDeps = {}): Promise<BatchScanDomainsOutcome> {
+function csvCell(raw: string): string {
+  const flat = raw.replace(/\r?\n+/g, " ").trim();
+  const guarded = /^[=+\-@\t\r]/.test(flat) ? `'${flat}` : flat;
+  return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
+}
+
+export function buildBatchScanCsv(results: readonly BatchDomainResult[]): string {
+  const header =
+    "domain,status,detected_widgets,detected_platforms,art50_1_notice,gap,c2pa_cdn_risk,report_url,rfp_csv_url,done_for_you_eur199_url";
+  const rows = results.map((r) =>
+    [
+      csvCell(r.host),
+      csvCell(r.status),
+      csvCell(r.detectedWidgets.join(" · ") || "None"),
+      csvCell(r.detectedPlatforms?.join(" · ") || "None"),
+      csvCell(r.art50NoticeDetected === null ? "Not measured" : r.art50NoticeDetected ? "Detected" : "Missing"),
+      csvCell(r.gap ? "Yes" : "No"),
+      csvCell(r.heroImageProxy ? `Strip risk — ${r.heroImageProxy.name}` : "None detected"),
+      csvCell(r.reportUrl),
+      csvCell(`https://console.spurvik.com/api/v1/rfp/answers?domain=${encodeURIComponent(r.host)}&plan=team&format=csv`),
+      csvCell(`${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(r.host)}`),
+    ].join(","),
+  );
+  return [header, ...rows].join("\n");
+}
+
+export async function batchScanDomains(
+  domains: unknown,
+  deps: ScanLiveUrlDeps = {},
+  options: { format?: "json" | "csv" } = {},
+): Promise<BatchScanDomainsOutcome> {
   const checked = validateDomains(domains);
   if (!checked.ok) return checked;
   const scans = await mapPool(checked.targets, BATCH_SCAN_CONCURRENCY, (target) => scanNormalizedTarget(target, deps));
   const results = scans.map(toDomainResult);
   const offlineFallbacks = results.filter((result) => result.offlineFallback).length;
+  const joinedDomains = results.map((r) => encodeURIComponent(r.host)).join(",");
+  const csvExportUrl = `https://console.spurvik.com/api/v1/portfolio/scan?domains=${joinedDomains}&format=csv`;
+  const googleSheetsFormula = `=IMPORTDATA("${csvExportUrl}")`;
   return {
     ok: true,
     result: {
@@ -217,7 +261,10 @@ export async function batchScanDomains(domains: unknown, deps: ScanLiveUrlDeps =
       offlineFallbacks,
       results,
       portfolioUrl: PORTFOLIO_URL,
-      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${results.map((r) => encodeURIComponent(r.host)).join(",")}`,
+      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${joinedDomains}`,
+      csvExportUrl,
+      googleSheetsFormula,
+      ...(options.format === "csv" ? { csv: buildBatchScanCsv(results) } : {}),
       upgradeUrls: {
         proAnnual2MonthsFree: PRO_ANNUAL_SIGNUP_URL,
         teamAgencyPack: TEAM_SIGNUP_URL,

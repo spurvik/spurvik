@@ -1838,5 +1838,13 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     const annexRails = harness(failFetch);
     expect(await runCli(["annex-iv", "doctolib.fr", "--provider", "rails", "--json"], annexRails.deps)).toBe(EXIT_OK);
     expect(JSON.parse(annexRails.out()).provider).toBe("rails");
+
+    const javaSetup = harness(failFetch);
+    expect(await runCli(["setup", "spring-boot", "--domain", "sap.de", "--json"], javaSetup.deps)).toBe(EXIT_OK);
+    const javaJson = JSON.parse(javaSetup.out());
+    expect(javaJson.target).toBe("spring-boot");
+    expect(javaJson.runtime).toBe("jvm");
+    expect(javaJson.installCommand).toContain("https://spurvik.com/r/SpurvikGuard.java");
+    expect(javaJson.snippet).toContain("SpurvikGuard.sendTelemetryEvent");
   });
 });

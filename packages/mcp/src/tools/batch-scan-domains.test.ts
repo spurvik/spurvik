@@ -317,6 +317,17 @@ describe("batchScanDomains", () => {
     expect(result.results[1]?.platformInstallerUrls).toBeUndefined();
     expect(result.results[1]?.heroImageProxy).toBeUndefined();
     expect(result.prefilledPortfolioUrl).toBe("https://console.spurvik.com/portfolio?domains=charlie-paris.com,petgood.com");
+    expect(result.csvExportUrl).toBe(
+      "https://console.spurvik.com/api/v1/portfolio/scan?domains=charlie-paris.com,petgood.com&format=csv",
+    );
+    expect(result.googleSheetsFormula).toBe(`=IMPORTDATA("${result.csvExportUrl}")`);
+    expect(result.csv).toBeUndefined();
+
+    const csvResult = await expectOk(
+      batchScanDomains(["charlie-paris.com", "petgood.com"], { fetch: fetchMock as unknown as typeof fetch }, { format: "csv" }),
+    );
+    expect(csvResult.csv).toContain("domain,status,detected_widgets,detected_platforms,art50_1_notice,gap,c2pa_cdn_risk");
+    expect(csvResult.csv).toContain("charlie-paris.com,measured,Gorgias,Shopify · Google Tag Manager,Missing,Yes,Strip risk — Shopify CDN (/cdn/shop/)");
     expect(result.upgradeUrls.proAnnual2MonthsFree).toBe("https://console.spurvik.com/signup?plan=pro&interval=annual");
     expect(result.upgradeUrls.teamAnnual2MonthsFree).toBe("https://console.spurvik.com/signup?plan=team&interval=annual");
   });

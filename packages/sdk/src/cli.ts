@@ -1122,7 +1122,7 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
         out(`  ${c.bold("Go 1.21+ stdlib:")} curl -fsSLO https://spurvik.com/r/spurvik_guard.go && npx spurvik setup go`);
       }
       if (report.unwrapped.some((f) => f.file.endsWith(".java") || f.file.endsWith(".kt"))) {
-        out(`  ${c.bold("Java / Kotlin / Spring AI:")} npx spurvik setup spring-boot`);
+        out(`  ${c.bold("Java / Kotlin / Spring AI:")} curl -fsSLO https://spurvik.com/r/SpurvikGuard.java && npx spurvik setup spring-boot`);
       }
       if (report.unwrapped.some((f) => f.file.endsWith(".rb"))) {
         out(`  ${c.bold("Ruby / Rails / RubyLLM:")} curl -fsSLO https://spurvik.com/r/spurvik_guard.rb && npx spurvik setup rails`);
@@ -1963,7 +1963,7 @@ export function buildSetupReport(
           ? "mkdir -p internal/spurvikguard && curl -fsSL https://spurvik.com/r/spurvik_guard.go -o internal/spurvikguard/spurvik_guard.go"
           : target === "rails"
             ? "mkdir -p app/services && curl -fsSL https://spurvik.com/r/spurvik_guard.rb -o app/services/spurvik_guard.rb"
-            : "# Java 21+ stdlib javax.crypto.Mac + java.net.http.HttpClient (0 Maven/Gradle deps)";
+            : "mkdir -p src/main/java/com/spurvik/guard && curl -fsSL https://spurvik.com/r/SpurvikGuard.java -o src/main/java/com/spurvik/guard/SpurvikGuard.java";
     const snippet =
       target === "dotnet"
         ? [
@@ -1985,8 +1985,9 @@ export function buildSetupReport(
                 "# ERB / ViewComponent (0 cookies): <%= raw guard.badge_html %>",
               ].join("\n")
             : [
-                "// Java 21+ / Spring Boot 3 / Spring AI: post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
-                `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+                "import com.spurvik.guard.SpurvikGuard;",
+                'SpurvikGuard.sendTelemetryEvent(prompt, reply, "spring-ai", "gpt-4o-mini", 120L, "limited_art50");',
+                `// Thymeleaf / JSP (0 cookies): SpurvikGuard.art50BadgeHtml("${snippetSystem}", "${snippetLocale}", "interaction", "bottom-left", false)`,
               ].join("\n");
     return {
       target,

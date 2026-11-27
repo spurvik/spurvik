@@ -250,6 +250,7 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   kotlin: "openai",
   ktor: "openai",
   quarkus: "openai",
+  langchain4j: "openai",
   ruby: "openai",
   rails: "openai",
   "ruby-on-rails": "openai",
@@ -314,6 +315,7 @@ const JVM_RAW_ALIASES = new Set([
   "kotlin",
   "ktor",
   "quarkus",
+  "langchain4j",
 ]);
 
 const RUBY_RAW_ALIASES = new Set([
@@ -1057,9 +1059,11 @@ export function setupSnippetSource(
   if (JVM_RAW_ALIASES.has(rawLowerSrc)) {
     const sysName = host || "Support AI";
     return [
-      "// Java 21+ / Spring Boot 3 / Spring AI (0 Maven/Gradle dependencies — javax.crypto.Mac + java.net.http.HttpClient):",
-      "// Post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
-      `// Frontend Thymeleaf / JSP / React (0 cookies): <script src="https://spurvik.com/badge.js" data-system="${sysName}" data-locale="${locale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+      "// 1) mkdir -p src/main/java/com/spurvik/guard && curl -fsSL https://spurvik.com/r/SpurvikGuard.java -o src/main/java/com/spurvik/guard/SpurvikGuard.java",
+      "import com.spurvik.guard.SpurvikGuard;",
+      "",
+      'SpurvikGuard.sendTelemetryEvent(prompt, reply, "spring-ai", "gpt-4o-mini", 120L, "limited_art50");',
+      `// 2) Thymeleaf / JSP / JTE 24-language Art. 50(1) notice (0 cookies): SpurvikGuard.art50BadgeHtml("${sysName}", "${locale}", "interaction", "bottom-left", false)`,
       "",
     ].join("\n");
   }
@@ -1316,8 +1320,8 @@ export function setupSnippet(
   }
   if (JVM_RAW_ALIASES.has(rawLower)) {
     const jvmLines = [
-      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Kotlin, zero Maven/Gradle dependencies).`,
-      `Compute keyed HmacSHA256 digests locally with \`SPURVIK_CONTENT_HASH_SECRET\` and post \`inputHash\` & \`outputHash\` (0 bytes of raw prompt text) to \`https://console.spurvik.com/api/v1/telemetry\`. ${DOES_NOT_MARK}`,
+      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Spring AI / LangChain4j / Quarkus / Kotlin, zero Maven/Gradle dependencies).`,
+      `Download https://spurvik.com/r/SpurvikGuard.java into \`src/main/java/com/spurvik/guard/SpurvikGuard.java\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept in your JVM). Sends keyed HmacSHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,

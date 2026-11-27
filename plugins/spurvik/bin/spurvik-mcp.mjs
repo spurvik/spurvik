@@ -23575,12 +23575,38 @@ function validateDomains(input) {
   }
   return { ok: true, targets, duplicatesRemoved };
 }
-async function batchScanDomains(domains, deps = {}) {
+function csvCell(raw) {
+  const flat = raw.replace(/\r?\n+/g, " ").trim();
+  const guarded = /^[=+\-@\t\r]/.test(flat) ? `'${flat}` : flat;
+  return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
+}
+function buildBatchScanCsv(results) {
+  const header2 = "domain,status,detected_widgets,detected_platforms,art50_1_notice,gap,c2pa_cdn_risk,report_url,rfp_csv_url,done_for_you_eur199_url";
+  const rows = results.map(
+    (r) => [
+      csvCell(r.host),
+      csvCell(r.status),
+      csvCell(r.detectedWidgets.join(" · ") || "None"),
+      csvCell(r.detectedPlatforms?.join(" · ") || "None"),
+      csvCell(r.art50NoticeDetected === null ? "Not measured" : r.art50NoticeDetected ? "Detected" : "Missing"),
+      csvCell(r.gap ? "Yes" : "No"),
+      csvCell(r.heroImageProxy ? `Strip risk — ${r.heroImageProxy.name}` : "None detected"),
+      csvCell(r.reportUrl),
+      csvCell(`https://console.spurvik.com/api/v1/rfp/answers?domain=${encodeURIComponent(r.host)}&plan=team&format=csv`),
+      csvCell(`${CONCIERGE_SIGNUP_URL}&appUrl=${encodeURIComponent(r.host)}`)
+    ].join(",")
+  );
+  return [header2, ...rows].join("\n");
+}
+async function batchScanDomains(domains, deps = {}, options = {}) {
   const checked = validateDomains(domains);
   if (!checked.ok) return checked;
   const scans = await mapPool(checked.targets, BATCH_SCAN_CONCURRENCY, (target) => scanNormalizedTarget(target, deps));
   const results = scans.map(toDomainResult);
   const offlineFallbacks = results.filter((result) => result.offlineFallback).length;
+  const joinedDomains = results.map((r) => encodeURIComponent(r.host)).join(",");
+  const csvExportUrl = `https://console.spurvik.com/api/v1/portfolio/scan?domains=${joinedDomains}&format=csv`;
+  const googleSheetsFormula = `=IMPORTDATA("${csvExportUrl}")`;
   return {
     ok: true,
     result: {
@@ -23592,7 +23618,10 @@ async function batchScanDomains(domains, deps = {}) {
       offlineFallbacks,
       results,
       portfolioUrl: PORTFOLIO_URL,
-      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${results.map((r) => encodeURIComponent(r.host)).join(",")}`,
+      prefilledPortfolioUrl: `${PORTFOLIO_URL}?domains=${joinedDomains}`,
+      csvExportUrl,
+      googleSheetsFormula,
+      ...options.format === "csv" ? { csv: buildBatchScanCsv(results) } : {},
       upgradeUrls: {
         proAnnual2MonthsFree: PRO_ANNUAL_SIGNUP_URL,
         teamAgencyPack: TEAM_SIGNUP_URL,
@@ -29220,6 +29249,7 @@ var SETUP_FRAMEWORK_ALIASES = {
   kotlin: "openai",
   ktor: "openai",
   quarkus: "openai",
+  langchain4j: "openai",
   ruby: "openai",
   rails: "openai",
   "ruby-on-rails": "openai",
@@ -29279,7 +29309,8 @@ var JVM_RAW_ALIASES = /* @__PURE__ */ new Set([
   "spring-ai",
   "kotlin",
   "ktor",
-  "quarkus"
+  "quarkus",
+  "langchain4j"
 ]);
 var RUBY_RAW_ALIASES = /* @__PURE__ */ new Set([
   "ruby",
@@ -29970,9 +30001,11 @@ function setupSnippetSource(frameworkInput, runtimeInput, options = {}) {
   if (JVM_RAW_ALIASES.has(rawLowerSrc)) {
     const sysName = host || "Support AI";
     return [
-      "// Java 21+ / Spring Boot 3 / Spring AI (0 Maven/Gradle dependencies — javax.crypto.Mac + java.net.http.HttpClient):",
-      "// Post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
-      `// Frontend Thymeleaf / JSP / React (0 cookies): <script src="https://spurvik.com/badge.js" data-system="${sysName}" data-locale="${locale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+      "// 1) mkdir -p src/main/java/com/spurvik/guard && curl -fsSL https://spurvik.com/r/SpurvikGuard.java -o src/main/java/com/spurvik/guard/SpurvikGuard.java",
+      "import com.spurvik.guard.SpurvikGuard;",
+      "",
+      'SpurvikGuard.sendTelemetryEvent(prompt, reply, "spring-ai", "gpt-4o-mini", 120L, "limited_art50");',
+      `// 2) Thymeleaf / JSP / JTE 24-language Art. 50(1) notice (0 cookies): SpurvikGuard.art50BadgeHtml("${sysName}", "${locale}", "interaction", "bottom-left", false)`,
       ""
     ].join("\n");
   }
@@ -30221,8 +30254,8 @@ ${source}\`\`\`
   }
   if (JVM_RAW_ALIASES.has(rawLower)) {
     const jvmLines = [
-      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Kotlin, zero Maven/Gradle dependencies).`,
-      `Compute keyed HmacSHA256 digests locally with \`SPURVIK_CONTENT_HASH_SECRET\` and post \`inputHash\` & \`outputHash\` (0 bytes of raw prompt text) to \`https://console.spurvik.com/api/v1/telemetry\`. ${DOES_NOT_MARK}`,
+      `Framework: ${rawLower}. Runtime: jvm (Java 21+ / Spring Boot 3 / Spring AI / LangChain4j / Quarkus / Kotlin, zero Maven/Gradle dependencies).`,
+      `Download https://spurvik.com/r/SpurvikGuard.java into \`src/main/java/com/spurvik/guard/SpurvikGuard.java\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept in your JVM). Sends keyed HmacSHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
       `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
       `Shareable readiness report for your domain: ${reportLink}`,
       `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
@@ -31347,11 +31380,12 @@ function createServer(workspaceRoot, options = {}) {
       title: BATCH_TITLE,
       description: BATCH_DESCRIPTION,
       inputSchema: {
-        domains: external_exports.array(external_exports.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD)
+        domains: external_exports.array(external_exports.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD),
+        format: external_exports.enum(["json", "csv"]).optional().describe("Optional output format: `json` (default) or `csv` (includes RFC 4180 `csv` table for Google Sheets & Excel).")
       },
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS
     },
-    async ({ domains }) => json(await batchScanDomains(domains, options.scan))
+    async ({ domains, format }) => json(await batchScanDomains(domains, options.scan, format ? { format } : {}))
   );
   server.registerTool(
     "spurvik_check_image_c2pa_url",

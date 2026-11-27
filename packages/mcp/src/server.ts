@@ -242,10 +242,14 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       description: BATCH_DESCRIPTION,
       inputSchema: {
         domains: z.array(z.string().min(1).max(2048)).min(1).max(BATCH_MAX_DOMAINS).describe(BATCH_DOMAINS_FIELD),
+        format: z
+          .enum(["json", "csv"])
+          .optional()
+          .describe("Optional output format: `json` (default) or `csv` (includes RFC 4180 `csv` table for Google Sheets & Excel)."),
       },
       annotations: READ_ONLY_OPEN_WORLD_ANNOTATIONS,
     },
-    async ({ domains }) => json(await batchScanDomains(domains, options.scan)),
+    async ({ domains, format }) => json(await batchScanDomains(domains, options.scan, format ? { format } : {})),
   );
 
   server.registerTool(
