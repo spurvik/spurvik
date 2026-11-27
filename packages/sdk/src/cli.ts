@@ -709,9 +709,40 @@ function printBatchScan(batch: BatchScanReport, io: Io): void {
   out();
 }
 
+function escapeScanCsvCell(value: string): string {
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+function formatScanCsv(reports: readonly ScanReport[]): string {
+  const header = "domain,status,detected_widgets,detected_platforms,art50_1_notice,report_url,rfp_csv_url,done_for_you_eur199_url";
+  const rows = reports.map((r) => {
+    const notice =
+      r.status === "covered"
+        ? "Detected"
+        : r.status === "gap"
+          ? "Gap — missing notice"
+          : r.status === "unreachable"
+            ? "Unreachable"
+            : "No public AI widget";
+    const rfpCsvUrl = `https://console.spurvik.com/api/v1/rfp/answers?domain=${encodeURIComponent(r.domain)}&plan=team&format=csv`;
+    return [
+      escapeScanCsvCell(r.domain),
+      escapeScanCsvCell(r.status),
+      escapeScanCsvCell(r.detectedWidgets.join("; ")),
+      escapeScanCsvCell((r.detectedPlatforms ?? []).join("; ")),
+      escapeScanCsvCell(notice),
+      escapeScanCsvCell(r.links.reportUrl),
+      escapeScanCsvCell(rfpCsvUrl),
+      escapeScanCsvCell(r.links.doneForYouUrl),
+    ].join(",");
+  });
+  return [header, ...rows].join("\r\n");
+}
+
 async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number> {
   if (args.positionals.length === 0) {
-    io.err("Usage: spurvik scan <domain-or-url> [...up to 10 domains] [--json] [--fail-on-gap]");
+    io.err("Usage: spurvik scan <domain-or-url> [...up to 10 domains] [--json|--csv] [--fail-on-gap]");
     return EXIT_ERROR;
   }
   if (args.positionals.length > BATCH_SCAN_MAX_DOMAINS) {
@@ -740,6 +771,7 @@ async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
       return EXIT_ERROR;
     }
     if (args.json) io.out(JSON.stringify(report, null, 2));
+    else if (args.csv) io.out(formatScanCsv([report]));
     else printScan(report, io);
     return args.failOnGap && report.status === "gap" ? EXIT_GAP : EXIT_OK;
   }
@@ -793,6 +825,7 @@ async function cmdScan(args: ParsedArgs, deps: CliDeps, io: Io): Promise<number>
     },
   };
   if (args.json) io.out(JSON.stringify(batch, null, 2));
+  else if (args.csv) io.out(formatScanCsv(results));
   else printBatchScan(batch, io);
   return args.failOnGap && gapsFound > 0 ? EXIT_GAP : EXIT_OK;
 }
@@ -4299,8 +4332,8 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
   }
-  if (args.csv && args.command !== "rfp") {
-    io.err("spurvik: --csv applies to the rfp command only.");
+  if (args.csv && args.command !== "rfp" && args.command !== "scan" && args.command !== "portfolio") {
+    io.err("spurvik: --csv applies to the rfp, scan and portfolio commands only.");
     return EXIT_ERROR;
   }
   if ((args.generatesMedia || args.noHighRiskActions) && args.command !== "rfp") {

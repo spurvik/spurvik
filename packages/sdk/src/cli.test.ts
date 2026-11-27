@@ -1803,5 +1803,12 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
       expect(csvOut).toContain(qid);
     }
     expect(csvOut).toContain("Mistral AI (EU Paris");
+
+    const scanCsv = harness((async () => jsonResponse(FOLK_GAP)) as unknown as typeof fetch);
+    expect(await runCli(["portfolio", "folk.app", "stepnetwork.dk", "--csv"], scanCsv.deps)).toBe(EXIT_OK);
+    const scanCsvOut = scanCsv.out();
+    expect(scanCsvOut.startsWith("domain,status,detected_widgets,detected_platforms,art50_1_notice,report_url,rfp_csv_url,done_for_you_eur199_url")).toBe(true);
+    expect(scanCsvOut).toContain('"folk.app"');
+    expect(scanCsvOut).toContain("/api/v1/rfp/answers?domain=folk.app&plan=team&format=csv");
   });
 });
