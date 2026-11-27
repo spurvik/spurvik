@@ -21,7 +21,17 @@ export const SPURVIK_ANNEX_IV_USE_CASES = [
 ] as const;
 export type SpurvikAnnexIvUseCase = (typeof SPURVIK_ANNEX_IV_USE_CASES)[number];
 
-export const SPURVIK_ANNEX_IV_PROVIDERS = ["openai", "anthropic", "gemini", "mistral", "python"] as const;
+export const SPURVIK_ANNEX_IV_PROVIDERS = [
+  "openai",
+  "anthropic",
+  "gemini",
+  "mistral",
+  "azure-openai",
+  "aws-bedrock",
+  "python",
+  "rails",
+  "spring-boot",
+] as const;
 export type SpurvikAnnexIvProvider = (typeof SPURVIK_ANNEX_IV_PROVIDERS)[number];
 
 export const SPURVIK_ANNEX_IV_TIERS = ["team", "free"] as const;
@@ -72,6 +82,9 @@ export interface SpurvikAnnexIvDraftOutput {
   readinessScorePct: number;
   sections: SpurvikAnnexIvSection[];
   markdown: string;
+  csv: string;
+  csvExportUrl: string;
+  googleSheetsFormula: string;
   studioUrl: string;
   previewApiUrl: string;
   upgradeUrls: SpurvikAnnexIvUpgradeUrls;
@@ -153,9 +166,25 @@ const PV_META: Record<SpurvikAnnexIvProvider, { label: string; wrapper: string }
     label: "Mistral AI EU Endpoint",
     wrapper: `withSpurvik(mistralClient, { riskTier: "high_annex3" })`,
   },
+  "azure-openai": {
+    label: "Azure OpenAI Service (Sweden Central / Germany West Central EU)",
+    wrapper: `withSpurvik(azureOpenAiClient, { riskTier: "high_annex3" })`,
+  },
+  "aws-bedrock": {
+    label: "Amazon Bedrock (EU Frankfurt eu-central-1)",
+    wrapper: `spurvikMiddleware({ riskTier: "high_annex3" })`,
+  },
   python: {
     label: "Python 3.10+ (FastAPI / LangChain / PydanticAI)",
     wrapper: `spurvik_guard.send_telemetry_event(..., risk_tier="high_annex3")`,
+  },
+  rails: {
+    label: "Ruby 3.1+ / Rails 7 & 8 (Zero-Gem SpurvikGuard)",
+    wrapper: `SpurvikGuard.send_telemetry_event(..., risk_tier: "high_annex3")`,
+  },
+  "spring-boot": {
+    label: "Java 21+ / Spring Boot 3 / Spring AI / LangChain4j (Zero-Maven SpurvikGuard.java)",
+    wrapper: `SpurvikGuard.sendTelemetryEvent(..., "high_annex3")`,
   },
 };
 
@@ -191,14 +220,35 @@ function normalizeUseCase(raw: unknown): SpurvikAnnexIvUseCase {
   return "employment";
 }
 
+const PROVIDER_ALIASES: Readonly<Record<string, SpurvikAnnexIvProvider>> = {
+  azure: "azure-openai",
+  azure_openai: "azure-openai",
+  bedrock: "aws-bedrock",
+  aws_bedrock: "aws-bedrock",
+  fastapi: "python",
+  langchain: "python",
+  ruby: "rails",
+  java: "spring-boot",
+  spring: "spring-boot",
+  langchain4j: "spring-boot",
+  quarkus: "spring-boot",
+};
+
 function normalizeProvider(raw: unknown): SpurvikAnnexIvProvider {
   if (typeof raw === "string") {
     const clean = raw.trim().toLowerCase();
     if ((SPURVIK_ANNEX_IV_PROVIDERS as readonly string[]).includes(clean)) {
       return clean as SpurvikAnnexIvProvider;
     }
+    const mapped = PROVIDER_ALIASES[clean];
+    if (mapped) return mapped;
   }
   return "openai";
+}
+
+function escapeCsvCell(raw: string): string {
+  const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
 function normalizeTier(raw: unknown): SpurvikAnnexIvTier {
@@ -308,7 +358,10 @@ export function spurvikAnnexIvDraft(input: SpurvikAnnexIvDraftInput = {}): Spurv
   const studioUrl = domain
     ? `https://spurvik.com${studioPath}?domain=${encodeURIComponent(domain)}`
     : `https://spurvik.com${studioPath}`;
-  const previewApiUrl = `${CONSOLE_ORIGIN}/api/v1/annex-iv/preview?domain=${encodeURIComponent(displaySystem)}&useCase=${useCase}&provider=${provider}&tier=${tier}${locale !== "en" ? `&locale=${locale}` : ""}`;
+  const apiProvider = provider === "spring-boot" ? "openai" : provider;
+  const previewApiUrl = `${CONSOLE_ORIGIN}/api/v1/annex-iv/preview?domain=${encodeURIComponent(displaySystem)}&useCase=${useCase}&provider=${apiProvider}&tier=${tier}${locale !== "en" ? `&locale=${locale}` : ""}`;
+  const csvExportUrl = `${previewApiUrl}&format=csv`;
+  const googleSheetsFormula = `=IMPORTDATA("${csvExportUrl}")`;
 
   const appSuffix = domain ? `&appUrl=${encodeURIComponent(domain)}` : "";
   const locSuffix = locale !== "en" ? `&locale=${locale}` : "";
@@ -360,6 +413,36 @@ export function spurvikAnnexIvDraft(input: SpurvikAnnexIvDraftInput = {}): Spurv
     `_Technical documentation scaffold generated locally in n8n (0 network requests); supports EU AI Act Art. 11 & Annex IV preparation._`,
   ].join("\n");
 
+  const csvHeader = [
+    "Section",
+    "Annex_Reference",
+    "Title",
+    "Source_Mode",
+    "Populated_In_Preview",
+    "System",
+    "Use_Case",
+    "Provider",
+    "Summary",
+    "Studio_URL",
+  ].join(",");
+  const csvRows = sections.map((sec) =>
+    [
+      sec.number,
+      sec.annexRef,
+      sec.title,
+      sec.sourceMode,
+      sec.populatedInPreview ? "yes" : "no",
+      displaySystem,
+      useCase,
+      pv.label,
+      sec.summary,
+      studioUrl,
+    ]
+      .map(escapeCsvCell)
+      .join(","),
+  );
+  const csv = `${[csvHeader, ...csvRows].join("\r\n")}\r\n`;
+
   return {
     format: "spurvik.annex-iv-preview.v1",
     regulation: "Regulation (EU) 2024/1689 — Article 11(1) & Annex IV",
@@ -376,6 +459,9 @@ export function spurvikAnnexIvDraft(input: SpurvikAnnexIvDraftInput = {}): Spurv
     readinessScorePct: isTeam ? 100 : 44,
     sections,
     markdown,
+    csv,
+    csvExportUrl,
+    googleSheetsFormula,
     studioUrl,
     previewApiUrl,
     upgradeUrls,

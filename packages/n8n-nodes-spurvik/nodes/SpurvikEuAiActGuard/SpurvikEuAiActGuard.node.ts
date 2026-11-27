@@ -324,7 +324,11 @@ export const SpurvikN8nNodeDescription: INodeTypeDescription = {
         { name: "Anthropic Claude", value: "anthropic" },
         { name: "Google Gemini", value: "gemini" },
         { name: "Mistral AI (EU)", value: "mistral" },
+        { name: "Azure OpenAI (EU Sweden / Germany)", value: "azure-openai" },
+        { name: "AWS Bedrock (EU Frankfurt)", value: "aws-bedrock" },
         { name: "Python 3.10+ (FastAPI / LangChain)", value: "python" },
+        { name: "Ruby 3.1+ / Rails 7 & 8", value: "rails" },
+        { name: "Java 21+ / Spring Boot 3 / LangChain4j", value: "spring-boot" },
       ],
     },
     {

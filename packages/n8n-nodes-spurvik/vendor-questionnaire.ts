@@ -79,6 +79,12 @@ export interface SpurvikVendorQuestionnaireOutput {
   domain: string | null;
   /** Copy-paste Markdown answers to Q1–Q5, a plan table, and next steps. */
   markdown: string;
+  /** RFC 4180 CSV answers (Q1–Q5) ready for Vanta, SafeBase, Drata, Conveyor, or Excel. */
+  csv: string;
+  /** Zero-key CSV export endpoint URL (`GET /api/v1/rfp/answers?...&format=csv`). */
+  csvExportUrl: string;
+  /** Live Google Sheets `=IMPORTDATA(...)` formula for Q1–Q5 procurement answers. */
+  googleSheetsFormula: string;
   interactiveUrl: string;
   /** Live Art. 50(1) report for `domain`, or null without a domain. */
   reportUrl: string | null;
@@ -822,27 +828,66 @@ export function spurvikVendorQuestionnaireAnswers(input: SpurvikVendorQuestionna
   const provider = (rawProvAlias ? N8N_EXTRA_PROVIDER_FACTS[rawProvAlias] : undefined) ?? PROVIDER_FACTS[providerKey];
   const isConcierge = planKey === "concierge";
   const upgradeUrls = upgradeUrlsFor(host, locale);
+  const csvParams = new URLSearchParams();
+  if (host) csvParams.set("domain", host);
+  csvParams.set("plan", planKey);
+  csvParams.set("provider", rawProvAlias || providerKey);
+  if (!hasHighRiskActions) csvParams.set("hasHighRiskActions", "false");
+  if (generatesMedia) csvParams.set("generatesMedia", "true");
+  if (locale !== "en") csvParams.set("locale", locale);
+  csvParams.set("format", "csv");
+  const csvExportUrl = `${CONSOLE_ORIGIN}/api/v1/rfp/answers?${csvParams.toString()}`;
+  const googleSheetsFormula = `=IMPORTDATA("${csvExportUrl}")`;
+  const escCsv = (raw: string): string => {
+    const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+    return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  };
+  const buildRfpCsvFromMd = (md: string): string => {
+    const evUrl = host ? reportUrlFor(host) : SPURVIK_VENDOR_QUESTIONNAIRE_URL;
+    const headerRow = "Question_ID,EU_AI_Act_Scope,Question,Answer,Plan,Provider,Domain,Evidence_URL";
+    const sectionRe = /^##\s+(Q[1-5])\s*:\s*(.+)\n([\s\S]*?)(?=^##\s+|\n_|$)/gm;
+    const rows: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = sectionRe.exec(md)) !== null) {
+      const qId = m[1] ?? "";
+      const qTitle = (m[2] ?? "").trim();
+      const body = (m[3] ?? "")
+        .replace(/^\*\*[^*]+\s*:\*\*\s*/m, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      rows.push(
+        [qId, "Regulation (EU) 2024/1689", qTitle, body, plan.name, provider.label, host ?? "our product", evUrl]
+          .map(escCsv)
+          .join(","),
+      );
+    }
+    return `${[headerRow, ...rows].join("\r\n")}\r\n`;
+  };
   if (locale !== "en") {
     const base = LOCALIZED_RFP_COCKPIT_URLS[locale];
     const interactiveUrl = host ? `${base}?domain=${encodeURIComponent(host)}` : base;
+    const localizedMd = renderLocalizedMarkdown({
+      locale,
+      host,
+      domainIgnored,
+      plan,
+      provider,
+      hasHighRiskActions,
+      generatesMedia,
+      isConcierge,
+      interactiveUrl,
+      upgradeUrls,
+    });
     return {
       plan: planKey,
       provider: providerKey,
       hasHighRiskActions,
       generatesMedia,
       domain: host,
-      markdown: renderLocalizedMarkdown({
-        locale,
-        host,
-        domainIgnored,
-        plan,
-        provider,
-        hasHighRiskActions,
-        generatesMedia,
-        isConcierge,
-        interactiveUrl,
-        upgradeUrls,
-      }),
+      markdown: localizedMd,
+      csv: buildRfpCsvFromMd(localizedMd),
+      csvExportUrl,
+      googleSheetsFormula,
       interactiveUrl,
       reportUrl: host ? reportUrlFor(host) : null,
       upgradeUrls,
@@ -873,13 +918,17 @@ export function spurvikVendorQuestionnaireAnswers(input: SpurvikVendorQuestionna
     ...nextSteps(host, upgradeUrls),
     "_Engineering answers based on Spurvik's shipped controls. Articles 12 and 14 bind high-risk systems (Art. 6, Annex III); that classification stays with you. Not legal advice._",
   ];
+  const fullMd = `${lines.join("\n")}\n`;
   return {
     plan: planKey,
     provider: providerKey,
     hasHighRiskActions,
     generatesMedia,
     domain: host,
-    markdown: `${lines.join("\n")}\n`,
+    markdown: fullMd,
+    csv: buildRfpCsvFromMd(fullMd),
+    csvExportUrl,
+    googleSheetsFormula,
     interactiveUrl: SPURVIK_VENDOR_QUESTIONNAIRE_URL,
     reportUrl: host ? reportUrlFor(host) : null,
     upgradeUrls,

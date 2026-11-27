@@ -525,6 +525,12 @@ export interface SpurvikBatchScanOutput {
   gapsFound: number;
   /** One Scan Live Domain result per distinct host, in input order. */
   results: SpurvikScanDomainOutput[];
+  /** RFC 4180 CSV table (with OWASP formula-injection guard) for Excel, Airtable, or n8n Write Binary File. */
+  csv: string;
+  /** Zero-key CSV export endpoint URL (`GET /api/v1/portfolio/scan?domains=...&format=csv`). */
+  csvExportUrl: string;
+  /** Live Google Sheets `=IMPORTDATA(...)` formula for the scanned domain batch. */
+  googleSheetsFormula: string;
   portfolioUrl: string;
   /** Prefilled /portfolio?domains=... deep link opening all scanned hosts in the visual Agency Portfolio Cockpit. */
   prefilledPortfolioUrl: string;
@@ -593,6 +599,11 @@ async function mapPool<T, R>(items: readonly T[], limit: number, worker: (item: 
  * private or invalid entry throws with zero outbound requests. Per-host trouble returns that row as
  * `scanStatus: "offline"`; the batch itself only throws for invalid input. Nothing is logged.
  */
+function escapeBatchCsvCell(raw: string): string {
+  const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+
 export async function batchScanSpurvikDomains(
   input: SpurvikBatchScanInput,
   opts: SpurvikScanDomainOptions = {},
@@ -602,13 +613,44 @@ export async function batchScanSpurvikDomains(
   const results = await mapPool(hosts, SPURVIK_BATCH_CONCURRENCY, (host) =>
     scanSpurvikDomain({ domainOrUrl: host, consoleBaseUrl }, opts),
   );
+  const encodedDomains = hosts.map(encodeURIComponent).join(",");
+  const csvExportUrl = `${SPURVIK_CONSOLE_ORIGIN}/api/v1/portfolio/scan?domains=${encodedDomains}&format=csv`;
+  const googleSheetsFormula = `=IMPORTDATA("${csvExportUrl}")`;
+  const csvHeader = [
+    "Domain",
+    "Reachable",
+    "Scan_Status",
+    "Widget_Class",
+    "Detected_Widgets",
+    "Art_50_Notice_Detected",
+    "Report_URL",
+    "Done_For_You_24h_EUR_199",
+  ].join(",");
+  const csvRows = results.map((row) =>
+    [
+      row.domain,
+      row.reachable ? "yes" : "no",
+      row.scanStatus,
+      row.widgetDisclosureClass,
+      row.detectedWidgets.join("; "),
+      row.art50NoticeDetected ? "yes" : "no",
+      row.reportUrl,
+      row.upgradeUrls.doneForYou24hEur199,
+    ]
+      .map(escapeBatchCsvCell)
+      .join(","),
+  );
+  const csv = `${[csvHeader, ...csvRows].join("\r\n")}\r\n`;
   return {
     totalDomains: results.length,
     gapsFound: results.filter((row) => row.reachable && row.detectedWidgets.length > 0 && !row.art50NoticeDetected)
       .length,
     results,
+    csv,
+    csvExportUrl,
+    googleSheetsFormula,
     portfolioUrl: SPURVIK_PORTFOLIO_URL,
-    prefilledPortfolioUrl: `${SPURVIK_PORTFOLIO_URL}?domains=${hosts.map(encodeURIComponent).join(",")}`,
+    prefilledPortfolioUrl: `${SPURVIK_PORTFOLIO_URL}?domains=${encodedDomains}`,
     agencyCalculatorUrl: SPURVIK_AGENCY_CALCULATOR_URL,
     upgradeUrls: {
       freeApiKey10sEur0: `${SPURVIK_CONSOLE_ORIGIN}/signup`,

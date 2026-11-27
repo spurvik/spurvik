@@ -74,7 +74,17 @@ describe("annexIvDraft descriptor & offline 9-section execution (zero-credential
     assert.match(operation.options[8].description, /no request, no credential or API key/);
     assert.equal(packageIndex.spurvikAnnexIvDraft, spurvikAnnexIvDraft);
     assert.deepEqual(SPURVIK_ANNEX_IV_LOCALES, ["en", "de", "fr", "nl", "da", "sv", "es", "it"]);
-    assert.deepEqual(SPURVIK_ANNEX_IV_PROVIDERS, ["openai", "anthropic", "gemini", "mistral", "python"]);
+    assert.deepEqual(SPURVIK_ANNEX_IV_PROVIDERS, [
+      "openai",
+      "anthropic",
+      "gemini",
+      "mistral",
+      "azure-openai",
+      "aws-bedrock",
+      "python",
+      "rails",
+      "spring-boot",
+    ]);
     assert.equal(SPURVIK_ANNEX_IV_USE_CASES.length, 6);
 
     const { validateNodeCredentials } = require("n8n-workflow");
@@ -136,5 +146,18 @@ describe("annexIvDraft descriptor & offline 9-section execution (zero-credential
     assert.equal(priv.domain, null);
     assert.equal(priv.readinessScorePct, 44);
     assert.equal(priv.studioUrl, "https://spurvik.com/fr/reglement-ia-annexe-iv-documentation-technique");
+
+    // H265c: Sovereign EU / Java 21+ providers + RFC 4180 CSV + Google Sheets =IMPORTDATA formula
+    assert.ok(out.csv.startsWith("Section,Annex_Reference,Title,Source_Mode,Populated_In_Preview,System,Use_Case,Provider,Summary,Studio_URL\r\n"));
+    assert.equal(out.csv.trim().split("\r\n").length, 10);
+    assert.ok(out.csvExportUrl.endsWith("&format=csv"));
+    assert.equal(out.googleSheetsFormula, `=IMPORTDATA("${out.csvExportUrl}")`);
+
+    const javaOut = spurvikAnnexIvDraft({ domain: "personio.de", provider: "langchain4j", tier: "team", locale: "de" });
+    assert.equal(javaOut.provider, "spring-boot");
+    assert.match(javaOut.markdown, /SpurvikGuard\.java/);
+    const azureOut = spurvikAnnexIvDraft({ domain: "personio.de", provider: "azure", tier: "team", locale: "de" });
+    assert.equal(azureOut.provider, "azure-openai");
+    assert.match(azureOut.markdown, /Azure OpenAI Service/);
   });
 });
