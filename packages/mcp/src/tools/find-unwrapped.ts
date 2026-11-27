@@ -30,6 +30,7 @@ const SOURCE_EXT = new Set([
   ".cts",
   ".py",
   ".php",
+  ".rb",
   ".cs",
   ".go",
   ".java",
@@ -772,13 +773,18 @@ export function findUnwrappedPythonInSource(
   return findings;
 }
 
-export type EnterpriseScanLanguage = "php" | "dotnet" | "go" | "jvm";
+export type EnterpriseScanLanguage = "php" | "ruby" | "dotnet" | "go" | "jvm";
 
 const ENTERPRISE_AI_PATTERNS: ReadonlyArray<{ lang: EnterpriseScanLanguage; re: RegExp; call: string }> = [
   {
     lang: "php",
     re: /\bOpenAI::(?:client|chat|responses|completions)\s*\(|\bPrism::(?:text|structured|embeddings)\s*\(|\bnew\s+\\?OpenAI\\Client\b|\bAnthropic::(?:client|messages)\s*\(/,
     call: "OpenAI::client() / Prism",
+  },
+  {
+    lang: "ruby",
+    re: /\bOpenAI::Client\.new\s*\(|\bAnthropic::Client\.new\s*\(|\bRubyLLM\.chat\b|\bLangchain::LLM::(?:OpenAI|Anthropic|GoogleGemini|MistralAI)\.new\b|\bGemini\.new\s*\(/,
+    call: "OpenAI::Client / RubyLLM",
   },
   {
     lang: "dotnet",
@@ -800,6 +806,7 @@ const ENTERPRISE_AI_PATTERNS: ReadonlyArray<{ lang: EnterpriseScanLanguage; re: 
 function enterpriseLangForExtension(ext: string): EnterpriseScanLanguage | null {
   const lower = ext.toLowerCase();
   if (lower === ".php") return "php";
+  if (lower === ".rb") return "ruby";
   if (lower === ".cs") return "dotnet";
   if (lower === ".go") return "go";
   if (lower === ".java" || lower === ".kt") return "jvm";

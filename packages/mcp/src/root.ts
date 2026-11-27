@@ -380,6 +380,7 @@ export function hasProjectMarker(real: string): boolean {
     existsSync(path.join(real, "pyproject.toml")) ||
     existsSync(path.join(real, "requirements.txt")) ||
     existsSync(path.join(real, "composer.json")) ||
+    existsSync(path.join(real, "Gemfile")) ||
     existsSync(path.join(real, "go.mod")) ||
     existsSync(path.join(real, "pom.xml")) ||
     existsSync(path.join(real, "build.gradle")) ||

@@ -810,6 +810,7 @@ export const AUDIT_EXTENSIONS = new Set([
   ".cjs",
   ".py",
   ".php",
+  ".rb",
   ".cs",
   ".go",
   ".java",
@@ -837,7 +838,7 @@ const AUDIT_MAX_FINDINGS = 500;
 /** A file that mentions any of these is treated as already wrapped. */
 const WRAPPED_RE = /spurvik|wrapVercelModel/i;
 
-type AuditFileKind = "js" | "py" | "php" | "cs" | "go" | "jvm";
+type AuditFileKind = "js" | "py" | "php" | "rb" | "cs" | "go" | "jvm";
 
 interface CallPattern {
   re: RegExp;
@@ -876,6 +877,11 @@ const CALL_PATTERNS: readonly CallPattern[] = [
     provider: "Java / Spring AI",
     kind: "jvm",
   },
+  {
+    re: /\bOpenAI::Client\.new\s*\(|\bAnthropic::Client\.new\s*\(|\bRubyLLM\.chat\b|\bLangchain::LLM::(?:OpenAI|Anthropic|GoogleGemini|MistralAI)\.new\b|\bGemini\.new\s*\(/,
+    provider: "Ruby / Rails OpenAI / RubyLLM",
+    kind: "rb",
+  },
 ];
 
 export interface AuditFinding {
@@ -895,6 +901,7 @@ export interface AuditReport {
 function fileKindForExt(ext: string): AuditFileKind {
   if (ext === ".py") return "py";
   if (ext === ".php") return "php";
+  if (ext === ".rb") return "rb";
   if (ext === ".cs") return "cs";
   if (ext === ".go") return "go";
   if (ext === ".java" || ext === ".kt") return "jvm";
@@ -903,7 +910,7 @@ function fileKindForExt(ext: string): AuditFileKind {
 
 function isCommentLine(line: string, kind: AuditFileKind): boolean {
   const t = line.trimStart();
-  if (kind === "py") return t.startsWith("#");
+  if (kind === "py" || kind === "rb") return t.startsWith("#");
   if (kind === "php") return t.startsWith("#") || t.startsWith("//") || t.startsWith("*") || t.startsWith("/*");
   return t.startsWith("//") || t.startsWith("*") || t.startsWith("/*");
 }
@@ -1078,6 +1085,9 @@ function cmdAudit(args: ParsedArgs, deps: CliDeps, io: Io): number {
       }
       if (report.unwrapped.some((f) => f.file.endsWith(".java") || f.file.endsWith(".kt"))) {
         out(`  ${c.bold("Java / Kotlin / Spring AI:")} npx spurvik setup spring-boot`);
+      }
+      if (report.unwrapped.some((f) => f.file.endsWith(".rb"))) {
+        out(`  ${c.bold("Ruby / Rails / RubyLLM:")} curl -fsSLO https://spurvik.com/r/spurvik_guard.rb && npx spurvik setup rails`);
       }
       out(`  ${c.dim("config fields:")} ${QUICKSTART_URL}`);
       out(`  ${c.dim("tailored setup:")} npx spurvik setup`);
@@ -1345,6 +1355,7 @@ export const SETUP_TARGETS = [
   "dotnet",
   "go",
   "spring-boot",
+  "rails",
   "pre-commit",
   "shopify",
   "wordpress",
@@ -1368,7 +1379,7 @@ export type SetupRuntime = (typeof SETUP_RUNTIMES)[number];
 
 const PYTHON_SETUP_TARGETS: readonly SetupTarget[] = ["python", "fastapi", "langchain", "pydantic-ai"];
 const PHP_SETUP_TARGETS: readonly SetupTarget[] = ["php", "laravel", "symfony"];
-const ENTERPRISE_SETUP_TARGETS: readonly SetupTarget[] = ["dotnet", "go", "spring-boot"];
+const ENTERPRISE_SETUP_TARGETS: readonly SetupTarget[] = ["dotnet", "go", "spring-boot", "rails"];
 const CMS_SETUP_TARGETS: readonly SetupTarget[] = ["shopify", "wordpress", "prestashop", "shopware", "cloudflare", "webflow", "framer", "gtm", "matomo", "cmp", "html"];
 const WORKFLOW_SETUP_TARGETS: readonly SetupTarget[] = ["n8n", "make", "copilot-studio"];
 
@@ -1488,6 +1499,15 @@ const SETUP_TARGET_ALIASES: Readonly<Record<string, SetupTarget>> = {
   kotlin: "spring-boot",
   ktor: "spring-boot",
   quarkus: "spring-boot",
+  ruby: "rails",
+  "ruby-on-rails": "rails",
+  rails7: "rails",
+  rails8: "rails",
+  sinatra: "rails",
+  hanami: "rails",
+  ruby_llm: "rails",
+  langchainrb: "rails",
+  openwebui: "litellm",
   precommit: "pre-commit",
   husky: "pre-commit",
   "git-hooks": "pre-commit",
@@ -1506,7 +1526,7 @@ const SETUP_DEFAULT_RUNTIME_BY_ALIAS: Readonly<Record<string, SetupRuntime>> = {
 
 export interface SetupReport {
   target: SetupTarget;
-  runtime: SetupRuntime | "browser" | "workflow" | "php" | "dotnet" | "go" | "jvm" | "cli";
+  runtime: SetupRuntime | "browser" | "workflow" | "php" | "dotnet" | "go" | "jvm" | "ruby" | "cli";
   detected: boolean;
   domain?: string;
   locale?: string;
@@ -1639,6 +1659,9 @@ export function detectSetupStack(root: string): { target: SetupTarget; runtime: 
   }
   if (fileExists(path.join(root, "go.mod"))) {
     return { target: "go", runtime: "node", detected: true };
+  }
+  if (fileExists(path.join(root, "Gemfile"))) {
+    return { target: "rails", runtime: "node", detected: true };
   }
   if (
     fileExists(path.join(root, "pom.xml")) ||
@@ -1893,13 +1916,16 @@ export function buildSetupReport(
   if (ENTERPRISE_SETUP_TARGETS.includes(target)) {
     const snippetLocale = loc ?? (host ? langForHost(host) : "en");
     const snippetSystem = host ?? "Support AI";
-    const entRuntime: "dotnet" | "go" | "jvm" = target === "dotnet" ? "dotnet" : target === "go" ? "go" : "jvm";
+    const entRuntime: "dotnet" | "go" | "jvm" | "ruby" =
+      target === "dotnet" ? "dotnet" : target === "go" ? "go" : target === "rails" ? "ruby" : "jvm";
     const installCommand =
       target === "dotnet"
         ? "mkdir -p Services && curl -fsSL https://spurvik.com/r/SpurvikGuard.cs -o Services/SpurvikGuard.cs"
         : target === "go"
           ? "mkdir -p internal/spurvikguard && curl -fsSL https://spurvik.com/r/spurvik_guard.go -o internal/spurvikguard/spurvik_guard.go"
-          : "# Java 21+ stdlib javax.crypto.Mac + java.net.http.HttpClient (0 Maven/Gradle deps)";
+          : target === "rails"
+            ? "mkdir -p app/services && curl -fsSL https://spurvik.com/r/spurvik_guard.rb -o app/services/spurvik_guard.rb"
+            : "# Java 21+ stdlib javax.crypto.Mac + java.net.http.HttpClient (0 Maven/Gradle deps)";
     const snippet =
       target === "dotnet"
         ? [
@@ -1913,10 +1939,17 @@ export function buildSetupReport(
               '_, _ = spurvikguard.SendTelemetryEvent(ctx, prompt, reply, "openai", "gpt-4o-mini", 120, "", "", "")',
               `// HTML helper (0 cookies): spurvikguard.Art50BadgeHTML("${snippetSystem}", "${snippetLocale}", "interaction", "bottom-left", false)`,
             ].join("\n")
-          : [
-              "// Java 21+ / Spring Boot 3 / Spring AI: post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
-              `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
-            ].join("\n");
+          : target === "rails"
+            ? [
+                'require_relative "spurvik_guard"',
+                `guard = SpurvikGuard.from_env(system_name: "${snippetSystem}", locale: "${snippetLocale}")`,
+                'guard.log_call(prompt_text: prompt, output_text: reply, model: "gpt-4o-mini", provider: "openai")',
+                "# ERB / ViewComponent (0 cookies): <%= raw guard.badge_html %>",
+              ].join("\n")
+            : [
+                "// Java 21+ / Spring Boot 3 / Spring AI: post keyed HmacSHA256 inputHash & outputHash (0 prompt bytes) to https://console.spurvik.com/api/v1/telemetry",
+                `<script src="https://spurvik.com/badge.js" data-system="${snippetSystem}" data-locale="${snippetLocale}" data-position="bottom-left" data-cookieconsent="ignore" data-uc-allowed="true" defer></script>`,
+              ].join("\n");
     return {
       target,
       runtime: entRuntime,
@@ -2756,6 +2789,13 @@ const RFP_PROVIDER_ALIASES: Record<string, (typeof SPURVIK_QUESTIONNAIRE_PROVIDE
   spring: "custom",
   "spring-boot": "custom",
   kotlin: "custom",
+  ruby: "custom",
+  rails: "custom",
+  "ruby-on-rails": "custom",
+  ruby_llm: "custom",
+  langchainrb: "custom",
+  openwebui: "openai",
+  "open-webui": "openai",
   fastapi: "python",
   langchain: "python",
   pydanticai: "python",
@@ -2877,6 +2917,36 @@ const RFP_SOVEREIGN_OVERRIDES: Record<string, { baseLabel: string; targetLabel: 
     targetLabel: "Kotlin / Spring Boot 3 / Ktor (JVM 21+)",
     baseWrapper: "`withSpurvik` on the provider client",
     targetWrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256` + `java.net.http.HttpClient`, 0 Gradle deps)",
+  },
+  ruby: {
+    baseLabel: "our model provider",
+    targetLabel: "Ruby 3.1+ / Rails 7 & 8 (spurvik_guard.rb)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard#log_call` & `SpurvikGuard.verify_signed_callback` (`app/services/spurvik_guard.rb`, 0 Gem deps)",
+  },
+  rails: {
+    baseLabel: "our model provider",
+    targetLabel: "Ruby on Rails 7 & 8 / Ruby 3.1+ (spurvik_guard.rb)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard#log_call` & `SpurvikGuard.verify_signed_callback` (`app/services/spurvik_guard.rb`, 0 Gem deps)",
+  },
+  "ruby-on-rails": {
+    baseLabel: "our model provider",
+    targetLabel: "Ruby on Rails 7 & 8 / Ruby 3.1+ (spurvik_guard.rb)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard#log_call` & `SpurvikGuard.verify_signed_callback` (`app/services/spurvik_guard.rb`, 0 Gem deps)",
+  },
+  ruby_llm: {
+    baseLabel: "our model provider",
+    targetLabel: "RubyLLM / Rails 8 (spurvik_guard.rb)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard#log_call` & `SpurvikGuard.verify_signed_callback` (`app/services/spurvik_guard.rb`, 0 Gem deps)",
+  },
+  langchainrb: {
+    baseLabel: "our model provider",
+    targetLabel: "Langchain.rb / Ruby 3.1+ (spurvik_guard.rb)",
+    baseWrapper: "`withSpurvik` on the provider client",
+    targetWrapper: "`SpurvikGuard#log_call` & `SpurvikGuard.verify_signed_callback` (`app/services/spurvik_guard.rb`, 0 Gem deps)",
   },
 };
 

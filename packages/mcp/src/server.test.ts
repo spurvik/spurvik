@@ -745,6 +745,32 @@ describe("createServer", () => {
 
     const ide = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "claude-code" } }));
     expect(ide).toContain("5 agent skills incl. eu-ai-act-annex-iv-technical-file");
+
+    const rails = textOf(
+      await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "rails", domain: "doctolib.fr" } }),
+    );
+    expect(rails).toContain("https://spurvik.com/r/spurvik_guard.rb");
+    expect(rails).toContain('SpurvikGuard.from_env(system_name: "doctolib.fr", locale: "fr")');
+
+    const ow = textOf(await client.callTool({ name: "spurvik_setup_snippet", arguments: { framework: "openwebui" } }));
+    expect(ow).toContain("https://spurvik.com/r/openwebui-spurvik-tools.py");
     await client.close();
+  });
+
+  it("detects unwrapped Ruby (.rb) AI client calls and recognizes Gemfile project roots (H253b)", async () => {
+    const { findUnwrappedEnterpriseInSource } = await import("./tools/find-unwrapped.js");
+    const unwrapped = findUnwrappedEnterpriseInSource(
+      'client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])\nchat = RubyLLM.chat(model: "gpt-4o")\n',
+      ".rb",
+    );
+    expect(unwrapped).toEqual([
+      { line: 1, call: "OpenAI::Client / RubyLLM" },
+      { line: 2, call: "OpenAI::Client / RubyLLM" },
+    ]);
+    const wrapped = findUnwrappedEnterpriseInSource(
+      'require_relative "spurvik_guard"\nclient = OpenAI::Client.new\n',
+      ".rb",
+    );
+    expect(wrapped).toEqual([]);
   });
 });

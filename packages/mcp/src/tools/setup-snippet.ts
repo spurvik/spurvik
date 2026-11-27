@@ -250,6 +250,18 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   kotlin: "openai",
   ktor: "openai",
   quarkus: "openai",
+  ruby: "openai",
+  rails: "openai",
+  "ruby-on-rails": "openai",
+  rails7: "openai",
+  rails8: "openai",
+  sinatra: "openai",
+  hanami: "openai",
+  ruby_llm: "openai",
+  langchainrb: "openai",
+  openwebui: "openai",
+  docker: "mcp",
+  "docker-mcp": "mcp",
   "pre-commit": "ci",
   precommit: "ci",
   husky: "ci",
@@ -293,6 +305,20 @@ const JVM_RAW_ALIASES = new Set([
   "ktor",
   "quarkus",
 ]);
+
+const RUBY_RAW_ALIASES = new Set([
+  "ruby",
+  "rails",
+  "ruby-on-rails",
+  "rails7",
+  "rails8",
+  "sinatra",
+  "hanami",
+  "ruby_llm",
+  "langchainrb",
+]);
+
+const OPENWEBUI_RAW_ALIASES = new Set(["openwebui", "open-webui"]);
 
 const PRECOMMIT_RAW_ALIASES = new Set(["pre-commit", "precommit", "husky", "git-hooks", "lefthook"]);
 
@@ -1024,6 +1050,29 @@ export function setupSnippetSource(
       "",
     ].join("\n");
   }
+  if (RUBY_RAW_ALIASES.has(rawLowerSrc)) {
+    const sysName = host || "Support AI";
+    const rbLocale =
+      typeof options.locale === "string" && EU_LANGUAGES.some((l) => l.code === options.locale)
+        ? options.locale
+        : (host ? inferLocaleFromDomain(host) : "en");
+    return [
+      "# 1) mkdir -p app/services && curl -fsSL https://spurvik.com/r/spurvik_guard.rb -o app/services/spurvik_guard.rb",
+      'require_relative "spurvik_guard"',
+      "",
+      `guard = SpurvikGuard.from_env(system_name: "${sysName}", locale: "${rbLocale}")`,
+      'guard.log_call(prompt_text: prompt, output_text: reply, model: "gpt-4o-mini", provider: "openai")',
+      `# 2) ERB / ViewComponent 24-language Art. 50(1) notice (0 cookies): <%= raw guard.badge_html %>`,
+      "",
+    ].join("\n");
+  }
+  if (OPENWEBUI_RAW_ALIASES.has(rawLowerSrc)) {
+    return [
+      "# Import zero-key EU AI Act & 2 Dec 2026 C2PA Tools into OpenWebUI (Workspace -> Tools -> + Create):",
+      "curl -fsSLO https://spurvik.com/r/openwebui-spurvik-tools.py",
+      "",
+    ].join("\n");
+  }
   const tsRuntime = runtime as TsRuntime;
   if (framework === "vercel-ai-sdk") {
     const baseMw = middlewareSource(tsRuntime);
@@ -1243,6 +1292,31 @@ export function setupSnippet(
       PRICE_NOTE,
     ];
     return `${jvmLines.join("\n")}\n\n\`\`\`java\n${source}\`\`\`\n`;
+  }
+  if (RUBY_RAW_ALIASES.has(rawLower)) {
+    const rbLines = [
+      `Framework: ${rawLower}. Runtime: ruby (Ruby 3.1+ / Rails 7 & 8, zero Gem dependencies).`,
+      `Download https://spurvik.com/r/spurvik_guard.rb into \`app/services/spurvik_guard.rb\` and set \`SPURVIK_API_KEY\` + \`SPURVIK_CONTENT_HASH_SECRET\` (>= 16 UTF-8 bytes; kept on your server). Sends keyed HMAC-SHA256 digests with 0 bytes of raw prompt text. ${DOES_NOT_MARK}`,
+      `Interactive Art. 12 & GDPR HMAC receipt cockpit: ${hmacCockpitUrlFor(host, effectiveLocale)}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${rbLines.join("\n")}\n\n\`\`\`ruby\n${source}\`\`\`\n`;
+  }
+  if (OPENWEBUI_RAW_ALIASES.has(rawLower)) {
+    const owLines = [
+      `Framework: ${rawLower}. Runtime: OpenWebUI Python Tools (6 zero-key EU AI Act & C2PA tools, 0 bytes of prompt text stored).`,
+      `Download https://spurvik.com/r/openwebui-spurvik-tools.py and paste into OpenWebUI (Workspace -> Tools -> + Create). ${DOES_NOT_MARK}`,
+      `Shareable readiness report for your domain: ${reportLink}`,
+      `Pro (${PRO_PRICE}): white-label badge and hosted Slack/Teams approval gates: ${proLink}`,
+      `Team (${TEAM_PRICE}): 2M events/mo, 12-month Frankfurt retention, webhook export & Annex IV draft: ${teamLink}`,
+      `Done-For-You 24h setup (${CONCIERGE_PRICE}, includes 1 year of Pro): ${conciergeLink}`,
+      PRICE_NOTE,
+    ];
+    return `${owLines.join("\n")}\n\n\`\`\`bash\n${source}\`\`\`\n`;
   }
   const isVibeAlias = rawLower === "lovable" || rawLower === "bolt" || rawLower === "bolt.new" || rawLower === "v0" || rawLower === "replit";
   const lines = [

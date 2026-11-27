@@ -1782,5 +1782,17 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     const dotnetRfp = harness(failFetch);
     expect(await runCli(["rfp", "visma.dk", "--provider", "csharp", "--lang", "da", "--json"], dotnetRfp.deps)).toBe(EXIT_OK);
     expect(JSON.parse(dotnetRfp.out()).markdown).toContain("SpurvikGuard.SendTelemetryEventAsync");
+
+    const railsSetup = harness(failFetch);
+    expect(await runCli(["setup", "rails", "--domain", "doctolib.fr", "--json"], railsSetup.deps)).toBe(EXIT_OK);
+    const railsJson = JSON.parse(railsSetup.out());
+    expect(railsJson.target).toBe("rails");
+    expect(railsJson.runtime).toBe("ruby");
+    expect(railsJson.installCommand).toContain("https://spurvik.com/r/spurvik_guard.rb");
+    expect(railsJson.snippet).toContain('SpurvikGuard.from_env(system_name: "doctolib.fr", locale: "fr")');
+
+    const railsRfp = harness(failFetch);
+    expect(await runCli(["rfp", "doctolib.fr", "--provider", "rails", "--lang", "fr", "--json"], railsRfp.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(railsRfp.out()).markdown).toContain("SpurvikGuard#log_call");
   });
 });
