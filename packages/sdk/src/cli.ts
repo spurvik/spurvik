@@ -2975,6 +2975,58 @@ export function rfpReport(options: {
   };
 }
 
+const CLI_RFP_ARTICLE_BY_QNUM: Readonly<Record<string, string>> = {
+  "1": "EU AI Act Art. 50(1) & Art. 50(2) (2 Dec 2026 C2PA)",
+  "2": "EU AI Act Art. 12 (HMAC-SHA256 Event Logging)",
+  "3": "GDPR Art. 5(1)(c) & EU Frankfurt (fra1) Residency",
+  "4": "EU AI Act Art. 14 (Human Oversight Gates)",
+  "5": "Retention, DPO Summary & Art. 11 Annex IV",
+};
+
+function escapeCliCsvCell(raw: string | undefined | null): string {
+  const normalized = String(raw ?? "").replace(/\r\n/g, "\n").trim();
+  const safe = /^[=+\-@\t\r]/.test(normalized) ? `'${normalized}` : normalized;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
+export function buildRfpCsv(report: RfpReport, rawProvider?: string, rawLocale?: string): string {
+  const blocks = report.markdown.split(/\n(?=## )/);
+  const header = "question_id,regulation_article,question,answer,plan_tier,provider,domain,locale,evidence_report_url";
+  const rows: string[] = [];
+  const provLabel = rawProvider?.trim() ? rawProvider.trim().toLowerCase() : report.provider;
+  const dom = report.domain ?? "";
+  const loc = rawLocale?.trim() || ((report as { locale?: string }).locale ?? "en");
+  const reportHref = dom ? `${CONSOLE_ORIGIN}/report?domain=${encodeURIComponent(dom)}` : `${CONSOLE_ORIGIN}/report`;
+  for (const block of blocks) {
+    const headMatch = /^## ([A-Z]([1-5])):\s*([^\n]+)\n([\s\S]*)$/.exec(block.trim());
+    if (!headMatch) continue;
+    const num = headMatch[2] ?? "1";
+    const qId = `Q${num}`;
+    const headingTitle = (headMatch[3] ?? "").trim();
+    const body = (headMatch[4] ?? "").replace(/\n_[^\n]*_$/g, "").trim();
+    const asksMatch = /\*\*Customer asks:\*\*\s*([^\n]+)/.exec(body);
+    const questionText = asksMatch?.[1]?.trim() ?? headingTitle;
+    const answerText = body
+      .replace(/^\*\*Customer asks:\*\*\s*[^\n]+\n*/m, "")
+      .replace(/^\*\*(?:Answer|Antwort|Réponse|Antwoord|Svar|Respuesta|Risposta):\*\*\s*/m, "")
+      .trim();
+    rows.push(
+      [
+        escapeCliCsvCell(qId),
+        escapeCliCsvCell(CLI_RFP_ARTICLE_BY_QNUM[num] ?? headingTitle),
+        escapeCliCsvCell(questionText),
+        escapeCliCsvCell(answerText),
+        escapeCliCsvCell(report.plan),
+        escapeCliCsvCell(provLabel),
+        escapeCliCsvCell(dom),
+        escapeCliCsvCell(loc),
+        escapeCliCsvCell(reportHref),
+      ].join(","),
+    );
+  }
+  return `${[header, ...rows].join("\n")}`;
+}
+
 function cmdRfp(args: ParsedArgs, io: Io): number {
   if (args.positionals.length > 1) {
     io.err(RFP_USAGE);
@@ -3004,6 +3056,10 @@ function cmdRfp(args: ParsedArgs, io: Io): number {
   });
   if (args.json) {
     io.out(JSON.stringify(report, null, 2));
+    return EXIT_OK;
+  }
+  if (args.csv) {
+    io.out(buildRfpCsv(report, args.provider, args.lang));
     return EXIT_OK;
   }
   const { c, out } = io;
@@ -3993,6 +4049,7 @@ interface ParsedArgs {
   command: string | undefined;
   positionals: string[];
   json: boolean;
+  csv: boolean;
   failOnGap: boolean;
   failOnMissing: boolean;
   help: boolean;
@@ -4041,6 +4098,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     command: undefined,
     positionals: [],
     json: false,
+    csv: false,
     failOnGap: false,
     failOnMissing: false,
     help: false,
@@ -4057,6 +4115,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       break;
     }
     if (arg === "--json") parsed.json = true;
+    else if (arg === "--csv") parsed.csv = true;
     else if (arg === "--fail-on-gap") parsed.failOnGap = true;
     else if (arg === "--fail-on-missing") parsed.failOnMissing = true;
     else if (arg === "-h" || arg === "--help") parsed.help = true;
@@ -4238,6 +4297,10 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
       args.command === "trust-center")
   ) {
     io.err("spurvik: --fail-on-gap is for scan and audit.");
+    return EXIT_ERROR;
+  }
+  if (args.csv && args.command !== "rfp") {
+    io.err("spurvik: --csv applies to the rfp command only.");
     return EXIT_ERROR;
   }
   if ((args.generatesMedia || args.noHighRiskActions) && args.command !== "rfp") {
