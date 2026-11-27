@@ -687,9 +687,130 @@ function renderLocalizedMarkdown(input: {
  * and DPO RFPs. Pure and deterministic: no network call, no credential. Throws only for a plan, provider or flag
  * outside the allowed values (the value is not repeated). A domain that is not a public hostname is dropped.
  */
+const N8N_PROVIDER_ALIASES: Readonly<Record<string, SpurvikQuestionnaireProvider>> = {
+  gemini: "google-genai",
+  google: "google-genai",
+  ai: "vercel-ai-sdk",
+  "ai-sdk": "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  mistral: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  vllm: "openai",
+  php: "custom",
+  laravel: "custom",
+  symfony: "custom",
+  dotnet: "custom",
+  csharp: "custom",
+  go: "custom",
+  golang: "custom",
+  java: "custom",
+  spring: "custom",
+  "spring-boot": "custom",
+  ruby: "custom",
+  rails: "custom",
+  fastapi: "python",
+  langchain: "python",
+  "pydantic-ai": "python",
+};
+
+const N8N_EXTRA_PROVIDER_FACTS: Readonly<Record<string, ProviderFacts>> = {
+  mistral: {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL,
+  },
+  "mistral-ai": {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL,
+  },
+  azure: {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL,
+  },
+  "azure-openai": {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL,
+  },
+  bedrock: {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL,
+  },
+  "aws-bedrock": {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL,
+  },
+  dotnet: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)",
+  },
+  csharp: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)",
+  },
+  go: {
+    label: "Go 1.21+ (spurvik_guard.go)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`spurvikguard.SendTelemetryEvent` (`spurvik_guard.go`, 0 go.mod deps)",
+    approval: "`spurvikguard.VerifySignedCallback` (`spurvik_guard.go`)",
+  },
+  php: {
+    label: "PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)",
+  },
+  laravel: {
+    label: "Laravel / PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)",
+  },
+  "spring-boot": {
+    label: "Spring Boot 3 / Spring AI (Java 21+)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256`, 0 Maven/Gradle deps)",
+    approval: CLIENT_APPROVAL,
+  },
+  ruby: {
+    label: "Ruby 3.1+ / Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)",
+  },
+  rails: {
+    label: "Ruby on Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)",
+  },
+};
+
 export function spurvikVendorQuestionnaireAnswers(input: SpurvikVendorQuestionnaireInput = {}): SpurvikVendorQuestionnaireOutput {
   const planKey = oneOf(input.plan, SPURVIK_QUESTIONNAIRE_PLANS, "pro", "plan");
-  const providerKey = oneOf(input.provider, SPURVIK_QUESTIONNAIRE_PROVIDERS, "openai", "provider");
+  const rawProvAlias = typeof input.provider === "string" ? input.provider.trim().toLowerCase() : "";
+  const mappedProvInput = rawProvAlias && rawProvAlias in N8N_PROVIDER_ALIASES ? N8N_PROVIDER_ALIASES[rawProvAlias] : input.provider;
+  const providerKey = oneOf(mappedProvInput, SPURVIK_QUESTIONNAIRE_PROVIDERS, "openai", "provider");
   const locale = oneOf(input.locale, SPURVIK_QUESTIONNAIRE_LOCALES, "en", "locale");
   const hasHighRiskActions = flag(input.hasHighRiskActions, true, "hasHighRiskActions");
   const generatesMedia = flag(input.generatesMedia, false, "generatesMedia");
@@ -698,7 +819,7 @@ export function spurvikVendorQuestionnaireAnswers(input: SpurvikVendorQuestionna
   const domainIgnored = rawDomain.trim() !== "" && host === null;
 
   const plan = PLAN_FACTS[planKey];
-  const provider = PROVIDER_FACTS[providerKey];
+  const provider = (rawProvAlias ? N8N_EXTRA_PROVIDER_FACTS[rawProvAlias] : undefined) ?? PROVIDER_FACTS[providerKey];
   const isConcierge = planKey === "concierge";
   const upgradeUrls = upgradeUrlsFor(host, locale);
   if (locale !== "en") {

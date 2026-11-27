@@ -3036,7 +3036,7 @@ export function buildRfpCsv(report: RfpReport, rawProvider?: string, rawLocale?:
   const loc = rawLocale?.trim() || ((report as { locale?: string }).locale ?? "en");
   const reportHref = dom ? `${CONSOLE_ORIGIN}/report?domain=${encodeURIComponent(dom)}` : `${CONSOLE_ORIGIN}/report`;
   for (const block of blocks) {
-    const headMatch = /^## ([A-Z]([1-5])):\s*([^\n]+)\n([\s\S]*)$/.exec(block.trim());
+    const headMatch = /^## ([A-Z]([1-5]))\s*:\s*([^\n]+)\n([\s\S]*)$/.exec(block.trim());
     if (!headMatch) continue;
     const num = headMatch[2] ?? "1";
     const qId = `Q${num}`;
@@ -3046,7 +3046,7 @@ export function buildRfpCsv(report: RfpReport, rawProvider?: string, rawLocale?:
     const questionText = asksMatch?.[1]?.trim() ?? headingTitle;
     const answerText = body
       .replace(/^\*\*Customer asks:\*\*\s*[^\n]+\n*/m, "")
-      .replace(/^\*\*(?:Answer|Antwort|Réponse|Antwoord|Svar|Respuesta|Risposta):\*\*\s*/m, "")
+      .replace(/^\*\*(?:Answer|Antwort|Réponse|Antwoord|Svar|Respuesta|Risposta)\s*:\*\*\s*/m, "")
       .trim();
     rows.push(
       [

@@ -1804,6 +1804,14 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     }
     expect(csvOut).toContain("Mistral AI (EU Paris");
 
+    const rfpCsvFr = harness(failFetch);
+    expect(await runCli(["rfp", "doctolib.fr", "--provider", "mistral", "--lang", "fr", "--csv"], rfpCsvFr.deps)).toBe(EXIT_OK);
+    const csvFrOut = rfpCsvFr.out();
+    for (const qid of ['"Q1"', '"Q2"', '"Q3"', '"Q4"', '"Q5"']) {
+      expect(csvFrOut).toContain(qid);
+    }
+    expect(csvFrOut).not.toContain("**Réponse :**");
+
     const scanCsv = harness((async () => jsonResponse(FOLK_GAP)) as unknown as typeof fetch);
     expect(await runCli(["portfolio", "folk.app", "stepnetwork.dk", "--csv"], scanCsv.deps)).toBe(EXIT_OK);
     const scanCsvOut = scanCsv.out();

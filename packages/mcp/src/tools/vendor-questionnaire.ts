@@ -52,11 +52,12 @@ const LOCALIZED_RFP_COCKPIT_URLS: Record<QuestionnaireLocale, string> = {
 
 export interface VendorQuestionnaireInput {
   plan?: QuestionnairePlan;
-  provider?: QuestionnaireProvider;
+  provider?: QuestionnaireProvider | string;
   hasHighRiskActions?: boolean;
   generatesMedia?: boolean;
   domain?: string;
   locale?: QuestionnaireLocale;
+  format?: "markdown" | "csv";
 }
 
 export type VendorQuestionnaireOutcome = { ok: true; text: string } | { ok: false; error: string; message: string };
@@ -66,7 +67,7 @@ export const VENDOR_QUESTIONNAIRE_DEFAULTS = {
   provider: "openai",
   hasHighRiskActions: true,
   generatesMedia: false,
-} as const satisfies Required<Omit<VendorQuestionnaireInput, "domain" | "locale">>;
+} as const satisfies Required<Omit<VendorQuestionnaireInput, "domain" | "locale" | "format">>;
 
 export const MAX_QUESTIONNAIRE_DOMAIN_CHARS = 2048;
 
@@ -77,8 +78,9 @@ export const VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
     plan: { type: "string", enum: [...QUESTIONNAIRE_PLANS], description: "Spurvik plan the answers describe. Defaults to pro." },
     provider: {
       type: "string",
-      enum: [...QUESTIONNAIRE_PROVIDERS],
-      description: "Model provider or agent framework the product uses. Defaults to openai.",
+      maxLength: 64,
+      description:
+        "Model provider, sovereign EU gateway, or backend stack: openai (default), anthropic, google-genai, vercel-ai-sdk, langgraph, openai-agents, mastra, python, mistral, azure-openai, bedrock, litellm, laravel, php, dotnet, go, spring-boot, rails or custom.",
     },
     hasHighRiskActions: {
       type: "boolean",
@@ -98,6 +100,11 @@ export const VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA = {
       enum: [...QUESTIONNAIRE_LOCALES],
       description:
         "Optional answer language: en (default), de (German DSB), fr (French DPO), nl (Dutch FG), da (Danish DPO), sv (Swedish DSO), es (Spanish DPD) or it (Italian RPD/DPO).",
+    },
+    format: {
+      type: "string",
+      enum: ["markdown", "csv"],
+      description: "Output format: markdown (default) or csv (RFC 4180 table for Vanta, SafeBase, Conveyor & Excel).",
     },
   },
   additionalProperties: false,
@@ -202,6 +209,151 @@ const PROVIDER_FACTS: Record<QuestionnaireProvider, ProviderFacts> = {
   custom: { label: "our model provider", inference: "our model provider", wrapper: "`withSpurvik` on the provider client", approval: CLIENT_APPROVAL },
 };
 
+const PROVIDER_ALIASES: Readonly<Record<string, QuestionnaireProvider>> = {
+  gemini: "google-genai",
+  google: "google-genai",
+  ai: "vercel-ai-sdk",
+  "ai-sdk": "vercel-ai-sdk",
+  vercel: "vercel-ai-sdk",
+  mistral: "vercel-ai-sdk",
+  "mistral-ai": "vercel-ai-sdk",
+  azure: "vercel-ai-sdk",
+  "azure-openai": "vercel-ai-sdk",
+  bedrock: "vercel-ai-sdk",
+  "aws-bedrock": "vercel-ai-sdk",
+  litellm: "openai",
+  ollama: "openai",
+  vllm: "openai",
+  php: "custom",
+  laravel: "custom",
+  symfony: "custom",
+  dotnet: "custom",
+  csharp: "custom",
+  aspnet: "custom",
+  blazor: "custom",
+  go: "custom",
+  golang: "custom",
+  java: "custom",
+  spring: "custom",
+  "spring-boot": "custom",
+  kotlin: "custom",
+  ruby: "custom",
+  rails: "custom",
+  "ruby-on-rails": "custom",
+  ruby_llm: "custom",
+  langchainrb: "custom",
+  fastapi: "python",
+  langchain: "python",
+  pydanticai: "python",
+  "pydantic-ai": "python",
+  multi: "custom",
+};
+
+const EXTRA_PROVIDER_FACTS: Readonly<Record<string, ProviderFacts>> = {
+  mistral: {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL,
+  },
+  "mistral-ai": {
+    label: "Mistral AI (EU Paris · La Plateforme)",
+    inference: "Mistral AI in the European Union (Paris)",
+    wrapper: '`spurvikMiddleware` on `mistral("mistral-large-latest")` (`@ai-sdk/mistral`)',
+    approval: CLIENT_APPROVAL,
+  },
+  azure: {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL,
+  },
+  "azure-openai": {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    inference: "Microsoft Azure OpenAI EU DataZone (Sweden / Germany)",
+    wrapper: "`spurvikMiddleware` on `azure(...)` (`@ai-sdk/azure`)",
+    approval: CLIENT_APPROVAL,
+  },
+  bedrock: {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL,
+  },
+  "aws-bedrock": {
+    label: "AWS Bedrock (EU Frankfurt eu-central-1)",
+    inference: "AWS Bedrock in Frankfurt (`eu-central-1`)",
+    wrapper: "`spurvikMiddleware` on `bedrock(...)` (`@ai-sdk/amazon-bedrock`)",
+    approval: CLIENT_APPROVAL,
+  },
+  dotnet: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)",
+  },
+  csharp: {
+    label: ".NET 8+ / C# 12 (ASP.NET Core · SpurvikGuard.cs)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.SendTelemetryEventAsync` (`SpurvikGuard.cs`, 0 NuGet deps)",
+    approval: "`SpurvikGuard.VerifySignedCallback` (`SpurvikGuard.cs`)",
+  },
+  go: {
+    label: "Go 1.21+ (spurvik_guard.go)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`spurvikguard.SendTelemetryEvent` (`spurvik_guard.go`, 0 go.mod deps)",
+    approval: "`spurvikguard.VerifySignedCallback` (`spurvik_guard.go`)",
+  },
+  golang: {
+    label: "Go 1.21+ (spurvik_guard.go)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`spurvikguard.SendTelemetryEvent` (`spurvik_guard.go`, 0 go.mod deps)",
+    approval: "`spurvikguard.VerifySignedCallback` (`spurvik_guard.go`)",
+  },
+  php: {
+    label: "PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)",
+  },
+  laravel: {
+    label: "Laravel / PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)",
+  },
+  symfony: {
+    label: "Symfony / PHP 8.1+ (SpurvikGuard.php)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard::sendTelemetryEvent` (`SpurvikGuard.php`, 0 Composer deps)",
+    approval: "`SpurvikGuard::verifySignedCallback` (`SpurvikGuard.php`)",
+  },
+  java: {
+    label: "Java 21+ / Spring Boot 3 / Spring AI",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256`, 0 Maven/Gradle deps)",
+    approval: CLIENT_APPROVAL,
+  },
+  "spring-boot": {
+    label: "Spring Boot 3 / Spring AI (Java 21+)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikTelemetry.logCall` (`HmacSHA256`, 0 Maven/Gradle deps)",
+    approval: CLIENT_APPROVAL,
+  },
+  ruby: {
+    label: "Ruby 3.1+ / Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)",
+  },
+  rails: {
+    label: "Ruby on Rails 7 & 8 (spurvik_guard.rb)",
+    inference: "our configured EU model endpoint",
+    wrapper: "`SpurvikGuard.send_telemetry_event` (`spurvik_guard.rb`, 0 extra gems)",
+    approval: "`SpurvikGuard.verify_signed_callback` (`spurvik_guard.rb`)",
+  },
+};
+
 function invalid(error: string, message: string): VendorQuestionnaireOutcome {
   return { ok: false, error, message };
 }
@@ -209,11 +361,13 @@ function invalid(error: string, message: string): VendorQuestionnaireOutcome {
 interface Resolved {
   plan: QuestionnairePlan;
   provider: QuestionnaireProvider;
+  providerAlias: string | null;
   hasHighRiskActions: boolean;
   generatesMedia: boolean;
   host: string | null;
   domainIgnored: boolean;
   locale: QuestionnaireLocale;
+  format: "markdown" | "csv";
 }
 
 function resolve(rawInput: unknown): Resolved | VendorQuestionnaireOutcome {
@@ -225,9 +379,18 @@ function resolve(rawInput: unknown): Resolved | VendorQuestionnaireOutcome {
   if (!(QUESTIONNAIRE_PLANS as readonly unknown[]).includes(plan)) {
     return invalid("invalid_plan", `plan must be one of: ${QUESTIONNAIRE_PLANS.join(", ")}.`);
   }
-  const provider = record.provider ?? VENDOR_QUESTIONNAIRE_DEFAULTS.provider;
-  if (!(QUESTIONNAIRE_PROVIDERS as readonly unknown[]).includes(provider)) {
+  const rawProv = record.provider ?? VENDOR_QUESTIONNAIRE_DEFAULTS.provider;
+  if (typeof rawProv !== "string") {
     return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
+  }
+  const normProvKey = rawProv.trim().toLowerCase();
+  const mappedProv = PROVIDER_ALIASES[normProvKey] ?? rawProv;
+  if (!(QUESTIONNAIRE_PROVIDERS as readonly unknown[]).includes(mappedProv)) {
+    return invalid("invalid_provider", `provider must be one of: ${QUESTIONNAIRE_PROVIDERS.join(", ")}.`);
+  }
+  const rawFormat = record.format ?? "markdown";
+  if (rawFormat !== "markdown" && rawFormat !== "csv") {
+    return invalid("invalid_format", 'format must be "markdown" or "csv".');
   }
   for (const key of ["hasHighRiskActions", "generatesMedia"] as const) {
     if (record[key] !== undefined && typeof record[key] !== "boolean") return invalid("invalid_flag", `${key} must be true or false.`);
@@ -243,12 +406,14 @@ function resolve(rawInput: unknown): Resolved | VendorQuestionnaireOutcome {
   const host = rawDomain.trim() ? publicHostname(rawDomain) : null;
   return {
     plan: plan as QuestionnairePlan,
-    provider: provider as QuestionnaireProvider,
+    provider: mappedProv as QuestionnaireProvider,
+    providerAlias: normProvKey in EXTRA_PROVIDER_FACTS ? normProvKey : null,
     hasHighRiskActions: (record.hasHighRiskActions as boolean | undefined) ?? VENDOR_QUESTIONNAIRE_DEFAULTS.hasHighRiskActions,
     generatesMedia: (record.generatesMedia as boolean | undefined) ?? VENDOR_QUESTIONNAIRE_DEFAULTS.generatesMedia,
     host,
     domainIgnored: rawDomain.trim() !== "" && host === null,
     locale: locale as QuestionnaireLocale,
+    format: rawFormat,
   };
 }
 
@@ -695,14 +860,92 @@ function renderLocalizedQuestionnaire(
   return `${lines.join("\n")}\n`;
 }
 
-/** Copy-paste Markdown answers to the five EU AI Act vendor-questionnaire questions. Pure and deterministic. */
+const RFP_CSV_ARTICLE_BY_QNUM: Readonly<Record<string, string>> = {
+  "1": "EU AI Act Art. 50(1) & Art. 50(2) (2 Dec 2026 C2PA)",
+  "2": "EU AI Act Art. 12 (HMAC-SHA256 Event Logging)",
+  "3": "GDPR Art. 5(1)(c) & EU Frankfurt (fra1) Residency",
+  "4": "EU AI Act Art. 14 (Human Oversight Gates)",
+  "5": "Retention, DPO Summary & Art. 11 Annex IV",
+};
+
+function escapeMcpCsvCell(raw: string): string {
+  const normalized = raw.replace(/\r\n/g, "\n").trim();
+  const safe = /^[=+\-@\t\r]/.test(normalized) ? `'${normalized}` : normalized;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
+function buildMcpRfpCsv(markdown: string, resolved: Resolved): string {
+  const coreMd = markdown.split("\n---\n")[0] ?? markdown;
+  const blocks = coreMd.split(/\n(?=## )/);
+  const header = [
+    "question_id",
+    "regulation_article",
+    "question",
+    "answer",
+    "plan_tier",
+    "provider",
+    "domain",
+    "locale",
+    "evidence_report_url",
+    "trust_center_md_url",
+    "pro_checkout_url",
+    "team_checkout_url",
+    "done_for_you_url",
+  ].join(",");
+  const rows: string[] = [];
+  const provDisplay = resolved.providerAlias ?? resolved.provider;
+  const domDisplay = resolved.host ?? "";
+  const locSuffix = resolved.locale !== "en" ? `&locale=${resolved.locale}` : "";
+  const reportHref = resolved.host ? `${reportUrlFor(resolved.host)}${locSuffix}` : "https://console.spurvik.com/report";
+  const trustMdHref = resolved.host
+    ? `https://console.spurvik.com/api/v1/badge/trust-center.md?domain=${encodeURIComponent(resolved.host)}${locSuffix}`
+    : "https://console.spurvik.com/api/v1/badge/trust-center.md";
+  const proHref = `${resolved.host ? proSignupUrlFor(resolved.host) : PRO_SIGNUP_URL}${locSuffix}`;
+  const teamHref = `${resolved.host ? teamSignupUrlFor(resolved.host) : TEAM_SIGNUP_URL}${locSuffix}`;
+  const dfyHref = `${resolved.host ? conciergeSignupUrlFor(resolved.host) : CONCIERGE_SIGNUP_URL}${locSuffix}`;
+  for (const block of blocks) {
+    const headMatch = /^## ([A-Z]([1-5]))\s*:\s*([^\n]+)\n([\s\S]*)$/.exec(block.trim());
+    if (!headMatch) continue;
+    const num = headMatch[2] ?? "1";
+    const qId = `Q${num}`;
+    const headingTitle = (headMatch[3] ?? "").trim();
+    const body = (headMatch[4] ?? "").replace(/\n_[^\n]*_$/g, "").trim();
+    const asksMatch = /\*\*Customer asks:\*\*\s*([^\n]+)/.exec(body);
+    const questionText = asksMatch?.[1]?.trim() ?? headingTitle;
+    const answerText = body
+      .replace(/^\*\*Customer asks:\*\*\s*[^\n]+\n*/m, "")
+      .replace(/^\*\*(?:Answer|Antwort|Réponse|Antwoord|Svar|Respuesta|Risposta)\s*:\*\*\s*/m, "")
+      .trim();
+    rows.push(
+      [
+        escapeMcpCsvCell(qId),
+        escapeMcpCsvCell(RFP_CSV_ARTICLE_BY_QNUM[num] ?? headingTitle),
+        escapeMcpCsvCell(questionText),
+        escapeMcpCsvCell(answerText),
+        escapeMcpCsvCell(resolved.plan),
+        escapeMcpCsvCell(provDisplay),
+        escapeMcpCsvCell(domDisplay),
+        escapeMcpCsvCell(resolved.locale),
+        escapeMcpCsvCell(reportHref),
+        escapeMcpCsvCell(trustMdHref),
+        escapeMcpCsvCell(proHref),
+        escapeMcpCsvCell(teamHref),
+        escapeMcpCsvCell(dfyHref),
+      ].join(","),
+    );
+  }
+  return `\uFEFF${[header, ...rows].join("\r\n")}\r\n`;
+}
+
+/** Copy-paste Markdown (or RFC 4180 CSV) answers to the five EU AI Act vendor-questionnaire questions. Pure and deterministic. */
 export function vendorQuestionnaireAnswers(rawInput: unknown = {}): VendorQuestionnaireOutcome {
   const resolved = resolve(rawInput);
   if ("ok" in resolved) return resolved;
   const plan = PLAN_FACTS[resolved.plan];
-  const provider = PROVIDER_FACTS[resolved.provider];
+  const provider = (resolved.providerAlias ? EXTRA_PROVIDER_FACTS[resolved.providerAlias] : undefined) ?? PROVIDER_FACTS[resolved.provider];
   if (resolved.locale !== "en") {
-    return { ok: true, text: renderLocalizedQuestionnaire(resolved.locale, resolved, plan, provider) };
+    const md = renderLocalizedQuestionnaire(resolved.locale, resolved, plan, provider);
+    return { ok: true, text: resolved.format === "csv" ? buildMcpRfpCsv(md, resolved) : md };
   }
   const isConcierge = resolved.plan === "concierge";
   const product = resolved.host ?? "our product";
@@ -730,5 +973,6 @@ export function vendorQuestionnaireAnswers(rawInput: unknown = {}): VendorQuesti
     ...nextSteps(resolved.host),
     "_Engineering answers based on Spurvik's shipped controls. Articles 12 and 14 bind high-risk systems (Art. 6, Annex III); that classification stays with you. Not legal advice._",
   ];
-  return { ok: true, text: `${lines.join("\n")}\n` };
+  const md = `${lines.join("\n")}\n`;
+  return { ok: true, text: resolved.format === "csv" ? buildMcpRfpCsv(md, resolved) : md };
 }

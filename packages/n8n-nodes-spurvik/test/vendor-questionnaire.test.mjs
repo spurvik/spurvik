@@ -577,4 +577,13 @@ describe("questionnaireHostname", () => {
       assert.equal(questionnaireHostname(raw), null, JSON.stringify(raw));
     }
   });
+
+  it("supports sovereign EU (mistral, azure-openai, aws-bedrock) and polyglot (rails, dotnet, laravel) provider aliases (H261c)", () => {
+    const mistralFr = spurvikVendorQuestionnaireAnswers({ plan: "team", provider: "mistral", domain: "doctolib.fr", locale: "fr" });
+    assert.equal(mistralFr.provider, "vercel-ai-sdk");
+    assert.ok(mistralFr.markdown.includes("Mistral AI (EU Paris"));
+
+    const railsFr = spurvikVendorQuestionnaireAnswers({ plan: "pro", provider: "rails", domain: "doctolib.fr", locale: "fr" });
+    assert.ok(railsFr.markdown.includes("spurvik_guard.rb"));
+  });
 });

@@ -260,21 +260,22 @@ describe("vendorQuestionnaireAnswers input validation", () => {
     expect(it).toContain("&appUrl=velasca.com&locale=it");
   });
 
-  it("publishes a JSON schema with no required fields", () => {
+  it("publishes a JSON schema with no required fields, sovereign EU / polyglot provider support, and CSV export (H261c)", () => {
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA).not.toHaveProperty("required");
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.plan.enum).toEqual(["free", "pro", "team", "concierge"]);
     expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.locale.enum).toEqual(["en", "de", "fr", "nl", "da", "sv", "es", "it"]);
-    expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.provider.enum).toEqual([
-      "openai",
-      "anthropic",
-      "google-genai",
-      "vercel-ai-sdk",
-      "langgraph",
-      "openai-agents",
-      "mastra",
-      "python",
-      "custom",
-    ]);
+    expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.provider.maxLength).toBe(64);
+    expect(VENDOR_QUESTIONNAIRE_INPUT_JSON_SCHEMA.properties.format.enum).toEqual(["markdown", "csv"]);
+
+    const mistralFrCsv = answers({ plan: "team", provider: "mistral", domain: "doctolib.fr", locale: "fr", format: "csv" });
+    expect(mistralFrCsv.startsWith("\uFEFFquestion_id,regulation_article,question,answer,")).toBe(true);
+    for (const qid of ['"Q1"', '"Q2"', '"Q3"', '"Q4"', '"Q5"']) {
+      expect(mistralFrCsv).toContain(qid);
+    }
+    expect(mistralFrCsv).toContain("Mistral AI (EU Paris");
+
+    const railsFrMd = answers({ plan: "pro", provider: "rails", domain: "doctolib.fr", locale: "fr" });
+    expect(railsFrMd).toContain("spurvik_guard.rb");
   });
 });
 

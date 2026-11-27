@@ -307,11 +307,15 @@ export function createServer(workspaceRoot: string, options: ServerOptions = {})
       description: VQ_DESCRIPTION,
       inputSchema: {
         plan: z.enum(QUESTIONNAIRE_PLANS).optional().describe(VQ_PLAN_FIELD),
-        provider: z.enum(QUESTIONNAIRE_PROVIDERS).optional().describe(VQ_PROVIDER_FIELD),
+        provider: z.string().max(64).optional().describe(VQ_PROVIDER_FIELD),
         hasHighRiskActions: z.boolean().optional().describe(VQ_HIGH_RISK_ACTIONS_FIELD),
         generatesMedia: z.boolean().optional().describe(VQ_GENERATES_MEDIA_FIELD),
         domain: z.string().max(MAX_QUESTIONNAIRE_DOMAIN_CHARS).optional().describe(VQ_DOMAIN_FIELD),
         locale: z.enum(QUESTIONNAIRE_LOCALES).optional().describe(VQ_LOCALE_FIELD),
+        format: z
+          .enum(["markdown", "csv"])
+          .optional()
+          .describe("Output format: markdown (default) or csv (RFC 4180 table for Vanta, SafeBase, Conveyor & Excel)."),
       },
       annotations: READ_ONLY_ANNOTATIONS,
     },

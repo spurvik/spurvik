@@ -106,7 +106,8 @@ describe("createServer", () => {
     expect(questionnaire?.inputSchema.required ?? []).toEqual([]);
     const props = questionnaire?.inputSchema.properties as Record<string, { type?: string; enum?: string[]; maxLength?: number }>;
     expect(props.plan?.enum).toEqual(["free", "pro", "team", "concierge"]);
-    expect(props.provider?.enum).toEqual(["openai", "anthropic", "google-genai", "vercel-ai-sdk", "langgraph", "openai-agents", "mastra", "python", "custom"]);
+    expect(props.provider).toMatchObject({ type: "string", maxLength: 64 });
+    expect(props.format?.enum).toEqual(["markdown", "csv"]);
     expect(props.hasHighRiskActions?.type).toBe("boolean");
     expect(props.generatesMedia?.type).toBe("boolean");
     expect(props.domain).toMatchObject({ type: "string", maxLength: 2048 });
