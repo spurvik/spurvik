@@ -3489,7 +3489,16 @@ export const ANNEX_IV_CLI_USE_CASES = [
 ] as const;
 export type AnnexIvCliUseCase = (typeof ANNEX_IV_CLI_USE_CASES)[number];
 
-export const ANNEX_IV_CLI_PROVIDERS = ["openai", "anthropic", "gemini", "mistral", "python"] as const;
+export const ANNEX_IV_CLI_PROVIDERS = [
+  "openai",
+  "anthropic",
+  "gemini",
+  "mistral",
+  "azure-openai",
+  "aws-bedrock",
+  "python",
+  "rails",
+] as const;
 export type AnnexIvCliProvider = (typeof ANNEX_IV_CLI_PROVIDERS)[number];
 
 export interface AnnexIvCliSection {
@@ -3593,17 +3602,29 @@ const ANNEX_IV_PV_META: Readonly<Record<AnnexIvCliProvider, { label: string; wra
     wrapper: `withSpurvik(new GoogleGenAI({}), { riskTier: "high_annex3" })`,
   },
   mistral: {
-    label: "Mistral AI EU Endpoint",
+    label: "Mistral AI EU Endpoint (Paris)",
     wrapper: `withSpurvik(mistralClient, { riskTier: "high_annex3" })`,
+  },
+  "azure-openai": {
+    label: "Azure OpenAI Service (EU Sweden Central / Germany West Central)",
+    wrapper: `withSpurvik(new AzureOpenAI(), { riskTier: "high_annex3" })`,
+  },
+  "aws-bedrock": {
+    label: "AWS Bedrock Runtime (EU Frankfurt eu-central-1)",
+    wrapper: `withSpurvik(bedrockClient, { riskTier: "high_annex3" })`,
   },
   python: {
     label: "Python 3.10+ (FastAPI / LangChain / PydanticAI)",
     wrapper: `spurvik_guard.send_telemetry_event(..., risk_tier="high_annex3")`,
   },
+  rails: {
+    label: "Ruby 3.1+ / Rails 7 & 8 (spurvik_guard.rb · 0 gems)",
+    wrapper: `SpurvikGuard.from_env(risk_tier: "high_annex3")`,
+  },
 };
 
 const ANNEX_IV_USAGE =
-  "Usage: spurvik annex-iv [domain] [--use-case employment|credit|education|essential_services|biometrics|support_agent] [--provider openai|anthropic|gemini|mistral|python] [--plan team|free] [--lang <eu-locale>] [--json]";
+  "Usage: spurvik annex-iv [domain] [--use-case employment|credit|education|essential_services|biometrics|support_agent] [--provider openai|anthropic|gemini|mistral|azure-openai|aws-bedrock|python|rails] [--plan team|free] [--lang <eu-locale>] [--csv] [--json]";
 
 function resolveAnnexIvUseCase(raw: string | undefined): AnnexIvCliUseCase | null {
   if (raw === undefined) return "employment";
@@ -3623,8 +3644,11 @@ function resolveAnnexIvProvider(raw: string | undefined): AnnexIvCliProvider | n
   if (v === "openai") return "openai";
   if (v === "anthropic" || v === "claude") return "anthropic";
   if (v === "gemini" || v === "google" || v === "google-genai") return "gemini";
-  if (v === "mistral") return "mistral";
-  if (v === "python" || v === "fastapi" || v === "langchain") return "python";
+  if (v === "mistral" || v === "mistral-ai") return "mistral";
+  if (v === "azure-openai" || v === "azure_openai" || v === "azure") return "azure-openai";
+  if (v === "aws-bedrock" || v === "aws_bedrock" || v === "bedrock") return "aws-bedrock";
+  if (v === "python" || v === "fastapi" || v === "langchain" || v === "pydantic-ai") return "python";
+  if (v === "rails" || v === "ruby" || v === "ruby-on-rails" || v === "ruby_llm" || v === "langchainrb") return "rails";
   return null;
 }
 
@@ -3815,7 +3839,49 @@ export function annexIvReport(options: {
   };
 }
 
+export function buildAnnexIvCsv(report: AnnexIvCliReport): string {
+  const pv = ANNEX_IV_PV_META[report.provider];
+  const cell = (raw: string): string => {
+    const flat = raw.replace(/\r?\n+/g, " ").trim();
+    const guarded = /^[=+\-@\t\r]/.test(flat) ? `'${flat}` : flat;
+    return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
+  };
+  const header = [
+    "Section",
+    "Annex_IV_Reference",
+    "Title",
+    "Source_Mode",
+    "Populated",
+    "System",
+    "Annex_III_Scope",
+    "Model_Provider",
+    "Summary",
+    "Team_Upgrade_URL",
+    "Studio_URL",
+  ].join(",");
+  const rows = report.sections.map((sec) =>
+    [
+      cell(`Section ${sec.number}`),
+      cell(sec.annexRef),
+      cell(sec.title),
+      cell(sec.sourceMode),
+      cell(sec.populatedInPreview ? "Yes" : "Team (€79/mo)"),
+      cell(report.displaySystem),
+      cell(report.annexIiiReference),
+      cell(pv.label),
+      cell(sec.summary),
+      cell(report.links.teamUpgradeUrl),
+      cell(report.links.studioUrl),
+    ].join(","),
+  );
+  return [header, ...rows].join("\n");
+}
+
 function cmdAnnexIv(args: ParsedArgs, io: Io): number {
+  if (args.json && args.csv) {
+    io.err("spurvik annex-iv: choose either --json or --csv, not both.");
+    return EXIT_ERROR;
+  }
   if (args.positionals.length > 1 || (args.positionals.length === 1 && args.domain !== undefined)) {
     io.err(ANNEX_IV_USAGE);
     return EXIT_ERROR;
@@ -3848,6 +3914,10 @@ function cmdAnnexIv(args: ParsedArgs, io: Io): number {
   });
   if (args.json) {
     io.out(JSON.stringify(report, null, 2));
+    return EXIT_OK;
+  }
+  if (args.csv) {
+    io.out(buildAnnexIvCsv(report));
     return EXIT_OK;
   }
   const { c, out } = io;
@@ -4337,8 +4407,15 @@ export async function runCli(argv: readonly string[], deps: CliDeps = {}): Promi
     io.err("spurvik: --fail-on-gap is for scan and audit.");
     return EXIT_ERROR;
   }
-  if (args.csv && args.command !== "rfp" && args.command !== "scan" && args.command !== "portfolio") {
-    io.err("spurvik: --csv applies to the rfp, scan and portfolio commands only.");
+  if (
+    args.csv &&
+    args.command !== "rfp" &&
+    args.command !== "scan" &&
+    args.command !== "portfolio" &&
+    args.command !== "annex-iv" &&
+    args.command !== "art11"
+  ) {
+    io.err("spurvik: --csv applies to the rfp, annex-iv, scan and portfolio commands only.");
     return EXIT_ERROR;
   }
   if ((args.generatesMedia || args.noHighRiskActions) && args.command !== "rfp") {

@@ -1820,5 +1820,23 @@ describe("spurvik risk — deterministic EU AI Act risk classifier & DPO self-as
     expect(scanCsvOut).toContain("/api/v1/rfp/answers?domain=folk.app&plan=team&format=csv");
     expect(scanCsvOut).toContain("https://console.spurvik.com/c2pa?domain=folk.app");
     expect(scanCsvOut).toContain("/api/v1/badge/trust-center.md?domain=folk.app");
+
+    const annexCsv = harness(failFetch);
+    expect(
+      await runCli(
+        ["annex-iv", "personio.de", "--use-case", "employment", "--provider", "azure-openai", "--csv"],
+        annexCsv.deps,
+      ),
+    ).toBe(EXIT_OK);
+    const annexCsvOut = annexCsv.out();
+    expect(annexCsvOut.startsWith("Section,Annex_IV_Reference,Title,Source_Mode,Populated,System")).toBe(true);
+    expect(annexCsvOut.trim().split("\n")).toHaveLength(10);
+    expect(annexCsvOut).toContain("Section 01");
+    expect(annexCsvOut).toContain("Section 09");
+    expect(annexCsvOut).toContain("Azure OpenAI Service");
+
+    const annexRails = harness(failFetch);
+    expect(await runCli(["annex-iv", "doctolib.fr", "--provider", "rails", "--json"], annexRails.deps)).toBe(EXIT_OK);
+    expect(JSON.parse(annexRails.out()).provider).toBe("rails");
   });
 });
