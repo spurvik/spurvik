@@ -66,6 +66,7 @@ export const IDE_CI_FRAMEWORKS = [
   "mcp",
   "github-actions",
   "gitlab-ci",
+  "azure-devops",
   "bitbucket",
   "ci",
 ] as const;
@@ -137,6 +138,9 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   cmp: "gtm",
   shopware6: "shopware",
   "adobe-commerce": "magento",
+  magento2: "magento",
+  "magento-2": "magento",
+  hyva: "magento",
   "trust-center": "trust-widget",
   "trust-center-md": "well-known",
   notion: "well-known",
@@ -151,6 +155,8 @@ const SETUP_FRAMEWORK_ALIASES: Readonly<Record<string, Framework>> = {
   "ai-act.json": "well-known",
   well_known: "well-known",
   gitlab: "gitlab-ci",
+  "azure-pipelines": "azure-devops",
+  ado: "azure-devops",
   "bitbucket-pipelines": "bitbucket",
   "chatgpt-actions": "mcp",
   "custom-gpt": "mcp",
@@ -909,6 +915,12 @@ function cmsSource(framework: CmsFramework, host: string | null = null, locale =
       "curl -fsSLO https://spurvik.com/r/spurvik-shopware6-art50.zip",
     ].join("\n") + "\n";
   }
+  if (framework === "magento") {
+    return [
+      "# Magento 2.4+ / Adobe Commerce module (Luma & Hyvä compatible, Cookiebot & Usercentrics exempt):",
+      "mkdir -p app/code && curl -fsSLO https://spurvik.com/r/spurvik-magento2-art50.zip && unzip -q spurvik-magento2-art50.zip -d app/code && php bin/magento module:enable Spurvik_EuAiAct && php bin/magento setup:upgrade",
+    ].join("\n") + "\n";
+  }
   if (framework === "cloudflare") {
     return [
       "# Cloudflare Edge Worker: streaming HTMLRewriter Art. 50(1) notice + 2 Dec 2026 C2PA polish:'off' passthrough:",
@@ -991,9 +1003,10 @@ export function setupSnippetSource(
       "curl -fsSL https://spurvik.com/r/windsurfrules.md -o .windsurfrules",
       "curl -fsSL https://spurvik.com/r/AGENTS.md -o AGENTS.md",
       "",
-      "# GitHub Actions PR-Gate (`uses: spurvik/spurvik@v1`), European GitLab CI (.gitlab-ci.yml) & Bitbucket Pipelines:",
+      "# GitHub Actions PR-Gate (`uses: spurvik/spurvik@v1`), European GitLab CI (.gitlab-ci.yml), Azure DevOps & Bitbucket Pipelines:",
       "mkdir -p .github/workflows && curl -fsSL https://spurvik.com/r/github-action-spurvik-check.yml -o .github/workflows/spurvik-check.yml",
       "curl -fsSL https://spurvik.com/r/gitlab-ci-spurvik-check.yml -o .gitlab-ci.yml",
+      "curl -fsSL https://spurvik.com/r/azure-pipelines-spurvik.yml -o azure-pipelines.yml",
       "curl -fsSL https://spurvik.com/r/bitbucket-pipelines-spurvik.yml -o bitbucket-pipelines.yml",
       "curl -fsSL https://spurvik.com/r/pre-commit-config.yaml -o .pre-commit-config.yaml && pre-commit install",
       `# Or in .github/workflows/spurvik-check.yml: uses: spurvik/spurvik@v1 with: { domain: ${targetHost} }`,
@@ -1225,7 +1238,7 @@ export function setupSnippet(
         ? "liquid"
         : framework === "wordpress"
           ? "php"
-          : framework === "prestashop" || framework === "shopware" || framework === "cloudflare" || framework === "well-known" || framework === "annex-iv"
+          : framework === "prestashop" || framework === "shopware" || framework === "magento" || framework === "cloudflare" || framework === "well-known" || framework === "annex-iv"
             ? "bash"
             : "html";
     const wpCockpitHref = wordpressCockpitUrlFor(host, effectiveLocale);
@@ -1238,6 +1251,8 @@ export function setupSnippet(
             ? `Upload https://spurvik.com/r/spurvik-prestashop-art50.zip in PrestaShop 1.7 / 8 / 9 (Modules -> Module Manager -> Upload a module). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
             : framework === "shopware"
               ? `Upload https://spurvik.com/r/spurvik-shopware6-art50.zip in Shopware 6.5 / 6.6+ (Extensions -> My extensions -> Upload extension). Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
+              : framework === "magento"
+                ? `Extract https://spurvik.com/r/spurvik-magento2-art50.zip (\`Spurvik_EuAiAct\` v1.0.0, Luma & Hyvä compatible, Cookiebot & Usercentrics exempt) into \`app/code/Spurvik/EuAiAct\` and run \`php bin/magento module:enable Spurvik_EuAiAct && php bin/magento setup:upgrade\`. Interactive cockpit: ${ecommerceCockpitUrlFor(host, effectiveLocale)}`
               : framework === "cloudflare"
                 ? `Deploy https://spurvik.com/r/cloudflare-worker-art50-c2pa.js on Cloudflare Workers for streaming HTMLRewriter Art. 50(1) notice injection + C2PA \`polish: "off"\` passthrough.`
                 : framework === "trust-widget"

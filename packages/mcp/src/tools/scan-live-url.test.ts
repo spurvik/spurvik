@@ -547,6 +547,7 @@ describe("scanLiveUrl", () => {
       drupalGuide: wpFr,
       ghostGuide: wpFr,
       hubspotCmsGuide: wpFr,
+      magento2ModuleZip: "https://spurvik.com/r/spurvik-magento2-art50.zip",
       magentoGuide: ecomFr,
       bigcommerceGuide: ecomFr,
     });

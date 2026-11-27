@@ -30,6 +30,7 @@ export const SHOPIFY_LIQUID_URL = "https://spurvik.com/r/spurvik-shopify-art50.l
 export const WORDPRESS_PLUGIN_URL = "https://spurvik.com/r/spurvik-eu-ai-act-wp.zip";
 export const PRESTASHOP_ZIP_URL = "https://spurvik.com/r/spurvik-prestashop-art50.zip";
 export const SHOPWARE_ZIP_URL = "https://spurvik.com/r/spurvik-shopware6-art50.zip";
+export const MAGENTO_ZIP_URL = "https://spurvik.com/r/spurvik-magento2-art50.zip";
 export const CLOUDFLARE_WORKER_URL = "https://spurvik.com/r/cloudflare-worker-art50-c2pa.js";
 export const CURSOR_RULES_URL = "https://spurvik.com/r/spurvik-cursor-rules.mdc";
 export const AGENTS_MD_URL = "https://spurvik.com/r/AGENTS.md";
@@ -59,7 +60,10 @@ export function platformInstallerUrlsFor(
     else if (platform === "Drupal") out.drupalGuide = wordpressCockpitUrlFor(host, locale);
     else if (platform === "Ghost") out.ghostGuide = wordpressCockpitUrlFor(host, locale);
     else if (platform === "HubSpot CMS") out.hubspotCmsGuide = wordpressCockpitUrlFor(host, locale);
-    else if (platform === "Magento") out.magentoGuide = ecommerceCockpitUrlFor(host, locale);
+    else if (platform === "Magento" || platform === "Magento 2") {
+      out.magento2ModuleZip = MAGENTO_ZIP_URL;
+      out.magentoGuide = ecommerceCockpitUrlFor(host, locale);
+    }
     else if (platform === "BigCommerce") out.bigcommerceGuide = ecommerceCockpitUrlFor(host, locale);
   }
   return out;

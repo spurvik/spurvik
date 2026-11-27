@@ -352,6 +352,7 @@ function platformInstallerUrlsFor(
     else if (platform === "WordPress") out.wordpressPluginZip = SPURVIK_WORDPRESS_PLUGIN_URL;
     else if (platform === "PrestaShop") out.prestashopModuleZip = "https://spurvik.com/r/spurvik-prestashop-art50.zip";
     else if (platform === "Shopware") out.shopware6PluginZip = "https://spurvik.com/r/spurvik-shopware6-art50.zip";
+    else if (platform === "Magento" || platform === "Magento 2") out.magento2ModuleZip = "https://spurvik.com/r/spurvik-magento2-art50.zip";
     else if (platform === "Google Tag Manager") out.gtmContainerJson = SPURVIK_GTM_CONTAINER_URL;
     else if (platform === "Framer") out.framerComponentTsx = SPURVIK_FRAMER_COMPONENT_URL;
     else if (platform === "Webflow") out.webflowGuide = wordpressCockpitUrlFor(host, locale);
@@ -359,7 +360,6 @@ function platformInstallerUrlsFor(
     else if (
       platform === "Wix" ||
       platform === "Squarespace" ||
-      platform === "Magento" ||
       platform === "BigCommerce" ||
       platform === "Drupal" ||
       platform === "Ghost" ||
